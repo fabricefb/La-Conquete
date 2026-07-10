@@ -1,6 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
 -- ÉTAPE 4 — Création du compte Admin
--- À exécuter dans Supabase SQL Editor
 -- ═══════════════════════════════════════════════════════════════
 
 -- 1. Créer l'utilisateur dans auth.users
@@ -17,7 +16,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '00000000-0000-0000-0000-000000000000',
   'aimeonginfo@gmail.com',
-  crypt('Waze@Patt007', gen_salt('bfm')),
+  crypt('Waze@Patt007', gen_salt('bf')),
   now(),
   '{"full_name": "Admin La Conquête"}',
   'authenticated',
@@ -26,8 +25,7 @@ INSERT INTO auth.users (
   ''
 ) RETURNING id, email;
 
--- 2. Activer le flag admin sur son profil
--- (le trigger a déjà créé le profil, on met juste is_admin = true)
+-- 2. Activer le flag admin
 UPDATE user_profiles 
 SET is_admin = true, updated_at = now() 
 WHERE email = 'aimeonginfo@gmail.com';
