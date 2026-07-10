@@ -1,13 +1,12 @@
 -- ═══════════════════════════════════════════════════════════════════
 -- MIGRATION COMPLÈTE — Église Évangélique La Conquête
--- Date: 2026-07-11
+-- Date: 2026-07-11  (v2 — idempotent, ré-exécutable à volonté)
 -- Tables: user_profiles, site_settings, page_contents, locations,
 --          events, ministries, media_items, testimonials, contact_messages,
 --          theme_settings
 -- ═══════════════════════════════════════════════════════════════════
 
 -- ─── 1. user_profiles ─────────────────────────────────────────────
--- Étend les utilisateurs Supabase Auth avec un flag is_admin.
 CREATE TABLE IF NOT EXISTS user_profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   email text NOT NULL,
@@ -18,7 +17,6 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- Trigger: auto-create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
 BEGIN
@@ -33,20 +31,26 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- RLS
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "profiles_select_own" ON user_profiles;
 CREATE POLICY "profiles_select_own" ON user_profiles FOR SELECT
   TO anon, authenticated USING (auth.uid() = id);
+
+DROP POLICY IF EXISTS "profiles_update_own" ON user_profiles;
 CREATE POLICY "profiles_update_own" ON user_profiles FOR UPDATE
   TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
+DROP POLICY IF EXISTS "profiles_admin_select_all" ON user_profiles;
 CREATE POLICY "profiles_admin_select_all" ON user_profiles FOR SELECT
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "profiles_admin_update" ON user_profiles;
 CREATE POLICY "profiles_admin_update" ON user_profiles FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
 -- ─── 2. site_settings ────────────────────────────────────────────
--- Paramètres globaux du site (clé-valeur).
 CREATE TABLE IF NOT EXISTS site_settings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   key text NOT NULL UNIQUE,
@@ -62,18 +66,25 @@ CREATE TABLE IF NOT EXISTS site_settings (
 );
 
 ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "settings_public_read" ON site_settings;
 CREATE POLICY "settings_public_read" ON site_settings FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "settings_admin_write" ON site_settings;
 CREATE POLICY "settings_admin_write" ON site_settings FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "settings_admin_update" ON site_settings;
 CREATE POLICY "settings_admin_update" ON site_settings FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "settings_admin_delete" ON site_settings;
 CREATE POLICY "settings_admin_delete" ON site_settings FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
 -- ─── 3. page_contents ────────────────────────────────────────────
--- Contenu éditable de chaque page (textes, images).
 CREATE TABLE IF NOT EXISTS page_contents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   page text NOT NULL
@@ -92,17 +103,25 @@ CREATE TABLE IF NOT EXISTS page_contents (
 );
 
 ALTER TABLE page_contents ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "content_public_read" ON page_contents;
 CREATE POLICY "content_public_read" ON page_contents FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "content_admin_write" ON page_contents;
 CREATE POLICY "content_admin_write" ON page_contents FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "content_admin_update" ON page_contents;
 CREATE POLICY "content_admin_update" ON page_contents FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "content_admin_delete" ON page_contents;
 CREATE POLICY "content_admin_delete" ON page_contents FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
--- ─── 4. locations ───────────────────────────────────────────
+-- ─── 4. locations ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS locations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
@@ -123,13 +142,24 @@ CREATE TABLE IF NOT EXISTS locations (
 );
 
 ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "locations_public_read" ON locations FOR SELECT
+
+DROP POLICY IF EXISTS "anon_select_locations" ON locations;
+CREATE POLICY "anon_select_locations" ON locations FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_locations" ON locations;
+DROP POLICY IF EXISTS "locations_admin_insert" ON locations;
 CREATE POLICY "locations_admin_insert" ON locations FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "anon_update_locations" ON locations;
+DROP POLICY IF EXISTS "locations_admin_update" ON locations;
 CREATE POLICY "locations_admin_update" ON locations FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "anon_delete_locations" ON locations;
+DROP POLICY IF EXISTS "locations_admin_delete" ON locations;
 CREATE POLICY "locations_admin_delete" ON locations FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
@@ -150,7 +180,7 @@ VALUES (
   0
 ) ON CONFLICT DO NOTHING;
 
--- ─── 5. events ───────────────────────────────────────────────
+-- ─── 5. events ───────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
@@ -165,17 +195,27 @@ CREATE TABLE IF NOT EXISTS events (
 );
 
 ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "events_public_read" ON events FOR SELECT
+
+DROP POLICY IF EXISTS "anon_select_events" ON events;
+CREATE POLICY "anon_select_events" ON events FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "anon_insert_events" ON events;
+DROP POLICY IF EXISTS "events_admin_insert" ON events;
 CREATE POLICY "events_admin_insert" ON events FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "anon_update_events" ON events;
+DROP POLICY IF EXISTS "events_admin_update" ON events;
 CREATE POLICY "events_admin_update" ON events FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "anon_delete_events" ON events;
+DROP POLICY IF EXISTS "events_admin_delete" ON events;
 CREATE POLICY "events_admin_delete" ON events FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
--- Seed events
 INSERT INTO events (title, description, category, image_url, event_date, location, is_live, is_featured) VALUES
   ('La Puissance de la Foi', 'Rejoignez-nous pour un moment exceptionnel de louange et de proclamation de la parole.', 'Cultes', 'https://images.pexels.com/photos/2889440/pexels-photo-2889440.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-12 10:00:00+02', 'Auditorium Principal', true, true),
   ('Impact Night', 'Une soirée dédiée à la nouvelle génération pour découvrir leurs dons spirituels.', 'Jeunesse', 'https://images.pexels.com/photos/8465180/pexels-photo-8465180.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-15 19:00:00+02', 'Campus Nord', false, false),
@@ -200,13 +240,21 @@ CREATE TABLE IF NOT EXISTS ministries (
 );
 
 ALTER TABLE ministries ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "ministries_public_read" ON ministries;
 CREATE POLICY "ministries_public_read" ON ministries FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "ministries_admin_insert" ON ministries;
 CREATE POLICY "ministries_admin_insert" ON ministries FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "ministries_admin_update" ON ministries;
 CREATE POLICY "ministries_admin_update" ON ministries FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "ministries_admin_delete" ON ministries;
 CREATE POLICY "ministries_admin_delete" ON ministries FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
@@ -228,13 +276,21 @@ CREATE TABLE IF NOT EXISTS media_items (
 );
 
 ALTER TABLE media_items ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "media_public_read" ON media_items;
 CREATE POLICY "media_public_read" ON media_items FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "media_admin_insert" ON media_items;
 CREATE POLICY "media_admin_insert" ON media_items FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "media_admin_update" ON media_items;
 CREATE POLICY "media_admin_update" ON media_items FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "media_admin_delete" ON media_items;
 CREATE POLICY "media_admin_delete" ON media_items FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
@@ -252,13 +308,21 @@ CREATE TABLE IF NOT EXISTS testimonials (
 );
 
 ALTER TABLE testimonials ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "testimonials_public_read" ON testimonials;
 CREATE POLICY "testimonials_public_read" ON testimonials FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "testimonials_admin_insert" ON testimonials;
 CREATE POLICY "testimonials_admin_insert" ON testimonials FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "testimonials_admin_update" ON testimonials;
 CREATE POLICY "testimonials_admin_update" ON testimonials FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "testimonials_admin_delete" ON testimonials;
 CREATE POLICY "testimonials_admin_delete" ON testimonials FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
@@ -274,18 +338,25 @@ CREATE TABLE IF NOT EXISTS contact_messages (
 );
 
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "messages_public_insert" ON contact_messages;
 CREATE POLICY "messages_public_insert" ON contact_messages FOR INSERT
   TO anon, authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "messages_admin_read" ON contact_messages;
 CREATE POLICY "messages_admin_read" ON contact_messages FOR SELECT
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "messages_admin_update" ON contact_messages;
 CREATE POLICY "messages_admin_update" ON contact_messages FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "messages_admin_delete" ON contact_messages;
 CREATE POLICY "messages_admin_delete" ON contact_messages FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
 -- ─── 10. theme_settings ──────────────────────────────────────────
--- Singleton : une seule ligne (id=1) stocke toute la charte graphique.
 CREATE TABLE IF NOT EXISTS theme_settings (
   id integer PRIMARY KEY DEFAULT 1 CHECK (id = 1),
   primary_color text NOT NULL DEFAULT '#e8a73c',
@@ -303,10 +374,16 @@ CREATE TABLE IF NOT EXISTS theme_settings (
 );
 
 ALTER TABLE theme_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "theme_public_read" ON theme_settings;
 CREATE POLICY "theme_public_read" ON theme_settings FOR SELECT
   TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "theme_admin_write" ON theme_settings;
 CREATE POLICY "theme_admin_write" ON theme_settings FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+DROP POLICY IF EXISTS "theme_admin_update" ON theme_settings;
 CREATE POLICY "theme_admin_update" ON theme_settings FOR UPDATE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
@@ -414,4 +491,7 @@ INSERT INTO ministries (title, description, icon_name, schedule, accent_color, s
   ('Louange', 'Une équipe de musiciens et de chanteurs passionnés qui conduisent la congrégation dans un culte authentique.', 'Sparkles', 'Dimanche + répétitions', 'ember', 8, true)
 ON CONFLICT DO NOTHING;
 
--- ─── FIN ─────────────────────────────────────────────────────────
+-- ═══════════════════════════════════════════════════════════════════
+-- FIN — Ce script est idempotent : vous pouvez le relancer autant
+-- de fois que nécessaire sans erreur.
+-- ═══════════════════════════════════════════════════════════════════
