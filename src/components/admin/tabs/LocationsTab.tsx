@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
-import type { Location } from '../../types';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
+import type { Location } from '../../../types';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, MapPin } from 'lucide-react';
 
 interface LocationForm {

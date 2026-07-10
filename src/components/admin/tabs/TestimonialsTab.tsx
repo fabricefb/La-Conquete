@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Check, Mail, Eye } from 'lucide-react';
-import { ImageUpload } from '../ImageUpload';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
+import { Plus, Trash2, Save, X, Edit3, Loader2 } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 interface Testimonial {
   id: string;
@@ -196,7 +196,7 @@ export function TestimonialsTab() {
     setSaving(true);
     const payload = {
       author_name: form.author_name.trim(),
-      author_title: form.author_title.trim() || null,
+      author_title: form.author_title?.trim() || null,
       content: form.content.trim(),
       photo_url: form.photo_url?.trim() || null,
       sort_order: form.sort_order,
@@ -289,7 +289,7 @@ export function TestimonialsTab() {
             <input
               type="text"
               className="input-surface w-full px-4 py-2.5 text-sm"
-              value={form.author_title}
+              value={form.author_title ?? ''}
               onChange={e => updateForm('author_title', e.target.value)}
               placeholder="Ex: Membre de la paroisse"
             />
@@ -313,7 +313,7 @@ export function TestimonialsTab() {
             <input
               type="text"
               className="input-surface w-full px-4 py-2.5 text-sm"
-              value={form.photo_url}
+              value={form.photo_url ?? ''}
               onChange={e => updateForm('photo_url', e.target.value)}
               placeholder="https://..."
             />
@@ -323,7 +323,7 @@ export function TestimonialsTab() {
           <div>
             <label className="mb-1.5 block text-xs font-medium text-muted">Ou uploader une photo</label>
             <ImageUpload
-              value={form.photo_url}
+              value={form.photo_url ?? ''}
               onChange={(url: string) => setForm(f => ({ ...f, photo_url: url }))}
             />
           </div>

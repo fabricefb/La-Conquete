@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Check, Mail, Eye } from 'lucide-react';
-import { ImageUpload } from '../ImageUpload';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
+import { Plus, Trash2, Save, X, Edit3, Loader2, Check, Eye } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 interface MediaItem {
   id: string;
@@ -155,7 +155,7 @@ export function MediaTab() {
     setSaving(true);
     const payload = {
       title: form.title.trim(),
-      description: form.description.trim() || null,
+      description: form.description?.trim() || null,
       file_url: form.file_url.trim(),
       thumbnail_url: form.thumbnail_url?.trim() || null,
       file_type: form.file_type,
@@ -261,7 +261,7 @@ export function MediaTab() {
             <textarea
               className="input-surface w-full px-4 py-2.5 text-sm resize-none"
               rows={3}
-              value={form.description}
+              value={form.description ?? ''}
               onChange={e => updateForm('description', e.target.value)}
               placeholder="Description optionnelle"
             />
@@ -324,7 +324,7 @@ export function MediaTab() {
             <input
               type="text"
               className="input-surface w-full px-4 py-2.5 text-sm"
-              value={form.thumbnail_url}
+              value={form.thumbnail_url ?? ''}
               onChange={e => updateForm('thumbnail_url', e.target.value)}
               placeholder="https://... (optionnel)"
             />

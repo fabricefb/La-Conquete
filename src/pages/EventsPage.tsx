@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useReveal } from '../lib/hooks';
 import { db, buildContentMap, getContent } from '../lib/supabase';
-import type { ChurchEvent, PageContent } from '../types';
+import type { ChurchEvent } from '../types';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';

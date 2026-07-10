@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
-import type { PageContent, MediaItem, MediaCategory } from '../types';
+import type { MediaItem, MediaCategory } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';

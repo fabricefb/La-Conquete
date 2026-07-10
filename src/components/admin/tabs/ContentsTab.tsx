@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
-import { Save, Plus, Trash2, X, ChevronDown, ChevronRight, Edit3, Loader2 } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
+import { Save, Plus, Trash2, X, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
-import type { PageContent, Ministry } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -45,7 +44,7 @@ const FALLBACK_VALUES: ValueItem[] = [
 
 export function AboutPage({ onNavigate }: PageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [contentMap, setContentMap] = useState<ReturnType<typeof buildContentMap>>(new Map());
+  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useReveal();
@@ -128,8 +127,8 @@ export function AboutPage({ onNavigate }: PageProps) {
   if (loading) {
     return (
       <div className="bg-bg min-h-screen">
-        <SiteHeader theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-        <MobileNav theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <SiteHeader activePage="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
         {/* Hero skeleton */}
         <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
@@ -175,8 +174,8 @@ export function AboutPage({ onNavigate }: PageProps) {
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-      <MobileNav theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
       {/* ── Hero ── */}
       <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
-import type { PageContent, SiteSetting, Ministry } from '../types';
 import { useReveal, useParallax } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -170,7 +169,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
   /* ── Data state ──────────────────────────────────────────────── */
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
-  const [ministries] = useState<Ministry[]>([]);
   const [loading, setLoading] = useState(true);
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
@@ -179,16 +177,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, mins] = await Promise.all([
+        const [contents, settings] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
-          db.getActiveMinistries(),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
         setSettingsMap(buildSettingsMap(settings));
-        // ministries are available for future use; we keep them in state
-        void mins;
       } catch {
         // Silently fall back to defaults
       } finally {

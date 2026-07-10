@@ -32,17 +32,19 @@ export type {
 };
 
 // ─── Generic fetcher ─────────────────────────────────────────────
-export async function fetchTable<T extends Record<string, unknown>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchTable<T>(
   table: string,
-  query?: (q: ReturnType<typeof supabase.from>) => ReturnType<typeof supabase.from>,
+  query?: (q: any) => any,
 ): Promise<T[]> {
-  let builder = supabase.from(table).select('*');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let builder: any = supabase.from(table).select('*');
   if (query) {
-    builder = query(builder) as typeof builder;
+    builder = query(builder);
   }
   const { data, error } = await builder;
   if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as T[];
+  return (data ?? []) as T[];
 }
 
 // ─── Fetch helpers typed per table ───────────────────────────────

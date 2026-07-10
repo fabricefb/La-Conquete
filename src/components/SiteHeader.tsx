@@ -29,10 +29,6 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
   // Fallback to DynamicTheme context if props not provided
   const [ctxTheme, setCtxTheme] = useState<Theme>('dark');
   const [ctxToggle] = useState<() => void>(() => {
-    try {
-      const { useDynamicTheme } = require('../contexts/DynamicTheme');
-      // Dynamic import approach not ideal but avoids circular deps at build time
-    } catch { /* use CSS class toggle as fallback */ }
     const next = ctxTheme === 'dark' ? 'light' : 'dark';
     setCtxTheme(next);
     document.documentElement.classList.remove('dark', 'light');

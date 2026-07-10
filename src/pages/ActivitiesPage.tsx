@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
-import type { PageContent, Ministry } from '../types';
+import type { Ministry } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -52,7 +52,7 @@ function getAccentClass(index: number): string {
 
 export function ActivitiesPage({ onNavigate }: PageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [contentMap, setContentMap] = useState<ReturnType<typeof buildContentMap>>(new Map());
+  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [ministries, setMinistries] = useState<Ministry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -110,8 +110,8 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
   if (loading) {
     return (
       <div className="bg-bg min-h-screen">
-        <SiteHeader theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-        <MobileNav theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <SiteHeader activePage="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <MobileNav active="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
         {/* Hero skeleton */}
         <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
@@ -149,8 +149,8 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-      <MobileNav theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
       {/* ── Hero ── */}
       <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
@@ -194,7 +194,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
                       <Icon className="h-6 w-6 text-gold" />
                     </div>
                     <h3 className="font-serif mb-2 text-xl font-semibold text-cream">
-                      {ministry.name}
+                      {ministry.title}
                     </h3>
                     <p className="mb-4 text-sm leading-relaxed text-muted">
                       {ministry.description}

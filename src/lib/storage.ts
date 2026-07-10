@@ -9,7 +9,7 @@ const STORAGE_BUCKET = 'media';
 export async function uploadFile(
   file: File,
   path?: string,
-  onProgress?: (percent: number) => void,
+  _onProgress?: (percent: number) => void,
 ): Promise<string> {
   // Ensure bucket exists (non-breaking if it does)
   const { error: bucketError } = await supabase.storage.createBucket(STORAGE_BUCKET, {

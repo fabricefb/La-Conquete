@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import { db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
-import type { PageContent, SiteSetting, Location } from '../types';
+import type { Location } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { useToast } from '../contexts/ToastContext';

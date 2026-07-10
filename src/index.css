@@ -40,9 +40,33 @@
 @layer base {
   * { -webkit-font-smoothing: antialiased; }
   html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', system-ui, sans-serif; background-color: rgb(var(--bg-rgb)); color: rgb(var(--text-rgb)); overflow-x: hidden; transition: background-color 0.4s ease, color 0.4s ease; }
-  h1,h2,h3,h4,h5,h6 { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+  body { font-family: var(--custom-body-font, 'Inter'), system-ui, sans-serif; background-color: rgb(var(--bg-rgb)); color: rgb(var(--text-rgb)); overflow-x: hidden; transition: background-color 0.4s ease, color 0.4s ease; }
+  h1,h2,h3,h4,h5,h6 { font-family: var(--custom-title-font, 'Cormorant Garamond'), serif; font-weight: 600; }
   ::selection { background: rgba(232,167,60,0.25); }
+}
+
+/* ─── Dynamic Theme: Custom CSS Properties ──────────────────────────── */
+/* These are overridden at runtime by DynamicThemeProvider when
+   the admin customizes colors, fonts, button/card styles, or radius. */
+:root {
+  /* --custom-primary / --custom-secondary / --custom-accent are set via JS */
+  /* --custom-btn-style, --custom-card-style, --custom-radius set via JS  */
+  /* --custom-title-font, --custom-body-font set via JS                 */
+  /* --custom-theme-active: '1' when custom theme is on                 */
+}
+
+/* Override border-radius globally when custom theme is active */
+html[style*="--custom-theme-active"] {
+  --dynamic-radius: var(--custom-radius, 12px);
+  .glass, .btn-gold, .btn-ghost, .btn-ember, .input-surface, [class*="rounded-"] {
+    border-radius: var(--dynamic-radius) !important;
+  }
+}
+
+/* Override gold gradient when custom primary is set */
+html[style*="--custom-primary"] .gold-text,
+html[style*="--custom-primary"] .btn-gold {
+  --override: var(--custom-primary);
 }
 
 @layer components {

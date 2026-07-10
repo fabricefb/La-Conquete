@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Check, Mail, Eye } from 'lucide-react';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
+import { Trash2, Mail, Eye } from 'lucide-react';
 
 interface ContactMessage {
   id: string;

@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
+import { db } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
 import { Save, RotateCcw, Palette, Type, RectangleHorizontal, Square, Minus, Maximize, Loader2 } from 'lucide-react';
-import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../types';
+import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../../types';
 
 // ─── Defaults ───────────────────────────────────────────────────
 const DEFAULT_THEME: ThemeSettings = {
@@ -223,7 +223,7 @@ export function ThemeTab() {
 
   // ── Updaters ──────────────────────────────────────────────────
   const updateField = useCallback(<K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
-    setLocalSettings((prev) => ({ ...prev, [key]: value }));
+    setLocalSettings((prev: ThemeSettings) => ({ ...prev, [key]: value }));
   }, []);
 
   // ── Save handler ──────────────────────────────────────────────

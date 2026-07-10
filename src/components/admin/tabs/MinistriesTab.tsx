@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -49,8 +49,6 @@ const ICON_OPTIONS = [
   'Mic',
 ] as const;
 
-type IconName = (typeof ICON_OPTIONS)[number];
-
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
@@ -94,7 +92,7 @@ function SkeletonCard() {
 // ---------------------------------------------------------------------------
 
 export function MinistriesTab() {
-  const { showToast } = useToast();
+  const { addToast } = useToast();
 
   // ---- state ---------------------------------------------------------------
   const [ministries, setMinistries] = useState<Ministry[]>([]);
@@ -113,12 +111,12 @@ export function MinistriesTab() {
       .order('sort_order');
 
     if (error) {
-      showToast('Erreur lors du chargement des ministères', 'error');
+      addToast('Erreur lors du chargement des ministères', 'error');
     } else {
       setMinistries((data as Ministry[]) ?? []);
     }
     setLoading(false);
-  }, [showToast]);
+  }, [addToast]);
 
   useEffect(() => {
     fetchMinistries();
@@ -162,7 +160,7 @@ export function MinistriesTab() {
   // ---- save ----------------------------------------------------------------
   const handleSave = async () => {
     if (!form.title.trim()) {
-      showToast('Le titre est obligatoire', 'error');
+      addToast('Le titre est obligatoire', 'error');
       return;
     }
 
@@ -186,9 +184,9 @@ export function MinistriesTab() {
         .eq('id', editingId);
 
       if (error) {
-        showToast('Erreur lors de la mise à jour', 'error');
+        addToast('Erreur lors de la mise à jour', 'error');
       } else {
-        showToast('Ministère mis à jour avec succès', 'success');
+        addToast('Ministère mis à jour avec succès', 'success');
         closeForm();
         fetchMinistries();
       }
@@ -196,9 +194,9 @@ export function MinistriesTab() {
       const { error } = await supabase.from('ministries').insert(payload);
 
       if (error) {
-        showToast('Erreur lors de la création', 'error');
+        addToast('Erreur lors de la création', 'error');
       } else {
-        showToast('Ministère créé avec succès', 'success');
+        addToast('Ministère créé avec succès', 'success');
         closeForm();
         fetchMinistries();
       }
@@ -216,9 +214,9 @@ export function MinistriesTab() {
     const { error } = await supabase.from('ministries').delete().eq('id', id);
 
     if (error) {
-      showToast('Erreur lors de la suppression', 'error');
+      addToast('Erreur lors de la suppression', 'error');
     } else {
-      showToast('Ministère supprimé', 'success');
+      addToast('Ministère supprimé', 'success');
       fetchMinistries();
     }
   };
@@ -231,7 +229,7 @@ export function MinistriesTab() {
       .eq('id', ministry.id);
 
     if (!error) {
-      showToast(
+      addToast(
         ministry.is_active ? 'Ministère désactivé' : 'Ministère activé',
         'success',
       );

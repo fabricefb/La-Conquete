@@ -28,7 +28,7 @@ export default function ImageUpload({
   const [dragActive, setDragActive] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
-  const { showToast } = useToast();
+  const { addToast } = useToast();
 
   const displayUrl = preview ?? value ?? null;
 
@@ -40,7 +40,7 @@ export default function ImageUpload({
       const validationError = validateFile(file, { accept, maxSizeMB });
       if (validationError) {
         setError(validationError);
-        showToast(validationError, 'error');
+        addToast(validationError, 'error');
         return;
       }
 
@@ -57,18 +57,18 @@ export default function ImageUpload({
         const publicUrl = await uploadFile(file, folder);
         setPreview(null); // no longer need local preview
         onChange(publicUrl);
-        showToast('Image uploaded successfully', 'success');
+        addToast('Image uploaded successfully', 'success');
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : 'Failed to upload image. Please try again.';
         setError(message);
-        showToast(message, 'error');
+        addToast(message, 'error');
         setPreview(null);
       } finally {
         setUploading(false);
       }
     },
-    [accept, maxSizeMB, folder, onChange, showToast],
+    [accept, maxSizeMB, folder, onChange, addToast],
   );
 
   const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {

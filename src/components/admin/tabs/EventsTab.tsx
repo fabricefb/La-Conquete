@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../../lib/supabase';
-import { useToast } from '../../contexts/ToastContext';
+import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../contexts/ToastContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -83,7 +83,7 @@ function SkeletonCard() {
 // ---------------------------------------------------------------------------
 
 export function EventsTab() {
-  const { showToast } = useToast();
+  const { addToast } = useToast();
 
   // ---- state ---------------------------------------------------------------
   const [events, setEvents] = useState<Event[]>([]);
@@ -102,12 +102,12 @@ export function EventsTab() {
       .order('event_date');
 
     if (error) {
-      showToast('Erreur lors du chargement des événements', 'error');
+      addToast('Erreur lors du chargement des événements', 'error');
     } else {
       setEvents((data as Event[]) ?? []);
     }
     setLoading(false);
-  }, [showToast]);
+  }, [addToast]);
 
   useEffect(() => {
     fetchEvents();
@@ -151,7 +151,7 @@ export function EventsTab() {
   // ---- save ----------------------------------------------------------------
   const handleSave = async () => {
     if (!form.title.trim() || !form.description.trim() || !form.event_date || !form.location.trim()) {
-      showToast('Veuillez remplir tous les champs obligatoires', 'error');
+      addToast('Veuillez remplir tous les champs obligatoires', 'error');
       return;
     }
 
@@ -168,9 +168,9 @@ export function EventsTab() {
         .eq('id', editingId);
 
       if (error) {
-        showToast('Erreur lors de la mise à jour', 'error');
+        addToast('Erreur lors de la mise à jour', 'error');
       } else {
-        showToast('Événement mis à jour avec succès', 'success');
+        addToast('Événement mis à jour avec succès', 'success');
         closeForm();
         fetchEvents();
       }
@@ -178,9 +178,9 @@ export function EventsTab() {
       const { error } = await supabase.from('events').insert(payload);
 
       if (error) {
-        showToast('Erreur lors de la création', 'error');
+        addToast('Erreur lors de la création', 'error');
       } else {
-        showToast('Événement créé avec succès', 'success');
+        addToast('Événement créé avec succès', 'success');
         closeForm();
         fetchEvents();
       }
@@ -198,9 +198,9 @@ export function EventsTab() {
     const { error } = await supabase.from('events').delete().eq('id', id);
 
     if (error) {
-      showToast('Erreur lors de la suppression', 'error');
+      addToast('Erreur lors de la suppression', 'error');
     } else {
-      showToast('Événement supprimé', 'success');
+      addToast('Événement supprimé', 'success');
       fetchEvents();
     }
   };
@@ -213,7 +213,7 @@ export function EventsTab() {
       .eq('id', event.id);
 
     if (!error) {
-      showToast(event.is_live ? 'En direct désactivé' : 'En direct activé', 'success');
+      addToast(event.is_live ? 'En direct désactivé' : 'En direct activé', 'success');
       fetchEvents();
     }
   };
@@ -225,7 +225,7 @@ export function EventsTab() {
       .eq('id', event.id);
 
     if (!error) {
-      showToast(
+      addToast(
         event.is_featured ? 'Retiré des mis en avant' : 'Ajouté aux mis en avant',
         'success',
       );

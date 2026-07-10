@@ -112,9 +112,9 @@ export function InteractiveMap({ locations, onSelect, className = '' }: Interact
                 </div>
 
                 {/* Pastor */}
-                {location.pastor && (
+                {location.pastor_name && (
                   <p className="mb-1.5 text-xs text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Pasteur :</span> {location.pastor}
+                    <span className="font-medium">Pasteur :</span> {location.pastor_name}
                   </p>
                 )}
 

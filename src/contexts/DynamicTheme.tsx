@@ -6,25 +6,10 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { supabase, db } from '../lib/supabase';
+import { db } from '../lib/supabase';
 import type { ThemeSettings, Theme, BorderRadius } from '../types';
 
-// ─── Font catalogues ──────────────────────────────────────────────
-const TITLE_FONTS = [
-  'Cormorant Garamond',
-  'Playfair Display',
-  'Lora',
-  'Merriweather',
-  'DM Serif Display',
-] as const;
-
-const BODY_FONTS = [
-  'Inter',
-  'DM Sans',
-  'Nunito',
-  'Source Sans 3',
-  'Outfit',
-] as const;
+// Font catalogues are defined locally in ThemeTab if needed for admin UI.
 
 // ─── Border-radius mapping ────────────────────────────────────────
 const RADIUS_MAP: Record<BorderRadius, string> = {

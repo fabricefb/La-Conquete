@@ -1,18 +1,18 @@
 import { useState } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { AdminLogin } from './AdminLogin';
-import { AdminLayout } from './AdminLayout';
-import { SettingsTab } from './tabs/SettingsTab';
-import { ContentsTab } from './tabs/ContentsTab';
-import { LocationsTab } from './tabs/LocationsTab';
-import { EventsTab } from './tabs/EventsTab';
-import { MinistriesTab } from './tabs/MinistriesTab';
-import { MediaTab } from './tabs/MediaTab';
-import { TestimonialsTab } from './tabs/TestimonialsTab';
-import { MessagesTab } from './tabs/MessagesTab';
-import { ThemeTab } from './tabs/ThemeTab';
-import type { AdminTab } from '../../types';
-import type { Page } from '../../lib/navigation';
+import { useAuth } from '../contexts/AuthContext';
+import AdminLogin from '../components/admin/AdminLogin';
+import { AdminLayout } from '../components/admin/AdminLayout';
+import { SettingsTab } from '../components/admin/tabs/SettingsTab';
+import { ContentsTab } from '../components/admin/tabs/ContentsTab';
+import { LocationsTab } from '../components/admin/tabs/LocationsTab';
+import { EventsTab } from '../components/admin/tabs/EventsTab';
+import { MinistriesTab } from '../components/admin/tabs/MinistriesTab';
+import { MediaTab } from '../components/admin/tabs/MediaTab';
+import { TestimonialsTab } from '../components/admin/tabs/TestimonialsTab';
+import { MessagesTab } from '../components/admin/tabs/MessagesTab';
+import { ThemeTab } from '../components/admin/tabs/ThemeTab';
+import type { AdminTab } from '../types';
+import type { Page } from '../lib/navigation';
 
 interface AdminPageProps {
   onNavigate: (page: Page) => void;
