@@ -102,12 +102,29 @@ CREATE POLICY "content_admin_update" ON page_contents FOR UPDATE
 CREATE POLICY "content_admin_delete" ON page_contents FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
--- ─── 4. locations (déjà existante, on s'assure que RLS est admin-only en écriture) ──
--- Si la table existe déjà, on met à jour les politiques d'écriture.
-DROP POLICY IF EXISTS "anon_insert_locations" ON locations;
-DROP POLICY IF EXISTS "anon_update_locations" ON locations;
-DROP POLICY IF EXISTS "anon_delete_locations" ON locations;
+-- ─── 4. locations ───────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS locations (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  address text NOT NULL,
+  city text NOT NULL,
+  country text NOT NULL DEFAULT 'RDC',
+  latitude numeric(10, 7) NOT NULL,
+  longitude numeric(10, 7) NOT NULL,
+  phone text,
+  email text,
+  service_times text,
+  pastor_name text,
+  is_main boolean NOT NULL DEFAULT false,
+  is_active boolean NOT NULL DEFAULT true,
+  sort_order integer NOT NULL DEFAULT 0,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
 
+ALTER TABLE locations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "locations_public_read" ON locations FOR SELECT
+  TO anon, authenticated USING (true);
 CREATE POLICY "locations_admin_insert" ON locations FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 CREATE POLICY "locations_admin_update" ON locations FOR UPDATE
@@ -116,11 +133,40 @@ CREATE POLICY "locations_admin_update" ON locations FOR UPDATE
 CREATE POLICY "locations_admin_delete" ON locations FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 
--- ─── 5. events (déjà existante, même traitement RLS) ─────────────
-DROP POLICY IF EXISTS "anon_insert_events" ON events;
-DROP POLICY IF EXISTS "anon_update_events" ON events;
-DROP POLICY IF EXISTS "anon_delete_events" ON events;
+INSERT INTO locations (name, address, city, country, latitude, longitude, phone, email, service_times, pastor_name, is_main, is_active, sort_order)
+VALUES (
+  'Eglise Principale La Conquete',
+  '520, Av. N''Djamena',
+  'Lubumbashi',
+  'RDC',
+  -11.6876,
+  27.4985,
+  '+243 844 107 079',
+  'egliseevangeliquelaconquete@gmail.com',
+  'Dimanche 09h00 & 11h30 | Mardi 19h00 | Jeudi 18h30',
+  'Pasteur Jacques-Daniel Kongolo',
+  true,
+  true,
+  0
+) ON CONFLICT DO NOTHING;
 
+-- ─── 5. events ───────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS events (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title text NOT NULL,
+  description text NOT NULL,
+  category text NOT NULL CHECK (category IN ('Cultes', 'Missions', 'Jeunesse', 'Communion')),
+  image_url text NOT NULL,
+  event_date timestamptz NOT NULL,
+  location text NOT NULL,
+  is_live boolean NOT NULL DEFAULT false,
+  is_featured boolean NOT NULL DEFAULT false,
+  created_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE events ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "events_public_read" ON events FOR SELECT
+  TO anon, authenticated USING (true);
 CREATE POLICY "events_admin_insert" ON events FOR INSERT
   TO authenticated WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 CREATE POLICY "events_admin_update" ON events FOR UPDATE
@@ -128,6 +174,14 @@ CREATE POLICY "events_admin_update" ON events FOR UPDATE
   WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
 CREATE POLICY "events_admin_delete" ON events FOR DELETE
   TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+
+-- Seed events
+INSERT INTO events (title, description, category, image_url, event_date, location, is_live, is_featured) VALUES
+  ('La Puissance de la Foi', 'Rejoignez-nous pour un moment exceptionnel de louange et de proclamation de la parole.', 'Cultes', 'https://images.pexels.com/photos/2889440/pexels-photo-2889440.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-12 10:00:00+02', 'Auditorium Principal', true, true),
+  ('Impact Night', 'Une soirée dédiée à la nouvelle génération pour découvrir leurs dons spirituels.', 'Jeunesse', 'https://images.pexels.com/photos/8465180/pexels-photo-8465180.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-15 19:00:00+02', 'Campus Nord', false, false),
+  ('Mission Espoir', 'Expédition humanitaire et spirituelle pour soutenir les communautés rurales.', 'Missions', 'https://images.pexels.com/photos/290468/pexels-photo-290468.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-18 08:00:00+02', 'Communautés Rurales', false, false),
+  ('Dîner de Gala', 'Une soirée de célébration et de levée de fonds pour nos projets de construction.', 'Communion', 'https://images.pexels.com/photos/3760529/pexels-photo-3760529.jpeg?auto=compress&cs=tinysrgb&w=800', '2026-07-22 20:00:00+02', 'Salle Polyvalente', false, false)
+ON CONFLICT DO NOTHING;
 
 -- ─── 6. ministries ───────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS ministries (
