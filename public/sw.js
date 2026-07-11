@@ -1,4 +1,4 @@
-const CACHE_NAME = 'la-conquete-v2';
+const CACHE_NAME = 'la-conquete-v3';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
