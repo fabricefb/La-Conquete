@@ -72,11 +72,11 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} className="hidden sm:flex" />
-                      <button onClick={() => handleNav('connexion')} className="hidden items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 xl:flex">
+                      <button onClick={() => handleNav('connexion')} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 lg:flex">
               <LogIn className="h-4 w-4" />
               Se connecter
             </button>
-            <button onClick={() => handleNav('contact')} className="btn-gold hidden px-4 py-2 text-sm xl:flex">Faire un don</button>
+            <button onClick={() => handleNav('contact')} className="btn-gold hidden px-4 py-2 text-sm lg:flex">Faire un don</button>
             <button onClick={() => setDrawerOpen(true)} aria-label="Ouvrir le menu"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 xl:hidden">
               <Menu className="h-5 w-5" />

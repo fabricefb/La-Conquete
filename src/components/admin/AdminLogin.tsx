@@ -32,8 +32,13 @@ export default function AdminLogin() {
     try {
       await signIn(email.trim(), password);
       addToast('Connexion réussie', 'success');
-    } catch {
-      setError('Email ou mot de passe incorrect');
+    } catch (err: unknown) {
+      let msg = 'Email ou mot de passe incorrect';
+      if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
+        msg = (err as any).message;
+      }
+      setError(msg);
+      console.error('Login error:', err);
     } finally {
       setLoading(false);
     }
@@ -111,9 +116,17 @@ export default function AdminLogin() {
       setMode('login');
       setPassword('');
       setConfirmPassword('');
-    } catch (err: any) {
-      const msg = err?.message || 'Erreur lors de la création du compte.';
+    } catch (err: unknown) {
+      let msg = 'Erreur lors de la création du compte.';
+      if (err && typeof err === 'object' && 'message' in err && typeof (err as any).message === 'string') {
+        msg = (err as any).message;
+      } else if (err && typeof err === 'object' && 'msg' in err && typeof (err as any).msg === 'string') {
+        msg = (err as any).msg;
+      } else if (typeof err === 'string') {
+        msg = err;
+      }
       setError(msg);
+      console.error('Signup error:', err);
     } finally {
       setLoading(false);
     }
