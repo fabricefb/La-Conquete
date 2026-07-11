@@ -79,29 +79,20 @@ export default function AdminLogin() {
       const session = data.session;
 
       if (userId) {
-        // 2. Mark as admin in user_profiles
-        const { error: profileError } = await supabase
+        // 2. Create/update profile as admin (upsert handles both cases)
+        const { error: profileErr } = await supabase
           .from('user_profiles')
-          .update({
-            is_admin: true,
+          .upsert({
+            id: userId,
+            email: email.trim(),
             full_name: name.trim(),
+            is_admin: true,
             onboarding_completed: true,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId);
+          }, { onConflict: 'id' });
 
-        if (profileError) {
-          // Profile might not exist yet (trigger should create it)
-          await supabase
-            .from('user_profiles')
-            .upsert({
-              id: userId,
-              email: email.trim(),
-              full_name: name.trim(),
-              is_admin: true,
-              onboarding_completed: true,
-              role: 'super_admin',
-            }, { onConflict: 'id' });
+        if (profileErr) {
+          console.error('Profile upsert error:', profileErr.message);
+          // Non-blocking: profile will be auto-created on fetchProfile
         }
       }
 

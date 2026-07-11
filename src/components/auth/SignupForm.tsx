@@ -7,7 +7,7 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import {
   Mail, Lock, User, Phone, ArrowRight, ChevronLeft,
-  Check, Eye, EyeOff, Sparkles, Loader2,
+  Check, Eye, EyeOff, Sparkles, Loader2, Users, MapPin,
 } from '../../lib/icons';
 
 /* ─── Props ─────────────────────────────────────────────────── */
@@ -20,7 +20,7 @@ interface SignupFormProps {
 const STEPS = [
   { label: 'Compte', icon: Mail },
   { label: 'Profil', icon: User },
-  { label: 'Interêts', icon: Sparkles },
+  { label: 'Statut', icon: Users },
 ] as const;
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -41,11 +41,11 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'homme' | 'femme' | ''>('');
-  const [joinedVia, setJoinedVia] = useState('');
 
-  /* ── Step 2: Interests (departments) ─────────────────────── */
+  /* ── Step 2: Church status + department ──────────────────── */
+  const [churchStatus, setChurchStatus] = useState<'member' | 'visitor' | 'seeker' | ''>('');
   const [departments, setDepartments] = useState<{ id: string; name: string; slug: string; icon_name: string; description: string }[]>([]);
-  const [selectedDepts, setSelectedDepts] = useState<Set<string>>(new Set());
+  const [selectedDept, setSelectedDept] = useState('');
   const [loadingDepts, setLoadingDepts] = useState(false);
 
   /* ── Load departments on step 2 ──────────────────────────── */
@@ -63,16 +63,6 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         .finally(() => setLoadingDepts(false));
     }
   }, [step, departments.length]);
-
-  /* ── Toggle department ───────────────────────────────────── */
-  const toggleDept = (id: string) => {
-    setSelectedDepts(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  };
 
   /* ── Validation ──────────────────────────────────────────── */
   const validateStep = (): boolean => {
@@ -120,8 +110,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             full_name: fullName.trim(),
             phone: phone.trim() || undefined,
             gender: gender || undefined,
-            joined_via: joinedVia || 'website',
-            interested_departments: Array.from(selectedDepts),
+            church_status: churchStatus || 'visitor',
           },
         },
       });
@@ -132,13 +121,35 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
       }
 
       if (data.user) {
-        // Update profile with additional info
-        await supabase.from('user_profiles').update({
+        // Upsert profile (creates if missing, updates if exists)
+        const profileData: Record<string, any> = {
+          id: data.user.id,
+          email: email.trim(),
           full_name: fullName.trim(),
           phone: phone.trim() || null,
           gender: gender || null,
-          joined_via: joinedVia || 'website',
-        }).eq('id', data.user.id);
+          onboarding_completed: true,
+        };
+
+        const { error: profileErr } = await supabase
+          .from('user_profiles')
+          .upsert(profileData, { onConflict: 'id' });
+
+        if (profileErr) {
+          console.error('Profile upsert error:', profileErr.message);
+          // Non-blocking: AuthContext will auto-create profile on fetch
+        }
+
+        // If member, join department
+        if (churchStatus === 'member' && selectedDept) {
+          await supabase
+            .from('department_members')
+            .upsert({
+              user_id: data.user.id,
+              department_id: selectedDept,
+            }, { onConflict: 'user_id,department_id' })
+            .catch(() => {});
+        }
 
         addToast('Compte créé avec succès ! Vérifiez votre email.', 'success');
         onComplete?.();
@@ -191,7 +202,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         </div>
       </div>
 
-      {/* ── Step content ─────────────────────────────────── */}
+      {/* ── Step 0: Account ───────────────────────────────── */}
       {step === 0 && (
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-cream text-center mb-6">
@@ -231,6 +242,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         </div>
       )}
 
+      {/* ── Step 1: Profile ───────────────────────────────── */}
       {step === 1 && (
         <div className="space-y-4">
           <h3 className="text-xl font-bold text-cream text-center mb-6">
@@ -267,51 +279,64 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
               ))}
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-1.5">Comment nous avez-vous connus ?</label>
-            <select value={joinedVia} onChange={e => setJoinedVia(e.target.value)}
-              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-cream focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 transition-all">
-              <option value="">Sélectionnez...</option>
-              <option value="word_of_mouth">Bouche-à-oreille</option>
-              <option value="social_media">Réseaux sociaux</option>
-              <option value="event">Un événement</option>
-              <option value="website">Site web</option>
-              <option value="invitation">Invitation personnelle</option>
-              <option value="other">Autre</option>
-            </select>
-          </div>
         </div>
       )}
 
+      {/* ── Step 2: Church status + department ────────────── */}
       {step === 2 && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <h3 className="text-xl font-bold text-cream text-center mb-2">
-            Vos centres d'intérêt
+            Votre situation
           </h3>
-          <p className="text-sm text-white/50 text-center mb-6">
-            Sélectionnez les départements qui vous intéressent.
+          <p className="text-sm text-white/50 text-center mb-4">
+            Comment décririez-vous votre relation avec l'église ?
           </p>
-          {loadingDepts ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-6 h-6 text-gold animate-spin" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {departments.map(dept => {
-                const isSelected = selectedDepts.has(dept.id);
-                return (
-                  <button key={dept.id} onClick={() => toggleDept(dept.id)}
-                    className={`p-3 rounded-xl border text-left transition-all duration-200 ${
-                      isSelected ? 'border-gold bg-gold/10' : 'border-white/10 hover:border-white/30'
-                    }`}>
-                    <div className="flex items-start justify-between mb-1">
-                      <span className="text-sm font-semibold text-cream">{dept.name}</span>
-                      {isSelected && <Check className="w-4 h-4 text-gold flex-shrink-0 ml-1" />}
-                    </div>
-                    <p className="text-xs text-white/40 line-clamp-2">{dept.description}</p>
-                  </button>
-                );
-              })}
+
+          {/* Status selection */}
+          <div className="space-y-2">
+            {([
+              { value: 'member', label: 'Je suis membre', desc: "J'ai déjà rejoint l'église" },
+              { value: 'visitor', label: 'Je suis visiteur', desc: "C'est ma première fois" },
+              { value: 'seeker', label: 'Je cherche à en savoir plus', desc: 'Je souhaite découvrir la foi' },
+            ] as const).map(opt => (
+              <button key={opt.value} type="button"
+                onClick={() => setChurchStatus(churchStatus === opt.value ? '' : opt.value)}
+                className={`w-full p-4 rounded-xl border text-left transition-all duration-200 ${
+                  churchStatus === opt.value
+                    ? 'border-gold bg-gold/10'
+                    : 'border-white/10 hover:border-white/30'
+                }`}>
+                <div className="text-sm font-semibold text-cream">{opt.label}</div>
+                <div className="text-xs text-white/40 mt-0.5">{opt.desc}</div>
+                {churchStatus === opt.value && (
+                  <Check className="w-4 h-4 text-gold absolute top-4 right-4" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Department selection (members only) */}
+          {churchStatus === 'member' && (
+            <div className="mt-4">
+              <label className="flex items-center gap-2 text-sm font-medium text-white/70 mb-3">
+                <MapPin className="w-4 h-4" />
+                Votre département
+              </label>
+              {loadingDepts ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="w-5 h-5 text-gold animate-spin" />
+                </div>
+              ) : departments.length > 0 ? (
+                <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-cream focus:outline-none focus:border-gold/50 focus:ring-1 focus:ring-gold/30 transition-all">
+                  <option value="">Sélectionnez un département (optionnel)</option>
+                  {departments.map(dept => (
+                    <option key={dept.id} value={dept.id}>{dept.name}</option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-xs text-white/40">Aucun département disponible</p>
+              )}
             </div>
           )}
         </div>

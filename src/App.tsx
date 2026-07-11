@@ -76,9 +76,13 @@ function AppRouter() {
 
 /* ─── Global onboarding gate ─────────────────────────────────── */
 function OnboardingOverlay() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, isAdmin, loading } = useAuth();
+  // Skip onboarding for admins — they go directly to the panel
   const showOnboarding =
-    !loading && user !== null && (profile === null || !profile.onboarding_completed);
+    !loading &&
+    user !== null &&
+    !isAdmin &&
+    (profile === null || !profile.onboarding_completed);
 
   if (!showOnboarding) return null;
   return <OnboardingFlow />;
@@ -90,6 +94,7 @@ export default function App() {
       <AuthProvider>
         <ToastProvider>
           <AppRouter />
+          <OnboardingOverlay />
         </ToastProvider>
       </AuthProvider>
     </DynamicThemeProvider>

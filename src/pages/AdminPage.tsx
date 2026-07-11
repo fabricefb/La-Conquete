@@ -20,11 +20,11 @@ interface AdminPageProps {
 }
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, profileLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('settings');
 
-  // While checking auth session
-  if (loading) {
+  // While checking auth session or loading profile after login
+  if (loading || profileLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="flex flex-col items-center gap-3">

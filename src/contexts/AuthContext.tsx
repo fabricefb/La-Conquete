@@ -17,6 +17,7 @@ interface AuthContextValue {
   profile: UserProfile | null;
   isAdmin: boolean;
   loading: boolean;
+  profileLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -29,18 +30,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchProfile = useCallback(async (userId: string) => {
+    setProfileLoading(true);
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, is_admin, created_at, updated_at')
+        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, is_admin, onboarding_completed, created_at, updated_at')
         .eq('id', userId)
         .single();
 
-      if (error) {
-        console.error('Failed to fetch user profile:', error.message);
-        setProfile(null);
+      if (error || !data) {
+        // Profile doesn't exist yet — auto-create it
+        console.log('No profile found for user, creating one...');
+        const { data: userData } = await supabase.auth.getUser(userId);
+        const meta = userData?.user?.user_metadata || {};
+        const email = userData?.user?.email || '';
+
+        const newProfile = {
+          id: userId,
+          email,
+          full_name: meta.full_name || meta.name || email.split('@')[0] || null,
+          is_admin: false,
+          onboarding_completed: false,
+        };
+
+        const { error: insertErr } = await supabase
+          .from('user_profiles')
+          .insert(newProfile);
+
+        if (insertErr) {
+          console.error('Failed to auto-create profile:', insertErr.message);
+          setProfile(null);
+          return;
+        }
+
+        setProfile({
+          ...newProfile,
+          avatar_url: null,
+          phone: null,
+          address: null,
+          gender: null,
+          birth_date: null,
+          role: 'member',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        } as UserProfile);
         return;
       }
 
@@ -57,13 +93,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         birth_date: p.birth_date ?? null,
         is_admin: p.is_admin ?? false,
         role: p.role ?? 'member',
-        onboarding_completed: p.onboarding_completed ?? true,
+        onboarding_completed: p.onboarding_completed ?? false,
         created_at: p.created_at,
         updated_at: p.updated_at,
       } as UserProfile);
     } catch (err) {
       console.error('Profile fetch error:', err);
       setProfile(null);
+    } finally {
+      setProfileLoading(false);
     }
   }, []);
 
@@ -130,8 +168,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = profile?.is_admin === true;
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isAdmin, loading, signIn, signOut, refreshProfile }),
-    [user, profile, isAdmin, loading, signIn, signOut, refreshProfile],
+    () => ({ user, profile, isAdmin, loading, profileLoading, signIn, signOut, refreshProfile }),
+    [user, profile, isAdmin, loading, profileLoading, signIn, signOut, refreshProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
