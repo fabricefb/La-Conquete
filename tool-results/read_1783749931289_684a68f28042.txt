@@ -1,0 +1,632 @@
+     1→-- ═══════════════════════════════════════════════════════════════════
+     2→--  Migration ERP Église — Rôles, Départements, Prières, Planning
+     3→--  Église Évangélique La Conquête — Juillet 2026
+     4→--  ═══════════════════════════════════════════════════════════════════
+     5→
+     6→-- ─── 1. ENUM pour les rôles ─────────────────────────────────────────
+     7→DO $$ BEGIN
+     8→  CREATE TYPE user_role AS ENUM (
+     9→    'visitor',
+    10→    'member',
+    11→    'servant',
+    12→    'chief',
+    13→    'pastor',
+    14→    'super_admin'
+    15→  );
+    16→EXCEPTION WHEN duplicate_object THEN NULL;
+    17→END $$;
+    18→
+    19→-- ─── 2. ALTER user_profiles : ajouter le rôle ──────────────────────
+    20→DO $$ BEGIN
+    21→  IF NOT EXISTS (
+    22→    SELECT 1 FROM information_schema.columns
+    23→    WHERE table_name = 'user_profiles' AND column_name = 'role'
+    24→  ) THEN
+    25→    ALTER TABLE user_profiles ADD COLUMN role user_role NOT NULL DEFAULT 'visitor';
+    26→  END IF;
+    27→END $$;
+    28→
+    29→DO $$ BEGIN
+    30→  IF NOT EXISTS (
+    31→    SELECT 1 FROM information_schema.columns
+    32→    WHERE table_name = 'user_profiles' AND column_name = 'phone'
+    33→  ) THEN
+    34→    ALTER TABLE user_profiles ADD COLUMN phone TEXT;
+    35→  END IF;
+    36→END $$;
+    37→
+    38→DO $$ BEGIN
+    39→  IF NOT EXISTS (
+    40→    SELECT 1 FROM information_schema.columns
+    41→    WHERE table_name = 'user_profiles' AND column_name = 'address'
+    42→  ) THEN
+    43→    ALTER TABLE user_profiles ADD COLUMN address TEXT;
+    44→  END IF;
+    45→END $$;
+    46→
+    47→DO $$ BEGIN
+    48→  IF NOT EXISTS (
+    49→    SELECT 1 FROM information_schema.columns
+    50→    WHERE table_name = 'user_profiles' AND column_name = 'gender'
+    51→  ) THEN
+    52→    ALTER TABLE user_profiles ADD COLUMN gender TEXT CHECK (gender IN ('male', 'female', 'other'));
+    53→  END IF;
+    54→END $$;
+    55→
+    56→DO $$ BEGIN
+    57→  IF NOT EXISTS (
+    58→    SELECT 1 FROM information_schema.columns
+    59→    WHERE table_name = 'user_profiles' AND column_name = 'birth_date'
+    60→  ) THEN
+    61→    ALTER TABLE user_profiles ADD COLUMN birth_date DATE;
+    62→  END IF;
+    63→END $$;
+    64→
+    65→DO $$ BEGIN
+    66→  IF NOT EXISTS (
+    67→    SELECT 1 FROM information_schema.columns
+    68→    WHERE table_name = 'user_profiles' AND column_name = 'onboarding_completed'
+    69→  ) THEN
+    70→    ALTER TABLE user_profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT false;
+    71→  END IF;
+    72→END $$;
+    73→
+    74→-- Mettre à jour l'admin existant en super_admin
+    75→UPDATE user_profiles SET role = 'super_admin', onboarding_completed = true WHERE email = 'aimeonginfo@gmail.com';
+    76→
+    77→-- ─── 3. TABLE: departments ─────────────────────────────────────────
+    78→CREATE TABLE IF NOT EXISTS departments (
+    79→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    80→  name TEXT NOT NULL,
+    81→  slug TEXT UNIQUE NOT NULL,
+    82→  description TEXT,
+    83→  icon_name TEXT DEFAULT 'Users',
+    84→  accent_color TEXT DEFAULT 'gold',
+    85→  is_active BOOLEAN DEFAULT true,
+    86→  sort_order INTEGER DEFAULT 0,
+    87→  created_at TIMESTAMPTZ DEFAULT now(),
+    88→  updated_at TIMESTAMPTZ DEFAULT now()
+    89→);
+    90→
+    91→-- ─── 4. TABLE: positions ──────────────────────────────────────────
+    92→CREATE TABLE IF NOT EXISTS positions (
+    93→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    94→  department_id UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+    95→  name TEXT NOT NULL,
+    96→  description TEXT,
+    97→  is_active BOOLEAN DEFAULT true,
+    98→  sort_order INTEGER DEFAULT 0,
+    99→  created_at TIMESTAMPTZ DEFAULT now(),
+   100→  updated_at TIMESTAMPTZ DEFAULT now()
+   101→);
+   102→
+   103→-- ─── 5. TABLE: department_members (many-to-many) ───────────────────
+   104→CREATE TABLE IF NOT EXISTS department_members (
+   105→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   106→  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+   107→  department_id UUID NOT NULL REFERENCES departments(id) ON DELETE CASCADE,
+   108→  position_id UUID REFERENCES positions(id) ON DELETE SET NULL,
+   109→  joined_at TIMESTAMPTZ DEFAULT now(),
+   110→  is_active BOOLEAN DEFAULT true,
+   111→  UNIQUE(user_id, department_id)
+   112→);
+   113→
+   114→-- ─── 6. TABLE: role_requests ──────────────────────────────────────
+   115→CREATE TABLE IF NOT EXISTS role_requests (
+   116→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   117→  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+   118→  requested_role user_role NOT NULL CHECK (requested_role IN ('member', 'servant', 'chief')),
+   119→  department_id UUID REFERENCES departments(id),
+   120→  position_id UUID REFERENCES positions(id),
+   121→  motivation TEXT,
+   122→  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+   123→  reviewed_by UUID REFERENCES user_profiles(id),
+   124→  reviewed_at TIMESTAMPTZ,
+   125→  admin_note TEXT,
+   126→  created_at TIMESTAMPTZ DEFAULT now()
+   127→);
+   128→
+   129→-- ─── 7. TABLE: prayer_requests ────────────────────────────────────
+   130→CREATE TABLE IF NOT EXISTS prayer_requests (
+   131→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   132→  user_id UUID REFERENCES user_profiles(id),
+   133→  author_name TEXT,
+   134→  content TEXT NOT NULL,
+   135→  is_anonymous BOOLEAN NOT NULL DEFAULT false,
+   136→  is_confidential BOOLEAN NOT NULL DEFAULT false,
+   137→  status TEXT NOT NULL DEFAULT 'received' CHECK (status IN ('received', 'praying', 'answered')),
+   138→  prayed_by UUID REFERENCES user_profiles(id),
+   139→  prayed_at TIMESTAMPTZ,
+   140→  created_at TIMESTAMPTZ DEFAULT now()
+   141→);
+   142→
+   143→-- ─── 8. TABLE: daily_thoughts (Pensée du Jour) ───────────────────
+   144→CREATE TABLE IF NOT EXISTS daily_thoughts (
+   145→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   146→  author_id UUID NOT NULL REFERENCES user_profiles(id),
+   147→  verse_reference TEXT,
+   148→  verse_text TEXT NOT NULL,
+   149→  reflection TEXT NOT NULL,
+   150→  is_published BOOLEAN NOT NULL DEFAULT false,
+   151→  published_at TIMESTAMPTZ,
+   152→  created_at TIMESTAMPTZ DEFAULT now(),
+   153→  updated_at TIMESTAMPTZ DEFAULT now()
+   154→);
+   155→
+   156→-- ─── 9. TABLE: service_plannings ──────────────────────────────────
+   157→CREATE TABLE IF NOT EXISTS service_plannings (
+   158→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   159→  department_id UUID NOT NULL REFERENCES departments(id),
+   160→  service_date DATE NOT NULL,
+   161→  service_type TEXT NOT NULL DEFAULT 'culte' CHECK (service_type IN ('culte', 'repetition', 'special', 'veillerie', 'etude')),
+   162→  notes TEXT,
+   163→  created_by UUID NOT NULL REFERENCES user_profiles(id),
+   164→  created_at TIMESTAMPTZ DEFAULT now(),
+   165→  updated_at TIMESTAMPTZ DEFAULT now()
+   166→);
+   167→
+   168→-- ─── 10. TABLE: service_assignments ────────────────────────────────
+   169→CREATE TABLE IF NOT EXISTS service_assignments (
+   170→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   171→  planning_id UUID NOT NULL REFERENCES service_plannings(id) ON DELETE CASCADE,
+   172→  user_id UUID NOT NULL REFERENCES user_profiles(id),
+   173→  position_id UUID NOT NULL REFERENCES positions(id),
+   174→  status TEXT NOT NULL DEFAULT 'assigned' CHECK (status IN ('assigned', 'accepted', 'declined')),
+   175→  responded_at TIMESTAMPTZ,
+   176→  created_at TIMESTAMPTZ DEFAULT now(),
+   177→  UNIQUE(planning_id, user_id, position_id)
+   178→);
+   179→
+   180→-- ─── 11. TABLE: department_posts (fil d'actualité) ─────────────────
+   181→CREATE TABLE IF NOT EXISTS department_posts (
+   182→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   183→  author_id UUID NOT NULL REFERENCES user_profiles(id),
+   184→  department_id UUID NOT NULL REFERENCES departments(id),
+   185→  content TEXT NOT NULL,
+   186→  post_type TEXT NOT NULL DEFAULT 'announcement' CHECK (post_type IN ('announcement', 'encouragement', 'prayer_need', 'info', 'testimony')),
+   187→  is_pinned BOOLEAN NOT NULL DEFAULT false,
+   188→  created_at TIMESTAMPTZ DEFAULT now(),
+   189→  updated_at TIMESTAMPTZ DEFAULT now()
+   190→);
+   191→
+   192→-- ─── 12. TABLE: post_comments ─────────────────────────────────────
+   193→CREATE TABLE IF NOT EXISTS post_comments (
+   194→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   195→  post_id UUID NOT NULL REFERENCES department_posts(id) ON DELETE CASCADE,
+   196→  author_id UUID NOT NULL REFERENCES user_profiles(id),
+   197→  content TEXT NOT NULL,
+   198→  created_at TIMESTAMPTZ DEFAULT now()
+   199→);
+   200→
+   201→-- ─── 13. TABLE: visitor_followups ─────────────────────────────────
+   202→CREATE TABLE IF NOT EXISTS visitor_followups (
+   203→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   204→  visitor_id UUID NOT NULL REFERENCES user_profiles(id),
+   205→  assigned_to UUID NOT NULL REFERENCES user_profiles(id),
+   206→  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'contacted', 'returned', 'lost')),
+   207→  contact_date TIMESTAMPTZ,
+   208→  notes TEXT,
+   209→  created_at TIMESTAMPTZ DEFAULT now(),
+   210→  updated_at TIMESTAMPTZ DEFAULT now()
+   211→);
+   212→
+   213→-- ─── 14. TABLE: notification_preferences ───────────────────────────
+   214→CREATE TABLE IF NOT EXISTS notification_preferences (
+   215→  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+   216→  user_id UUID UNIQUE NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+   217→  email_notifications BOOLEAN NOT NULL DEFAULT true,
+   218→  push_notifications BOOLEAN NOT NULL DEFAULT true,
+   219→  pastoral_whatsapp BOOLEAN NOT NULL DEFAULT false,
+   220→  pastoral_sms BOOLEAN NOT NULL DEFAULT false,
+   221→  pastoral_call BOOLEAN NOT NULL DEFAULT false,
+   222→  dept_notifications BOOLEAN NOT NULL DEFAULT true,
+   223→  prayer_updates BOOLEAN NOT NULL DEFAULT true,
+   224→  service_reminders BOOLEAN NOT NULL DEFAULT true,
+   225→  created_at TIMESTAMPTZ DEFAULT now(),
+   226→  updated_at TIMESTAMPTZ DEFAULT now()
+   227→);
+   228→
+   229→-- ═══════════════════════════════════════════════════════════════════
+   230→--  RLS — Row Level Security
+   231→-- ═══════════════════════════════════════════════════════════════════
+   232→
+   233→-- ─── Helper Functions ─────────────────────────────────────────────
+   234→CREATE OR REPLACE FUNCTION is_super_admin() RETURNS BOOLEAN AS $$
+   235→  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'super_admin');
+   236→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   237→
+   238→CREATE OR REPLACE FUNCTION is_pastor_or_above() RETURNS BOOLEAN AS $$
+   239→  SELECT role IN ('pastor', 'super_admin') FROM user_profiles WHERE id = auth.uid();
+   240→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   241→
+   242→CREATE OR REPLACE FUNCTION is_chief_or_above() RETURNS BOOLEAN AS $$
+   243→  SELECT role IN ('chief', 'pastor', 'super_admin') FROM user_profiles WHERE id = auth.uid();
+   244→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   245→
+   246→CREATE OR REPLACE FUNCTION is_member_or_above() RETURNS BOOLEAN AS $$
+   247→  SELECT role NOT IN ('visitor') FROM user_profiles WHERE id = auth.uid();
+   248→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   249→
+   250→CREATE OR REPLACE FUNCTION is_logged_in() RETURNS BOOLEAN AS $$
+   251→  SELECT auth.uid() IS NOT NULL;
+   252→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   253→
+   254→CREATE OR REPLACE FUNCTION current_user_id() RETURNS UUID AS $$
+   255→  SELECT auth.uid();
+   256→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   257→
+   258→CREATE OR REPLACE FUNCTION owns_profile(p_id UUID) RETURNS BOOLEAN AS $$
+   259→  SELECT p_id = auth.uid();
+   260→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   261→
+   262→CREATE OR REPLACE FUNCTION is_chief_of(dept_id UUID) RETURNS BOOLEAN AS $$
+   263→  SELECT EXISTS (
+   264→    SELECT 1 FROM department_members dm
+   265→    JOIN user_profiles up ON up.id = dm.user_id
+   266→    WHERE dm.user_id = auth.uid()
+   267→    AND dm.department_id = is_chief_of.dept_id
+   268→    AND up.role IN ('chief', 'pastor', 'super_admin')
+   269→    AND dm.is_active = true
+   270→  );
+   271→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   272→
+   273→CREATE OR REPLACE FUNCTION belongs_to_dept(dept_id UUID) RETURNS BOOLEAN AS $$
+   274→  SELECT EXISTS (
+   275→    SELECT 1 FROM department_members
+   276→    WHERE user_id = auth.uid()
+   277→    AND department_id = belongs_to_dept.dept_id
+   278→    AND is_active = true
+   279→  );
+   280→$$ LANGUAGE sql STABLE SECURITY DEFINER;
+   281→
+   282→-- ─── Enable RLS on all new tables ─────────────────────────────────
+   283→ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
+   284→ALTER TABLE positions ENABLE ROW LEVEL SECURITY;
+   285→ALTER TABLE department_members ENABLE ROW LEVEL SECURITY;
+   286→ALTER TABLE role_requests ENABLE ROW LEVEL SECURITY;
+   287→ALTER TABLE prayer_requests ENABLE ROW LEVEL SECURITY;
+   288→ALTER TABLE daily_thoughts ENABLE ROW LEVEL SECURITY;
+   289→ALTER TABLE service_plannings ENABLE ROW LEVEL SECURITY;
+   290→ALTER TABLE service_assignments ENABLE ROW LEVEL SECURITY;
+   291→ALTER TABLE department_posts ENABLE ROW LEVEL SECURITY;
+   292→ALTER TABLE post_comments ENABLE ROW LEVEL SECURITY;
+   293→ALTER TABLE visitor_followups ENABLE ROW LEVEL SECURITY;
+   294→ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
+   295→
+   296→-- Also enable on user_profiles if not already
+   297→DO $$ BEGIN
+   298→  ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+   299→EXCEPTION WHEN OTHERS THEN NULL;
+   300→END $$;
+   301→
+   302→-- ─── DEPARTMENTS ──────────────────────────────────────────────────
+   303→-- Public read, admin write
+   304→DO $$ BEGIN
+   305→  DROP POLICY IF EXISTS dept_select ON departments;
+   306→  CREATE POLICY dept_select ON departments FOR SELECT
+   307→    USING (true);
+   308→END $$;
+   309→
+   310→DO $$ BEGIN
+   311→  DROP POLICY IF EXISTS dept_insert ON departments;
+   312→  CREATE POLICY dept_insert ON departments FOR INSERT
+   313→    WITH CHECK (is_super_admin());
+   314→END $$;
+   315→
+   316→DO $$ BEGIN
+   317→  DROP POLICY IF EXISTS dept_update ON departments;
+   318→  CREATE POLICY dept_update ON departments FOR UPDATE
+   319→    USING (is_super_admin())
+   320→    WITH CHECK (is_super_admin());
+   321→END $$;
+   322→
+   323→DO $$ BEGIN
+   324→  DROP POLICY IF EXISTS dept_delete ON departments;
+   325→  CREATE POLICY dept_delete ON departments FOR DELETE
+   326→    USING (is_super_admin());
+   327→END $$;
+   328→
+   329→-- ─── POSITIONS ────────────────────────────────────────────────────
+   330→DO $$ BEGIN DROP POLICY IF EXISTS pos_select ON positions;
+   331→  CREATE POLICY pos_select ON positions FOR SELECT USING (true);
+   332→END $$;
+   333→DO $$ BEGIN DROP POLICY IF EXISTS pos_insert ON positions;
+   334→  CREATE POLICY pos_insert ON positions FOR INSERT WITH CHECK (is_super_admin() OR is_chief_of(department_id));
+   335→END $$;
+   336→DO $$ BEGIN DROP POLICY IF EXISTS pos_update ON positions;
+   337→  CREATE POLICY pos_update ON positions FOR UPDATE USING (is_super_admin() OR is_chief_of(department_id)) WITH CHECK (is_super_admin() OR is_chief_of(department_id));
+   338→END $$;
+   339→DO $$ BEGIN DROP POLICY IF EXISTS pos_delete ON positions;
+   340→  CREATE POLICY pos_delete ON positions FOR DELETE USING (is_super_admin());
+   341→END $$;
+   342→
+   343→-- ─── DEPARTMENT_MEMBERS ──────────────────────────────────────────
+   344→-- Members can see who is in their dept; admin/pastor see all
+   345→DO $$ BEGIN DROP POLICY IF EXISTS dm_select ON department_members;
+   346→  CREATE POLICY dm_select ON department_members FOR SELECT
+   347→    USING (is_pastor_or_above() OR belongs_to_dept(department_id) OR owns_profile(user_id));
+   348→END $$;
+   349→DO $$ BEGIN DROP POLICY IF EXISTS dm_insert ON department_members;
+   350→  CREATE POLICY dm_insert ON department_members FOR INSERT
+   351→    WITH CHECK (is_super_admin() OR (owns_profile(user_id) AND is_member_or_above()));
+   352→END $$;
+   353→DO $$ BEGIN DROP POLICY IF EXISTS dm_update ON department_members;
+   354→  CREATE POLICY dm_update ON department_members FOR UPDATE
+   355→    USING (is_super_admin() OR is_chief_of(department_id) OR owns_profile(user_id));
+   356→END $$;
+   357→DO $$ BEGIN DROP POLICY IF EXISTS dm_delete ON department_members;
+   358→  CREATE POLICY dm_delete ON department_members FOR DELETE
+   359→    USING (is_super_admin() OR owns_profile(user_id));
+   360→END $$;
+   361→
+   362→-- ─── ROLE_REQUESTS ───────────────────────────────────────────────
+   363→DO $$ BEGIN DROP POLICY IF EXISTS rr_select ON role_requests;
+   364→  CREATE POLICY rr_select ON role_requests FOR SELECT
+   365→    USING (is_super_admin() OR owns_profile(user_id));
+   366→END $$;
+   367→DO $$ BEGIN DROP POLICY IF EXISTS rr_insert ON role_requests;
+   368→  CREATE POLICY rr_insert ON role_requests FOR INSERT
+   369→    WITH CHECK (owns_profile(user_id));
+   370→END $$;
+   371→DO $$ BEGIN DROP POLICY IF EXISTS rr_update ON role_requests;
+   372→  CREATE POLICY rr_update ON role_requests FOR UPDATE
+   373→    USING (is_super_admin())
+   374→    WITH CHECK (is_super_admin());
+   375→END $$;
+   376→DO $$ BEGIN DROP POLICY IF EXISTS rr_delete ON role_requests;
+   377→  CREATE POLICY rr_delete ON role_requests FOR DELETE
+   378→    USING (is_super_admin());
+   379→END $$;
+   380→
+   381→-- ─── PRAYER_REQUESTS ──────────────────────────────────────────────
+   382→-- User sees their own; pastor sees all non-confidential + all confidential
+   383→DO $$ BEGIN DROP POLICY IF EXISTS pr_select ON prayer_requests;
+   384→  CREATE POLICY pr_select ON prayer_requests FOR SELECT
+   385→    USING (
+   386→      owns_profile(user_id)
+   387→      OR is_pastor_or_above()
+   388→      OR (is_chief_or_above() AND NOT is_confidential)
+   389→    );
+   390→END $$;
+   391→DO $$ BEGIN DROP POLICY IF EXISTS pr_insert ON prayer_requests;
+   392→  CREATE POLICY pr_insert ON prayer_requests FOR INSERT
+   393→    WITH CHECK (is_logged_in());
+   394→END $$;
+   395→DO $$ BEGIN DROP POLICY IF EXISTS pr_update ON prayer_requests;
+   396→  CREATE POLICY pr_update ON prayer_requests FOR UPDATE
+   397→    USING (is_pastor_or_above() OR owns_profile(user_id));
+   398→END $$;
+   399→DO $$ BEGIN DROP POLICY IF EXISTS pr_delete ON prayer_requests;
+   400→  CREATE POLICY pr_delete ON prayer_requests FOR DELETE
+   401→    USING (is_super_admin() OR owns_profile(user_id));
+   402→END $$;
+   403→
+   404→-- ─── DAILY_THOUGHTS ──────────────────────────────────────────────
+   405→DO $$ BEGIN DROP POLICY IF EXISTS dt_select ON daily_thoughts;
+   406→  CREATE POLICY dt_select ON daily_thoughts FOR SELECT USING (is_published = true OR is_pastor_or_above() OR owns_profile(author_id));
+   407→END $$;
+   408→DO $$ BEGIN DROP POLICY IF EXISTS dt_insert ON daily_thoughts;
+   409→  CREATE POLICY dt_insert ON daily_thoughts FOR INSERT WITH CHECK (is_pastor_or_above());
+   410→END $$;
+   411→DO $$ BEGIN DROP POLICY IF EXISTS dt_update ON daily_thoughts;
+   412→  CREATE POLICY dt_update ON daily_thoughts FOR UPDATE USING (is_pastor_or_above() OR owns_profile(author_id));
+   413→END $$;
+   414→DO $$ BEGIN DROP POLICY IF EXISTS dt_delete ON daily_thoughts;
+   415→  CREATE POLICY dt_delete ON daily_thoughts FOR DELETE USING (is_super_admin());
+   416→END $$;
+   417→
+   418→-- ─── SERVICE_PLANNINGS ────────────────────────────────────────────
+   419→DO $$ BEGIN DROP POLICY IF EXISTS sp_select ON service_plannings;
+   420→  CREATE POLICY sp_select ON service_plannings FOR SELECT
+   421→    USING (is_member_or_above() OR belongs_to_dept(department_id));
+   422→END $$;
+   423→DO $$ BEGIN DROP POLICY IF EXISTS sp_insert ON service_plannings;
+   424→  CREATE POLICY sp_insert ON service_plannings FOR INSERT
+   425→    WITH CHECK (is_super_admin() OR is_chief_of(department_id));
+   426→END $$;
+   427→DO $$ BEGIN DROP POLICY IF EXISTS sp_update ON service_plannings;
+   428→  CREATE POLICY sp_update ON service_plannings FOR UPDATE
+   429→    USING (is_super_admin() OR is_chief_of(department_id));
+   430→END $$;
+   431→DO $$ BEGIN DROP POLICY IF EXISTS sp_delete ON service_plannings;
+   432→  CREATE POLICY sp_delete ON service_plannings FOR DELETE USING (is_super_admin());
+   433→END $$;
+   434→
+   435→-- ─── SERVICE_ASSIGNMENTS ─────────────────────────────────────────
+   436→DO $$ BEGIN DROP POLICY IF EXISTS sa_select ON service_assignments;
+   437→  CREATE POLICY sa_select ON service_assignments FOR SELECT
+   438→    USING (owns_profile(user_id) OR is_super_admin() OR is_chief_of(
+   439→      (SELECT department_id FROM service_plannings WHERE id = planning_id)
+   440→    ));
+   441→END $$;
+   442→DO $$ BEGIN DROP POLICY IF EXISTS sa_insert ON service_assignments;
+   443→  CREATE POLICY sa_insert ON service_assignments FOR INSERT
+   444→    WITH CHECK (is_super_admin() OR is_chief_of(
+   445→      (SELECT department_id FROM service_plannings WHERE id = planning_id)
+   446→    ));
+   447→END $$;
+   448→DO $$ BEGIN DROP POLICY IF EXISTS sa_update ON service_assignments;
+   449→  CREATE POLICY sa_update ON service_assignments FOR UPDATE
+   450→    USING (owns_profile(user_id) OR is_super_admin() OR is_chief_of(
+   451→      (SELECT department_id FROM service_plannings WHERE id = planning_id)
+   452→    ));
+   453→END $$;
+   454→DO $$ BEGIN DROP POLICY IF EXISTS sa_delete ON service_assignments;
+   455→  CREATE POLICY sa_delete ON service_assignments FOR DELETE USING (is_super_admin());
+   456→END $$;
+   457→
+   458→-- ─── DEPARTMENT_POSTS ────────────────────────────────────────────
+   459→DO $$ BEGIN DROP POLICY IF EXISTS dp_select ON department_posts;
+   460→  CREATE POLICY dp_select ON department_posts FOR SELECT
+   461→    USING (belongs_to_dept(department_id) OR is_pastor_or_above() OR owns_profile(author_id));
+   462→END $$;
+   463→DO $$ BEGIN DROP POLICY IF EXISTS dp_insert ON department_posts;
+   464→  CREATE POLICY dp_insert ON department_posts FOR INSERT
+   465→    WITH CHECK (belongs_to_dept(department_id) OR is_chief_of(department_id) OR is_pastor_or_above());
+   466→END $$;
+   467→DO $$ BEGIN DROP POLICY IF EXISTS dp_update ON department_posts;
+   468→  CREATE POLICY dp_update ON department_posts FOR UPDATE
+   469→    USING (owns_profile(author_id) OR is_chief_of(department_id) OR is_pastor_or_above());
+   470→END $$;
+   471→DO $$ BEGIN DROP POLICY IF EXISTS dp_delete ON department_posts;
+   472→  CREATE POLICY dp_delete ON department_posts FOR DELETE USING (is_super_admin() OR owns_profile(author_id));
+   473→END $$;
+   474→
+   475→-- ─── POST_COMMENTS ────────────────────────────────────────────────
+   476→DO $$ BEGIN DROP POLICY IF EXISTS pc_select ON post_comments;
+   477→  CREATE POLICY pc_select ON post_comments FOR SELECT
+   478→    USING (belongs_to_dept(
+   479→      (SELECT department_id FROM department_posts WHERE id = post_id)
+   480→    ) OR is_pastor_or_above());
+   481→END $$;
+   482→DO $$ BEGIN DROP POLICY IF EXISTS pc_insert ON post_comments;
+   483→  CREATE POLICY pc_insert ON post_comments FOR INSERT
+   484→    WITH CHECK (belongs_to_dept(
+   485→      (SELECT department_id FROM department_posts WHERE id = post_id)
+   486→    ) OR is_pastor_or_above());
+   487→END $$;
+   488→DO $$ BEGIN DROP POLICY IF EXISTS pc_delete ON post_comments;
+   489→  CREATE POLICY pc_delete ON post_comments FOR DELETE
+   490→    USING (is_super_admin() OR owns_profile(author_id));
+   491→END $$;
+   492→
+   493→-- ─── VISITOR_FOLLOWUPS ───────────────────────────────────────────
+   494→DO $$ BEGIN DROP POLICY IF EXISTS vf_select ON visitor_followups;
+   495→  CREATE POLICY vf_select ON visitor_followups FOR SELECT
+   496→    USING (is_pastor_or_above() OR owns_profile(assigned_to) OR owns_profile(visitor_id));
+   497→END $$;
+   498→DO $$ BEGIN DROP POLICY IF EXISTS vf_insert ON visitor_followups;
+   499→  CREATE POLICY vf_insert ON visitor_followups FOR INSERT
+   500→    WITH CHECK (is_pastor_or_above());
+   501→END $$;
+   502→DO $$ BEGIN DROP POLICY IF EXISTS vf_update ON visitor_followups;
+   503→  CREATE POLICY vf_update ON visitor_followups FOR UPDATE
+   504→    USING (is_pastor_or_above() OR owns_profile(assigned_to));
+   505→END $$;
+   506→DO $$ BEGIN DROP POLICY IF EXISTS vf_delete ON visitor_followups;
+   507→  CREATE POLICY vf_delete ON visitor_followups FOR DELETE USING (is_super_admin());
+   508→END $$;
+   509→
+   510→-- ─── NOTIFICATION_PREFERENCES ────────────────────────────────────
+   511→DO $$ BEGIN DROP POLICY IF EXISTS np_select ON notification_preferences;
+   512→  CREATE POLICY np_select ON notification_preferences FOR SELECT USING (owns_profile(user_id));
+   513→END $$;
+   514→DO $$ BEGIN DROP POLICY IF EXISTS np_insert ON notification_preferences;
+   515→  CREATE POLICY np_insert ON notification_preferences FOR INSERT WITH CHECK (owns_profile(user_id));
+   516→END $$;
+   517→DO $$ BEGIN DROP POLICY IF EXISTS np_update ON notification_preferences;
+   518→  CREATE POLICY np_update ON notification_preferences FOR UPDATE USING (owns_profile(user_id));
+   519→END $$;
+   520→
+   521→-- ─── USER_PROFILES — update existing policies for new role ───────
+   522→-- Read: everyone can see basic profiles; pastors see more
+   523→DO $$ BEGIN DROP POLICY IF EXISTS profiles_select_own ON user_profiles;
+   524→  CREATE POLICY profiles_select_own ON user_profiles FOR SELECT
+   525→    USING (
+   526→      owns_profile(id)
+   527→      OR is_pastor_or_above()
+   528→      OR (is_member_or_above() AND onboarding_completed = true)
+   529→    );
+   530→END $$;
+   531→
+   532→-- Insert: auto-create on signup (trigger already exists)
+   533→-- Update: own profile, or admin
+   534→DO $$ BEGIN DROP POLICY IF EXISTS profiles_update_own ON user_profiles;
+   535→  CREATE POLICY profiles_update_own ON user_profiles FOR UPDATE
+   536→    USING (owns_profile(id) OR is_super_admin());
+   537→END $$;
+   538→
+   539→-- Delete: only super_admin
+   540→DO $$ BEGIN DROP POLICY IF EXISTS profiles_delete ON user_profiles;
+   541→  CREATE POLICY profiles_delete ON user_profiles FOR DELETE USING (is_super_admin());
+   542→END $$;
+   543→
+   544→-- ═══════════════════════════════════════════════════════════════════
+   545→--  SEED DATA — Départements et Positions
+   546→-- ═══════════════════════════════════════════════════════════════════
+   547→
+   548→-- Départements
+   549→INSERT INTO departments (name, slug, description, icon_name, accent_color, sort_order) VALUES
+   550→  ('Louange', 'louange', 'Département de louange et adoration musicale', 'Music', 'gold', 1),
+   551→  ('Médias', 'medias', 'Département audiovisuel, photo, vidéo et réseaux sociaux', 'Globe', 'ember', 2),
+   552→  ('Intercession', 'intercession', 'Département de prière et intercession', 'Heart', 'gold', 3),
+   553→  ('Accueil', 'accueil', 'Équipe d''accueil et intégration des visiteurs', 'Users', 'gold', 4),
+   554→  ('Enfants', 'enfants', 'École du dimanche et activités pour enfants', 'Sparkles', 'ember', 5),
+   555→  ('Jeunesse', 'jeunesse', 'Ministère des jeunes et des adolescents', 'Flame', 'gold', 6),
+   556→  ('Étude Biblique', 'etude-biblique', 'Étude approfondie de la Parole de Dieu', 'BookOpen', 'gold', 7),
+   557→  ('Diakonia', 'diakonia', 'Service social, assistance et entraide communautaire', 'HandHeart', 'ember', 8)
+   558→ON CONFLICT (slug) DO NOTHING;
+   559→
+   560→-- Positions par département
+   561→INSERT INTO positions (department_id, name, sort_order)
+   562→SELECT id, 'Chantre', 1 FROM departments WHERE slug = 'louange'
+   563→UNION ALL
+   564→SELECT id, 'Musicien', 2 FROM departments WHERE slug = 'louange'
+   565→UNION ALL
+   566→SELECT id, 'Chef de choeur', 3 FROM departments WHERE slug = 'louange'
+   567→UNION ALL
+   568→SELECT id, 'Cadreur', 1 FROM departments WHERE slug = 'medias'
+   569→UNION ALL
+   570→SELECT id, 'Photographe', 2 FROM departments WHERE slug = 'medias'
+   571→UNION ALL
+   572→SELECT id, 'Rédacteur', 3 FROM departments WHERE slug = 'medias'
+   573→UNION ALL
+   574→SELECT id, 'Intercesseur', 1 FROM departments WHERE slug = 'intercession'
+   575→UNION ALL
+   576→SELECT id, 'Coordinateur', 2 FROM departments WHERE slug = 'intercession'
+   577→UNION ALL
+   578→SELECT id, 'Hôte d''accueil', 1 FROM departments WHERE slug = 'accueil'
+   579→UNION ALL
+   580→SELECT id, 'Suivi intégration', 2 FROM departments WHERE slug = 'accueil'
+   581→UNION ALL
+   582→SELECT id, 'Moniteur', 1 FROM departments WHERE slug = 'enfants'
+   583→UNION ALL
+   584→SELECT id, 'Animateur', 2 FROM departments WHERE slug = 'enfants'
+   585→UNION ALL
+   586→SELECT id, 'Responsable jeunesse', 1 FROM departments WHERE slug = 'jeunesse'
+   587→UNION ALL
+   588→SELECT id, 'Animateur jeunesse', 2 FROM departments WHERE slug = 'jeunesse'
+   589→UNION ALL
+   590→SELECT id, 'Enseignant', 1 FROM departments WHERE slug = 'etude-biblique'
+   591→UNION ALL
+   592→SELECT id, 'Facilitateur', 2 FROM departments WHERE slug = 'etude-biblique'
+   593→UNION ALL
+   594→SELECT id, 'Responsable', 1 FROM departments WHERE slug = 'diakonia'
+   595→UNION ALL
+   596→SELECT id, 'Bénévole', 2 FROM departments WHERE slug = 'diakonia';
+   597→
+   598→-- Créer les préférences de notification pour l'admin existant
+   599→INSERT INTO notification_preferences (user_id)
+   600→SELECT id FROM user_profiles WHERE email = 'aimeonginfo@gmail.com'
+   601→ON CONFLICT DO NOTHING;
+   602→
+   603→-- ─── Index pour la performance ───────────────────────────────────
+   604→CREATE INDEX IF NOT EXISTS idx_dept_members_user ON department_members(user_id);
+   605→CREATE INDEX IF NOT EXISTS idx_dept_members_dept ON department_members(department_id);
+   606→CREATE INDEX IF NOT EXISTS idx_prayer_status ON prayer_requests(status);
+   607→CREATE INDEX IF NOT EXISTS idx_role_requests_status ON role_requests(status);
+   608→CREATE INDEX IF NOT EXISTS idx_daily_thoughts_published ON daily_thoughts(is_published, published_at DESC);
+   609→CREATE INDEX IF NOT EXISTS idx_service_plannings_date ON service_plannings(service_date);
+   610→CREATE INDEX IF NOT EXISTS idx_dept_posts_dept ON department_posts(department_id, created_at DESC);
+   611→CREATE INDEX IF NOT EXISTS idx_followups_status ON visitor_followups(status);
+   612→
+   613→-- ═══════════════════════════════════════════════════════════════════
+   614→--  TRIGGER: auto-create notification_preferences on signup
+   615→-- ═══════════════════════════════════════════════════════════════════
+   616→CREATE OR REPLACE FUNCTION auto_create_notif_prefs()
+   617→RETURNS TRIGGER AS $$
+   618→BEGIN
+   619→  INSERT INTO notification_preferences (user_id) VALUES (NEW.id)
+   620→  ON CONFLICT (user_id) DO NOTHING;
+   621→  RETURN NEW;
+   622→END;
+   623→$$ LANGUAGE plpgsql SECURITY DEFINER;
+   624→
+   625→DROP TRIGGER IF EXISTS on_auth_user_created_notif ON auth.users;
+   626→CREATE TRIGGER on_auth_user_created_notif
+   627→  AFTER INSERT ON auth.users
+   628→  FOR EACH ROW EXECUTE FUNCTION auto_create_notif_prefs();
+   629→
+   630→-- ═══════════════════════════════════════════════════════════════════
+   631→--  Done!
+   632→-- ═══════════════════════════════════════════════════════════════════

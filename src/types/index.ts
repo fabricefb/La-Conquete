@@ -12,6 +12,12 @@ export interface UserProfile {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  phone: string | null;
+  address: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  role: string;
+  onboarding_completed: boolean;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
@@ -156,8 +162,22 @@ export interface ThemeSettings {
   updated_at: string;
 }
 
-// ─── Toast ───────────────────────────────────────────────────────
-export type ToastType = 'success' | 'error' | 'info';
+// ─── Notifications ──────────────────────────────────────
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: 'prayer_prayed' | 'service_assigned' | 'service_accepted' | 'service_declined' | 'role_approved' | 'role_rejected' | 'new_post' | 'new_comment' | 'daily_thought' | 'general' | 'visitor_assigned' | 'onboarding_reminder';
+  title: string;
+  body: string | null;
+  link: string | null;
+  ref_table: string | null;
+  ref_id: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+}
+
+// ─── Toast ───────────────────────────────────────────────
 
 export interface Toast {
   id: string;
@@ -178,3 +198,93 @@ export type AdminTab =
   | 'messages'
   | 'testimonials'
   | 'theme';
+
+// ─── ERP Role System ──────────────────────────────────────────────
+export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
+
+export interface Department {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  icon_name: string;
+  accent_color: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Position {
+  id: string;
+  department_id: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DepartmentMember {
+  id: string;
+  user_id: string;
+  department_id: string;
+  position_id: string | null;
+  joined_at: string;
+  is_active: boolean;
+}
+
+export interface RoleRequest {
+  id: string;
+  user_id: string;
+  requested_role: UserRole;
+  department_id: string | null;
+  position_id: string | null;
+  motivation: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  admin_note: string;
+  created_at: string;
+}
+
+export interface PrayerRequest {
+  id: string;
+  user_id: string | null;
+  author_name: string;
+  content: string;
+  is_anonymous: boolean;
+  is_confidential: boolean;
+  status: 'received' | 'praying' | 'answered';
+  prayed_by: string | null;
+  prayed_at: string | null;
+  created_at: string;
+}
+
+export interface DailyThought {
+  id: string;
+  author_id: string;
+  verse_reference: string;
+  verse_text: string;
+  reflection: string;
+  is_published: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationPreferences {
+  id: string;
+  user_id: string;
+  email_notifications: boolean;
+  push_notifications: boolean;
+  pastoral_whatsapp: boolean;
+  pastoral_sms: boolean;
+  pastoral_call: boolean;
+  dept_notifications: boolean;
+  prayer_updates: boolean;
+  service_reminders: boolean;
+  created_at: string;
+  updated_at: string;
+}

@@ -10,6 +10,8 @@ import type {
   ContactMessage,
   ThemeSettings,
   UserProfile,
+  Department,
+  Position,
 } from '../types';
 
 export const supabase = createClient(
@@ -29,6 +31,8 @@ export type {
   ContactMessage,
   ThemeSettings,
   UserProfile,
+  Department,
+  Position,
 };
 
 // ─── Generic fetcher ─────────────────────────────────────────────
@@ -177,6 +181,70 @@ export const db = {
   // Contact form submission
   async submitContactMessage(name: string, email: string, subject: string, message: string): Promise<void> {
     const { error } = await supabase.from('contact_messages').insert({ name, email, subject, message });
+    if (error) throw new Error(error.message);
+  },
+
+  // ── ERP: Departments ──────────────────────────────────────────
+  async getActiveDepartments(): Promise<Department[]> {
+    const { data, error } = await supabase
+      .from('departments').select('*').eq('is_active', true).order('sort_order');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Department[];
+  },
+  async getDepartmentPositions(departmentId: string): Promise<Position[]> {
+    const { data, error } = await supabase
+      .from('positions').select('*').eq('department_id', departmentId).eq('is_active', true).order('sort_order');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Position[];
+  },
+
+  // ── ERP: Onboarding ───────────────────────────────────────────
+  async completeOnboarding(): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles').update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+      .eq('id', (await supabase.auth.getUser()).data.user.id);
+    if (error) throw new Error(error.message);
+  },
+  async updateProfile(updates: Partial<{ full_name: string; phone: string; address: string; gender: string; birth_date: string }>): Promise<void> {
+    const { error } = await supabase
+      .from('user_profiles').update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', (await supabase.auth.getUser()).data.user.id);
+    if (error) throw new Error(error.message);
+  },
+  async requestRoleUpgrade(requestedRole: string, departmentId?: string, positionId?: string, motivation?: string): Promise<void> {
+    const user = (await supabase.auth.getUser()).data.user;
+    const { error } = await supabase
+      .from('role_requests').insert({
+        user_id: user.id,
+        requested_role: requestedRole,
+        department_id: departmentId || null,
+        position_id: positionId || null,
+        motivation: motivation || '',
+      });
+    if (error) throw new Error(error.message);
+  },
+  async joinDepartment(departmentId: string, positionId?: string): Promise<void> {
+    const user = (await supabase.auth.getUser()).data.user;
+    const { error } = await supabase
+      .from('department_members').upsert({
+        user_id: user.id,
+        department_id: departmentId,
+        position_id: positionId || null,
+      }, { onConflict: 'user_id,department_id' });
+    if (error) throw new Error(error.message);
+  },
+
+  // ── ERP: Prayer Requests ──────────────────────────────────────
+  async submitPrayerRequest(content: string, isAnonymous: boolean, isConfidential: boolean): Promise<void> {
+    const user = (await supabase.auth.getUser()).data.user;
+    const { error } = await supabase
+      .from('prayer_requests').insert({
+        user_id: isAnonymous ? null : user.id,
+        author_name: user.user_metadata?.full_name || user.email || 'Anonyme',
+        content,
+        is_anonymous: isAnonymous,
+        is_confidential: isConfidential,
+      });
     if (error) throw new Error(error.message);
   },
 };

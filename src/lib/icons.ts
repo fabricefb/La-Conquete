@@ -4,9 +4,9 @@ export {
   Plus, Trash2, Save, Edit3,
   BookOpen, Users, Heart, Moon, Sparkles, Radio, Home,
   Crown, Flame, Compass, Quote, Send, Headphones, FileText, HandHeart,
-  Sun, Star, Navigation,
+  Sun, Star, Navigation, Check, CheckCircle2,
   // Additional icons used across pages
-  Music, GraduationCap, Mic, ImageOff,
+  Music, GraduationCap, Mic, ImageOff, LogIn, Eye, EyeOff, Lock, Loader2, User,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;
