@@ -4,7 +4,7 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
-  Menu, X, Church
+  Menu, X, Landmark
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -56,7 +56,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: Ad
             <Menu className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2">
-            <Church className="h-5 w-5 text-gold-400" />
+            <Landmark className="h-5 w-5 text-gold-400" />
             <span className="font-serif text-lg font-semibold text-cream">Back-Office</span>
             <span className="hidden text-xs text-muted sm:inline">La Conquête</span>
           </div>

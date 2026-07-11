@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Lock, Mail, Church, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lock, Mail, Landmark, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 
@@ -38,7 +38,7 @@ export default function AdminLogin() {
       <div className="glass w-full max-w-md rounded-2xl p-8 sm:p-10 shadow-2xl">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <Church className="w-14 h-14 text-gold-400 mb-4" aria-hidden="true" />
+          <Landmark className="w-14 h-14 text-gold-400 mb-4" aria-hidden="true" />
           <h1 className="font-serif text-3xl font-bold text-cream tracking-tight">
             Administration
           </h1>

@@ -139,7 +139,7 @@ export default function ImageUpload({
   return (
     <div className={`flex flex-col gap-2 ${className}`}>
       {label && (
-        <label className="text-sm font-medium text-foreground">{label}</label>
+        <label className="text-sm font-medium text-cream">{label}</label>
       )}
 
       {/* Current image preview */}
@@ -206,7 +206,7 @@ export default function ImageUpload({
             </>
           ) : (
             <>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-surface">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
                 {displayUrl ? (
                   <Image size={24} className="text-gold-400" />
                 ) : (
