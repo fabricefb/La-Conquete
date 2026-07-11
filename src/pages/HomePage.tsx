@@ -62,7 +62,7 @@ function RevealSection({
 
 function SkeletonPage() {
   return (
-    <div className="min-h-screen bg-bg text-cream">
+    <div className="min-h-screen bg-bg text-cream font-sans">
       {/* Header skeleton */}
       <div className="h-16 animate-pulse bg-bg/80" />
 
@@ -351,7 +351,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   /* ── Render ──────────────────────────────────────────────────── */
   return (
-    <div className="min-h-screen bg-bg text-cream">
+    <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader
         onNavigate={onNavigate}
         activePage="home"
@@ -618,8 +618,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <MobileNav
         onNavigate={onNavigate}
         active="home"
-        theme={colorMode}
-        onToggleTheme={toggleColorMode}
       />
     </div>
   );

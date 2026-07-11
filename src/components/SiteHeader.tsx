@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { X, ChevronRight, Menu, LogIn } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import type { Page } from '../lib/navigation';
-import type { Theme } from '../lib/theme';
+import type { Theme } from '../types';
 import { ThemeToggle } from './ThemeToggle';
 
 const LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
@@ -12,6 +12,9 @@ const navLinks: { label: string; page: Page }[] = [
   { label: 'Qui sommes-nous', page: 'about' },
   { label: 'Nos activités', page: 'activities' },
   { label: 'Agenda', page: 'events' },
+  { label: 'Émissions', page: 'emissions' },
+  { label: 'Prédications', page: 'predications' },
+  { label: 'Départements', page: 'departments' },
   { label: 'Médias', page: 'media' },
   { label: 'Contact', page: 'contact' },
 ];
@@ -24,6 +27,7 @@ interface SiteHeaderProps {
 }
 
 export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp }: SiteHeaderProps) {
+  const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -63,6 +67,30 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             <span className="hidden gold-text text-lg font-bold tracking-wide sm:block">La Conquête</span>
           </button>
           <nav className="hidden items-center gap-1 xl:flex">
+            {user && (
+              <button key='dashboard' onClick={() => handleNav('dashboard')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${activePage === 'dashboard' ? 'text-gold-300 bg-gold-400/10' : 'text-muted hover:text-cream hover:bg-white/5'}`}>
+                Tableau de bord
+              </button>
+            )}
+            {user && (
+              <button key='pastoral' onClick={() => handleNav('pastoral')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${activePage === 'pastoral' ? 'text-gold-300 bg-gold-400/10' : 'text-muted hover:text-cream hover:bg-white/5'}`}>
+                Espace Pastoral
+              </button>
+            )}
+            {user && (
+              <button key='reports' onClick={() => handleNav('reports')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${activePage === 'reports' ? 'text-gold-300 bg-gold-400/10' : 'text-muted hover:text-cream hover:bg-white/5'}`}>
+                Rapports
+              </button>
+            )}
+            {user && (
+              <button key='communication' onClick={() => handleNav('communication')}
+                className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${activePage === 'communication' ? 'text-gold-300 bg-gold-400/10' : 'text-muted hover:text-cream hover:bg-white/5'}`}>
+                Communication
+              </button>
+            )}
             {navLinks.map((link) => (
               <button key={link.page} onClick={() => handleNav(link.page)}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${activePage === link.page ? 'text-gold-300 bg-gold-400/10' : 'text-muted hover:text-cream hover:bg-white/5'}`}>
@@ -72,10 +100,12 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
           </nav>
           <div className="flex items-center gap-2">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} className="hidden sm:flex" />
-                      <button onClick={() => handleNav('connexion')} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 lg:flex">
-              <LogIn className="h-4 w-4" />
-              Se connecter
-            </button>
+            {!user && (
+              <button onClick={() => handleNav('connexion')} className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 lg:flex">
+                <LogIn className="h-4 w-4" />
+                Se connecter
+              </button>
+            )}
             <button onClick={() => handleNav('contact')} className="btn-gold hidden px-4 py-2 text-sm lg:flex">Faire un don</button>
             <button onClick={() => setDrawerOpen(true)} aria-label="Ouvrir le menu"
               className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 xl:hidden">
@@ -98,6 +128,34 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             </button>
           </div>
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-6">
+            {user && (
+              <button key='dashboard' onClick={() => handleNav('dashboard')}
+                className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${activePage === 'dashboard' ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'}`}>
+                Tableau de bord
+                <ChevronRight className={`h-4 w-4 ${activePage === 'dashboard' ? 'text-gold-400' : 'text-muted'}`} />
+              </button>
+            )}
+            {user && (
+              <button key='pastoral' onClick={() => handleNav('pastoral')}
+                className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${activePage === 'pastoral' ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'}`}>
+                Espace Pastoral
+                <ChevronRight className={`h-4 w-4 ${activePage === 'pastoral' ? 'text-gold-400' : 'text-muted'}`} />
+              </button>
+            )}
+            {user && (
+              <button key='reports' onClick={() => handleNav('reports')}
+                className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${activePage === 'reports' ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'}`}>
+                Rapports
+                <ChevronRight className={`h-4 w-4 ${activePage === 'reports' ? 'text-gold-400' : 'text-muted'}`} />
+              </button>
+            )}
+            {user && (
+              <button key='communication' onClick={() => handleNav('communication')}
+                className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${activePage === 'communication' ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'}`}>
+                Communication
+                <ChevronRight className={`h-4 w-4 ${activePage === 'communication' ? 'text-gold-400' : 'text-muted'}`} />
+              </button>
+            )}
             {navLinks.map((link) => (
               <button key={link.page} onClick={() => handleNav(link.page)}
                 className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${activePage === link.page ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'}`}>
@@ -108,10 +166,12 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
           </nav>
           <div className="border-t border-line px-4 py-6 flex items-center justify-between gap-4">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} />
-            <button onClick={() => handleNav('connexion')} className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400">
-              <LogIn className="h-4 w-4" />
-              Se connecter
-            </button>
+            {!user && (
+              <button onClick={() => handleNav('connexion')} className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400">
+                <LogIn className="h-4 w-4" />
+                Se connecter
+              </button>
+            )}
             <button onClick={() => handleNav('contact')} className="btn-gold flex-1 py-3 text-sm">Faire un don</button>
           </div>
         </div>

@@ -13,6 +13,28 @@ import type {
   Department,
   Position,
   Pastor,
+  Converti,
+  ConvertiPipelineStage,
+  ConvertiTimeline,
+  EventAssignment,
+  EventMinute,
+  InventoryItem,
+  InventoryReservation,
+  CelluleMaison,
+  ZoneEvangelisation,
+  PrayerRequest,
+  PrayerRequestStatus,
+  PrayerRequestVisibility,
+  CommunicationMessage,
+  MediaLibraryItem,
+  MissionReport,
+  MissionFinance,
+  ImpactCounter,
+  PastoralAlert,
+  PastorSchedule,
+  VisitRequest,
+  SpiritualAssessment,
+  NotificationItem,
 } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
@@ -50,11 +72,25 @@ export type {
 export async function fetchTable<T>(
   table: string,
   query?: (q: any) => any,
+): Promise<T[]>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchTable<T>(
+  query: any,
+): Promise<T[]>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function fetchTable<T>(
+  tableOrQuery: string | any,
+  query?: (q: any) => any,
 ): Promise<T[]> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let builder: any = supabase.from(table).select('*');
-  if (query) {
-    builder = query(builder);
+  let builder: any;
+  if (typeof tableOrQuery === 'string') {
+    builder = supabase.from(tableOrQuery).select('*');
+    if (query) {
+      builder = query(builder);
+    }
+  } else {
+    builder = tableOrQuery;
   }
   const { data, error } = await builder;
   if (error) throw new Error(error.message);
@@ -267,6 +303,353 @@ export const db = {
   },
   async getAllPastors(): Promise<Pastor[]> {
     return fetchTable<Pastor>('pastors', (q) => q.order('sort_order'));
+  },
+
+  // ── CRM: Convertis Pipeline ────────────────────────────────────
+  async getConvertis(stage?: ConvertiPipelineStage, evangelistId?: string): Promise<Converti[]> {
+    let query = supabase.from('convertis').select('*').order('pipeline_updated_at', { ascending: false });
+    if (stage) query = query.eq('pipeline_stage', stage);
+    if (evangelistId) query = query.eq('evangelist_id', evangelistId);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Converti[];
+  },
+  async upsertConverti(data: Partial<Converti> & { first_name: string; last_name: string }): Promise<Converti> {
+    const { data: result, error } = await supabase
+      .from('convertis')
+      .upsert({ ...data, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+      .select()
+      .single();
+    if (error) throw new Error(error.message);
+    return result as Converti;
+  },
+  async advanceConvertiStage(id: string, stage: ConvertiPipelineStage, notes: string, doneBy: string): Promise<void> {
+    const { error } = await supabase
+      .from('convertis')
+      .update({ pipeline_stage: stage, pipeline_updated_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw new Error(error.message);
+    // Insert timeline entry
+    await supabase.from('converti_timeline').insert({
+      converti_id: id,
+      stage_to: stage,
+      action: `Avancé à: ${stage}`,
+      notes,
+      done_by: doneBy,
+    });
+  },
+  async getConvertiTimeline(convertiId: string): Promise<ConvertiTimeline[]> {
+    const { data, error } = await supabase
+      .from('converti_timeline')
+      .select('*')
+      .eq('converti_id', convertiId)
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ConvertiTimeline[];
+  },
+
+  // ═══════════════════════════════════════════════
+  // MODULE 1 — Programs & Events Operations
+  // ═══════════════════════════════════════════════
+
+  getEventAssignments(eventId?: string) {
+    let q = supabase.from('event_assignments').select('*').order('created_at', { ascending: false });
+    if (eventId) q = q.eq('event_id', eventId);
+    return fetchTable<EventAssignment>(q);
+  },
+
+  upsertEventAssignment(data: Partial<EventAssignment> & { event_id: string; user_id: string }) {
+    return supabase.from('event_assignments').upsert(data, { onConflict: 'event_id,user_id' }).select().single();
+  },
+
+  deleteEventAssignment(id: string) {
+    return supabase.from('event_assignments').delete().eq('id', id);
+  },
+
+  getEventMinutes(eventId: string) {
+    return fetchTable<EventMinute>(supabase.from('event_minutes').select('*').eq('event_id', eventId).order('sort_order', { ascending: true }));
+  },
+
+  upsertEventMinute(data: Partial<EventMinute>) {
+    if (data.id) return supabase.from('event_minutes').update(data).eq('id', data.id).select().single();
+    return supabase.from('event_minutes').insert(data).select().single();
+  },
+
+  deleteEventMinute(id: string) {
+    return supabase.from('event_minutes').delete().eq('id', id);
+  },
+
+  getInventoryItems(category?: string) {
+    let q = supabase.from('inventory_items').select('*').order('name');
+    if (category) q = q.eq('category', category);
+    return fetchTable<InventoryItem>(q);
+  },
+
+  upsertInventoryItem(data: Partial<InventoryItem>) {
+    if (data.id) return supabase.from('inventory_items').update(data).eq('id', data.id).select().single();
+    return supabase.from('inventory_items').insert(data).select().single();
+  },
+
+  deleteInventoryItem(id: string) {
+    return supabase.from('inventory_items').delete().eq('id', id);
+  },
+
+  getInventoryReservations(itemId?: string) {
+    let q = supabase.from('inventory_reservations').select('*').order('created_at', { ascending: false });
+    if (itemId) q = q.eq('item_id', itemId);
+    return fetchTable<InventoryReservation>(q);
+  },
+
+  upsertInventoryReservation(data: Partial<InventoryReservation>) {
+    if (data.id) return supabase.from('inventory_reservations').update(data).eq('id', data.id).select().single();
+    return supabase.from('inventory_reservations').insert(data).select().single();
+  },
+
+  // ═══════════════════════════════════════════════
+  // MODULE 2 — CRM Convertis (additional)
+  // ═══════════════════════════════════════════════
+
+  getConvertiById(id: string) {
+    return supabase.from('convertis').select('*').eq('id', id).single();
+  },
+
+  deleteConverti(id: string) {
+    return supabase.from('convertis').delete().eq('id', id);
+  },
+
+  getCellules() {
+    return fetchTable<CelluleMaison>(supabase.from('cellules_maison').select('*').order('name'));
+  },
+
+  upsertCellule(data: Partial<CelluleMaison>) {
+    if (data.id) return supabase.from('cellules_maison').update(data).eq('id', data.id).select().single();
+    return supabase.from('cellules_maison').insert({ ...data, member_count: 0, created_at: new Date().toISOString() }).select().single();
+  },
+
+  getZonesEvangelisation() {
+    return fetchTable<ZoneEvangelisation>(supabase.from('zones_evangelisation').select('*').order('name'));
+  },
+
+  // ═══════════════════════════════════════════════
+  // MODULE 3 — Communication
+  // ═══════════════════════════════════════════════
+
+  getPrayerRequests(status?: PrayerRequestStatus, visibility?: PrayerRequestVisibility) {
+    let q = supabase.from('prayer_requests').select('*').order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    if (visibility) q = q.eq('visibility', visibility);
+    return fetchTable<PrayerRequest>(q);
+  },
+
+  upsertPrayerRequest(data: Partial<PrayerRequest>) {
+    if (data.id) return supabase.from('prayer_requests').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+    return supabase.from('prayer_requests').insert({ ...data, status: 'nouveau', prayer_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  },
+
+  updatePrayerRequestStatus(id: string, status: PrayerRequestStatus, response?: string, respondedBy?: string) {
+    const update: Record<string, any> = { status, updated_at: new Date().toISOString() };
+    if (response) { update.response = response; update.responded_by = respondedBy; update.responded_at = new Date().toISOString(); }
+    if (status === 'en_priere') {
+      return supabase.from('prayer_requests').select('prayer_count').eq('id', id).single().then(({ data }) =>
+        supabase.from('prayer_requests').update({ ...update, prayer_count: (data?.prayer_count || 0) + 1 }).eq('id', id).select().single()
+      );
+    }
+    return supabase.from('prayer_requests').update(update).eq('id', id).select().single();
+  },
+
+  getCommunicationMessages(status?: string) {
+    let q = supabase.from('communication_messages').select('*').order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    return fetchTable<CommunicationMessage>(q);
+  },
+
+  upsertCommunicationMessage(data: Partial<CommunicationMessage>) {
+    if (data.id) return supabase.from('communication_messages').update(data).eq('id', data.id).select().single();
+    return supabase.from('communication_messages').insert({ ...data, status: 'draft', created_at: new Date().toISOString() }).select().single();
+  },
+
+  getMediaLibrary(category?: string, accessRole?: string) {
+    let q = supabase.from('media_library').select('*').order('created_at', { ascending: false });
+    if (category) q = q.eq('category', category);
+    return fetchTable<MediaLibraryItem>(q);
+  },
+
+  upsertMediaLibraryItem(data: Partial<MediaLibraryItem>) {
+    if (data.id) return supabase.from('media_library').update(data).eq('id', data.id).select().single();
+    return supabase.from('media_library').insert({ ...data, download_count: 0, created_at: new Date().toISOString() }).select().single();
+  },
+
+  deleteMediaLibraryItem(id: string) {
+    return supabase.from('media_library').delete().eq('id', id);
+  },
+
+  incrementMediaDownload(id: string) {
+    return supabase.from('media_library').select('download_count').eq('id', id).single().then(({ data }) =>
+      supabase.from('media_library').update({ download_count: (data?.download_count || 0) + 1 }).eq('id', id)
+    );
+  },
+
+  createPrayerRequest(data: Partial<PrayerRequest>) {
+    return this.upsertPrayerRequest(data);
+  },
+
+  createCommunicationMessage(data: Partial<CommunicationMessage>) {
+    return this.upsertCommunicationMessage(data);
+  },
+
+  createMediaLibraryItem(data: Partial<MediaLibraryItem>) {
+    return this.upsertMediaLibraryItem(data);
+  },
+
+  getNewsletters() {
+    return fetchTable<any>(supabase.from('newsletters').select('*').order('created_at', { ascending: false }).limit(50));
+  },
+
+  createNewsletter(data: Record<string, any>) {
+    return supabase.from('newsletters').insert({ ...data, status: 'draft', created_at: new Date().toISOString() }).select().single();
+  },
+
+  // ═══════════════════════════════════════════════
+  // MODULE 4 — Rapports & Statistiques
+  // ═══════════════════════════════════════════════
+
+  getMissionReports(status?: string) {
+    let q = supabase.from('mission_reports').select('*').order('report_date', { ascending: false });
+    if (status) q = q.eq('status', status);
+    return fetchTable<MissionReport>(q);
+  },
+
+  upsertMissionReport(data: Partial<MissionReport>) {
+    if (data.id) return supabase.from('mission_reports').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+    return supabase.from('mission_reports').insert({ ...data, status: 'draft', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  },
+
+  getMissionFinances(reportId?: string) {
+    let q = supabase.from('mission_finances').select('*').order('created_at', { ascending: false });
+    if (reportId) q = q.eq('mission_report_id', reportId);
+    return fetchTable<MissionFinance>(q);
+  },
+
+  upsertMissionFinance(data: Partial<MissionFinance>) {
+    if (data.id) return supabase.from('mission_finances').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+    return supabase.from('mission_finances').insert({ ...data, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  },
+
+  getImpactCounters(period?: string) {
+    let q = supabase.from('impact_counters').select('*').order('period_value', { ascending: false }).limit(50);
+    if (period) q = q.eq('period', period);
+    return fetchTable<ImpactCounter>(q);
+  },
+
+  upsertImpactCounter(data: Partial<ImpactCounter>) {
+    if (data.id) return supabase.from('impact_counters').update(data).eq('id', data.id).select().single();
+    return supabase.from('impact_counters').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+  },
+
+  getDashboardStats() {
+    return supabase.rpc('get_dashboard_stats');
+  },
+
+  // ═══════════════════════════════════════════════
+  // MODULE 5 — Espace Pastoral
+  // ═══════════════════════════════════════════════
+
+  getPastoralAlerts(status?: string, type?: string) {
+    let q = supabase.from('pastoral_alerts').select('*').order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    if (type) q = q.eq('type', type);
+    return fetchTable<PastoralAlert>(q);
+  },
+
+  upsertPastoralAlert(data: Partial<PastoralAlert>) {
+    if (data.id) return supabase.from('pastoral_alerts').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+    return supabase.from('pastoral_alerts').insert({ ...data, status: 'ouverte', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  },
+
+  updatePastoralAlertStatus(id: string, status: string, resolvedBy?: string, resolutionNotes?: string) {
+    const update: Record<string, any> = { status, updated_at: new Date().toISOString() };
+    if (resolvedBy) { update.resolved_by = resolvedBy; update.resolved_at = new Date().toISOString(); }
+    if (resolutionNotes) update.resolution_notes = resolutionNotes;
+    return supabase.from('pastoral_alerts').update(update).eq('id', id).select().single();
+  },
+
+  getPastorSchedule(pastorId?: string, startDate?: string, endDate?: string) {
+    let q = supabase.from('pastor_schedule').select('*').order('date', { ascending: true });
+    if (pastorId) q = q.eq('pastor_id', pastorId);
+    if (startDate) q = q.gte('date', startDate);
+    if (endDate) q = q.lte('date', endDate);
+    return fetchTable<PastorSchedule>(q);
+  },
+
+  upsertPastorSchedule(data: Partial<PastorSchedule>) {
+    if (data.id) return supabase.from('pastor_schedule').update(data).eq('id', data.id).select().single();
+    return supabase.from('pastor_schedule').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+  },
+
+  deletePastorSchedule(id: string) {
+    return supabase.from('pastor_schedule').delete().eq('id', id);
+  },
+
+  getVisitRequests(status?: string, assignedTo?: string) {
+    let q = supabase.from('visit_requests').select('*').order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    if (assignedTo) q = q.eq('assigned_to', assignedTo);
+    return fetchTable<VisitRequest>(q);
+  },
+
+  upsertVisitRequest(data: Partial<VisitRequest>) {
+    if (data.id) return supabase.from('visit_requests').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+    return supabase.from('visit_requests').insert({ ...data, status: 'en_attente', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+  },
+
+  getSpiritualAssessments(userId?: string) {
+    let q = supabase.from('spiritual_assessments').select('*').order('created_at', { ascending: false });
+    if (userId) q = q.eq('user_id', userId);
+    return fetchTable<SpiritualAssessment>(q);
+  },
+
+  upsertSpiritualAssessment(data: Partial<SpiritualAssessment>) {
+    if (data.id) return supabase.from('spiritual_assessments').update(data).eq('id', data.id).select().single();
+    const { overall_score } = data;
+    if (overall_score === undefined) {
+      const scores = [data.prayer_life, data.bible_study, data.fellowship, data.evangelism, data.giving, data.service].filter((s): s is number => s !== undefined);
+      data.overall_score = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+    }
+    return supabase.from('spiritual_assessments').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+  },
+
+  // ═══════════════════════════════════════════════
+  // Notifications
+  // ═══════════════════════════════════════════════
+
+  getNotifications(userId: string) {
+    return fetchTable<NotificationItem>(supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50));
+  },
+
+  markNotificationRead(id: string) {
+    return supabase.from('notifications').update({ is_read: true }).eq('id', id);
+  },
+
+  markAllNotificationsRead(userId: string) {
+    return supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
+  },
+
+  createNotification(userId: string, title: string, message: string, type: NotificationItem['type'], link?: string) {
+    return supabase.from('notifications').insert({ user_id: userId, title, message, type, is_read: false, link, created_at: new Date().toISOString() });
+  },
+
+  // ═══════════════════════════════════════════════
+  // Profiles & Members
+  // ═══════════════════════════════════════════════
+
+  getProfiles(role?: string, departmentId?: string) {
+    let q = supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
+    if (role) q = q.eq('role', role);
+    return fetchTable<UserProfile>(q);
+  },
+
+  updateUserRole(userId: string, role: string) {
+    return supabase.from('user_profiles').update({ role }).eq('id', userId).select().single();
   },
 };
 

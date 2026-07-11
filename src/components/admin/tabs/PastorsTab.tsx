@@ -240,10 +240,9 @@ export function PastorsTab() {
               Photo
             </label>
             <ImageUpload
-              bucket="media"
+              value={form.photo_url}
+              onChange={(url) => setField('photo_url', url)}
               folder="pastors"
-              currentUrl={form.photo_url}
-              onUploaded={(url) => setField('photo_url', url)}
             />
           </div>
 

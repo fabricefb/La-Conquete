@@ -169,7 +169,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-bg text-cream">
+    <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader
         onNavigate={onNavigate}
         activePage="contact"
@@ -521,8 +521,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       <MobileNav
         onNavigate={onNavigate}
         active="contact"
-        theme={colorMode}
-        onToggleTheme={toggleColorMode}
       />
     </div>
   );

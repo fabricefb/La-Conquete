@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Globe } from '../lib/icons';
 import type { Page } from '../lib/navigation';
-import type { Theme } from '../lib/theme';
+import type { Theme } from '../types';
 import { ThemeToggle } from './ThemeToggle';
 import { db, buildSettingsMap } from '../lib/supabase';
 import type { Ministry } from '../types';

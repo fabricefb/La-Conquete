@@ -1,0 +1,651 @@
+     1→     1→import { createClient } from '@supabase/supabase-js';
+     2→     2→import type {
+     3→     3→  Location,
+     4→     4→  ChurchEvent,
+     5→     5→  SiteSetting,
+     6→     6→  PageContent,
+     7→     7→  Ministry,
+     8→     8→  MediaItem,
+     9→     9→  Testimonial,
+    10→    10→  ContactMessage,
+    11→    11→  ThemeSettings,
+    12→    12→  UserProfile,
+    13→    13→  Department,
+    14→    14→  Position,
+    15→    15→  Pastor,
+    16→    16→  Converti,
+    17→    17→  ConvertiPipelineStage,
+    18→    18→  ConvertiTimeline,
+    19→    19→  EventAssignment,
+    20→    20→  EventMinute,
+    21→    21→  InventoryItem,
+    22→    22→  InventoryReservation,
+    23→    23→  CelluleMaison,
+    24→    24→  ZoneEvangelisation,
+    25→    25→  PrayerRequest,
+    26→    26→  PrayerRequestStatus,
+    27→    27→  PrayerRequestVisibility,
+    28→    28→  CommunicationMessage,
+    29→    29→  MediaLibraryItem,
+    30→    30→  MissionReport,
+    31→    31→  MissionFinance,
+    32→    32→  ImpactCounter,
+    33→    33→  PastoralAlert,
+    34→    34→  PastorSchedule,
+    35→    35→  VisitRequest,
+    36→    36→  SpiritualAssessment,
+    37→    37→  NotificationItem,
+    38→    38→} from '../types';
+    39→    39→
+    40→    40→const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
+    41→    41→const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+    42→    42→
+    43→    43→// If env vars are missing, create a dummy client that won't crash
+    44→    44→// but all queries will gracefully return empty results.
+    45→    45→export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+    46→    46→  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    47→    47→  : createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYzNjEwMTMsImV4cCI6MTk2MTkzNzAxM30.placeholder', {
+    48→    48→      auth: { persistSession: false, autoRefreshToken: false },
+    49→    49→    });
+    50→    50→
+    51→    51→export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+    52→    52→
+    53→    53→// ─── Re-export all types from a single import point ──────────────
+    54→    54→export type {
+    55→    55→  Location,
+    56→    56→  ChurchEvent,
+    57→    57→  SiteSetting,
+    58→    58→  PageContent,
+    59→    59→  Ministry,
+    60→    60→  MediaItem,
+    61→    61→  Testimonial,
+    62→    62→  ContactMessage,
+    63→    63→  ThemeSettings,
+    64→    64→  UserProfile,
+    65→    65→  Department,
+    66→    66→  Position,
+    67→    67→  Pastor,
+    68→    68→};
+    69→    69→
+    70→    70→// ─── Generic fetcher ─────────────────────────────────────────────
+    71→    71→// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    72→    72→export async function fetchTable<T>(
+    73→    73→  table: string,
+    74→    74→  query?: (q: any) => any,
+    75→    75→): Promise<T[]>;
+    76→    76→// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    77→    77→export async function fetchTable<T>(
+    78→    78→  query: any,
+    79→    79→): Promise<T[]>;
+    80→    80→// eslint-disable-next-line @typescript-eslint/no-explicit-any
+    81→    81→export async function fetchTable<T>(
+    82→    82→  tableOrQuery: string | any,
+    83→    83→  query?: (q: any) => any,
+    84→    84→): Promise<T[]> {
+    85→    85→  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    86→    86→  let builder: any;
+    87→    87→  if (typeof tableOrQuery === 'string') {
+    88→    88→    builder = supabase.from(tableOrQuery).select('*');
+    89→    89→    if (query) {
+    90→    90→      builder = query(builder);
+    91→    91→    }
+    92→    92→  } else {
+    93→    93→    builder = tableOrQuery;
+    94→    94→  }
+    95→    95→  const { data, error } = await builder;
+    96→    96→  if (error) throw new Error(error.message);
+    97→    97→  return (data ?? []) as T[];
+    98→    98→}
+    99→    99→
+   100→   100→// ─── Fetch helpers typed per table ───────────────────────────────
+   101→   101→export const db = {
+   102→   102→  // Settings
+   103→   103→  async getSettings(): Promise<SiteSetting[]> {
+   104→   104→    return fetchTable<SiteSetting>('site_settings', (q) => q.order('sort_order'));
+   105→   105→  },
+   106→   106→  async getSetting(key: string): Promise<string> {
+   107→   107→    const { data } = await supabase.from('site_settings').select('value').eq('key', key).single();
+   108→   108→    return data?.value ?? '';
+   109→   109→  },
+   110→   110→  async upsertSetting(key: string, value: string): Promise<void> {
+   111→   111→    const { error } = await supabase
+   112→   112→      .from('site_settings')
+   113→   113→      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+   114→   114→    if (error) throw new Error(error.message);
+   115→   115→  },
+   116→   116→
+   117→   117→  // Page contents
+   118→   118→  async getPageContents(page: string): Promise<PageContent[]> {
+   119→   119→    const { data, error } = await supabase
+   120→   120→      .from('page_contents')
+   121→   121→      .select('*')
+   122→   122→      .eq('page', page)
+   123→   123→      .eq('is_active', true)
+   124→   124→      .order('sort_order');
+   125→   125→    if (error) throw new Error(error.message);
+   126→   126→    return (data ?? []) as PageContent[];
+   127→   127→  },
+   128→   128→  async getAllPageContents(): Promise<PageContent[]> {
+   129→   129→    return fetchTable<PageContent>('page_contents', (q) => q.order('page, sort_order'));
+   130→   130→  },
+   131→   131→
+   132→   132→  // Locations
+   133→   133→  async getActiveLocations(): Promise<Location[]> {
+   134→   134→    const { data, error } = await supabase
+   135→   135→      .from('locations')
+   136→   136→      .select('*')
+   137→   137→      .eq('is_active', true)
+   138→   138→      .order('sort_order');
+   139→   139→    if (error) throw new Error(error.message);
+   140→   140→    return (data ?? []) as Location[];
+   141→   141→  },
+   142→   142→  async getAllLocations(): Promise<Location[]> {
+   143→   143→    return fetchTable<Location>('locations', (q) => q.order('sort_order'));
+   144→   144→  },
+   145→   145→
+   146→   146→  // Events
+   147→   147→  async getEvents(): Promise<ChurchEvent[]> {
+   148→   148→    return fetchTable<ChurchEvent>('events', (q) => q.order('event_date'));
+   149→   149→  },
+   150→   150→
+   151→   151→  // Ministries
+   152→   152→  async getActiveMinistries(): Promise<Ministry[]> {
+   153→   153→    const { data, error } = await supabase
+   154→   154→      .from('ministries')
+   155→   155→      .select('*')
+   156→   156→      .eq('is_active', true)
+   157→   157→      .order('sort_order');
+   158→   158→    if (error) throw new Error(error.message);
+   159→   159→    return (data ?? []) as Ministry[];
+   160→   160→  },
+   161→   161→  async getAllMinistries(): Promise<Ministry[]> {
+   162→   162→    return fetchTable<Ministry>('ministries', (q) => q.order('sort_order'));
+   163→   163→  },
+   164→   164→
+   165→   165→  // Media
+   166→   166→  async getActiveMedia(category?: string): Promise<MediaItem[]> {
+   167→   167→    let query = supabase
+   168→   168→      .from('media_items')
+   169→   169→      .select('*')
+   170→   170→      .eq('is_active', true)
+   171→   171→      .order('sort_order');
+   172→   172→    if (category && category !== 'Tous') {
+   173→   173→      query = query.eq('category', category);
+   174→   174→    }
+   175→   175→    const { data, error } = await query;
+   176→   176→    if (error) throw new Error(error.message);
+   177→   177→    return (data ?? []) as MediaItem[];
+   178→   178→  },
+   179→   179→  async getAllMedia(): Promise<MediaItem[]> {
+   180→   180→    return fetchTable<MediaItem>('media_items', (q) => q.order('sort_order'));
+   181→   181→  },
+   182→   182→
+   183→   183→  // Testimonials
+   184→   184→  async getActiveTestimonials(): Promise<Testimonial[]> {
+   185→   185→    const { data, error } = await supabase
+   186→   186→      .from('testimonials')
+   187→   187→      .select('*')
+   188→   188→      .eq('is_active', true)
+   189→   189→      .order('sort_order');
+   190→   190→    if (error) throw new Error(error.message);
+   191→   191→    return (data ?? []) as Testimonial[];
+   192→   192→  },
+   193→   193→  async getAllTestimonials(): Promise<Testimonial[]> {
+   194→   194→    return fetchTable<Testimonial>('testimonials', (q) => q.order('sort_order'));
+   195→   195→  },
+   196→   196→
+   197→   197→  // Contact messages
+   198→   198→  async getMessages(): Promise<ContactMessage[]> {
+   199→   199→    return fetchTable<ContactMessage>('contact_messages', (q) => q.order('created_at', { ascending: false }));
+   200→   200→  },
+   201→   201→
+   202→   202→  // Theme
+   203→   203→  async getThemeSettings(): Promise<ThemeSettings | null> {
+   204→   204→    const { data, error } = await supabase.from('theme_settings').select('*').eq('id', 1).single();
+   205→   205→    if (error) return null;
+   206→   206→    return data as ThemeSettings;
+   207→   207→  },
+   208→   208→  async updateThemeSettings(settings: Partial<ThemeSettings>): Promise<void> {
+   209→   209→    const { error } = await supabase
+   210→   210→      .from('theme_settings')
+   211→   211→      .update({ ...settings, updated_at: new Date().toISOString() })
+   212→   212→      .eq('id', 1);
+   213→   213→    if (error) throw new Error(error.message);
+   214→   214→  },
+   215→   215→
+   216→   216→  // Profile
+   217→   217→  async getProfile(userId: string): Promise<UserProfile | null> {
+   218→   218→    const { data, error } = await supabase.from('user_profiles').select('*').eq('id', userId).single();
+   219→   219→    if (error) return null;
+   220→   220→    return data as UserProfile;
+   221→   221→  },
+   222→   222→  async isAdmin(userId: string): Promise<boolean> {
+   223→   223→    const profile = await db.getProfile(userId);
+   224→   224→    return profile?.is_admin ?? false;
+   225→   225→  },
+   226→   226→
+   227→   227→  // Contact form submission
+   228→   228→  async submitContactMessage(name: string, email: string, subject: string, message: string): Promise<void> {
+   229→   229→    const { error } = await supabase.from('contact_messages').insert({ name, email, subject, message });
+   230→   230→    if (error) throw new Error(error.message);
+   231→   231→  },
+   232→   232→
+   233→   233→  // ── ERP: Departments ──────────────────────────────────────────
+   234→   234→  async getActiveDepartments(): Promise<Department[]> {
+   235→   235→    const { data, error } = await supabase
+   236→   236→      .from('departments').select('*').eq('is_active', true).order('sort_order');
+   237→   237→    if (error) throw new Error(error.message);
+   238→   238→    return (data ?? []) as Department[];
+   239→   239→  },
+   240→   240→  async getDepartmentPositions(departmentId: string): Promise<Position[]> {
+   241→   241→    const { data, error } = await supabase
+   242→   242→      .from('positions').select('*').eq('department_id', departmentId).eq('is_active', true).order('sort_order');
+   243→   243→    if (error) throw new Error(error.message);
+   244→   244→    return (data ?? []) as Position[];
+   245→   245→  },
+   246→   246→
+   247→   247→  // ── ERP: Onboarding ───────────────────────────────────────────
+   248→   248→  async completeOnboarding(): Promise<void> {
+   249→   249→    const { error } = await supabase
+   250→   250→      .from('user_profiles').update({ onboarding_completed: true, updated_at: new Date().toISOString() })
+   251→   251→      .eq('id', (await supabase.auth.getUser()).data.user.id);
+   252→   252→    if (error) throw new Error(error.message);
+   253→   253→  },
+   254→   254→  async updateProfile(updates: Partial<{ full_name: string; phone: string; address: string; gender: string; birth_date: string }>): Promise<void> {
+   255→   255→    const { error } = await supabase
+   256→   256→      .from('user_profiles').update({ ...updates, updated_at: new Date().toISOString() })
+   257→   257→      .eq('id', (await supabase.auth.getUser()).data.user.id);
+   258→   258→    if (error) throw new Error(error.message);
+   259→   259→  },
+   260→   260→  async requestRoleUpgrade(requestedRole: string, departmentId?: string, positionId?: string, motivation?: string): Promise<void> {
+   261→   261→    const user = (await supabase.auth.getUser()).data.user;
+   262→   262→    const { error } = await supabase
+   263→   263→      .from('role_requests').insert({
+   264→   264→        user_id: user.id,
+   265→   265→        requested_role: requestedRole,
+   266→   266→        department_id: departmentId || null,
+   267→   267→        position_id: positionId || null,
+   268→   268→        motivation: motivation || '',
+   269→   269→      });
+   270→   270→    if (error) throw new Error(error.message);
+   271→   271→  },
+   272→   272→  async joinDepartment(departmentId: string, positionId?: string): Promise<void> {
+   273→   273→    const user = (await supabase.auth.getUser()).data.user;
+   274→   274→    const { error } = await supabase
+   275→   275→      .from('department_members').upsert({
+   276→   276→        user_id: user.id,
+   277→   277→        department_id: departmentId,
+   278→   278→        position_id: positionId || null,
+   279→   279→      }, { onConflict: 'user_id,department_id' });
+   280→   280→    if (error) throw new Error(error.message);
+   281→   281→  },
+   282→   282→
+   283→   283→  // ── ERP: Prayer Requests ──────────────────────────────────────
+   284→   284→  async submitPrayerRequest(content: string, isAnonymous: boolean, isConfidential: boolean): Promise<void> {
+   285→   285→    const user = (await supabase.auth.getUser()).data.user;
+   286→   286→    const { error } = await supabase
+   287→   287→      .from('prayer_requests').insert({
+   288→   288→        user_id: isAnonymous ? null : user.id,
+   289→   289→        author_name: user.user_metadata?.full_name || user.email || 'Anonyme',
+   290→   290→        content,
+   291→   291→        is_anonymous: isAnonymous,
+   292→   292→        is_confidential: isConfidential,
+   293→   293→      });
+   294→   294→    if (error) throw new Error(error.message);
+   295→   295→  },
+   296→   296→
+   297→   297→  // ── Pastors ──────────────────────────────────────────────────
+   298→   298→  async getActivePastors(): Promise<Pastor[]> {
+   299→   299→    const { data, error } = await supabase
+   300→   300→      .from('pastors').select('*').eq('is_active', true).order('sort_order');
+   301→   301→    if (error) throw new Error(error.message);
+   302→   302→    return (data ?? []) as Pastor[];
+   303→   303→  },
+   304→   304→  async getAllPastors(): Promise<Pastor[]> {
+   305→   305→    return fetchTable<Pastor>('pastors', (q) => q.order('sort_order'));
+   306→   306→  },
+   307→   307→
+   308→   308→  // ── CRM: Convertis Pipeline ────────────────────────────────────
+   309→   309→  async getConvertis(stage?: ConvertiPipelineStage, evangelistId?: string): Promise<Converti[]> {
+   310→   310→    let query = supabase.from('convertis').select('*').order('pipeline_updated_at', { ascending: false });
+   311→   311→    if (stage) query = query.eq('pipeline_stage', stage);
+   312→   312→    if (evangelistId) query = query.eq('evangelist_id', evangelistId);
+   313→   313→    const { data, error } = await query;
+   314→   314→    if (error) throw new Error(error.message);
+   315→   315→    return (data ?? []) as Converti[];
+   316→   316→  },
+   317→   317→  async upsertConverti(data: Partial<Converti> & { first_name: string; last_name: string }): Promise<Converti> {
+   318→   318→    const { data: result, error } = await supabase
+   319→   319→      .from('convertis')
+   320→   320→      .upsert({ ...data, updated_at: new Date().toISOString() }, { onConflict: 'id' })
+   321→   321→      .select()
+   322→   322→      .single();
+   323→   323→    if (error) throw new Error(error.message);
+   324→   324→    return result as Converti;
+   325→   325→  },
+   326→   326→  async advanceConvertiStage(id: string, stage: ConvertiPipelineStage, notes: string, doneBy: string): Promise<void> {
+   327→   327→    const { error } = await supabase
+   328→   328→      .from('convertis')
+   329→   329→      .update({ pipeline_stage: stage, pipeline_updated_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+   330→   330→      .eq('id', id);
+   331→   331→    if (error) throw new Error(error.message);
+   332→   332→    // Insert timeline entry
+   333→   333→    await supabase.from('converti_timeline').insert({
+   334→   334→      converti_id: id,
+   335→   335→      stage_to: stage,
+   336→   336→      action: `Avancé à: ${stage}`,
+   337→   337→      notes,
+   338→   338→      done_by: doneBy,
+   339→   339→    });
+   340→   340→  },
+   341→   341→  async getConvertiTimeline(convertiId: string): Promise<ConvertiTimeline[]> {
+   342→   342→    const { data, error } = await supabase
+   343→   343→      .from('converti_timeline')
+   344→   344→      .select('*')
+   345→   345→      .eq('converti_id', convertiId)
+   346→   346→      .order('created_at', { ascending: false });
+   347→   347→    if (error) throw new Error(error.message);
+   348→   348→    return (data ?? []) as ConvertiTimeline[];
+   349→   349→  },
+   350→   350→
+   351→   351→  // ═══════════════════════════════════════════════
+   352→   352→  // MODULE 1 — Programs & Events Operations
+   353→   353→  // ═══════════════════════════════════════════════
+   354→   354→
+   355→   355→  getEventAssignments(eventId?: string) {
+   356→   356→    let q = supabase.from('event_assignments').select('*').order('created_at', { ascending: false });
+   357→   357→    if (eventId) q = q.eq('event_id', eventId);
+   358→   358→    return fetchTable<EventAssignment>(q);
+   359→   359→  },
+   360→   360→
+   361→   361→  upsertEventAssignment(data: Partial<EventAssignment> & { event_id: string; user_id: string }) {
+   362→   362→    return supabase.from('event_assignments').upsert(data, { onConflict: 'event_id,user_id' }).select().single();
+   363→   363→  },
+   364→   364→
+   365→   365→  deleteEventAssignment(id: string) {
+   366→   366→    return supabase.from('event_assignments').delete().eq('id', id);
+   367→   367→  },
+   368→   368→
+   369→   369→  getEventMinutes(eventId: string) {
+   370→   370→    return fetchTable<EventMinute>(supabase.from('event_minutes').select('*').eq('event_id', eventId).order('sort_order', { ascending: true }));
+   371→   371→  },
+   372→   372→
+   373→   373→  upsertEventMinute(data: Partial<EventMinute>) {
+   374→   374→    if (data.id) return supabase.from('event_minutes').update(data).eq('id', data.id).select().single();
+   375→   375→    return supabase.from('event_minutes').insert(data).select().single();
+   376→   376→  },
+   377→   377→
+   378→   378→  deleteEventMinute(id: string) {
+   379→   379→    return supabase.from('event_minutes').delete().eq('id', id);
+   380→   380→  },
+   381→   381→
+   382→   382→  getInventoryItems(category?: string) {
+   383→   383→    let q = supabase.from('inventory_items').select('*').order('name');
+   384→   384→    if (category) q = q.eq('category', category);
+   385→   385→    return fetchTable<InventoryItem>(q);
+   386→   386→  },
+   387→   387→
+   388→   388→  upsertInventoryItem(data: Partial<InventoryItem>) {
+   389→   389→    if (data.id) return supabase.from('inventory_items').update(data).eq('id', data.id).select().single();
+   390→   390→    return supabase.from('inventory_items').insert(data).select().single();
+   391→   391→  },
+   392→   392→
+   393→   393→  deleteInventoryItem(id: string) {
+   394→   394→    return supabase.from('inventory_items').delete().eq('id', id);
+   395→   395→  },
+   396→   396→
+   397→   397→  getInventoryReservations(itemId?: string) {
+   398→   398→    let q = supabase.from('inventory_reservations').select('*').order('created_at', { ascending: false });
+   399→   399→    if (itemId) q = q.eq('item_id', itemId);
+   400→   400→    return fetchTable<InventoryReservation>(q);
+   401→   401→  },
+   402→   402→
+   403→   403→  upsertInventoryReservation(data: Partial<InventoryReservation>) {
+   404→   404→    if (data.id) return supabase.from('inventory_reservations').update(data).eq('id', data.id).select().single();
+   405→   405→    return supabase.from('inventory_reservations').insert(data).select().single();
+   406→   406→  },
+   407→   407→
+   408→   408→  // ═══════════════════════════════════════════════
+   409→   409→  // MODULE 2 — CRM Convertis (additional)
+   410→   410→  // ═══════════════════════════════════════════════
+   411→   411→
+   412→   412→  getConvertiById(id: string) {
+   413→   413→    return supabase.from('convertis').select('*').eq('id', id).single();
+   414→   414→  },
+   415→   415→
+   416→   416→  deleteConverti(id: string) {
+   417→   417→    return supabase.from('convertis').delete().eq('id', id);
+   418→   418→  },
+   419→   419→
+   420→   420→  getCellules() {
+   421→   421→    return fetchTable<CelluleMaison>(supabase.from('cellules_maison').select('*').order('name'));
+   422→   422→  },
+   423→   423→
+   424→   424→  upsertCellule(data: Partial<CelluleMaison>) {
+   425→   425→    if (data.id) return supabase.from('cellules_maison').update(data).eq('id', data.id).select().single();
+   426→   426→    return supabase.from('cellules_maison').insert({ ...data, member_count: 0, created_at: new Date().toISOString() }).select().single();
+   427→   427→  },
+   428→   428→
+   429→   429→  getZonesEvangelisation() {
+   430→   430→    return fetchTable<ZoneEvangelisation>(supabase.from('zones_evangelisation').select('*').order('name'));
+   431→   431→  },
+   432→   432→
+   433→   433→  // ═══════════════════════════════════════════════
+   434→   434→  // MODULE 3 — Communication
+   435→   435→  // ═══════════════════════════════════════════════
+   436→   436→
+   437→   437→  getPrayerRequests(status?: PrayerRequestStatus, visibility?: PrayerRequestVisibility) {
+   438→   438→    let q = supabase.from('prayer_requests').select('*').order('created_at', { ascending: false });
+   439→   439→    if (status) q = q.eq('status', status);
+   440→   440→    if (visibility) q = q.eq('visibility', visibility);
+   441→   441→    return fetchTable<PrayerRequest>(q);
+   442→   442→  },
+   443→   443→
+   444→   444→  upsertPrayerRequest(data: Partial<PrayerRequest>) {
+   445→   445→    if (data.id) return supabase.from('prayer_requests').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+   446→   446→    return supabase.from('prayer_requests').insert({ ...data, status: 'nouveau', prayer_count: 0, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+   447→   447→  },
+   448→   448→
+   449→   449→  updatePrayerRequestStatus(id: string, status: PrayerRequestStatus, response?: string, respondedBy?: string) {
+   450→   450→    const update: Record<string, any> = { status, updated_at: new Date().toISOString() };
+   451→   451→    if (response) { update.response = response; update.responded_by = respondedBy; update.responded_at = new Date().toISOString(); }
+   452→   452→    if (status === 'en_priere') {
+   453→   453→      return supabase.from('prayer_requests').select('prayer_count').eq('id', id).single().then(({ data }) =>
+   454→   454→        supabase.from('prayer_requests').update({ ...update, prayer_count: (data?.prayer_count || 0) + 1 }).eq('id', id).select().single()
+   455→   455→      );
+   456→   456→    }
+   457→   457→    return supabase.from('prayer_requests').update(update).eq('id', id).select().single();
+   458→   458→  },
+   459→   459→
+   460→   460→  getCommunicationMessages(status?: string) {
+   461→   461→    let q = supabase.from('communication_messages').select('*').order('created_at', { ascending: false });
+   462→   462→    if (status) q = q.eq('status', status);
+   463→   463→    return fetchTable<CommunicationMessage>(q);
+   464→   464→  },
+   465→   465→
+   466→   466→  upsertCommunicationMessage(data: Partial<CommunicationMessage>) {
+   467→   467→    if (data.id) return supabase.from('communication_messages').update(data).eq('id', data.id).select().single();
+   468→   468→    return supabase.from('communication_messages').insert({ ...data, status: 'draft', created_at: new Date().toISOString() }).select().single();
+   469→   469→  },
+   470→   470→
+   471→   471→  getMediaLibrary(category?: string, accessRole?: string) {
+   472→   472→    let q = supabase.from('media_library').select('*').order('created_at', { ascending: false });
+   473→   473→    if (category) q = q.eq('category', category);
+   474→   474→    return fetchTable<MediaLibraryItem>(q);
+   475→   475→  },
+   476→   476→
+   477→   477→  upsertMediaLibraryItem(data: Partial<MediaLibraryItem>) {
+   478→   478→    if (data.id) return supabase.from('media_library').update(data).eq('id', data.id).select().single();
+   479→   479→    return supabase.from('media_library').insert({ ...data, download_count: 0, created_at: new Date().toISOString() }).select().single();
+   480→   480→  },
+   481→   481→
+   482→   482→  deleteMediaLibraryItem(id: string) {
+   483→   483→    return supabase.from('media_library').delete().eq('id', id);
+   484→   484→  },
+   485→   485→
+   486→   486→  // ═══════════════════════════════════════════════
+   487→   487→  // MODULE 4 — Rapports & Statistiques
+   488→   488→  // ═══════════════════════════════════════════════
+   489→   489→
+   490→   490→  getMissionReports(status?: string) {
+   491→   491→    let q = supabase.from('mission_reports').select('*').order('report_date', { ascending: false });
+   492→   492→    if (status) q = q.eq('status', status);
+   493→   493→    return fetchTable<MissionReport>(q);
+   494→   494→  },
+   495→   495→
+   496→   496→  upsertMissionReport(data: Partial<MissionReport>) {
+   497→   497→    if (data.id) return supabase.from('mission_reports').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+   498→   498→    return supabase.from('mission_reports').insert({ ...data, status: 'draft', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+   499→   499→  },
+   500→   500→
+   501→   501→  getMissionFinances(reportId?: string) {
+   502→   502→    let q = supabase.from('mission_finances').select('*').order('created_at', { ascending: false });
+   503→   503→    if (reportId) q = q.eq('mission_report_id', reportId);
+   504→   504→    return fetchTable<MissionFinance>(q);
+   505→   505→  },
+   506→   506→
+   507→   507→  upsertMissionFinance(data: Partial<MissionFinance>) {
+   508→   508→    if (data.id) return supabase.from('mission_finances').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+   509→   509→    return supabase.from('mission_finances').insert({ ...data, created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+   510→   510→  },
+   511→   511→
+   512→   512→  getImpactCounters(period?: string) {
+   513→   513→    let q = supabase.from('impact_counters').select('*').order('period_value', { ascending: false }).limit(50);
+   514→   514→    if (period) q = q.eq('period', period);
+   515→   515→    return fetchTable<ImpactCounter>(q);
+   516→   516→  },
+   517→   517→
+   518→   518→  upsertImpactCounter(data: Partial<ImpactCounter>) {
+   519→   519→    if (data.id) return supabase.from('impact_counters').update(data).eq('id', data.id).select().single();
+   520→   520→    return supabase.from('impact_counters').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+   521→   521→  },
+   522→   522→
+   523→   523→  getDashboardStats() {
+   524→   524→    return supabase.rpc('get_dashboard_stats');
+   525→   525→  },
+   526→   526→
+   527→   527→  // ═══════════════════════════════════════════════
+   528→   528→  // MODULE 5 — Espace Pastoral
+   529→   529→  // ═══════════════════════════════════════════════
+   530→   530→
+   531→   531→  getPastoralAlerts(status?: string, type?: string) {
+   532→   532→    let q = supabase.from('pastoral_alerts').select('*').order('created_at', { ascending: false });
+   533→   533→    if (status) q = q.eq('status', status);
+   534→   534→    if (type) q = q.eq('type', type);
+   535→   535→    return fetchTable<PastoralAlert>(q);
+   536→   536→  },
+   537→   537→
+   538→   538→  upsertPastoralAlert(data: Partial<PastoralAlert>) {
+   539→   539→    if (data.id) return supabase.from('pastoral_alerts').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+   540→   540→    return supabase.from('pastoral_alerts').insert({ ...data, status: 'ouverte', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+   541→   541→  },
+   542→   542→
+   543→   543→  updatePastoralAlertStatus(id: string, status: string, resolvedBy?: string, resolutionNotes?: string) {
+   544→   544→    const update: Record<string, any> = { status, updated_at: new Date().toISOString() };
+   545→   545→    if (resolvedBy) { update.resolved_by = resolvedBy; update.resolved_at = new Date().toISOString(); }
+   546→   546→    if (resolutionNotes) update.resolution_notes = resolutionNotes;
+   547→   547→    return supabase.from('pastoral_alerts').update(update).eq('id', id).select().single();
+   548→   548→  },
+   549→   549→
+   550→   550→  getPastorSchedule(pastorId?: string, startDate?: string, endDate?: string) {
+   551→   551→    let q = supabase.from('pastor_schedule').select('*').order('date', { ascending: true });
+   552→   552→    if (pastorId) q = q.eq('pastor_id', pastorId);
+   553→   553→    if (startDate) q = q.gte('date', startDate);
+   554→   554→    if (endDate) q = q.lte('date', endDate);
+   555→   555→    return fetchTable<PastorSchedule>(q);
+   556→   556→  },
+   557→   557→
+   558→   558→  upsertPastorSchedule(data: Partial<PastorSchedule>) {
+   559→   559→    if (data.id) return supabase.from('pastor_schedule').update(data).eq('id', data.id).select().single();
+   560→   560→    return supabase.from('pastor_schedule').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+   561→   561→  },
+   562→   562→
+   563→   563→  deletePastorSchedule(id: string) {
+   564→   564→    return supabase.from('pastor_schedule').delete().eq('id', id);
+   565→   565→  },
+   566→   566→
+   567→   567→  getVisitRequests(status?: string, assignedTo?: string) {
+   568→   568→    let q = supabase.from('visit_requests').select('*').order('created_at', { ascending: false });
+   569→   569→    if (status) q = q.eq('status', status);
+   570→   570→    if (assignedTo) q = q.eq('assigned_to', assignedTo);
+   571→   571→    return fetchTable<VisitRequest>(q);
+   572→   572→  },
+   573→   573→
+   574→   574→  upsertVisitRequest(data: Partial<VisitRequest>) {
+   575→   575→    if (data.id) return supabase.from('visit_requests').update({ ...data, updated_at: new Date().toISOString() }).eq('id', data.id).select().single();
+   576→   576→    return supabase.from('visit_requests').insert({ ...data, status: 'en_attente', created_at: new Date().toISOString(), updated_at: new Date().toISOString() }).select().single();
+   577→   577→  },
+   578→   578→
+   579→   579→  getSpiritualAssessments(userId?: string) {
+   580→   580→    let q = supabase.from('spiritual_assessments').select('*').order('created_at', { ascending: false });
+   581→   581→    if (userId) q = q.eq('user_id', userId);
+   582→   582→    return fetchTable<SpiritualAssessment>(q);
+   583→   583→  },
+   584→   584→
+   585→   585→  upsertSpiritualAssessment(data: Partial<SpiritualAssessment>) {
+   586→   586→    if (data.id) return supabase.from('spiritual_assessments').update(data).eq('id', data.id).select().single();
+   587→   587→    const { overall_score } = data;
+   588→   588→    if (overall_score === undefined) {
+   589→   589→      const scores = [data.prayer_life, data.bible_study, data.fellowship, data.evangelism, data.giving, data.service].filter((s): s is number => s !== undefined);
+   590→   590→      data.overall_score = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
+   591→   591→    }
+   592→   592→    return supabase.from('spiritual_assessments').insert({ ...data, created_at: new Date().toISOString() }).select().single();
+   593→   593→  },
+   594→   594→
+   595→   595→  // ═══════════════════════════════════════════════
+   596→   596→  // Notifications
+   597→   597→  // ═══════════════════════════════════════════════
+   598→   598→
+   599→   599→  getNotifications(userId: string) {
+   600→   600→    return fetchTable<NotificationItem>(supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(50));
+   601→   601→  },
+   602→   602→
+   603→   603→  markNotificationRead(id: string) {
+   604→   604→    return supabase.from('notifications').update({ is_read: true }).eq('id', id);
+   605→   605→  },
+   606→   606→
+   607→   607→  markAllNotificationsRead(userId: string) {
+   608→   608→    return supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
+   609→   609→  },
+   610→   610→
+   611→   611→  createNotification(userId: string, title: string, message: string, type: NotificationItem['type'], link?: string) {
+   612→   612→    return supabase.from('notifications').insert({ user_id: userId, title, message, type, is_read: false, link, created_at: new Date().toISOString() });
+   613→   613→  },
+   614→   614→
+   615→   615→  // ═══════════════════════════════════════════════
+   616→   616→  // Profiles & Members
+   617→   617→  // ═══════════════════════════════════════════════
+   618→   618→
+   619→   619→  getProfiles(role?: string, departmentId?: string) {
+   620→   620→    let q = supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
+   621→   621→    if (role) q = q.eq('role', role);
+   622→   622→    return fetchTable<UserProfile>(q);
+   623→   623→  },
+   624→   624→
+   625→   625→  updateUserRole(userId: string, role: string) {
+   626→   626→    return supabase.from('user_profiles').update({ role }).eq('id', userId).select().single();
+   627→   627→  },
+   628→   628→};
+   629→   629→
+   630→   630→// ─── Content helper: build a map from page_contents rows ─────────
+   631→   631→export function buildContentMap(contents: PageContent[]): Record<string, string> {
+   632→   632→  const map: Record<string, string> = {};
+   633→   633→  for (const c of contents) {
+   634→   634→    map[`${c.section_key}.${c.field_key}`] = c.value;
+   635→   635→  }
+   636→   636→  return map;
+   637→   637→}
+   638→   638→
+   639→   639→// ─── Content helper: get a value with fallback ───────────────────
+   640→   640→export function getContent(map: Record<string, string>, section: string, field: string, fallback: string): string {
+   641→   641→  return map[`${section}.${field}`] || fallback;
+   642→   642→}
+   643→   643→
+   644→   644→// ─── Settings helper: build a map from settings rows ─────────────
+   645→   645→export function buildSettingsMap(settings: SiteSetting[]): Record<string, string> {
+   646→   646→  const map: Record<string, string> = {};
+   647→   647→  for (const s of settings) {
+   648→   648→    map[s.key] = s.value;
+   649→   649→  }
+   650→   650→  return map;
+   651→   651→}

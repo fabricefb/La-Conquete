@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { Lock, Mail, Landmark, Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
+import { Lock, Mail, Landmark, Eye, EyeOff, Loader2, UserPlus } from '../../lib/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { supabase } from '../../lib/supabase';
@@ -86,7 +86,7 @@ export default function AdminLogin() {
             id: userId,
             email: email.trim(),
             full_name: name.trim(),
-            is_admin: true,
+            is_admin: false,
             onboarding_completed: true,
           }, { onConflict: 'id' });
 

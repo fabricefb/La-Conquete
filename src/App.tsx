@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { ActivitiesPage } from './pages/ActivitiesPage';
@@ -6,6 +6,7 @@ import { EventsPage } from './pages/EventsPage';
 import { MediaPage } from './pages/MediaPage';
 import { ContactPage } from './pages/ContactPage';
 import { AdminPage } from './pages/AdminPage';
+import { DashboardPage } from './pages/DashboardPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { DynamicThemeProvider } from './contexts/DynamicTheme';
@@ -13,10 +14,28 @@ import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { AuthModal } from './components/auth/AuthModal';
 import type { Page } from './lib/navigation';
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'admin', 'connexion'];
+/* ─── Lazy-loaded pages (code splitting) ─── */
+const CrmPage = lazy(() => import('./pages/CrmPage').then(m => ({ default: m.CrmPage })));
+const PastoralPage = lazy(() => import('./pages/PastoralPage').then(m => ({ default: m.PastoralPage })));
+const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
+const CommunicationPage = lazy(() => import('./pages/CommunicationPage').then(m => ({ default: m.CommunicationPage })));
+const EmissionsPage = lazy(() => import('./pages/EmissionsPage').then(m => ({ default: m.EmissionsPage })));
+const PredicationsPage = lazy(() => import('./pages/PredicationsPage').then(m => ({ default: m.PredicationsPage })));
+const DepartmentsPage = lazy(() => import('./pages/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
+
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments'];
 function getPage(): Page {
   const h = window.location.hash.replace('#', '');
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
+}
+
+/* ─── Page loading spinner ─── */
+function PageLoader() {
+  return (
+    <div className="min-h-screen bg-bg flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+    </div>
+  );
 }
 
 /* ─── Auth modal state (global) ──────────────────────────── */
@@ -57,18 +76,28 @@ function AppRouter() {
 
   return (
     <>
-      {(() => {
-        switch (page) {
-          case 'home': return <HomePage {...nav} />;
-          case 'about': return <AboutPage {...nav} />;
-          case 'activities': return <ActivitiesPage {...nav} />;
-          case 'events': return <EventsPage {...nav} />;
-          case 'media': return <MediaPage {...nav} />;
-          case 'contact': return <ContactPage {...nav} />;
-          case 'admin': return <AdminPage onNavigate={setPage} />;
-          default: return <HomePage {...nav} />;
-        }
-      })()}
+      <Suspense fallback={<PageLoader />}>
+        {(() => {
+          switch (page) {
+            case 'home': return <HomePage {...nav} />;
+            case 'about': return <AboutPage {...nav} />;
+            case 'activities': return <ActivitiesPage {...nav} />;
+            case 'events': return <EventsPage {...nav} />;
+            case 'media': return <MediaPage {...nav} />;
+            case 'contact': return <ContactPage {...nav} />;
+            case 'admin': return <AdminPage onNavigate={setPage} />;
+            case 'dashboard': return <DashboardPage onNavigate={setPage} />;
+            case 'crm': return <CrmPage {...nav} />;
+            case 'pastoral': return <PastoralPage onNavigate={setPage} />;
+            case 'reports': return <ReportsPage {...nav} />;
+            case 'communication': return <CommunicationPage onNavigate={setPage} />;
+            case 'emissions': return <EmissionsPage {...nav} />;
+            case 'predications': return <PredicationsPage {...nav} />;
+            case 'departments': return <DepartmentsPage {...nav} />;
+            default: return <HomePage {...nav} />;
+          }
+        })()}
+      </Suspense>
       <AuthModal isOpen={authOpen} onClose={closeAuth} initialView={authView} />
     </>
   );

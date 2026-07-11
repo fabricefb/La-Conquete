@@ -13,7 +13,7 @@ interface EventsPageProps { onNavigate: (page: Page) => void; }
 
 const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion'] as const;
 const CAT_LABELS: Record<string, string> = {
-  'Tous': 'All Events', 'Cultes': 'Worship', 'Missions': 'Special Events', 'Jeunesse': 'Youth', 'Communion': 'Communion',
+  'Tous': 'Tous', 'Cultes': 'Cultes', 'Missions': 'Missions', 'Jeunesse': 'Jeunesse', 'Communion': 'Communion',
 };
 
 const weeklyServices = [
@@ -450,8 +450,8 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
                 <input type="email" placeholder="Votre adresse e-mail" value={email}
                   onChange={(e) => setEmail(e.target.value)} required
-                  className="input-surface flex-grow px-5 py-4 text-sm !rounded-lg !bg-white/90 !text-ink-700" />
-                <button type="submit" className="btn-gold shrink-0 !rounded-lg !px-8 !py-4 font-be-vn">
+                  className="input-surface flex-grow px-5 py-4 text-sm !rounded-lg" />
+                <button type="submit" className="btn-gold shrink-0 !rounded-lg !px-8 !py-4">
                   S'abonner
                 </button>
               </form>
@@ -461,7 +461,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
       </main>
 
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
-      <MobileNav onNavigate={onNavigate} active="events" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <MobileNav onNavigate={onNavigate} active="events" />
     </div>
   );
 }

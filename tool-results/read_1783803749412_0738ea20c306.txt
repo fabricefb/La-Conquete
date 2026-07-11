@@ -1,0 +1,735 @@
+     1→     1→import { useState, useEffect, useCallback } from 'react';
+     2→     2→import { db } from '../../../lib/supabase';
+     3→     3→import { useToast } from '../../../contexts/ToastContext';
+     4→     4→import { Save, RotateCcw, Palette, Type, RectangleHorizontal, Square, Minus, Maximize, Loader2 } from 'lucide-react';
+     5→     5→import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../../types';
+     6→     6→
+     7→     7→// ─── Defaults ───────────────────────────────────────────────────
+     8→     8→const DEFAULT_THEME: ThemeSettings = {
+     9→     9→  id: 1,
+    10→    10→  primary_color: '#d4a843',
+    11→    11→  secondary_color: '#1a1a2e',
+    12→    12→  accent_color: '#e8c468',
+    13→    13→  button_style: 'pill',
+    14→    14→  card_style: 'glass',
+    15→    15→  border_radius: 'medium',
+    16→    16→  title_font: 'Cormorant Garamond',
+    17→    17→  body_font: 'Inter',
+    18→    18→  updated_at: new Date().toISOString(),
+    19→    19→};
+    20→    20→
+    21→    21→// ─── Font catalogues ────────────────────────────────────────────
+    22→    22→const TITLE_FONTS = [
+    23→    23→  'Cormorant Garamond',
+    24→    24→  'Playfair Display',
+    25→    25→  'Lora',
+    26→    26→  'Merriweather',
+    27→    27→  'DM Serif Display',
+    28→    28→] as const;
+    29→    29→
+    30→    30→const BODY_FONTS = [
+    31→    31→  'Inter',
+    32→    32→  'DM Sans',
+    33→    33→  'Nunito',
+    34→    34→  'Source Sans 3',
+    35→    35→  'Outfit',
+    36→    36→] as const;
+    37→    37→
+    38→    38→// ─── Border-radius map ──────────────────────────────────────────
+    39→    39→const RADIUS_MAP: Record<BorderRadius, string> = {
+    40→    40→  none: '0px',
+    41→    41→  small: '4px',
+    42→    42→  medium: '12px',
+    43→    43→  large: '20px',
+    44→    44→  full: '9999px',
+    45→    45→};
+    46→    46→
+    47→    47→const RADIUS_LABELS: Record<BorderRadius, string> = {
+    48→    48→  none: 'Aucun',
+    49→    49→  small: 'Petit',
+    50→    50→  medium: 'Moyen',
+    51→    51→  large: 'Grand',
+    52→    52→  full: 'Complet',
+    53→    53→};
+    54→    54→
+    55→    55→// ─── Button style config ────────────────────────────────────────
+    56→    56→const BUTTON_STYLES: { value: ButtonStyle; label: string }[] = [
+    57→    57→  { value: 'pill', label: 'Pillule' },
+    58→    58→  { value: 'rounded', label: 'Arrondi' },
+    59→    59→  { value: 'sharp', label: 'Carré' },
+    60→    60→  { value: 'outline', label: 'Contour' },
+    61→    61→  { value: 'gradient', label: 'Dégradé' },
+    62→    62→];
+    63→    63→
+    64→    64→// ─── Card style config ──────────────────────────────────────────
+    65→    65→const CARD_STYLES: { value: CardStyle; label: string }[] = [
+    66→    66→  { value: 'glass', label: 'Verre' },
+    67→    67→  { value: 'flat', label: 'Plat' },
+    68→    68→  { value: 'bordered', label: 'Bordé' },
+    69→    69→  { value: 'shadowed', label: 'Ombré' },
+    70→    70→  { value: 'glass-bordered', label: 'Verre bordé' },
+    71→    71→];
+    72→    72→
+    73→    73→// ─── Google Fonts loader ────────────────────────────────────────
+    74→    74→const FONT_LINK_ID = 'theme-tab-google-fonts';
+    75→    75→
+    76→    76→function loadGoogleFonts(titleFont: string, bodyFont: string): void {
+    77→    77→  const encodedTitle = titleFont.replace(/ /g, '+');
+    78→    78→  const encodedBody = bodyFont.replace(/ /g, '+');
+    79→    79→  const href = `https://fonts.googleapis.com/css2?family=${encodedTitle}:wght@400;500;600;700&family=${encodedBody}:wght@300;400;500;600;700&display=swap`;
+    80→    80→
+    81→    81→  let link = document.getElementById(FONT_LINK_ID) as HTMLLinkElement | null;
+    82→    82→  if (link) {
+    83→    83→    link.href = href;
+    84→    84→  } else {
+    85→    85→    link = document.createElement('link');
+    86→    86→    link.id = FONT_LINK_ID;
+    87→    87→    link.rel = 'stylesheet';
+    88→    88→    link.href = href;
+    89→    89→    document.head.appendChild(link);
+    90→    90→  }
+    91→    91→}
+    92→    92→
+    93→    93→// ─── CSS custom properties applier ──────────────────────────────
+    94→    94→function applyThemeToDOM(settings: ThemeSettings): void {
+    95→    95→  const style = document.documentElement.style;
+    96→    96→
+    97→    97→  style.setProperty('--custom-primary', settings.primary_color);
+    98→    98→  style.setProperty('--custom-secondary', settings.secondary_color);
+    99→    99→  style.setProperty('--custom-accent', settings.accent_color);
+   100→   100→  style.setProperty('--custom-btn-style', settings.button_style);
+   101→   101→  style.setProperty('--custom-card-style', settings.card_style);
+   102→   102→  style.setProperty('--custom-radius', RADIUS_MAP[settings.border_radius]);
+   103→   103→  style.setProperty('--custom-title-font', settings.title_font);
+   104→   104→  style.setProperty('--custom-body-font', settings.body_font);
+   105→   105→  style.setProperty('--custom-theme-active', '1');
+   106→   106→
+   107→   107→  loadGoogleFonts(settings.title_font, settings.body_font);
+   108→   108→}
+   109→   109→
+   110→   110→function clearThemeFromDOM(): void {
+   111→   111→  const style = document.documentElement.style;
+   112→   112→  const vars = [
+   113→   113→    '--custom-primary',
+   114→   114→    '--custom-secondary',
+   115→   115→    '--custom-accent',
+   116→   116→    '--custom-btn-style',
+   117→   117→    '--custom-card-style',
+   118→   118→    '--custom-radius',
+   119→   119→    '--custom-title-font',
+   120→   120→    '--custom-body-font',
+   121→   121→    '--custom-theme-active',
+   122→   122→  ] as const;
+   123→   123→  for (const v of vars) {
+   124→   124→    style.removeProperty(v);
+   125→   125→  }
+   126→   126→}
+   127→   127→
+   128→   128→// ─── Helper: get button preview classes ─────────────────────────
+   129→   129→function getButtonPreviewClasses(style: ButtonStyle): string {
+   130→   130→  const base = 'px-5 py-2 text-sm font-medium transition-all';
+   131→   131→  switch (style) {
+   132→   132→    case 'pill':
+   133→   133→      return `${base} rounded-full bg-gradient-to-r from-gold-300 to-gold-600 text-charcoal-900 hover:from-gold-200 hover:to-gold-500`;
+   134→   134→    case 'rounded':
+   135→   135→      return `${base} rounded-xl bg-gradient-to-r from-gold-300 to-gold-600 text-charcoal-900 hover:from-gold-200 hover:to-gold-500`;
+   136→   136→    case 'sharp':
+   137→   137→      return `${base} rounded-none bg-gradient-to-r from-gold-300 to-gold-600 text-charcoal-900 hover:from-gold-200 hover:to-gold-500`;
+   138→   138→    case 'outline':
+   139→   139→      return `${base} rounded-full border-2 border-gold-400 text-gold-400 bg-transparent hover:bg-gold-400/10`;
+   140→   140→    case 'gradient':
+   141→   141→      return `${base} rounded-full bg-gradient-to-r from-gold-200 via-gold-400 to-gold-600 text-charcoal-900 hover:from-gold-100 hover:via-gold-300 hover:to-gold-500`;
+   142→   142→    default:
+   143→   143→      return base;
+   144→   144→  }
+   145→   145→}
+   146→   146→
+   147→   147→// ─── Helper: get card preview classes ───────────────────────────
+   148→   148→function getCardPreviewClasses(style: CardStyle): string {
+   149→   149→  switch (style) {
+   150→   150→    case 'glass':
+   151→   151→      return 'glass p-4 text-sm';
+   152→   152→    case 'flat':
+   153→   153→      return 'bg-white/5 rounded-2xl p-4 text-sm';
+   154→   154→    case 'bordered':
+   155→   155→      return 'border border-gold-400/30 rounded-2xl p-4 text-sm';
+   156→   156→    case 'shadowed':
+   157→   157→      return 'bg-white/5 rounded-2xl shadow-lg shadow-black/20 p-4 text-sm';
+   158→   158→    case 'glass-bordered':
+   159→   159→      return 'glass border border-gold-400/30 rounded-2xl p-4 text-sm';
+   160→   160→    default:
+   161→   161→      return 'glass p-4 text-sm';
+   162→   162→  }
+   163→   163→}
+   164→   164→
+   165→   165→// ─── Component ──────────────────────────────────────────────────
+   166→   166→export function ThemeTab() {
+   167→   167→  const { addToast } = useToast();
+   168→   168→
+   169→   169→  const [localSettings, setLocalSettings] = useState<ThemeSettings>(DEFAULT_THEME);
+   170→   170→  const [loading, setLoading] = useState(true);
+   171→   171→  const [saving, setSaving] = useState(false);
+   172→   172→  const [fontsLoaded, setFontsLoaded] = useState(false);
+   173→   173→
+   174→   174→  // ── Fetch existing settings on mount ──────────────────────────
+   175→   175→  useEffect(() => {
+   176→   176→    let cancelled = false;
+   177→   177→
+   178→   178→    async function loadSettings() {
+   179→   179→      setLoading(true);
+   180→   180→      try {
+   181→   181→        const settings = await db.getThemeSettings();
+   182→   182→        if (cancelled) return;
+   183→   183→        if (settings) {
+   184→   184→          setLocalSettings(settings);
+   185→   185→          applyThemeToDOM(settings);
+   186→   186→        } else {
+   187→   187→          applyThemeToDOM(DEFAULT_THEME);
+   188→   188→        }
+   189→   189→      } catch {
+   190→   190→        // Use defaults silently
+   191→   191→        if (!cancelled) {
+   192→   192→          applyThemeToDOM(DEFAULT_THEME);
+   193→   193→        }
+   194→   194→      } finally {
+   195→   195→        if (!cancelled) setLoading(false);
+   196→   196→      }
+   197→   197→    }
+   198→   198→
+   199→   199→    loadSettings();
+   200→   200→    return () => { cancelled = true; };
+   201→   201→  }, []);
+   202→   202→
+   203→   203→  // ── Live preview: apply on every change ───────────────────────
+   204→   204→  useEffect(() => {
+   205→   205→    if (!loading) {
+   206→   206→      applyThemeToDOM(localSettings);
+   207→   207→    }
+   208→   208→  }, [localSettings, loading]);
+   209→   209→
+   210→   210→  // ── Font loading state ────────────────────────────────────────
+   211→   211→  useEffect(() => {
+   212→   212→    // Mark fonts as loaded once the Google Fonts link resolves
+   213→   213→    const checkFonts = () => {
+   214→   214→      document.fonts.ready.then(() => setFontsLoaded(true));
+   215→   215→    };
+   216→   216→
+   217→   217→    if (document.fonts) {
+   218→   218→      checkFonts();
+   219→   219→    } else {
+   220→   220→      setFontsLoaded(true);
+   221→   221→    }
+   222→   222→  }, [localSettings.title_font, localSettings.body_font]);
+   223→   223→
+   224→   224→  // ── Updaters ──────────────────────────────────────────────────
+   225→   225→  const updateField = useCallback(<K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) => {
+   226→   226→    setLocalSettings((prev: ThemeSettings) => ({ ...prev, [key]: value }));
+   227→   227→  }, []);
+   228→   228→
+   229→   229→  // ── Save handler ──────────────────────────────────────────────
+   230→   230→  const handleSave = useCallback(async () => {
+   231→   231→    setSaving(true);
+   232→   232→    try {
+   233→   233→      await db.updateThemeSettings(localSettings);
+   234→   234→      addToast('Thème sauvegardé avec succès', 'success');
+   235→   235→    } catch {
+   236→   236→      addToast('Erreur lors de la sauvegarde du thème', 'error');
+   237→   237→    } finally {
+   238→   238→      setSaving(false);
+   239→   239→    }
+   240→   240→  }, [localSettings, addToast]);
+   241→   241→
+   242→   242→  // ── Reset handler ─────────────────────────────────────────────
+   243→   243→  const handleReset = useCallback(async () => {
+   244→   244→    setSaving(true);
+   245→   245→    try {
+   246→   246→      clearThemeFromDOM();
+   247→   247→      await db.updateThemeSettings(DEFAULT_THEME);
+   248→   248→      setLocalSettings(DEFAULT_THEME);
+   249→   249→      applyThemeToDOM(DEFAULT_THEME);
+   250→   250→      addToast('Thème réinitialisé aux valeurs par défaut', 'info');
+   251→   251→    } catch {
+   252→   252→      addToast('Erreur lors de la réinitialisation', 'error');
+   253→   253→    } finally {
+   254→   254→      setSaving(false);
+   255→   255→    }
+   256→   256→  }, [addToast]);
+   257→   257→
+   258→   258→  // ── Loading state ─────────────────────────────────────────────
+   259→   259→  if (loading) {
+   260→   260→    return (
+   261→   261→      <div className="flex items-center justify-center py-24">
+   262→   262→        <Loader2 className="h-8 w-8 animate-spin text-gold-400" />
+   263→   263→        <span className="ml-3 text-muted">Chargement des paramètres de thème…</span>
+   264→   264→      </div>
+   265→   265→    );
+   266→   266→  }
+   267→   267→
+   268→   268→  return (
+   269→   269→    <div className="space-y-6">
+   270→   270→      {/* ─── Section 1: Couleurs ──────────────────────────────── */}
+   271→   271→      <section className="glass rounded-2xl p-6">
+   272→   272→        <div className="flex items-center gap-2 mb-5">
+   273→   273→          <Palette className="h-5 w-5 text-gold-400" />
+   274→   274→          <h2 className="font-serif text-xl font-semibold text-cream">Couleurs</h2>
+   275→   275→        </div>
+   276→   276→
+   277→   277→        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+   278→   278→          {/* Primary color */}
+   279→   279→          <div>
+   280→   280→            <label className="block text-sm font-medium text-cream/80 mb-2">
+   281→   281→              Couleur primaire
+   282→   282→            </label>
+   283→   283→            <div className="flex items-center gap-3">
+   284→   284→              <input
+   285→   285→                type="color"
+   286→   286→                value={localSettings.primary_color}
+   287→   287→                onChange={(e) => updateField('primary_color', e.target.value)}
+   288→   288→                className="h-10 w-14 rounded-lg cursor-pointer border border-line bg-transparent [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-none"
+   289→   289→              />
+   290→   290→              <input
+   291→   291→                type="text"
+   292→   292→                value={localSettings.primary_color}
+   293→   293→                onChange={(e) => {
+   294→   294→                  const v = e.target.value;
+   295→   295→                  if (/^#[0-9a-fA-F]{0,6}$/.test(v)) {
+   296→   296→                    updateField('primary_color', v);
+   297→   297→                  }
+   298→   298→                }}
+   299→   299→                onBlur={(e) => {
+   300→   300→                  let v = e.target.value;
+   301→   301→                  if (!v.startsWith('#')) v = '#' + v;
+   302→   302→                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+   303→   303→                    updateField('primary_color', v);
+   304→   304→                  } else {
+   305→   305→                    updateField('primary_color', localSettings.primary_color);
+   306→   306→                  }
+   307→   307→                }}
+   308→   308→                className="input-surface w-full px-4 py-2.5 text-sm font-mono"
+   309→   309→                maxLength={7}
+   310→   310→              />
+   311→   311→            </div>
+   312→   312→          </div>
+   313→   313→
+   314→   314→          {/* Secondary color */}
+   315→   315→          <div>
+   316→   316→            <label className="block text-sm font-medium text-cream/80 mb-2">
+   317→   317→              Couleur secondaire
+   318→   318→            </label>
+   319→   319→            <div className="flex items-center gap-3">
+   320→   320→              <input
+   321→   321→                type="color"
+   322→   322→                value={localSettings.secondary_color}
+   323→   323→                onChange={(e) => updateField('secondary_color', e.target.value)}
+   324→   324→                className="h-10 w-14 rounded-lg cursor-pointer border border-line bg-transparent [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-none"
+   325→   325→              />
+   326→   326→              <input
+   327→   327→                type="text"
+   328→   328→                value={localSettings.secondary_color}
+   329→   329→                onChange={(e) => {
+   330→   330→                  const v = e.target.value;
+   331→   331→                  if (/^#[0-9a-fA-F]{0,6}$/.test(v)) {
+   332→   332→                    updateField('secondary_color', v);
+   333→   333→                  }
+   334→   334→                }}
+   335→   335→                onBlur={(e) => {
+   336→   336→                  let v = e.target.value;
+   337→   337→                  if (!v.startsWith('#')) v = '#' + v;
+   338→   338→                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+   339→   339→                    updateField('secondary_color', v);
+   340→   340→                  } else {
+   341→   341→                    updateField('secondary_color', localSettings.secondary_color);
+   342→   342→                  }
+   343→   343→                }}
+   344→   344→                className="input-surface w-full px-4 py-2.5 text-sm font-mono"
+   345→   345→                maxLength={7}
+   346→   346→              />
+   347→   347→            </div>
+   348→   348→          </div>
+   349→   349→
+   350→   350→          {/* Accent color */}
+   351→   351→          <div>
+   352→   352→            <label className="block text-sm font-medium text-cream/80 mb-2">
+   353→   353→              Couleur d&apos;accent
+   354→   354→            </label>
+   355→   355→            <div className="flex items-center gap-3">
+   356→   356→              <input
+   357→   357→                type="color"
+   358→   358→                value={localSettings.accent_color}
+   359→   359→                onChange={(e) => updateField('accent_color', e.target.value)}
+   360→   360→                className="h-10 w-14 rounded-lg cursor-pointer border border-line bg-transparent [&::-webkit-color-swatch-wrapper]:p-1 [&::-webkit-color-swatch]:rounded-md [&::-webkit-color-swatch]:border-none"
+   361→   361→              />
+   362→   362→              <input
+   363→   363→                type="text"
+   364→   364→                value={localSettings.accent_color}
+   365→   365→                onChange={(e) => {
+   366→   366→                  const v = e.target.value;
+   367→   367→                  if (/^#[0-9a-fA-F]{0,6}$/.test(v)) {
+   368→   368→                    updateField('accent_color', v);
+   369→   369→                  }
+   370→   370→                }}
+   371→   371→                onBlur={(e) => {
+   372→   372→                  let v = e.target.value;
+   373→   373→                  if (!v.startsWith('#')) v = '#' + v;
+   374→   374→                  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+   375→   375→                    updateField('accent_color', v);
+   376→   376→                  } else {
+   377→   377→                    updateField('accent_color', localSettings.accent_color);
+   378→   378→                  }
+   379→   379→                }}
+   380→   380→                className="input-surface w-full px-4 py-2.5 text-sm font-mono"
+   381→   381→                maxLength={7}
+   382→   382→              />
+   383→   383→            </div>
+   384→   384→          </div>
+   385→   385→        </div>
+   386→   386→
+   387→   387→        {/* Color preview strip */}
+   388→   388→        <div className="mt-5 flex gap-1 rounded-xl overflow-hidden h-10">
+   389→   389→          <div
+   390→   390→            className="flex-1 transition-colors duration-300"
+   391→   391→            style={{ backgroundColor: localSettings.primary_color }}
+   392→   392→            title="Primaire"
+   393→   393→          />
+   394→   394→          <div
+   395→   395→            className="flex-1 transition-colors duration-300"
+   396→   396→            style={{ backgroundColor: localSettings.secondary_color }}
+   397→   397→            title="Secondaire"
+   398→   398→          />
+   399→   399→          <div
+   400→   400→            className="flex-1 transition-colors duration-300"
+   401→   401→            style={{ backgroundColor: localSettings.accent_color }}
+   402→   402→            title="Accent"
+   403→   403→          />
+   404→   404→        </div>
+   405→   405→        <div className="mt-1.5 flex gap-1">
+   406→   406→          <span className="flex-1 text-center text-[10px] text-muted">Primaire</span>
+   407→   407→          <span className="flex-1 text-center text-[10px] text-muted">Secondaire</span>
+   408→   408→          <span className="flex-1 text-center text-[10px] text-muted">Accent</span>
+   409→   409→        </div>
+   410→   410→      </section>
+   411→   411→
+   412→   412→      {/* ─── Section 2: Style des boutons ────────────────────── */}
+   413→   413→      <section className="glass rounded-2xl p-6">
+   414→   414→        <div className="flex items-center gap-2 mb-5">
+   415→   415→          <RectangleHorizontal className="h-5 w-5 text-gold-400" />
+   416→   416→          <h2 className="font-serif text-xl font-semibold text-cream">Style des boutons</h2>
+   417→   417→        </div>
+   418→   418→
+   419→   419→        <div className="flex flex-wrap gap-4">
+   420→   420→          {BUTTON_STYLES.map(({ value, label }) => {
+   421→   421→            const isSelected = localSettings.button_style === value;
+   422→   422→            return (
+   423→   423→              <button
+   424→   424→                key={value}
+   425→   425→                type="button"
+   426→   426→                onClick={() => updateField('button_style', value)}
+   427→   427→                className={`flex flex-col items-center gap-2 focus:outline-none ${
+   428→   428→                  isSelected ? 'scale-105' : 'opacity-70 hover:opacity-100'
+   429→   429→                } transition-all duration-200`}
+   430→   430→              >
+   431→   431→                <div
+   432→   432→                  className={`p-1 rounded-xl transition-all duration-200 ${
+   433→   433→                    isSelected
+   434→   434→                      ? 'ring-2 ring-gold-400 ring-offset-2 ring-offset-bg'
+   435→   435→                      : 'hover:ring-1 hover:ring-gold-400/40'
+   436→   436→                  }`}
+   437→   437→                >
+   438→   438→                  <span className={getButtonPreviewClasses(value)}>
+   439→   439→                    Exemple
+   440→   440→                  </span>
+   441→   441→                </div>
+   442→   442→                <span
+   443→   443→                  className={`text-xs font-medium transition-colors ${
+   444→   444→                    isSelected ? 'text-gold-400' : 'text-muted'
+   445→   445→                  }`}
+   446→   446→                >
+   447→   447→                  {label}
+   448→   448→                </span>
+   449→   449→              </button>
+   450→   450→            );
+   451→   451→          })}
+   452→   452→        </div>
+   453→   453→      </section>
+   454→   454→
+   455→   455→      {/* ─── Section 3: Style des cartes ─────────────────────── */}
+   456→   456→      <section className="glass rounded-2xl p-6">
+   457→   457→        <div className="flex items-center gap-2 mb-5">
+   458→   458→          <Square className="h-5 w-5 text-gold-400" />
+   459→   459→          <h2 className="font-serif text-xl font-semibold text-cream">Style des cartes</h2>
+   460→   460→        </div>
+   461→   461→
+   462→   462→        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+   463→   463→          {CARD_STYLES.map(({ value, label }) => {
+   464→   464→            const isSelected = localSettings.card_style === value;
+   465→   465→            return (
+   466→   466→              <button
+   467→   467→                key={value}
+   468→   468→                type="button"
+   469→   469→                onClick={() => updateField('card_style', value)}
+   470→   470→                className={`flex flex-col items-center gap-2 text-left focus:outline-none transition-all duration-200 ${
+   471→   471→                  isSelected ? 'scale-[1.02]' : 'opacity-70 hover:opacity-100'
+   472→   472→                }`}
+   473→   473→              >
+   474→   474→                <div
+   475→   475→                  className={`w-full transition-all duration-200 ${
+   476→   476→                    isSelected
+   477→   477→                      ? 'ring-2 ring-gold-400 ring-offset-2 ring-offset-bg rounded-2xl'
+   478→   478→                      : ''
+   479→   479→                  }`}
+   480→   480→                >
+   481→   481→                  <div className={getCardPreviewClasses(value)}>
+   482→   482→                    <div className="h-2 w-10 bg-gold-400/30 rounded mb-2" />
+   483→   483→                    <div className="h-1.5 w-full bg-cream/10 rounded mb-1" />
+   484→   484→                    <div className="h-1.5 w-3/4 bg-cream/10 rounded mb-1" />
+   485→   485→                    <div className="h-1.5 w-1/2 bg-cream/10 rounded" />
+   486→   486→                  </div>
+   487→   487→                </div>
+   488→   488→                <span
+   489→   489→                  className={`text-xs font-medium transition-colors ${
+   490→   490→                    isSelected ? 'text-gold-400' : 'text-muted'
+   491→   491→                  }`}
+   492→   492→                >
+   493→   493→                  {label}
+   494→   494→                </span>
+   495→   495→              </button>
+   496→   496→            );
+   497→   497→          })}
+   498→   498→        </div>
+   499→   499→      </section>
+   500→   500→
+   501→   501→      {/* ─── Section 4: Rayon de bordure ─────────────────────── */}
+   502→   502→      <section className="glass rounded-2xl p-6">
+   503→   503→        <div className="flex items-center gap-2 mb-5">
+   504→   504→          <div className="flex items-center gap-1">
+   505→   505→            <Minus className="h-5 w-5 text-gold-400" />
+   506→   506→            <Maximize className="h-5 w-5 text-gold-400" />
+   507→   507→          </div>
+   508→   508→          <h2 className="font-serif text-xl font-semibold text-cream">Rayon de bordure</h2>
+   509→   509→        </div>
+   510→   510→
+   511→   511→        <div className="flex flex-wrap gap-4">
+   512→   512→          {(Object.keys(RADIUS_MAP) as BorderRadius[]).map((radius) => {
+   513→   513→            const isSelected = localSettings.border_radius === radius;
+   514→   514→            return (
+   515→   515→              <button
+   516→   516→                key={radius}
+   517→   517→                type="button"
+   518→   518→                onClick={() => updateField('border_radius', radius)}
+   519→   519→                className={`flex flex-col items-center gap-2 focus:outline-none transition-all duration-200 ${
+   520→   520→                  isSelected ? 'scale-105' : 'opacity-70 hover:opacity-100'
+   521→   521→                }`}
+   522→   522→              >
+   523→   523→                <div
+   524→   524→                  className={`h-16 w-16 bg-gradient-to-br from-gold-400/20 to-gold-600/20 border border-gold-400/40 transition-all duration-200 ${
+   525→   525→                    isSelected
+   526→   526→                      ? 'ring-2 ring-gold-400 ring-offset-2 ring-offset-bg'
+   527→   527→                      : ''
+   528→   528→                  }`}
+   529→   529→                  style={{ borderRadius: RADIUS_MAP[radius] }}
+   530→   530→                />
+   531→   531→                <span
+   532→   532→                  className={`text-xs font-medium transition-colors ${
+   533→   533→                    isSelected ? 'text-gold-400' : 'text-muted'
+   534→   534→                  }`}
+   535→   535→                >
+   536→   536→                  {RADIUS_LABELS[radius]}
+   537→   537→                </span>
+   538→   538→                <span className="text-[10px] text-muted/60 font-mono">
+   539→   539→                  {RADIUS_MAP[radius]}
+   540→   540→                </span>
+   541→   541→              </button>
+   542→   542→            );
+   543→   543→          })}
+   544→   544→        </div>
+   545→   545→      </section>
+   546→   546→
+   547→   547→      {/* ─── Section 5: Polices ───────────────────────────────── */}
+   548→   548→      <section className="glass rounded-2xl p-6">
+   549→   549→        <div className="flex items-center gap-2 mb-5">
+   550→   550→          <Type className="h-5 w-5 text-gold-400" />
+   551→   551→          <h2 className="font-serif text-xl font-semibold text-cream">Polices</h2>
+   552→   552→        </div>
+   553→   553→
+   554→   554→        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+   555→   555→          {/* Title font select */}
+   556→   556→          <div>
+   557→   557→            <label className="block text-sm font-medium text-cream/80 mb-2">
+   558→   558→              Police de titre
+   559→   559→            </label>
+   560→   560→            <select
+   561→   561→              value={localSettings.title_font}
+   562→   562→              onChange={(e) => updateField('title_font', e.target.value)}
+   563→   563→              className="input-surface w-full px-4 py-2.5 text-sm appearance-none cursor-pointer"
+   564→   564→            >
+   565→   565→              {TITLE_FONTS.map((font) => (
+   566→   566→                <option key={font} value={font} style={{ fontFamily: font }}>
+   567→   567→                  {font}
+   568→   568→                </option>
+   569→   569→              ))}
+   570→   570→            </select>
+   571→   571→          </div>
+   572→   572→
+   573→   573→          {/* Body font select */}
+   574→   574→          <div>
+   575→   575→            <label className="block text-sm font-medium text-cream/80 mb-2">
+   576→   576→              Police de corps
+   577→   577→            </label>
+   578→   578→            <select
+   579→   579→              value={localSettings.body_font}
+   580→   580→              onChange={(e) => updateField('body_font', e.target.value)}
+   581→   581→              className="input-surface w-full px-4 py-2.5 text-sm appearance-none cursor-pointer"
+   582→   582→            >
+   583→   583→              {BODY_FONTS.map((font) => (
+   584→   584→                <option key={font} value={font} style={{ fontFamily: font }}>
+   585→   585→                  {font}
+   586→   586→                </option>
+   587→   587→              ))}
+   588→   588→            </select>
+   589→   589→          </div>
+   590→   590→        </div>
+   591→   591→
+   592→   592→        {/* Font title previews */}
+   593→   593→        <div className="mb-4">
+   594→   594→          <p className="text-xs text-muted mb-2 font-medium uppercase tracking-wider">
+   595→   595→            Aperçu des polices de titre
+   596→   596→          </p>
+   597→   597→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+   598→   598→            {TITLE_FONTS.map((font) => {
+   599→   599→              const isSelected = localSettings.title_font === font;
+   600→   600→              return (
+   601→   601→                <button
+   602→   602→                  key={font}
+   603→   603→                  type="button"
+   604→   604→                  onClick={() => updateField('title_font', font)}
+   605→   605→                  className={`p-3 rounded-xl text-left transition-all duration-200 focus:outline-none ${
+   606→   606→                    isSelected
+   607→   607→                      ? 'bg-gold-400/10 ring-1 ring-gold-400/40'
+   608→   608→                      : 'bg-white/[0.02] hover:bg-white/5'
+   609→   609→                  }`}
+   610→   610→                >
+   611→   611→                  <span
+   612→   612→                    className={`block text-lg truncate ${isSelected ? 'text-cream' : 'text-cream/60'}`}
+   613→   613→                    style={{
+   614→   614→                      fontFamily: `'${font}', serif`,
+   615→   615→                      fontWeight: 600,
+   616→   616→                      opacity: fontsLoaded ? 1 : 0,
+   617→   617→                      transition: 'opacity 0.3s ease',
+   618→   618→                    }}
+   619→   619→                  >
+   620→   620→                    {font}
+   621→   621→                  </span>
+   622→   622→                  <span className="block text-[10px] text-muted mt-0.5">
+   623→   623→                    Lorem ipsum dolor sit amet
+   624→   624→                  </span>
+   625→   625→                </button>
+   626→   626→              );
+   627→   627→            })}
+   628→   628→          </div>
+   629→   629→        </div>
+   630→   630→
+   631→   631→        {/* Font body previews */}
+   632→   632→        <div className="mb-5">
+   633→   633→          <p className="text-xs text-muted mb-2 font-medium uppercase tracking-wider">
+   634→   634→            Aperçu des polices de corps
+   635→   635→          </p>
+   636→   636→          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+   637→   637→            {BODY_FONTS.map((font) => {
+   638→   638→              const isSelected = localSettings.body_font === font;
+   639→   639→              return (
+   640→   640→                <button
+   641→   641→                  key={font}
+   642→   642→                  type="button"
+   643→   643→                  onClick={() => updateField('body_font', font)}
+   644→   644→                  className={`p-3 rounded-xl text-left transition-all duration-200 focus:outline-none ${
+   645→   645→                    isSelected
+   646→   646→                      ? 'bg-gold-400/10 ring-1 ring-gold-400/40'
+   647→   647→                      : 'bg-white/[0.02] hover:bg-white/5'
+   648→   648→                  }`}
+   649→   649→                >
+   650→   650→                  <span
+   651→   651→                    className={`block text-sm truncate ${isSelected ? 'text-cream' : 'text-cream/60'}`}
+   652→   652→                    style={{
+   653→   653→                      fontFamily: `'${font}', sans-serif`,
+   654→   654→                      opacity: fontsLoaded ? 1 : 0,
+   655→   655→                      transition: 'opacity 0.3s ease',
+   656→   656→                    }}
+   657→   657→                  >
+   658→   658→                    {font}
+   659→   659→                  </span>
+   660→   660→                  <span
+   661→   661→                    className="block text-[11px] text-muted mt-0.5 leading-tight"
+   662→   662→                    style={{ fontFamily: `'${font}', sans-serif` }}
+   663→   663→                  >
+   664→   664→                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+   665→   665→                  </span>
+   666→   666→                </button>
+   667→   667→              );
+   668→   668→            })}
+   669→   669→          </div>
+   670→   670→        </div>
+   671→   671→
+   672→   672→        {/* Combined preview */}
+   673→   673→        <div className="border-t border-line pt-4">
+   674→   674→          <p className="text-xs text-muted mb-3 font-medium uppercase tracking-wider">
+   675→   675→            Aperçu combiné
+   676→   676→          </p>
+   677→   677→          <div className="rounded-xl bg-white/[0.03] p-5 border border-line/50">
+   678→   678→            <h3
+   679→   679→              className="text-2xl font-semibold text-cream mb-2"
+   680→   680→              style={{
+   681→   681→                fontFamily: `'${localSettings.title_font}', serif`,
+   682→   682→                opacity: fontsLoaded ? 1 : 0,
+   683→   683→                transition: 'opacity 0.3s ease',
+   684→   684→              }}
+   685→   685→            >
+   686→   686→              Bienvenue dans notre église
+   687→   687→            </h3>
+   688→   688→            <p
+   689→   689→              className="text-sm text-cream/70 leading-relaxed"
+   690→   690→              style={{
+   691→   691→                fontFamily: `'${localSettings.body_font}', sans-serif`,
+   692→   692→                opacity: fontsLoaded ? 1 : 0,
+   693→   693→                transition: 'opacity 0.3s ease',
+   694→   694→              }}
+   695→   695→            >
+   696→   696→              Nous sommes une communauté de foi vivante, engagée à servir Dieu et à partager Son amour avec chacun.
+   697→   697→              Rejoignez-nous pour nos cultes dominicaux et nos moments de prière tout au long de la semaine.
+   698→   698→            </p>
+   699→   699→          </div>
+   700→   700→        </div>
+   701→   701→      </section>
+   702→   702→
+   703→   703→      {/* ─── Action bar ──────────────────────────────────────── */}
+   704→   704→      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-3 pt-2 pb-4">
+   705→   705→        <button
+   706→   706→          type="button"
+   707→   707→          onClick={handleReset}
+   708→   708→          disabled={saving}
+   709→   709→          className="btn-ghost flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-muted hover:text-cream disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+   710→   710→        >
+   711→   711→          <RotateCcw className="h-4 w-4" />
+   712→   712→          Réinitialiser
+   713→   713→        </button>
+   714→   714→        <button
+   715→   715→          type="button"
+   716→   716→          onClick={handleSave}
+   717→   717→          disabled={saving}
+   718→   718→          className="btn-gold flex items-center justify-center gap-2 px-6 py-2.5 text-sm font-semibold text-charcoal-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+   719→   719→        >
+   720→   720→          {saving ? (
+   721→   721→            <>
+   722→   722→              <Loader2 className="h-4 w-4 animate-spin" />
+   723→   723→              Sauvegarde…
+   724→   724→            </>
+   725→   725→          ) : (
+   726→   726→            <>
+   727→   727→              <Save className="h-4 w-4" />
+   728→   728→              Sauvegarder
+   729→   729→            </>
+   730→   730→          )}
+   731→   731→        </button>
+   732→   732→      </div>
+   733→   733→    </div>
+   734→   734→  );
+   735→   735→}

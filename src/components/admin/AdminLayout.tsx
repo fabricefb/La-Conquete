@@ -4,7 +4,7 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
-  Menu, X, Landmark, Crown
+  Menu, X, Landmark, Crown, Package, Bell, Heart
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -15,7 +15,11 @@ const tabs: { id: AdminTab; label: string; Icon: typeof Settings }[] = [
   { id: 'contents', label: 'Contenus', Icon: FileText },
   { id: 'locations', label: 'Lieux', Icon: MapPin },
   { id: 'events', label: 'Événements', Icon: Calendar },
+  { id: 'assignments', label: 'Affectations', Icon: Users },
   { id: 'ministries', label: 'Ministères', Icon: Users },
+  { id: 'inventory', label: 'Inventaire', Icon: Package },
+  { id: 'alerts', label: 'Alertes & Visites', Icon: Bell },
+  { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
   { id: 'media', label: 'Médias', Icon: Image },
   { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
   { id: 'messages', label: 'Messages', Icon: MessageSquare },

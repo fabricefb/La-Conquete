@@ -1,0 +1,716 @@
+     1→import { useState, useEffect, useRef } from 'react';
+     2→import { useAuth } from '../contexts/AuthContext';
+     3→import { useToast } from '../contexts/ToastContext';
+     4→import { useDynamicTheme } from '../contexts/DynamicTheme';
+     5→import { db, supabase } from '../lib/supabase';
+     6→import { formatDate } from '../lib/date';
+     7→import {
+     8→  Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
+     9→  MessageSquare, BookOpen, Star, ChevronRight, Plus, Send, User, Shield, Home,
+    10→} from '../lib/icons';
+    11→import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
+    12→import type { Page } from '../lib/navigation';
+    13→import { SiteHeader } from '../components/SiteHeader';
+    14→import { SiteFooter } from '../components/SiteFooter';
+    15→import { MobileNav } from '../components/MobileNav';
+    16→
+    17→/* ═══════════════════════════════════════════════════════════════════
+    18→   Props & Types
+    19→   ═══════════════════════════════════════════════════════════════════ */
+    20→
+    21→interface DashboardPageProps {
+    22→  onNavigate: (page: Page) => void;
+    23→}
+    24→
+    25→interface StatCard {
+    26→  label: string;
+    27→  value: number;
+    28→  Icon: React.FC<{ className?: string }>;
+    29→  color: string;
+    30→}
+    31→
+    32→interface UserDepartment {
+    33→  id: string;
+    34→  department_name: string;
+    35→  position_name: string | null;
+    36→  accent_color: string;
+    37→  icon_name: string;
+    38→}
+    39→
+    40→/* ═══════════════════════════════════════════════════════════════════
+    41→   Intersection Observer Hook (scroll reveal)
+    42→   ═══════════════════════════════════════════════════════════════════ */
+    43→
+    44→function useEvtReveal() {
+    45→  const ref = useRef<HTMLDivElement>(null);
+    46→  const [inView, setInView] = useState(false);
+    47→  useEffect(() => {
+    48→    const el = ref.current;
+    49→    if (!el) return;
+    50→    const obs = new IntersectionObserver(
+    51→      ([e]) => {
+    52→        if (e.isIntersecting) {
+    53→          setInView(true);
+    54→          obs.disconnect();
+    55→        }
+    56→      },
+    57→      { threshold: 0.08 },
+    58→    );
+    59→    obs.observe(el);
+    60→    return () => obs.disconnect();
+    61→  }, []);
+    62→  return { ref, inView };
+    63→}
+    64→
+    65→function EvtReveal({
+    66→  children,
+    67→  className = '',
+    68→  delay = 0,
+    69→}: {
+    70→  children: React.ReactNode;
+    71→  className?: string;
+    72→  delay?: number;
+    73→}) {
+    74→  const { ref, inView } = useEvtReveal();
+    75→  return (
+    76→    <div
+    77→      ref={ref}
+    78→      className={`evt-reveal ${inView ? 'in' : ''} ${delay ? `evt-reveal-delay-${delay}` : ''} ${className}`}
+    79→    >
+    80→      {children}
+    81→    </div>
+    82→  );
+    83→}
+    84→
+    85→/* ═══════════════════════════════════════════════════════════════════
+    86→   Dashboard Page
+    87→   ═══════════════════════════════════════════════════════════════════ */
+    88→
+    89→export function DashboardPage({ onNavigate }: DashboardPageProps) {
+    90→  const { user, profile } = useAuth();
+    91→  const { addToast } = useToast();
+    92→  const { colorMode } = useDynamicTheme();
+    93→
+    94→  // ── State ──────────────────────────────────────────────────────
+    95→  const [stats, setStats] = useState<StatCard[]>([]);
+    96→  const [events, setEvents] = useState<ChurchEvent[]>([]);
+    97→  const [prayers, setPrayers] = useState<PrayerReqType[]>([]);
+    98→  const [departments, setDepartments] = useState<UserDepartment[]>([]);
+    99→  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+   100→  const [unreadCount, setUnreadCount] = useState(0);
+   101→  const [dataLoading, setDataLoading] = useState(true);
+   102→
+   103→  const userName = profile?.full_name || user?.email?.split('@')[0] || 'Membre';
+   104→
+   105→  // ── Fetch all dashboard data ────────────────────────────────────
+   106→  useEffect(() => {
+   107→    if (!user) return;
+   108→    let cancelled = false;
+   109→
+   110→    async function loadDashboard() {
+   111→      setDataLoading(true);
+   112→      try {
+   113→        const now = new Date().toISOString();
+   114→
+   115→        // 1. Upcoming events
+   116→        const { data: eventData } = await supabase
+   117→          .from('events')
+   118→          .select('*')
+   119→          .gte('event_date', now.split('T')[0])
+   120→          .order('event_date', { ascending: true })
+   121→          .limit(10);
+   122→
+   123→        // 2. Active prayer requests (public, not answered)
+   124→        const { data: prayerData } = await supabase
+   125→          .from('prayer_requests')
+   126→          .select('*')
+   127→          .eq('is_confidential', false)
+   128→          .neq('status', 'answered')
+   129→          .order('created_at', { ascending: false })
+   130→          .limit(5);
+   131→
+   132→        // 3. Count queries for stats
+   133→        const [evtRes, prayRes, visitRes, memberRes] = await Promise.all([
+   134→          supabase
+   135→            .from('events')
+   136→            .select('id', { count: 'exact', head: true })
+   137→            .gte('event_date', now.split('T')[0]),
+   138→          supabase
+   139→            .from('prayer_requests')
+   140→            .select('id', { count: 'exact', head: true })
+   141→            .neq('status', 'answered'),
+   142→          supabase
+   143→            .from('visit_requests')
+   144→            .select('id', { count: 'exact', head: true })
+   145→            .eq('status', 'en_attente'),
+   146→          supabase
+   147→            .from('user_profiles')
+   148→            .select('id', { count: 'exact', head: true })
+   149→            .eq('onboarding_completed', true),
+   150→        ]);
+   151→
+   152→        // 4. User's departments
+   153→        const { data: deptMembers } = await supabase
+   154→          .from('department_members')
+   155→          .select('department_id, position_id, departments(name, accent_color, icon_name), positions(name)')
+   156→          .eq('user_id', user.id)
+   157→          .eq('is_active', true);
+   158→
+   159→        // 5. Notifications
+   160→        const { data: notifData } = await supabase
+   161→          .from('notifications')
+   162→          .select('*')
+   163→          .eq('user_id', user.id)
+   164→          .order('created_at', { ascending: false })
+   165→          .limit(8);
+   166→
+   167→        if (cancelled) return;
+   168→
+   169→        const userDepts: UserDepartment[] = (deptMembers || []).map((dm: any) => ({
+   170→          id: dm.department_id,
+   171→          department_name: dm.departments?.name || 'Département',
+   172→          position_name: dm.positions?.name || null,
+   173→          accent_color: dm.departments?.accent_color || 'gold',
+   174→          icon_name: dm.departments?.icon_name || 'Star',
+   175→        }));
+   176→
+   177→        setEvents((eventData || []) as ChurchEvent[]);
+   178→        setPrayers((prayerData || []) as PrayerReqType[]);
+   179→        setDepartments(userDepts);
+   180→        setNotifications((notifData || []) as NotificationItem[]);
+   181→        setUnreadCount((notifData || []).filter((n: any) => !n.is_read).length);
+   182→
+   183→        setStats([
+   184→          {
+   185→            label: 'Prochains événements',
+   186→            value: evtRes.count ?? 0,
+   187→            Icon: Calendar,
+   188→            color: 'text-sky-300',
+   189→          },
+   190→          {
+   191→            label: 'Requêtes de prière actives',
+   192→            value: prayRes.count ?? 0,
+   193→            Icon: Heart,
+   194→            color: 'text-rose-400',
+   195→          },
+   196→          {
+   197→            label: 'Demandes de visite en attente',
+   198→            value: visitRes.count ?? 0,
+   199→            Icon: MapPin,
+   200→            color: 'text-amber-400',
+   201→          },
+   202→          {
+   203→            label: 'Membres actifs ce mois',
+   204→            value: memberRes.count ?? 0,
+   205→            Icon: Users,
+   206→            color: 'text-emerald-400',
+   207→          },
+   208→        ]);
+   209→      } catch (err) {
+   210→        console.error('Dashboard data load error:', err);
+   211→      } finally {
+   212→        if (!cancelled) setDataLoading(false);
+   213→      }
+   214→    }
+   215→
+   216→    loadDashboard();
+   217→    return () => {
+   218→      cancelled = true;
+   219→    };
+   220→  }, [user]);
+   221→
+   222→  // ── Prayer action ──────────────────────────────────────────────
+   223→  const handlePray = async (prayerId: string) => {
+   224→    try {
+   225→      const { error } = await supabase
+   226→        .from('prayer_requests')
+   227→        .update({
+   228→          status: 'praying',
+   229→          prayed_by: user?.id || null,
+   230→          prayed_at: new Date().toISOString(),
+   231→        })
+   232→        .eq('id', prayerId);
+   233→
+   234→      if (error) throw error;
+   235→      addToast('Nous prions avec vous ! 🙏', 'success');
+   236→      setPrayers((prev) => prev.filter((p) => p.id !== prayerId));
+   237→    } catch {
+   238→      addToast('Erreur lors de la mise à jour.', 'error');
+   239→    }
+   240→  };
+   241→
+   242→  // ── Guard: not logged in ───────────────────────────────────────
+   243→  if (!user) {
+   244→    return (
+   245→      <div className="min-h-screen bg-bg text-cream">
+   246→        <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
+   247→        <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
+   248→          <div className="glass-card max-w-md p-10 text-center">
+   249→            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold-400/10">
+   250→              <Shield className="h-10 w-10 text-gold-400" />
+   251→            </div>
+   252→            <h2 className="text-headline-lg font-display gold-text mb-3">
+   253→              Espace Membre
+   254→            </h2>
+   255→            <p className="text-body-lg text-muted mb-8">
+   256→              Connectez-vous pour accéder à votre tableau de bord personnel et suivre la vie de l'église.
+   257→            </p>
+   258→            <button onClick={() => onNavigate('connexion')} className="btn-gold px-8 py-3">
+   259→              Se connecter
+   260→            </button>
+   261→          </div>
+   262→        </div>
+   263→        <SiteFooter onNavigate={onNavigate} />
+   264→        <MobileNav onNavigate={onNavigate} active="dashboard" />
+   265→      </div>
+   266→    );
+   267→  }
+   268→
+   269→  // ── Quick actions ──────────────────────────────────────────────
+   270→  const quickActions = [
+   271→    {
+   272→      label: 'Soumettre une demande de visite',
+   273→      Icon: MapPin,
+   274→      page: 'contact' as Page,
+   275→      desc: 'Demandez une visite pastorale',
+   276→    },
+   277→    {
+   278→      label: 'Soumettre une requête de prière',
+   279→      Icon: Heart,
+   280→      page: 'contact' as Page,
+   281→      desc: 'Partagez vos besoins de prière',
+   282→    },
+   283→    {
+   284→      label: 'Auto-évaluation spirituelle',
+   285→      Icon: BookOpen,
+   286→      page: 'contact' as Page,
+   287→      desc: 'Évaluez votre croissance spirituelle',
+   288→    },
+   289→    {
+   290→      label: 'Voir mes notifications',
+   291→      Icon: Bell,
+   292→      page: 'dashboard' as Page,
+   293→      desc: `${unreadCount} non lue${unreadCount !== 1 ? 's' : ''}`,
+   294→    },
+   295→  ];
+   296→
+   297→  /* ════════════════════════════════════════════════════════════════
+   298→     RENDER
+   299→     ════════════════════════════════════════════════════════════════ */
+   300→
+   301→  return (
+   302→    <div className="min-h-screen bg-bg text-cream">
+   303→      <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
+   304→
+   305→      <main className="pt-16">
+   306→        {/* ── Subtle radial background ─────────────────────────────── */}
+   307→        <div className="relative overflow-hidden">
+   308→          <div className="absolute inset-0 bg-radial-gold opacity-30 pointer-events-none" />
+   309→          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-sky-100/5 rounded-full blur-3xl pointer-events-none" />
+   310→
+   311→          <div className="relative mx-auto max-w-8xl px-margin-mobile md:px-margin-desktop py-xl">
+   312→            {/* ═══════════════════════════════════════════════════════
+   313→               1. WELCOME HEADER
+   314→               ═══════════════════════════════════════════════════════ */}
+   315→            <EvtReveal>
+   316→              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
+   317→                <div className="flex items-center gap-4">
+   318→                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gold-400/15 ring-2 ring-gold-400/30">
+   319→                    {profile?.avatar_url ? (
+   320→                      <img
+   321→                        src={profile.avatar_url}
+   322→                        alt={userName}
+   323→                        className="h-12 w-12 rounded-full object-cover"
+   324→                      />
+   325→                    ) : (
+   326→                      <User className="h-6 w-6 text-gold-400" />
+   327→                    )}
+   328→                    <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-bg" />
+   329→                  </div>
+   330→                  <div>
+   331→                    <p className="text-label-lg text-muted font-sans uppercase tracking-wider">
+   332→                      Bienvenue,
+   333→                    </p>
+   334→                    <h1 className="text-headline-xl font-display text-cream">
+   335→                      {userName}
+   336→                    </h1>
+   337→                  </div>
+   338→                </div>
+   339→
+   340→                <button
+   341→                  onClick={() => {
+   342→                    const el = document.getElementById('recent-activity');
+   343→                    el?.scrollIntoView({ behavior: 'smooth' });
+   344→                  }}
+   345→                  className="relative flex items-center gap-2.5 rounded-xl glass px-4 py-3 text-sm font-medium text-cream transition-all duration-200 hover:border-gold-400/30 hover:bg-white/5"
+   346→                >
+   347→                  <Bell className="h-5 w-5 text-gold-400" />
+   348→                  <span className="hidden sm:inline">Notifications</span>
+   349→                  {unreadCount > 0 && (
+   350→                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1.5 text-[11px] font-bold text-white">
+   351→                      {unreadCount > 99 ? '99+' : unreadCount}
+   352→                    </span>
+   353→                  )}
+   354→                </button>
+   355→              </div>
+   356→            </EvtReveal>
+   357→
+   358→            {/* ═══════════════════════════════════════════════════════
+   359→               2. STATS ROW
+   360→               ═══════════════════════════════════════════════════════ */}
+   361→            <EvtReveal delay={1}>
+   362→              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
+   363→                {dataLoading
+   364→                  ? Array.from({ length: 4 }).map((_, i) => (
+   365→                      <div
+   366→                        key={i}
+   367→                        className="glass-card flex flex-col gap-3 p-5 animate-pulse"
+   368→                      >
+   369→                        <div className="h-5 w-20 rounded bg-white/5" />
+   370→                        <div className="h-10 w-16 rounded bg-white/5" />
+   371→                      </div>
+   372→                    ))
+   373→                  : stats.map((stat) => {
+   374→                      const Icon = stat.Icon;
+   375→                      return (
+   376→                        <div
+   377→                          key={stat.label}
+   378→                          className="glass-card group flex flex-col gap-3 p-5 sm:p-6 transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gold-500/5 cursor-default"
+   379→                        >
+   380→                          <div className="flex items-center justify-between">
+   381→                            <span className="text-xs sm:text-sm text-muted font-sans leading-snug">
+   382→                              {stat.label}
+   383→                            </span>
+   384→                            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-gold-400/10">
+   385→                              <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+   386→                            </div>
+   387→                          </div>
+   388→                          <span className="text-3xl sm:text-4xl font-display font-bold text-cream tabular-nums">
+   389→                            {stat.value}
+   390→                          </span>
+   391→                        </div>
+   392→                      );
+   393→                    })}
+   394→              </div>
+   395→            </EvtReveal>
+   396→
+   397→            {/* ═══════════════════════════════════════════════════════
+   398→               3. UPCOMING EVENTS
+   399→               ═══════════════════════════════════════════════════════ */}
+   400→            <EvtReveal delay={2}>
+   401→              <section className="mb-10">
+   402→                <div className="flex items-center justify-between mb-5">
+   403→                  <div className="flex items-center gap-3">
+   404→                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-400/10">
+   405→                      <Calendar className="h-5 w-5 text-gold-400" />
+   406→                    </div>
+   407→                    <h2 className="text-headline-md font-display text-cream">
+   408→                      Prochains Événements
+   409→                    </h2>
+   410→                  </div>
+   411→                  <button
+   412→                    onClick={() => onNavigate('events')}
+   413→                    className="btn-ghost text-sm flex items-center gap-1.5"
+   414→                  >
+   415→                    Voir tout
+   416→                    <ChevronRight className="h-4 w-4" />
+   417→                  </button>
+   418→                </div>
+   419→
+   420→                {events.length === 0 ? (
+   421→                  <div className="glass-card flex flex-col items-center justify-center py-12 text-center">
+   422→                    <Calendar className="mb-3 h-10 w-10 text-muted/40" />
+   423→                    <p className="text-muted text-sm">
+   424→                      Aucun événement à venir
+   425→                    </p>
+   426→                  </div>
+   427→                ) : (
+   428→                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+   429→                    {events.slice(0, 3).map((evt, i) => {
+   430→                      const { day, month, full } = formatDate(evt.event_date);
+   431→                      return (
+   432→                        <div
+   433→                          key={evt.id}
+   434→                          className="glass-card group flex gap-4 p-4 sm:p-5 transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-0.5 cursor-pointer"
+   435→                          onClick={() => onNavigate('events')}
+   436→                        >
+   437→                          {/* Date badge */}
+   438→                          <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-gold-400/10 ring-1 ring-gold-400/20 transition-colors duration-300 group-hover:bg-gold-400/15">
+   439→                            <span className="text-lg font-bold text-gold-400 font-display leading-none">
+   440→                              {day}
+   441→                            </span>
+   442→                            <span className="text-[10px] font-semibold uppercase tracking-wider text-gold-400/80 mt-0.5">
+   443→                              {month}
+   444→                            </span>
+   445→                          </div>
+   446→
+   447→                          <div className="flex-1 min-w-0">
+   448→                            <h3 className="text-sm sm:text-base font-semibold text-cream truncate mb-1">
+   449→                              {evt.title}
+   450→                            </h3>
+   451→                            <div className="flex items-center gap-2 text-xs text-muted">
+   452→                              <MapPin className="h-3.5 w-3.5 shrink-0" />
+   453→                              <span className="truncate">{evt.location || 'Lieu à confirmer'}</span>
+   454→                            </div>
+   455→                            <span className="mt-1.5 inline-block rounded-full bg-sky-100/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-300">
+   456→                              {evt.category}
+   457→                            </span>
+   458→                          </div>
+   459→                        </div>
+   460→                      );
+   461→                    })}
+   462→                  </div>
+   463→                )}
+   464→              </section>
+   465→            </EvtReveal>
+   466→
+   467→            {/* ═══════════════════════════════════════════════════════
+   468→               4. PRAYER REQUESTS
+   469→               ═══════════════════════════════════════════════════════ */}
+   470→            <EvtReveal delay={3}>
+   471→              <section className="mb-10">
+   472→                <div className="flex items-center justify-between mb-5">
+   473→                  <div className="flex items-center gap-3">
+   474→                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10">
+   475→                      <Heart className="h-5 w-5 text-rose-400" />
+   476→                    </div>
+   477→                    <h2 className="text-headline-md font-display text-cream">
+   478→                      Requêtes de Prière
+   479→                    </h2>
+   480→                  </div>
+   481→                </div>
+   482→
+   483→                {prayers.length === 0 ? (
+   484→                  <div className="glass-card flex flex-col items-center justify-center py-12 text-center">
+   485→                    <Heart className="mb-3 h-10 w-10 text-muted/40" />
+   486→                    <p className="text-muted text-sm mb-4">
+   487→                      Aucune requête de prière active
+   488→                    </p>
+   489→                    <button
+   490→                      onClick={() => onNavigate('contact')}
+   491→                      className="btn-gold px-5 py-2 text-sm"
+   492→                    >
+   493→                      <Plus className="mr-1.5 h-4 w-4 inline" />
+   494→                      Soumettre une requête
+   495→                    </button>
+   496→                  </div>
+   497→                ) : (
+   498→                  <div className="space-y-3">
+   499→                    {prayers.slice(0, 3).map((prayer) => (
+   500→                      <div
+   501→                        key={prayer.id}
+   502→                        className="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between transition-all duration-300 hover:border-gold-400/15"
+   503→                      >
+   504→                        <div className="flex-1 min-w-0">
+   505→                          <div className="flex items-center gap-2 mb-1.5">
+   506→                            <span className="text-xs font-medium text-muted">
+   507→                              {prayer.is_anonymous ? 'Anonyme' : prayer.author_name}
+   508→                            </span>
+   509→                            <span className="text-muted/30">·</span>
+   510→                            <span className="text-xs text-muted/70">
+   511→                              {formatDate(prayer.created_at).full}
+   512→                            </span>
+   513→                          </div>
+   514→                          <p className="text-sm text-cream/90 leading-relaxed line-clamp-2">
+   515→                            {prayer.content}
+   516→                          </p>
+   517→                        </div>
+   518→                        <button
+   519→                          onClick={() => handlePray(prayer.id)}
+   520→                          className="flex shrink-0 items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 px-4 py-2.5 text-sm font-medium text-rose-400 transition-all duration-200 hover:bg-rose-500/20 hover:border-rose-500/30 active:scale-95"
+   521→                        >
+   522→                          <Heart className="h-4 w-4" />
+   523→                          Prier
+   524→                        </button>
+   525→                      </div>
+   526→                    ))}
+   527→                  </div>
+   528→                )}
+   529→              </section>
+   530→            </EvtReveal>
+   531→
+   532→            {/* ═══════════════════════════════════════════════════════
+   533→               5. MY DEPARTMENT
+   534→               ═══════════════════════════════════════════════════════ */}
+   535→            <EvtReveal delay={4}>
+   536→              <section className="mb-10">
+   537→                <div className="flex items-center gap-3 mb-5">
+   538→                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
+   539→                    <Users className="h-5 w-5 text-emerald-400" />
+   540→                  </div>
+   541→                  <h2 className="text-headline-md font-display text-cream">
+   542→                    Mon Département
+   543→                  </h2>
+   544→                </div>
+   545→
+   546→                {departments.length === 0 ? (
+   547→                  <div className="glass-card flex flex-col items-center justify-center py-12 text-center">
+   548→                    <Users className="mb-3 h-10 w-10 text-muted/40" />
+   549→                    <p className="text-muted text-sm mb-2">
+   550→                      Vous n'êtes pas encore assigné à un département
+   551→                    </p>
+   552→                    <p className="text-xs text-muted/60 max-w-sm">
+   553→                      Complétez votre profil ou contactez un responsable pour rejoindre un département.
+   554→                    </p>
+   555→                  </div>
+   556→                ) : (
+   557→                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+   558→                    {departments.map((dept) => (
+   559→                      <div
+   560→                        key={dept.id}
+   561→                        className="glass-card group p-5 transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-0.5"
+   562→                      >
+   563→                        <div className="flex items-start gap-4">
+   564→                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-400/10 ring-1 ring-gold-400/20 transition-colors duration-300 group-hover:bg-gold-400/15">
+   565→                            <Star className="h-5 w-5 text-gold-400" />
+   566→                          </div>
+   567→                          <div className="flex-1 min-w-0">
+   568→                            <h3 className="text-base font-semibold text-cream truncate">
+   569→                              {dept.department_name}
+   570→                            </h3>
+   571→                            {dept.position_name && (
+   572→                              <p className="mt-0.5 text-sm text-gold-400 font-medium">
+   573→                                {dept.position_name}
+   574→                              </p>
+   575→                            )}
+   576→                          </div>
+   577→                        </div>
+   578→                        <div className="mt-4 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
+   579→                          <Clock className="h-3.5 w-3.5 shrink-0 text-gold-400/70" />
+   580→                          <span>Réunion hebdomadaire —</span>
+   581→                          <span className="text-cream/70 font-medium">
+   582→                            À confirmer
+   583→                          </span>
+   584→                        </div>
+   585→                      </div>
+   586→                    ))}
+   587→                  </div>
+   588→                )}
+   589→              </section>
+   590→            </EvtReveal>
+   591→
+   592→            {/* ═══════════════════════════════════════════════════════
+   593→               6. QUICK ACTIONS
+   594→               ═══════════════════════════════════════════════════════ */}
+   595→            <EvtReveal delay={5}>
+   596→              <section className="mb-10">
+   597→                <div className="flex items-center gap-3 mb-5">
+   598→                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
+   599→                    <Send className="h-5 w-5 text-amber-400" />
+   600→                  </div>
+   601→                  <h2 className="text-headline-md font-display text-cream">
+   602→                    Actions Rapides
+   603→                  </h2>
+   604→                </div>
+   605→
+   606→                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+   607→                  {quickActions.map((action) => {
+   608→                    const Icon = action.Icon;
+   609→                    return (
+   610→                      <button
+   611→                        key={action.label}
+   612→                        onClick={() => onNavigate(action.page)}
+   613→                        className="glass-card group flex items-center gap-4 p-4 sm:p-5 text-left transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gold-500/5"
+   614→                      >
+   615→                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-400/10 ring-1 ring-gold-400/20 transition-all duration-300 group-hover:bg-gold-400 group-hover:ring-gold-400/40 group-hover:text-white">
+   616→                          <Icon className="h-5 w-5 text-gold-400 transition-colors duration-300 group-hover:text-white" />
+   617→                        </div>
+   618→                        <div className="flex-1 min-w-0">
+   619→                          <h3 className="text-sm sm:text-base font-semibold text-cream group-hover:text-gold-300 transition-colors duration-200 truncate">
+   620→                            {action.label}
+   621→                          </h3>
+   622→                          <p className="text-xs text-muted mt-0.5 truncate">
+   623→                            {action.desc}
+   624→                          </p>
+   625→                        </div>
+   626→                        <ChevronRight className="h-4 w-4 text-muted/40 shrink-0 transition-all duration-300 group-hover:text-gold-400 group-hover:translate-x-1" />
+   627→                      </button>
+   628→                    );
+   629→                  })}
+   630→                </div>
+   631→              </section>
+   632→            </EvtReveal>
+   633→
+   634→            {/* ═══════════════════════════════════════════════════════
+   635→               7. RECENT ACTIVITY
+   636→               ═══════════════════════════════════════════════════════ */}
+   637→            <EvtReveal delay={6}>
+   638→              <section id="recent-activity" className="mb-10">
+   639→                <div className="flex items-center gap-3 mb-5">
+   640→                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
+   641→                    <MessageSquare className="h-5 w-5 text-indigo-400" />
+   642→                  </div>
+   643→                  <h2 className="text-headline-md font-display text-cream">
+   644→                    Activité Récente
+   645→                  </h2>
+   646→                </div>
+   647→
+   648→                {notifications.length === 0 ? (
+   649→                  <div className="glass-card flex flex-col items-center justify-center py-12 text-center">
+   650→                    <MessageSquare className="mb-3 h-10 w-10 text-muted/40" />
+   651→                    <p className="text-muted text-sm">
+   652→                      Aucune activité récente
+   653→                    </p>
+   654→                  </div>
+   655→                ) : (
+   656→                  <div className="glass-card p-5 sm:p-6">
+   657→                    <div className="relative">
+   658→                      {/* Timeline line */}
+   659→                      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-gold-400/20" />
+   660→
+   661→                      <div className="space-y-6">
+   662→                        {notifications.slice(0, 5).map((notif, idx) => (
+   663→                          <div key={notif.id} className="relative flex gap-4">
+   664→                            {/* Dot */}
+   665→                            <div className="relative z-10 mt-1 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-bg ring-2 ring-gold-400/30">
+   666→                              {notif.type === 'prayer' ? (
+   667→                                <Heart className="h-3.5 w-3.5 text-rose-400" />
+   668→                              ) : notif.type === 'visit' ? (
+   669→                                <MapPin className="h-3.5 w-3.5 text-amber-400" />
+   670→                              ) : notif.type === 'assignment' ? (
+   671→                                <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+   672→                              ) : notif.type === 'alert' ? (
+   673→                                <Bell className="h-3.5 w-3.5 text-red-400" />
+   674→                              ) : (
+   675→                                <MessageSquare className="h-3.5 w-3.5 text-sky-400" />
+   676→                              )}
+   677→                            </div>
+   678→
+   679→                            {/* Content */}
+   680→                            <div className="flex-1 min-w-0 pb-1">
+   681→                              <div className="flex items-start justify-between gap-2">
+   682→                                <div>
+   683→                                  <p className={`text-sm font-medium ${notif.is_read ? 'text-muted' : 'text-cream'}`}>
+   684→                                    {notif.title}
+   685→                                  </p>
+   686→                                  {notif.message && (
+   687→                                    <p className="mt-0.5 text-xs text-muted/80 line-clamp-2">
+   688→                                      {notif.message}
+   689→                                    </p>
+   690→                                  )}
+   691→                                </div>
+   692→                                {!notif.is_read && (
+   693→                                  <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-gold-400" />
+   694→                                )}
+   695→                              </div>
+   696→                              <span className="mt-1 block text-[11px] text-muted/60">
+   697→                                {formatDate(notif.created_at).full}
+   698→                              </span>
+   699→                            </div>
+   700→                          </div>
+   701→                        ))}
+   702→                      </div>
+   703→                    </div>
+   704→                  </div>
+   705→                )}
+   706→              </section>
+   707→            </EvtReveal>
+   708→          </div>
+   709→        </div>
+   710→      </main>
+   711→
+   712→      <SiteFooter onNavigate={onNavigate} />
+   713→      <MobileNav onNavigate={onNavigate} active="dashboard" />
+   714→    </div>
+   715→  );
+   716→}

@@ -96,9 +96,9 @@ export function AboutPage({ onNavigate }: PageProps) {
 
   if (loading) {
     return (
-      <div className="bg-bg min-h-screen">
+      <div className="min-h-screen bg-bg text-cream font-sans">
         <SiteHeader activePage="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-        <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <MobileNav active="about" onNavigate={onNavigate} />
         <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
           <div className="mx-auto max-w-4xl px-4 text-center">
             <div className="mb-4 h-6 w-28 animate-pulse rounded-full bg-white/10" />

@@ -1,0 +1,467 @@
+     1→import { useState, useEffect, useRef } from 'react';
+     2→import { db, buildContentMap, getContent } from '../lib/supabase';
+     3→import type { ChurchEvent } from '../types';
+     4→import { useDynamicTheme } from '../contexts/DynamicTheme';
+     5→import { SiteHeader } from '../components/SiteHeader';
+     6→import { SiteFooter } from '../components/SiteFooter';
+     7→import { MobileNav } from '../components/MobileNav';
+     8→import { formatDate } from '../lib/date';
+     9→import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
+    10→import type { Page } from '../lib/navigation';
+    11→
+    12→interface EventsPageProps { onNavigate: (page: Page) => void; }
+    13→
+    14→const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion'] as const;
+    15→const CAT_LABELS: Record<string, string> = {
+    16→  'Tous': 'All Events', 'Cultes': 'Worship', 'Missions': 'Special Events', 'Jeunesse': 'Youth', 'Communion': 'Communion',
+    17→};
+    18→
+    19→const weeklyServices = [
+    20→  { title: 'Culte de Louange et Adoration', day: 'Dimanche', time: '08h00 – 10h45', Icon: Sun, desc: 'Culte principal de la semaine' },
+    21→  { title: 'Réunion des Mamans', day: 'Lundi', time: '17h00', Icon: Heart, desc: 'Département des femmes' },
+    22→  { title: "Culte d'Enseignement", day: 'Mercredi', time: 'À confirmer', Icon: BookOpen, desc: 'Département des Hommes Adultes' },
+    23→  { title: 'Culte de Jeunesse et Prière', day: 'Vendredi', time: 'À confirmer', Icon: Music, desc: '' },
+    24→  { title: 'Génération Espoir', day: 'Samedi', time: 'À confirmer', Icon: Star, desc: 'Département de la Jeunesse' },
+    25→  { title: 'Dévotion Matinale', day: 'Lun – Ven', time: '06h00 – 08h00', Icon: GraduationCap, desc: 'Chaque jour de la semaine' },
+    26→];
+    27→
+    28→const FALLBACK_IMG = 'https://images.pexels.com/photos/2774557/pexels-photo-2774557.jpeg?auto=compress&cs=tinysrgb&w=800';
+    29→
+    30→/* ─── Tiny intersection-observer hook for .evt-reveal ─── */
+    31→function useEvtReveal() {
+    32→  const ref = useRef<HTMLDivElement>(null);
+    33→  const [inView, setInView] = useState(false);
+    34→  useEffect(() => {
+    35→    const el = ref.current;
+    36→    if (!el) return;
+    37→    const obs = new IntersectionObserver(
+    38→      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
+    39→      { threshold: 0.08 },
+    40→    );
+    41→    obs.observe(el);
+    42→    return () => obs.disconnect();
+    43→  }, []);
+    44→  return { ref, inView };
+    45→}
+    46→
+    47→function EvtReveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+    48→  const { ref, inView } = useEvtReveal();
+    49→  return (
+    50→    <div ref={ref} className={`evt-reveal ${inView ? 'in' : ''} ${delay ? `evt-reveal-delay-${delay}` : ''} ${className}`}>
+    51→      {children}
+    52→    </div>
+    53→  );
+    54→}
+    55→
+    56→/* ─── Material Symbol wrapper ─── */
+    57→function MS({ children, className = '' }: { children: string; className?: string }) {
+    58→  return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
+    59→}
+    60→
+    61→/* ─── Category badge label ─── */
+    62→function catBadge(cat: string, isLive: boolean) {
+    63→  if (isLive) return 'LIVE BROADCAST';
+    64→  const map: Record<string, string> = { Cultes: 'WORSHIP', Missions: 'SPECIAL EVENT', Jeunesse: 'YOUTH FOCUS', Communion: 'COMMUNION' };
+    65→  return map[cat] || 'EVENT';
+    66→}
+    67→
+    68→/* ─── Category badge color ─── */
+    69→function catBadgeColor(cat: string) {
+    70→  return cat === 'Missions' ? 'bg-gold-500' : 'bg-ink-700';
+    71→}
+    72→
+    73→/* ─── Button color ─── */
+    74→function ctaBtnClass(cat: string) {
+    75→  return cat === 'Missions' ? 'bg-gold-500 hover:opacity-90' : 'bg-ink-700 hover:bg-ink-600';
+    76→}
+    77→
+    78→export function EventsPage({ onNavigate }: EventsPageProps) {
+    79→  const { colorMode, toggleColorMode } = useDynamicTheme();
+    80→  const [events, setEvents] = useState<ChurchEvent[]>([]);
+    81→  const [loading, setLoading] = useState(true);
+    82→  const [error, setError] = useState<string | null>(null);
+    83→  const [activeCategory, setActiveCategory] = useState('Tous');
+    84→  const [search, setSearch] = useState('');
+    85→  const [email, setEmail] = useState('');
+    86→  const [contentMap, setContentMap] = useState<Record<string, string>>({});
+    87→
+    88→  useEffect(() => {
+    89→    let cancelled = false;
+    90→    async function load() {
+    91→      try {
+    92→        const [evts, contents] = await Promise.all([
+    93→          db.getEvents(),
+    94→          db.getPageContents('events'),
+    95→        ]);
+    96→        if (cancelled) return;
+    97→        setEvents(evts);
+    98→        setContentMap(buildContentMap(contents));
+    99→      } catch {
+   100→        setError('Impossible de charger les événements.');
+   101→      } finally {
+   102→        if (!cancelled) setLoading(false);
+   103→      }
+   104→    }
+   105→    load();
+   106→    return () => { cancelled = true; };
+   107→  }, []);
+   108→
+   109→  const filtered = events.filter((e) => {
+   110→    const matchCat = activeCategory === 'Tous' || e.category === activeCategory;
+   111→    const matchSearch = !search || e.title.toLowerCase().includes(search.toLowerCase()) || e.description.toLowerCase().includes(search.toLowerCase());
+   112→    return matchCat && matchSearch;
+   113→  });
+   114→
+   115→  const upcoming = [...filtered]
+   116→    .filter((e) => new Date(e.event_date) >= new Date())
+   117→    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
+   118→
+   119→  // Bento preview data (next 3 upcoming or fallback)
+   120→  const bentoEvents = upcoming.length >= 3 ? upcoming.slice(0, 3) : upcoming.length >= 2 ? upcoming.slice(0, 2) : upcoming;
+   121→  const nextSunday = upcoming.find((e) => {
+   122→    const d = new Date(e.event_date);
+   123→    return d.getDay() === 0;
+   124→  }) || upcoming[0];
+   125→
+   126→  const heroTitle = getContent(contentMap, 'hero', 'title', 'Événements de la Saison de Conquête');
+   127→  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Rejoignez notre communauté dynamique pour des moments de transformation, de prière et de communion fraternelle à Lubumbashi et dans toutes nos extensions.');
+   128→
+   129→  return (
+   130→    <div className="min-h-screen bg-bg text-cream font-sans">
+   131→      <SiteHeader onNavigate={onNavigate} activePage="events" theme={colorMode} onToggleTheme={toggleColorMode} />
+   132→
+   133→      <main className="min-h-screen">
+   134→        {/* ═══════ HERO — Bento Calendar Overview ═══════ */}
+   135→        <section className="relative py-xl overflow-hidden bg-ink-700 text-white">
+   136→          {/* Subtle decorative radial */}
+   137→          <div className="absolute inset-0 bg-radial-gold opacity-40" />
+   138→          <div className="relative z-10 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+   139→            {/* Left — Text */}
+   140→            <EvtReveal>
+   141→              <span className="inline-block px-3 py-1 bg-gold-500 rounded text-[12px] font-bold tracking-widest uppercase mb-4">
+   142→                {getContent(contentMap, 'hero', 'badge', 'Agenda Spirituel')}
+   143→              </span>
+   144→              <h1 className="font-playfair text-headline-xl mb-6">{heroTitle}</h1>
+   145→              <p className="text-body-lg text-sky-100 max-w-xl mb-8 leading-relaxed">{heroSubtitle}</p>
+   146→              <div className="flex flex-wrap gap-4">
+   147→                <div className="flex items-center gap-2 text-white/80">
+   148→                  <MS className="text-gold-500 text-[20px]">location_on</MS>
+   149→                  <span className="font-be-vn text-label-lg uppercase tracking-wide">Lubumbashi Main Campus</span>
+   150→                </div>
+   151→                <div className="flex items-center gap-2 text-white/80">
+   152→                  <MS className="text-gold-500 text-[20px]">schedule</MS>
+   153→                  <span className="font-be-vn text-label-lg uppercase tracking-wide">Horaires GMT+2</span>
+   154→                </div>
+   155→              </div>
+   156→            </EvtReveal>
+   157→
+   158→            {/* Right — Bento grid */}
+   159→            <EvtReveal delay={2}>
+   160→              <div className="grid grid-cols-2 gap-4">
+   161→                {/* Bento card 1 */}
+   162→                {bentoEvents[0] && (() => {
+   163→                  const { day, month } = formatDate(bentoEvents[0].event_date);
+   164→                  return (
+   165→                    <div className="glass-card p-6 rounded-xl flex flex-col justify-between aspect-square">
+   166→                      <span className="text-headline-xl font-bold text-gold-500 font-playfair">{day}</span>
+   167→                      <div>
+   168→                        <p className="font-bold uppercase tracking-widest text-[12px] text-sky-100">{month}</p>
+   169→                        <p className="font-playfair text-headline-md text-white/90 mt-1 line-clamp-2">{bentoEvents[0].title}</p>
+   170→                      </div>
+   171→                    </div>
+   172→                  );
+   173→                })()}
+   174→                {/* Bento card 2 — solid accent */}
+   175→                {bentoEvents[1] && (() => {
+   176→                  const { day, month } = formatDate(bentoEvents[1].event_date);
+   177→                  return (
+   178→                    <div className="bg-gold-500 p-6 rounded-xl flex flex-col justify-between aspect-square shadow-xl shadow-gold-500/20">
+   179→                      <span className="text-headline-xl font-bold text-white font-playfair">{day}</span>
+   180→                      <div>
+   181→                        <p className="font-bold uppercase tracking-widest text-[12px] text-white/80">{month}</p>
+   182→                        <p className="font-playfair text-headline-md text-white mt-1 line-clamp-2">{bentoEvents[1].title}</p>
+   183→                      </div>
+   184→                    </div>
+   185→                  );
+   186→                })()}
+   187→                {/* Bento card 3 — Next service bar */}
+   188→                <div className="col-span-2 glass-card p-6 rounded-xl flex items-center justify-between">
+   189→                  <div className="flex items-center gap-4">
+   190→                    <div className="w-12 h-12 rounded-full bg-ink-700 flex items-center justify-center shrink-0">
+   191→                      <MS className="text-white text-[24px]">celebration</MS>
+   192→                    </div>
+   193→                    <div>
+   194→                      <p className="font-be-vn text-label-lg text-gold-500 uppercase">Prochain Culte</p>
+   195→                      <p className="font-playfair text-headline-md text-white/90">
+   196→                        {nextSunday ? nextSunday.title : 'Culte de Célébration'}
+   197→                      </p>
+   198→                    </div>
+   199→                  </div>
+   200→                  <span className="text-gold-500 font-bold font-be-vn text-label-lg hidden sm:block">
+   201→                    {nextSunday
+   202→                      ? new Date(nextSunday.event_date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase() + ' ' + formatDate(nextSunday.event_date).day + ':00'
+   203→                      : 'DIM 09:00'}
+   204→                  </span>
+   205→                </div>
+   206→              </div>
+   207→            </EvtReveal>
+   208→          </div>
+   209→        </section>
+   210→
+   211→        {/* ═══════ FILTERS — Sticky ═══════ */}
+   212→        <section className="py-4 md:py-5 bg-bg border-b border-line sticky top-16 z-40">
+   213→          <div className="px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+   214→            <div className="flex flex-wrap items-center gap-2">
+   215→              {CATEGORIES.map((cat) => (
+   216→                <button key={cat} onClick={() => setActiveCategory(cat)}
+   217→                  className={`px-5 py-2 rounded-full font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
+   218→                    activeCategory === cat
+   219→                      ? 'bg-gold-500 text-white shadow-lg shadow-gold-500/20'
+   220→                      : 'bg-bg-elevated text-muted hover:bg-bg-card-hover'
+   221→                  }`}>
+   222→                  {CAT_LABELS[cat] || cat}
+   223→                </button>
+   224→              ))}
+   225→            </div>
+   226→            <div className="relative w-full md:w-80">
+   227→              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted" />
+   228→              <input type="text" placeholder="Rechercher un événement..." value={search}
+   229→                onChange={(e) => setSearch(e.target.value)}
+   230→                className="input-surface w-full py-3 pl-11 pr-4 text-sm !rounded-lg" />
+   231→            </div>
+   232→          </div>
+   233→        </section>
+   234→
+   235→        {/* ═══════ EVENT LIST ═══════ */}
+   236→        <section className="py-10 md:py-16 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto">
+   237→          {error && (
+   238→            <div className="mb-10 rounded-xl border border-ember-500/20 bg-ember-500/10 p-6 text-center text-muted">{error}</div>
+   239→          )}
+   240→
+   241→          {loading ? (
+   242→            <div className="space-y-gutter">
+   243→              {Array.from({ length: 3 }).map((_, i) => (
+   244→                <div key={i} className="animate-pulse rounded-xl overflow-hidden flex flex-col lg:flex-row bg-bg-elevated">
+   245→                  <div className="lg:w-1/3 h-64 lg:h-auto bg-white/5" />
+   246→                  <div className="lg:w-2/3 p-8 space-y-4">
+   247→                    <div className="h-4 rounded bg-white/5 w-1/4" />
+   248→                    <div className="h-6 rounded bg-white/5 w-2/3" />
+   249→                    <div className="h-3 rounded bg-white/5 w-full" />
+   250→                    <div className="h-3 rounded bg-white/5 w-3/4" />
+   251→                  </div>
+   252→                </div>
+   253→              ))}
+   254→            </div>
+   255→          ) : !error && (
+   256→            <>
+   257→              {/* Featured event — full-width horizontal card */}
+   258→              {(() => {
+   259→                const feat = filtered.find((e) => e.is_featured) || upcoming[0];
+   260→                if (!feat) return null;
+   261→                const { day, month } = formatDate(feat.event_date);
+   262→                return (
+   263→                  <EvtReveal className="mb-8">
+   264→                    <div className="group rounded-xl overflow-hidden border border-line hover:border-gold-500/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-gold-500/5">
+   265→                      <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
+   266→                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+   267→                          style={{ backgroundImage: `url(${feat.image_url || FALLBACK_IMG})` }} />
+   268→                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
+   269→                        <div className={`absolute top-4 left-4 px-3 py-1 ${feat.is_live ? 'bg-gold-500 animate-pulse' : catBadgeColor(feat.category)} text-white font-be-vn text-[12px] font-bold uppercase tracking-wider rounded`}>
+   270→                          {feat.is_live ? (
+   271→                            <span className="flex items-center gap-1.5">
+   272→                              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+   273→                              {catBadge(feat.category, true)}
+   274→                            </span>
+   275→                          ) : catBadge(feat.category, false)}
+   276→                        </div>
+   277→                      </div>
+   278→                      <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
+   279→                        <div>
+   280→                          <div className="flex items-center gap-4 mb-3">
+   281→                            <div className="px-4 py-2 rounded-lg bg-bg-card text-gold-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
+   282→                              <span>{day}</span>
+   283→                              <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
+   284→                            </div>
+   285→                            <div>
+   286→                              <h2 className="font-playfair text-2xl md:text-3xl font-bold text-cream leading-tight">{feat.title}</h2>
+   287→                              <p className="text-gold-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">
+   288→                                {feat.is_featured ? 'Événement à la une' : feat.category}
+   289→                              </p>
+   290→                            </div>
+   291→                          </div>
+   292→                          <p className="text-muted leading-relaxed line-clamp-2">{feat.description}</p>
+   293→                        </div>
+   294→                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
+   295→                          <div className="flex flex-wrap gap-5 text-muted">
+   296→                            <span className="flex items-center gap-2 text-sm">
+   297→                              <MS className="text-gold-500 text-[18px]">schedule</MS>
+   298→                              <span className="font-be-vn">{new Date(feat.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} – 11:30</span>
+   299→                            </span>
+   300→                            {feat.location && (
+   301→                              <span className="flex items-center gap-2 text-sm">
+   302→                                <MS className="text-gold-500 text-[18px]">location_on</MS>
+   303→                                <span className="font-be-vn">{feat.location}</span>
+   304→                              </span>
+   305→                            )}
+   306→                          </div>
+   307→                          <button className={`w-full sm:w-auto px-7 py-3 text-white rounded-lg font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${feat.is_featured ? 'bg-gold-500 hover:opacity-90' : ctaBtnClass(feat.category)}`}>
+   308→                            {feat.is_live ? 'Rejoindre le Live' : 'Rejoindre'}
+   309→                          </button>
+   310→                        </div>
+   311→                      </div>
+   312→                    </div>
+   313→                  </EvtReveal>
+   314→                );
+   315→              })()}
+   316→
+   317→              {/* Regular events — horizontal cards */}
+   318→              {upcoming.filter((e) => e !== (filtered.find((e) => e.is_featured) || upcoming[0])).length > 0 ? (
+   319→                <div className="space-y-gutter">
+   320→                  {upcoming
+   321→                    .filter((e) => e !== (filtered.find((e) => e.is_featured) || upcoming[0]))
+   322→                    .map((event, i) => {
+   323→                      const { day, month } = formatDate(event.event_date);
+   324→                      return (
+   325→                        <EvtReveal key={event.id} delay={Math.min((i % 4) + 1, 4) as 1|2|3|4}>
+   326→                          <div className="group rounded-xl overflow-hidden border border-line hover:border-gold-500/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-gold-500/5">
+   327→                            {/* Image */}
+   328→                            <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
+   329→                              <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
+   330→                                style={{ backgroundImage: `url(${event.image_url || FALLBACK_IMG})` }} />
+   331→                              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
+   332→                              <div className={`absolute top-4 left-4 px-3 py-1 ${catBadgeColor(event.category)} text-white font-be-vn text-[12px] font-bold uppercase tracking-wider rounded`}>
+   333→                                {catBadge(event.category, event.is_live)}
+   334→                              </div>
+   335→                            </div>
+   336→                            {/* Content */}
+   337→                            <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
+   338→                              <div>
+   339→                                <div className="flex items-center gap-4 mb-3">
+   340→                                  <div className="px-4 py-2 rounded-lg bg-bg-card text-gold-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
+   341→                                    <span>{day}</span>
+   342→                                    <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
+   343→                                  </div>
+   344→                                  <div>
+   345→                                    <h3 className="font-playfair text-xl md:text-2xl font-bold text-cream leading-tight">{event.title}</h3>
+   346→                                    <p className="text-gold-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">{event.category}</p>
+   347→                                  </div>
+   348→                                </div>
+   349→                                <p className="text-muted leading-relaxed line-clamp-2">{event.description}</p>
+   350→                              </div>
+   351→                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
+   352→                                <div className="flex flex-wrap gap-5 text-muted">
+   353→                                  <span className="flex items-center gap-2 text-sm">
+   354→                                    <MS className="text-gold-500 text-[18px]">schedule</MS>
+   355→                                    <span className="font-be-vn">{new Date(event.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
+   356→                                  </span>
+   357→                                  {event.location && (
+   358→                                    <span className="flex items-center gap-2 text-sm">
+   359→                                      <MS className="text-gold-500 text-[18px]">location_on</MS>
+   360→                                      <span className="font-be-vn">{event.location}</span>
+   361→                                    </span>
+   362→                                  )}
+   363→                                </div>
+   364→                                <button className={`w-full sm:w-auto px-7 py-3 text-white rounded-lg font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${ctaBtnClass(event.category)}`}>
+   365→                                  {event.is_live ? 'Rejoindre le Live' : event.category === 'Missions' ? "S'inscrire" : 'Rejoindre'}
+   366→                                </button>
+   367→                              </div>
+   368→                            </div>
+   369→                          </div>
+   370→                        </EvtReveal>
+   371→                      );
+   372→                    })}
+   373→                </div>
+   374→              ) : upcoming.length <= 1 && !loading && (
+   375→                /* Past events as smaller grid if no upcoming */
+   376→                filtered.length > 1 ? (
+   377→                  <div className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
+   378→                    {filtered.slice(1).map((event, i) => {
+   379→                      const { day, month } = formatDate(event.event_date);
+   380→                      return (
+   381→                        <EvtReveal key={event.id} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
+   382→                          <div className="glass rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-lg h-full">
+   383→                            <div className="relative h-48 overflow-hidden">
+   384→                              <img src={event.image_url || FALLBACK_IMG} alt={event.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
+   385→                              <div className="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-14 rounded-lg bg-black/70 backdrop-blur-sm text-center">
+   386→                                <span className="text-xl font-bold text-gold-400 font-playfair leading-none">{day}</span>
+   387→                                <span className="text-[9px] uppercase tracking-widest text-white/70">{month}</span>
+   388→                              </div>
+   389→                            </div>
+   390→                            <div className="flex flex-col flex-1 p-5">
+   391→                              <span className="mb-2 self-start rounded-full border border-gold-500/20 bg-gold-500/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400">{event.category}</span>
+   392→                              <h3 className="font-playfair text-lg font-semibold text-cream flex-1">{event.title}</h3>
+   393→                              <p className="mt-1 text-sm text-muted line-clamp-2">{event.description}</p>
+   394→                              {event.location && (
+   395→                                <div className="mt-3 flex items-center gap-1.5 text-xs text-muted">
+   396→                                  <MapPin className="h-3.5 w-3.5 shrink-0" />{event.location}
+   397→                                </div>
+   398→                              )}
+   399→                            </div>
+   400→                          </div>
+   401→                        </EvtReveal>
+   402→                      );
+   403→                    })}
+   404→                  </div>
+   405→                ) : null
+   406→              )}
+   407→
+   408→              {filtered.length === 0 && (
+   409→                <div className="py-20 text-center text-muted">
+   410→                  <Calendar className="mx-auto mb-4 h-10 w-10 opacity-40" />
+   411→                  <p className="font-be-vn">Aucun événement trouvé.</p>
+   412→                </div>
+   413→              )}
+   414→            </>
+   415→          )}
+   416→
+   417→          {/* ═══════ WEEKLY SERVICES ═══════ */}
+   418→          <EvtReveal className="mt-16 md:mt-24">
+   419→            <div className="mb-10 text-center">
+   420→              <p className="section-label justify-center">Chaque semaine</p>
+   421→              <h2 className="mt-4 font-playfair text-3xl md:text-4xl font-bold text-cream">Cultes hebdomadaires</h2>
+   422→              <p className="mt-3 text-muted max-w-xl mx-auto font-be-vn">Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle.</p>
+   423→            </div>
+   424→            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+   425→              {weeklyServices.map(({ title, day, time, Icon, desc }, i) => (
+   426→                <EvtReveal key={title} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
+   427→                  <div className="glass rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-gold-500/5 group h-full">
+   428→                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-gold-500/20 bg-gold-500/5 text-gold-500 transition-colors group-hover:bg-gold-500 group-hover:text-white group-hover:border-gold-500">
+   429→                      <Icon className="h-5 w-5" />
+   430→                    </div>
+   431→                    <h3 className="font-playfair text-lg font-semibold text-cream">{title}</h3>
+   432→                    <p className="mt-1 text-xs font-bold uppercase tracking-widest text-gold-500 font-be-vn">{day}</p>
+   433→                    <p className="mt-1 text-sm text-muted font-be-vn">{time}</p>
+   434→                    {desc && <p className="mt-2 text-xs text-muted/60 font-be-vn">{desc}</p>}
+   435→                  </div>
+   436→                </EvtReveal>
+   437→              ))}
+   438→            </div>
+   439→          </EvtReveal>
+   440→
+   441→          {/* ═══════ NEWSLETTER ═══════ */}
+   442→          <EvtReveal className="mt-16 md:mt-24">
+   443→            <div className="glass rounded-2xl p-8 md:p-12 bg-radial-gold text-center">
+   444→              <MS className="text-gold-500 text-[40px] mb-4">mail</MS>
+   445→              <h2 className="mt-2 font-playfair text-2xl md:text-3xl font-bold text-cream">Ne Manquez Aucun Moment de Bénédiction</h2>
+   446→              <p className="mt-3 text-muted max-w-2xl mx-auto font-be-vn">
+   447→                Recevez les dernières mises à jour sur nos événements, séminaires et cultes directement dans votre boîte mail.
+   448→              </p>
+   449→              <form onSubmit={(e) => { e.preventDefault(); setEmail(''); }}
+   450→                className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
+   451→                <input type="email" placeholder="Votre adresse e-mail" value={email}
+   452→                  onChange={(e) => setEmail(e.target.value)} required
+   453→                  className="input-surface flex-grow px-5 py-4 text-sm !rounded-lg !bg-white/90 !text-ink-700" />
+   454→                <button type="submit" className="btn-gold shrink-0 !rounded-lg !px-8 !py-4 font-be-vn">
+   455→                  S'abonner
+   456→                </button>
+   457→              </form>
+   458→            </div>
+   459→          </EvtReveal>
+   460→        </section>
+   461→      </main>
+   462→
+   463→      <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+   464→      <MobileNav onNavigate={onNavigate} active="events" theme={colorMode} onToggleTheme={toggleColorMode} />
+   465→    </div>
+   466→  );
+   467→}

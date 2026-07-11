@@ -272,7 +272,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
   const closeLightbox = useCallback(() => setLightboxItem(null), []);
 
   return (
-    <div className="min-h-screen bg-bg text-cream">
+    <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader
         onNavigate={onNavigate}
         activePage="media"
@@ -303,7 +303,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
                 onClick={() => setSelectedCategory(value)}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
                   selectedCategory === value
-                    ? 'bg-gradient-to-r from-gold-300 to-gold-500 text-black'
+                    ? 'bg-gradient-to-r from-gold-300 to-gold-500 text-cream'
                     : 'border border-line text-muted hover:border-gold-400/40 hover:text-cream'
                 }`}
               >
@@ -376,8 +376,6 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
       <MobileNav
         onNavigate={onNavigate}
         active="media"
-        theme={colorMode}
-        onToggleTheme={toggleColorMode}
       />
     </div>
   );
