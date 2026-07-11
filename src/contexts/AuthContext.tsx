@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import type { User } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { UserProfile } from '../types';
 
 // ─── Context shape ───────────────────────────────────────────────
@@ -57,6 +57,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initial session check
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      // No Supabase → skip auth, let the site render immediately
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
@@ -64,22 +70,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setLoading(false);
       }
+    }).catch(() => {
+      // If Supabase is unreachable, still render the site
+      setLoading(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser(session.user);
-        fetchProfile(session.user.id);
-      } else {
-        setUser(null);
-        setProfile(null);
-      }
-    });
+    let subscription: { unsubscribe: () => void } | undefined;
+    try {
+      const sub = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          setUser(session.user);
+          fetchProfile(session.user.id);
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+      });
+      subscription = sub.data.subscription;
+    } catch {
+      // ignore
+    }
 
     return () => {
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, [fetchProfile]);
 
