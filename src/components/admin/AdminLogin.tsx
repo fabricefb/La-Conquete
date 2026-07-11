@@ -69,41 +69,51 @@ export default function AdminLogin() {
 
       if (authError) throw authError;
 
+      // If email confirmation is required, user will be null but signup succeeds
       const userId = data.user?.id;
-      if (!userId) throw new Error('Erreur lors de la création du compte.');
+      const session = data.session;
 
-      // 2. Mark as admin in user_profiles
-      const { error: profileError } = await supabase
-        .from('user_profiles')
-        .update({
-          is_admin: true,
-          full_name: name.trim(),
-          onboarding_completed: true,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId);
-
-      if (profileError) {
-        // Profile might not exist yet (trigger should create it)
-        // Try insert/upsert
-        await supabase
+      if (userId) {
+        // 2. Mark as admin in user_profiles
+        const { error: profileError } = await supabase
           .from('user_profiles')
-          .upsert({
-            id: userId,
-            email: email.trim(),
-            full_name: name.trim(),
+          .update({
             is_admin: true,
+            full_name: name.trim(),
             onboarding_completed: true,
-            role: 'super_admin',
-          }, { onConflict: 'id' });
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId);
+
+        if (profileError) {
+          // Profile might not exist yet (trigger should create it)
+          await supabase
+            .from('user_profiles')
+            .upsert({
+              id: userId,
+              email: email.trim(),
+              full_name: name.trim(),
+              is_admin: true,
+              onboarding_completed: true,
+              role: 'super_admin',
+            }, { onConflict: 'id' });
+        }
       }
 
-      addToast('Compte admin créé avec succès ! Connectez-vous.', 'success');
+      if (session) {
+        // Auto-logged in (no email confirmation required)
+        addToast('Compte admin créé avec succès !', 'success');
+      } else {
+        // Email confirmation required — user needs to confirm first
+        addToast('Compte créé ! Vérifiez votre email pour confirmer, puis connectez-vous.', 'success');
+      }
+
       setMode('login');
       setPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      setError(err?.message || 'Erreur lors de la création du compte.');
+      const msg = err?.message || 'Erreur lors de la création du compte.';
+      setError(msg);
     } finally {
       setLoading(false);
     }
