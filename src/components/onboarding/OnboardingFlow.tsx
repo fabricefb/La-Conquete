@@ -832,7 +832,7 @@ export function OnboardingFlow() {
             <path
               d="M30 50 L42 62 L66 34"
               fill="none"
-              stroke="#e8a73c"
+              stroke="#E3221F"
               strokeWidth="3"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -849,9 +849,9 @@ export function OnboardingFlow() {
                 x2="100%"
                 y2="100%"
               >
-                <stop offset="0%" stopColor="#efc06a" />
-                <stop offset="50%" stopColor="#e8a73c" />
-                <stop offset="100%" stopColor="#d4881a" />
+                <stop offset="0%" stopColor="#f87171" />
+                <stop offset="50%" stopColor="#E3221F" />
+                <stop offset="100%" stopColor="#c91916" />
               </linearGradient>
             </defs>
           </svg>

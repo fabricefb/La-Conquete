@@ -5,34 +5,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── DARK (default) ─── */
+/* ─── DARK (default) — Navy / Red / Sky chart ─── */
 :root {
-  --bg-rgb: 5 8 16; --bg-elevated-rgb: 10 15 28; --bg-card-rgb: 15 22 38; --bg-card-hover-rgb: 21 31 51;
-  --text-rgb: 247 243 238; --text-muted-rgb: 136 150 176; --text-on-gold-rgb: 5 8 16;
+  --bg-rgb: 8 13 26; --bg-elevated-rgb: 12 19 34; --bg-card-rgb: 15 33 71; --bg-card-hover-rgb: 22 45 94;
+  --text-rgb: 247 243 238; --text-muted-rgb: 160 170 195; --text-on-gold-rgb: 255 255 255;
   --border-subtle-rgb: 255 255 255; --border-subtle-a: 0.08;
-  --glass-bg-rgb: 10 15 28; --glass-bg-a: 0.55;
-  --glass-border-rgb: 255 255 255; --glass-border-a: 0.06;
-  --radial-gold-rgb: 232 167 60; --radial-gold-a: 0.08;
+  --glass-bg-rgb: 15 33 71; --glass-bg-a: 0.2;
+  --glass-border-rgb: 255 255 255; --glass-border-a: 0.08;
+  --radial-gold-rgb: 227 34 31; --radial-gold-a: 0.08;
   --radial-ember-rgb: 242 60 46; --radial-ember-a: 0.06;
   --btn-ghost-border-rgb: 255 255 255; --btn-ghost-border-a: 0.15;
   --btn-ghost-hover-rgb: 255 255 255; --btn-ghost-hover-a: 0.05;
   --btn-ghost-text-rgb: 247 243 238;
-  --input-bg-rgb: 15 22 38; --input-bg-a: 0.6;
+  --input-bg-rgb: 15 33 71; --input-bg-a: 0.6;
   --input-border-rgb: 255 255 255; --input-border-a: 0.08;
 }
 
 /* ─── LIGHT ─── */
 .light {
-  --bg-rgb: 247 245 240; --bg-elevated-rgb: 255 255 255; --bg-card-rgb: 255 255 255; --bg-card-hover-rgb: 240 237 229;
-  --text-rgb: 26 26 46; --text-muted-rgb: 107 107 128; --text-on-gold-rgb: 26 26 46;
+  --bg-rgb: 240 242 248; --bg-elevated-rgb: 255 255 255; --bg-card-rgb: 255 255 255; --bg-card-hover-rgb: 232 227 251;
+  --text-rgb: 15 33 71; --text-muted-rgb: 107 107 128; --text-on-gold-rgb: 255 255 255;
   --border-subtle-rgb: 0 0 0; --border-subtle-a: 0.08;
   --glass-bg-rgb: 255 255 255; --glass-bg-a: 0.7;
   --glass-border-rgb: 0 0 0; --glass-border-a: 0.06;
-  --radial-gold-rgb: 212 136 26; --radial-gold-a: 0.06;
-  --radial-ember-rgb: 209 26 12; --radial-ember-a: 0.04;
+  --radial-gold-rgb: 227 34 31; --radial-gold-a: 0.06;
+  --radial-ember-rgb: 185 23 13; --radial-ember-a: 0.04;
   --btn-ghost-border-rgb: 0 0 0; --btn-ghost-border-a: 0.15;
   --btn-ghost-hover-rgb: 0 0 0; --btn-ghost-hover-a: 0.04;
-  --btn-ghost-text-rgb: 26 26 46;
+  --btn-ghost-text-rgb: 15 33 71;
   --input-bg-rgb: 255 255 255; --input-bg-a: 0.8;
   --input-border-rgb: 0 0 0; --input-border-a: 0.1;
 }
@@ -42,12 +42,10 @@
   html { scroll-behavior: smooth; }
   body { font-family: var(--custom-body-font, 'Inter'), system-ui, sans-serif; background-color: rgb(var(--bg-rgb)); color: rgb(var(--text-rgb)); overflow-x: hidden; transition: background-color 0.4s ease, color 0.4s ease; }
   h1,h2,h3,h4,h5,h6 { font-family: var(--custom-title-font, 'Cormorant Garamond'), serif; font-weight: 600; }
-  ::selection { background: rgba(232,167,60,0.25); }
+  ::selection { background: rgba(227,34,31,0.25); }
 }
 
 /* ─── Dynamic Theme: Custom CSS Properties ──────────────────────────── */
-/* These are overridden at runtime by DynamicThemeProvider when
-   the admin customizes colors, fonts, button/card styles, or radius. */
 :root {
   /* --custom-primary / --custom-secondary / --custom-accent are set via JS */
   /* --custom-btn-style, --custom-card-style, --custom-radius set via JS  */
@@ -71,16 +69,16 @@ html[style*="--custom-primary"] .btn-gold {
 
 @layer components {
   .glass { background: rgb(var(--glass-bg-rgb)/var(--glass-bg-a)); backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%); border: 1px solid rgb(var(--glass-border-rgb)/var(--glass-border-a)); }
-  .gold-line { background: linear-gradient(90deg, transparent, #e8a73c, transparent); }
-  .gold-text { background: linear-gradient(135deg,#efc06a 0%,#e8a73c 50%,#d4881a 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .gold-line { background: linear-gradient(90deg, transparent, #E3221F, transparent); }
+  .gold-text { background: linear-gradient(135deg,#f87171 0%,#E3221F 50%,#c91916 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .section-label { @apply inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-gold-500; }
-  .section-label::before { content: ''; @apply h-px w-8; background: rgba(180,106,15,0.5); }
-  .btn-gold { @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-gold-300 to-gold-500 px-7 py-3.5 text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-gold-500/30 hover:brightness-110 active:scale-95; color: rgb(var(--text-on-gold-rgb)); }
+  .section-label::before { content: ''; @apply h-px w-8; background: rgba(227,34,31,0.5); }
+  .btn-gold { @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-gold-400 to-gold-600 px-7 py-3.5 text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-gold-500/30 hover:brightness-110 active:scale-95; color: rgb(var(--text-on-gold-rgb)); }
   .btn-ghost { @apply inline-flex items-center justify-center gap-2.5 rounded-full border px-7 py-3.5 text-sm font-semibold transition-all duration-300 active:scale-95; border-color: rgb(var(--btn-ghost-border-rgb)/var(--btn-ghost-border-a)); color: rgb(var(--btn-ghost-text-rgb)); }
-  .btn-ghost:hover { border-color: rgba(180,106,15,0.5); background: rgb(var(--btn-ghost-hover-rgb)/var(--btn-ghost-hover-a)); }
+  .btn-ghost:hover { border-color: rgba(227,34,31,0.5); background: rgb(var(--btn-ghost-hover-rgb)/var(--btn-ghost-hover-a)); }
   .btn-ember { @apply inline-flex items-center justify-center gap-2.5 rounded-full bg-gradient-to-r from-ember-500 to-ember-600 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-lg hover:shadow-ember-600/30 hover:brightness-110 active:scale-95; }
   .input-surface { border-radius: 1rem; border: 1px solid rgb(var(--input-border-rgb)/var(--input-border-a)); background: rgb(var(--input-bg-rgb)/var(--input-bg-a)); color: rgb(var(--text-rgb)); transition: all 0.3s ease; }
-  .input-surface:focus { border-color: rgba(232,167,60,0.4); outline: none; }
+  .input-surface:focus { border-color: rgba(227,34,31,0.4); outline: none; }
   .input-surface::placeholder { color: rgb(var(--text-muted-rgb)); opacity: 0.5; }
 }
 
@@ -94,7 +92,7 @@ html[style*="--custom-primary"] .btn-gold {
   .animate-pulse-gold { animation: pulseGold 2s ease-in-out infinite; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgba(232,167,60,0.4); } 50% { box-shadow: 0 0 0 8px rgba(232,167,60,0); } }
+  @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgba(227,34,31,0.4); } 50% { box-shadow: 0 0 0 8px rgba(227,34,31,0); } }
   .bg-radial-gold { background: radial-gradient(ellipse at center, rgb(var(--radial-gold-rgb)/var(--radial-gold-a)) 0%, transparent 70%); }
   .bg-radial-ember { background: radial-gradient(ellipse at center, rgb(var(--radial-ember-rgb)/var(--radial-ember-a)) 0%, transparent 70%); }
   /* Leaflet theme adaptation */
