@@ -1,19 +1,25 @@
 import { useState, type FormEvent } from 'react';
-import { Lock, Mail, Landmark, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Lock, Mail, Landmark, Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { supabase } from '../../lib/supabase';
+
+type Mode = 'login' | 'signup';
 
 export default function AdminLogin() {
   const { signIn } = useAuth();
   const { addToast } = useToast();
 
+  const [mode, setMode] = useState<Mode>('login');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [signing, setSigning] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
@@ -22,16 +28,92 @@ export default function AdminLogin() {
       return;
     }
 
-    setSigning(true);
+    setLoading(true);
     try {
       await signIn(email.trim(), password);
       addToast('Connexion réussie', 'success');
     } catch {
       setError('Email ou mot de passe incorrect');
     } finally {
-      setSigning(false);
+      setLoading(false);
     }
   };
+
+  const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError('');
+
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError('Veuillez remplir tous les champs.');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Le mot de passe doit avoir au moins 6 caractères.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // 1. Create auth user
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          data: { full_name: name.trim() },
+        },
+      });
+
+      if (authError) throw authError;
+
+      const userId = data.user?.id;
+      if (!userId) throw new Error('Erreur lors de la création du compte.');
+
+      // 2. Mark as admin in user_profiles
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({
+          is_admin: true,
+          full_name: name.trim(),
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (profileError) {
+        // Profile might not exist yet (trigger should create it)
+        // Try insert/upsert
+        await supabase
+          .from('user_profiles')
+          .upsert({
+            id: userId,
+            email: email.trim(),
+            full_name: name.trim(),
+            is_admin: true,
+            onboarding_completed: true,
+            role: 'super_admin',
+          }, { onConflict: 'id' });
+      }
+
+      addToast('Compte admin créé avec succès ! Connectez-vous.', 'success');
+      setMode('login');
+      setPassword('');
+      setConfirmPassword('');
+    } catch (err: any) {
+      setError(err?.message || 'Erreur lors de la création du compte.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputClass = `w-full pl-11 pr-4 py-3 rounded-lg bg-white/5 border text-cream placeholder-cream/30 outline-none transition-colors focus:ring-2 focus:ring-gold-400/50 ${
+    error
+      ? 'border-red-500 focus:border-red-400'
+      : 'border-white/10 focus:border-gold-400/60'
+  }`;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-bg text-cream px-4 py-12">
@@ -43,22 +125,38 @@ export default function AdminLogin() {
             Administration
           </h1>
           <p className="mt-2 text-sm text-cream/60 text-center">
-            Connectez-vous pour accéder au back-office
+            {mode === 'login'
+              ? 'Connectez-vous pour accéder au back-office'
+              : 'Créez votre compte administrateur'}
           </p>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+        <form onSubmit={mode === 'login' ? handleLogin : handleSignup} noValidate className="space-y-5">
+          {/* Name field (signup only) */}
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="admin-name" className="sr-only">Nom complet</label>
+              <div className="relative">
+                <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none" aria-hidden="true" />
+                <input
+                  id="admin-name"
+                  type="text"
+                  required
+                  placeholder="Nom complet"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Email field */}
           <div>
-            <label htmlFor="admin-email" className="sr-only">
-              Adresse e-mail
-            </label>
+            <label htmlFor="admin-email" className="sr-only">Adresse e-mail</label>
             <div className="relative">
-              <Mail
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none"
-                aria-hidden="true"
-              />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none" aria-hidden="true" />
               <input
                 id="admin-email"
                 type="email"
@@ -67,42 +165,25 @@ export default function AdminLogin() {
                 placeholder="Adresse e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                aria-label="Adresse e-mail"
-                aria-invalid={error ? true : undefined}
-                className={`w-full pl-11 pr-4 py-3 rounded-lg bg-white/5 border text-cream placeholder-cream/30 outline-none transition-colors focus:ring-2 focus:ring-gold-400/50 ${
-                  error
-                    ? 'border-red-500 focus:border-red-400'
-                    : 'border-white/10 focus:border-gold-400/60'
-                }`}
+                className={inputClass}
               />
             </div>
           </div>
 
           {/* Password field */}
           <div>
-            <label htmlFor="admin-password" className="sr-only">
-              Mot de passe
-            </label>
+            <label htmlFor="admin-password" className="sr-only">Mot de passe</label>
             <div className="relative">
-              <Lock
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none"
-                aria-hidden="true"
-              />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none" aria-hidden="true" />
               <input
                 id="admin-password"
                 type={showPassword ? 'text' : 'password'}
                 required
-                autoComplete="current-password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 placeholder="Mot de passe"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                aria-label="Mot de passe"
-                aria-invalid={error ? true : undefined}
-                className={`w-full pl-11 pr-12 py-3 rounded-lg bg-white/5 border text-cream placeholder-cream/30 outline-none transition-colors focus:ring-2 focus:ring-gold-400/50 ${
-                  error
-                    ? 'border-red-500 focus:border-red-400'
-                    : 'border-white/10 focus:border-gold-400/60'
-                }`}
+                className={`${inputClass} !pr-12`}
               />
               <button
                 type="button"
@@ -111,38 +192,67 @@ export default function AdminLogin() {
                 aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
                 tabIndex={0}
               >
-                {showPassword ? (
-                  <EyeOff className="w-5 h-5" aria-hidden="true" />
-                ) : (
-                  <Eye className="w-5 h-5" aria-hidden="true" />
-                )}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
 
+          {/* Confirm password (signup only) */}
+          {mode === 'signup' && (
+            <div>
+              <label htmlFor="admin-confirm" className="sr-only">Confirmer le mot de passe</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-cream/40 pointer-events-none" aria-hidden="true" />
+                <input
+                  id="admin-confirm"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  placeholder="Confirmer le mot de passe"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          )}
+
           {/* Error message */}
           {error && (
-            <p className="text-red-400 text-sm text-center" role="alert">
-              {error}
-            </p>
+            <p className="text-red-400 text-sm text-center" role="alert">{error}</p>
           )}
 
           {/* Submit button */}
           <button
             type="submit"
-            disabled={signing}
+            disabled={loading}
             className="btn-gold w-full py-3 rounded-lg font-semibold text-bg flex items-center justify-center gap-2 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            {signing ? (
+            {loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
-                <span>Connexion en cours…</span>
+                <span>{mode === 'login' ? 'Connexion en cours…' : 'Création en cours…'}</span>
               </>
             ) : (
-              <span>Se connecter</span>
+              <span>{mode === 'login' ? 'Se connecter' : 'Créer le compte admin'}</span>
             )}
           </button>
         </form>
+
+        {/* Toggle mode */}
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setMode(mode === 'login' ? 'signup' : 'login');
+              setError('');
+            }}
+            className="text-sm text-gold-400 hover:text-gold-300 transition-colors"
+          >
+            {mode === 'login'
+              ? "Première fois ? Créer un compte admin"
+              : 'Déjà un compte ? Se connecter'}
+          </button>
+        </div>
       </div>
     </main>
   );
