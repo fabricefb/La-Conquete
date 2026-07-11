@@ -49,9 +49,9 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
   const logoUrl = settingsMap['logo_url'] ?? '';
   const churchName = settingsMap['church_name'] ?? 'Église Évangélique La Conquête';
   const phone = settingsMap['phone'] ?? '+243 844 107 079';
-  const email = settingsMap['email'] ?? 'contact@laconquete.cd';
-  const address = settingsMap['address'] ?? 'Av. Kabambare, Lubumbashi';
-  const city = settingsMap['city'] ?? 'RDC';
+  const email = settingsMap['email'] ?? 'egliseevangeliquelaconquete@gmail.com';
+  const address = settingsMap['address'] ?? "520, Av. N'Djamena, Lubumbashi";
+  const city = settingsMap['city'] ?? 'Haut Katanga, RD Congo';
   const facebookUrl = settingsMap['facebook_url'] ?? '';
   const youtubeUrl = settingsMap['youtube_url'] ?? '';
   const whatsappUrl = settingsMap['whatsapp_url'] ?? '';

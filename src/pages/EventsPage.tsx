@@ -7,7 +7,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { formatDate } from '../lib/date';
-import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send } from '../lib/icons';
+import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send, Sun, Music, GraduationCap, Star } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
 interface EventsPageProps { onNavigate: (page: Page) => void; }
@@ -15,10 +15,12 @@ interface EventsPageProps { onNavigate: (page: Page) => void; }
 const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion'];
 
 const weeklyServices = [
-  { title: 'Étude Biblique', day: 'Mardi', time: '19h00', Icon: BookOpen },
-  { title: 'Intercession', day: 'Jeudi', time: '18h30', Icon: Heart },
-  { title: 'Veillée', day: 'Vendredi', time: '22h00', Icon: Moon },
-  { title: 'Culte Dominical', day: 'Dimanche', time: '10h00', Icon: Users },
+  { title: 'Culte de Louange et Adoration', day: 'Dimanche', time: '08h00 – 10h45', Icon: Sun, desc: 'Culte principal de la semaine' },
+  { title: 'Réunion des Mamans', day: 'Lundi', time: '17h00', Icon: Heart, desc: 'Département des femmes' },
+  { title: 'Culte d\'Enseignement', day: 'Mercredi', time: 'À confirmer', Icon: BookOpen, desc: 'Département des Hommes Adultes' },
+  { title: 'Culte de Jeunesse et Prière', day: 'Vendredi', time: 'À confirmer', Icon: Music, desc: '' },
+  { title: 'Génération Espoir', day: 'Samedi', time: 'À confirmer', Icon: Star, desc: 'Département de la Jeunesse' },
+  { title: 'Dévotion Matinale', day: 'Lun – Ven', time: '06h00 – 08h00', Icon: GraduationCap, desc: 'Chaque jour de la semaine' },
 ];
 
 const FALLBACK_IMG = 'https://images.pexels.com/photos/2774557/pexels-photo-2774557.jpeg?auto=compress&cs=tinysrgb&w=800';
@@ -200,13 +202,14 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
             <p className="section-label justify-center">Chaque semaine</p>
             <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Cultes hebdomadaires</h2>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {weeklyServices.map(({ title, day, time, Icon }) => (
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {weeklyServices.map(({ title, day, time, Icon, desc }) => (
               <div key={title} className="glass rounded-3xl p-6 bg-radial-gold text-center transition-all duration-300 hover:scale-105">
                 <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-gold-400/20 text-gold-400"><Icon className="h-5 w-5" /></div>
                 <h3 className="font-serif text-lg font-semibold text-cream">{title}</h3>
                 <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gold-400">{day}</p>
                 <p className="mt-1 text-sm text-muted">{time}</p>
+                {desc && <p className="mt-2 text-xs text-muted/70">{desc}</p>}
               </div>
             ))}
           </div>

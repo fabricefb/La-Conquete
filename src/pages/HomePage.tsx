@@ -329,9 +329,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
   // Contact strip
   const contactLabel = getContent(cm, 'contact', 'section_label', 'Nous rejoindre');
   const contactTitle = getContent(cm, 'contact', 'title', 'Venez comme vous êtes');
-  const contactAddress = sm['address'] || 'Av. Kabambare, Lubumbashi, RDC';
+  const contactAddress = sm['address'] || "520, Av. N'Djamena, Lubumbashi, RD Congo";
   const contactPhone = sm['phone'] || '+243 844 107 079';
-  const contactEmail = sm['email'] || 'contact@laconquete.cd';
+  const contactEmail = sm['email'] || 'egliseevangeliquelaconquete@gmail.com';
 
   const contactInfo: {
     Icon: typeof MapPin;
