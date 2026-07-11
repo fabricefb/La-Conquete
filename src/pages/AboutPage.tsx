@@ -7,27 +7,15 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { MapPin, Phone, Mail, Heart, HandHeart, BookOpen } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import type { Pastor } from '../types';
 
 interface PageProps { onNavigate: (page: Page) => void; }
 
-/* ── Pastor data ── */
-interface PastorCard {
-  name: string;
-  role: string;
-  photo: string;
-  thought?: string;
-}
-
-const MAIN_PASTOR: PastorCard = {
-  name: 'Pst Josué Romain KAZADI',
-  role: 'Pasteur Principal — Fondateur',
-  photo: '/pasteur-kazadi.jpg',
-  thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.',
-};
-
-const PASTOR_TEAM: PastorCard[] = [
-  { name: 'Theresse KATEBA', role: "Épouse du Pasteur — Co-fondatrice", photo: '/theresse-kateba.jpg' },
-  { name: 'Maurisse ESOSA', role: 'Pasteur Associé', photo: '/maurisse-esosa.jpg' },
+/* ── Hardcoded fallback pastors (used only if DB is empty) ── */
+const FALLBACK_PASTORS: Pastor[] = [
+  { id: 'fb-1', name: 'Pst Josué Romain KAZADI', role: 'Pasteur Principal — Fondateur', bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.', photo_url: '/pasteur-kazadi.jpg', thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.', sort_order: 0, is_main: true, is_active: true, created_at: '', updated_at: '' },
+  { id: 'fb-2', name: 'Theresse KATEBA', role: "Épouse du Pasteur — Co-fondatrice", bio: '', photo_url: '/theresse-kateba.jpg', thought: '', sort_order: 1, is_main: false, is_active: true, created_at: '', updated_at: '' },
+  { id: 'fb-3', name: 'Maurisse ESOSA', role: 'Pasteur Associé', bio: '', photo_url: '/maurisse-esosa.jpg', thought: '', sort_order: 2, is_main: false, is_active: true, created_at: '', updated_at: '' },
 ];
 
 /* ── Predications ── */
@@ -63,19 +51,27 @@ function RevealSection({ children, className = '' }: { children: React.ReactNode
 export function AboutPage({ onNavigate }: PageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
+  const [pastors, setPastors] = useState<Pastor[]>([]);
   const [loading, setLoading] = useState(true);
 
   useReveal();
 
   useEffect(() => {
     let cancelled = false;
-    async function fetchContent() {
+    async function fetchData() {
       try {
-        const contents = await db.getPageContents('about');
-        if (!cancelled) { setContentMap(buildContentMap(contents)); setLoading(false); }
+        const [contents, pastorsData] = await Promise.all([
+          db.getPageContents('about'),
+          db.getActivePastors().catch(() => []),
+        ]);
+        if (!cancelled) {
+          setContentMap(buildContentMap(contents));
+          setPastors(pastorsData.length > 0 ? pastorsData : FALLBACK_PASTORS);
+          setLoading(false);
+        }
       } catch { if (!cancelled) setLoading(false); }
     }
-    fetchContent();
+    fetchData();
     return () => { cancelled = true; };
   }, []);
 
@@ -171,6 +167,9 @@ export function AboutPage({ onNavigate }: PageProps) {
       </section>
 
       {/* ═══ PASTOR PRINCIPAL ═══ */}
+      {pastors.find(p => p.is_main) && (() => {
+        const main = pastors.find(p => p.is_main)!;
+        return (
       <section className="py-20 px-4 bg-radial-ember">
         <div className="mx-auto max-w-6xl">
           <RevealSection className="mb-12 text-center">
@@ -179,14 +178,13 @@ export function AboutPage({ onNavigate }: PageProps) {
           </RevealSection>
 
           <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Photo */}
             <RevealSection>
               <div className="flex justify-center">
                 <div className="relative">
                   <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-gold-400/30 to-ember-500/20 blur-xl" />
                   <img
-                    src={MAIN_PASTOR.photo}
-                    alt={MAIN_PASTOR.name}
+                    src={main.photo_url || '/pasteur-kazadi.jpg'}
+                    alt={main.name}
                     className="relative h-80 w-64 rounded-3xl object-cover shadow-2xl sm:h-96 sm:w-72"
                   />
                   <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-gold-400 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg">
@@ -196,24 +194,23 @@ export function AboutPage({ onNavigate }: PageProps) {
               </div>
             </RevealSection>
 
-            {/* Bio + thought */}
             <RevealSection className="reveal-delay-1">
-              <h3 className="font-serif text-3xl font-bold text-cream sm:text-4xl">{MAIN_PASTOR.name}</h3>
-              <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-gold-400">{MAIN_PASTOR.role}</p>
-              <p className="mt-6 text-base leading-relaxed text-cream/80">
-                Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l'Église Évangélique La Conquête. Sous sa direction, l'église poursuit sa mission de gagner des âmes, d'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.
-              </p>
+              <h3 className="font-serif text-3xl font-bold text-cream sm:text-4xl">{main.name}</h3>
+              <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-gold-400">{main.role}</p>
+              <p className="mt-6 text-base leading-relaxed text-cream/80">{main.bio}</p>
 
-              {MAIN_PASTOR.thought && (
+              {main.thought && (
                 <blockquote className="mt-8 border-l-2 border-gold-400/40 pl-5">
-                  <p className="text-sm italic leading-relaxed text-muted">« {MAIN_PASTOR.thought} »</p>
-                  <p className="mt-2 text-xs font-semibold text-gold-400">— {MAIN_PASTOR.name}</p>
+                  <p className="text-sm italic leading-relaxed text-muted">« {main.thought} »</p>
+                  <p className="mt-2 text-xs font-semibold text-gold-400">— {main.name}</p>
                 </blockquote>
               )}
             </RevealSection>
           </div>
         </div>
       </section>
+        );
+      })()}
 
       {/* ═══ EQUIPE PASTORALE ═══ */}
       <section className="py-20 px-4">
@@ -227,25 +224,11 @@ export function AboutPage({ onNavigate }: PageProps) {
           </RevealSection>
 
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Main pastor repeated in grid */}
-            <RevealSection>
-              <div className="glass rounded-3xl overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
-                <div className="h-64 overflow-hidden">
-                  <img src={MAIN_PASTOR.photo} alt={MAIN_PASTOR.name} className="h-full w-full object-cover" />
-                </div>
-                <div className="p-6 text-center">
-                  <h3 className="font-serif text-lg font-semibold text-cream">{MAIN_PASTOR.name}</h3>
-                  <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gold-400">{MAIN_PASTOR.role}</p>
-                </div>
-              </div>
-            </RevealSection>
-
-            {/* Team members */}
-            {PASTOR_TEAM.map((member, i) => (
-              <RevealSection key={member.name} className={`reveal-delay-${i + 1}`}>
+            {pastors.map((member, i) => (
+              <RevealSection key={member.id} className={i < 3 ? `reveal-delay-${i + 1}` : ''}>
                 <div className="glass rounded-3xl overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
                   <div className="h-64 overflow-hidden">
-                    <img src={member.photo} alt={member.name} className="h-full w-full object-cover" />
+                    <img src={member.photo_url || '/pasteur-kazadi.jpg'} alt={member.name} className="h-full w-full object-cover" />
                   </div>
                   <div className="p-6 text-center">
                     <h3 className="font-serif text-lg font-semibold text-cream">{member.name}</h3>

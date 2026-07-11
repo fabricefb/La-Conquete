@@ -11,6 +11,7 @@ import { MediaTab } from '../components/admin/tabs/MediaTab';
 import { TestimonialsTab } from '../components/admin/tabs/TestimonialsTab';
 import { MessagesTab } from '../components/admin/tabs/MessagesTab';
 import { ThemeTab } from '../components/admin/tabs/ThemeTab';
+import { PastorsTab } from '../components/admin/tabs/PastorsTab';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
 
@@ -65,6 +66,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'media': return <MediaTab />;
       case 'testimonials': return <TestimonialsTab />;
       case 'messages': return <MessagesTab />;
+      case 'pastors': return <PastorsTab />;
       case 'theme': return <ThemeTab />;
       default: return <SettingsTab />;
     }

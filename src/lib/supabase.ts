@@ -12,6 +12,7 @@ import type {
   UserProfile,
   Department,
   Position,
+  Pastor,
 } from '../types';
 
 export const supabase = createClient(
@@ -33,6 +34,7 @@ export type {
   UserProfile,
   Department,
   Position,
+  Pastor,
 };
 
 // ─── Generic fetcher ─────────────────────────────────────────────
@@ -246,6 +248,17 @@ export const db = {
         is_confidential: isConfidential,
       });
     if (error) throw new Error(error.message);
+  },
+
+  // ── Pastors ──────────────────────────────────────────────────
+  async getActivePastors(): Promise<Pastor[]> {
+    const { data, error } = await supabase
+      .from('pastors').select('*').eq('is_active', true).order('sort_order');
+    if (error) throw new Error(error.message);
+    return (data ?? []) as Pastor[];
+  },
+  async getAllPastors(): Promise<Pastor[]> {
+    return fetchTable<Pastor>('pastors', (q) => q.order('sort_order'));
   },
 };
 

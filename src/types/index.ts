@@ -197,6 +197,7 @@ export type AdminTab =
   | 'media'
   | 'messages'
   | 'testimonials'
+  | 'pastors'
   | 'theme';
 
 // ─── ERP Role System ──────────────────────────────────────────────
@@ -285,6 +286,21 @@ export interface NotificationPreferences {
   dept_notifications: boolean;
   prayer_updates: boolean;
   service_reminders: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Pastors ────────────────────────────────────────────────
+export interface Pastor {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  photo_url: string;
+  thought: string;
+  sort_order: number;
+  is_main: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
