@@ -164,9 +164,13 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-line pt-6 sm:flex-row">
           <p className="text-xs text-muted">&copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.</p>
-          <button onClick={() => onNavigate('admin')}
-            className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400">
-            Admin
+          <button onClick={() => onNavigate('home')} className="flex items-center gap-2 transition-opacity hover:opacity-80">
+            {logoUrl ? (
+              <img src={logoUrl} alt={churchName} className="h-5 w-5 rounded-full object-cover" />
+            ) : (
+              <span className="gold-text text-sm font-bold">LC</span>
+            )}
+            <span className="gold-text text-sm font-bold tracking-wide">La Conquête</span>
           </button>
         </div>
       </div>
