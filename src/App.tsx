@@ -89,7 +89,6 @@ export default function App() {
     <DynamicThemeProvider>
       <AuthProvider>
         <ToastProvider>
-          <OnboardingOverlay />
           <AppRouter />
         </ToastProvider>
       </AuthProvider>

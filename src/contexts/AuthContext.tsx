@@ -31,19 +31,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, is_admin, created_at, updated_at')
+        .eq('id', userId)
+        .single();
 
-    if (error) {
-      console.error('Failed to fetch user profile:', error.message);
+      if (error) {
+        console.error('Failed to fetch user profile:', error.message);
+        setProfile(null);
+        return;
+      }
+
+      // Build profile object with fallbacks for missing columns
+      const p = data as any;
+      setProfile({
+        id: p.id,
+        email: p.email,
+        full_name: p.full_name,
+        avatar_url: p.avatar_url ?? null,
+        phone: p.phone ?? null,
+        address: p.address ?? null,
+        gender: p.gender ?? null,
+        birth_date: p.birth_date ?? null,
+        is_admin: p.is_admin ?? false,
+        role: p.role ?? 'member',
+        onboarding_completed: p.onboarding_completed ?? true,
+        created_at: p.created_at,
+        updated_at: p.updated_at,
+      } as UserProfile);
+    } catch (err) {
+      console.error('Profile fetch error:', err);
       setProfile(null);
-      return;
     }
-
-    setProfile(data as UserProfile);
   }, []);
 
   const refreshProfile = useCallback(async () => {
