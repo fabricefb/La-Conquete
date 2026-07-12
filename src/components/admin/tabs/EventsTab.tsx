@@ -377,7 +377,7 @@ export function EventsTab() {
             const showComments = commentsEventId === event.id;
             const eventComments = showComments ? comments : [];
             return (
-              <div key={event.id} className="glass rounded-2xl overflow-hidden">
+              <div key={event.id} className="glass rounded-2xl overflow-hidden group">
                 <div className="p-4">
                   <div className="flex gap-4">
                     <div className="h-24 w-24 flex-shrink-0 rounded-xl overflow-hidden bg-white/5">

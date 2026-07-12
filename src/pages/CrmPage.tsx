@@ -126,6 +126,19 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
   const { addToast } = useToast();
   const { colorMode, toggleColorMode } = useDynamicTheme();
 
+  // ── Auth guard ───────────────────────────────────────────────
+  if (!user || !profile) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <div className="glass rounded-2xl p-10 text-center max-w-md">
+          <p className="font-serif text-xl font-semibold mb-2">Connexion requise</p>
+          <p className="text-sm text-muted mb-6">Vous devez être connecté pour accéder au CRM.</p>
+          <button onClick={() => onNavigate('connexion')} className="btn-gold">Se connecter</button>
+        </div>
+      </div>
+    );
+  }
+
   // ── Data state ──────────────────────────────────────────────────
   const [convertis, setConvertis] = useState<Converti[]>([]);
   const [loading, setLoading] = useState(true);

@@ -112,7 +112,7 @@ export function MediaTab() {
     if (error) {
       addToast('Erreur lors du chargement des médias', 'error');
     } else {
-      setItems(data as MediaItem[]);
+      setItems((data as MediaItem[]) ?? []);
     }
     setLoading(false);
   }, [addToast]);

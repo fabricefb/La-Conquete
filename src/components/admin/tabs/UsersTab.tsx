@@ -196,6 +196,11 @@ export function UsersTab() {
               {/* Meta */}
               <div className="hidden md:flex items-center gap-4 text-xs text-muted shrink-0">
                 <span>{new Date(u.created_at).toLocaleDateString('fr-FR')}</span>
+                {u.last_seen_at && (
+                  <span className="text-gold-400/70" title="Dernière connexion">
+                    Dernière: {new Date(u.last_seen_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                  </span>
+                )}
                 {u.is_blocked && u.blocked_reason && (
                   <span className="text-red-400 truncate max-w-[150px]" title={u.blocked_reason}>
                     {u.blocked_reason}

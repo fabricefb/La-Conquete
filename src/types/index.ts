@@ -70,6 +70,10 @@ export interface UserProfile {
   pastor_category: PastorCategory;
   extension_id: string | null;
   is_principal_pastor: boolean;
+  is_blocked: boolean;
+  blocked_at: string | null;
+  blocked_reason: string | null;
+  last_seen_at: string | null;
   created_at: string;
   updated_at: string;
 }

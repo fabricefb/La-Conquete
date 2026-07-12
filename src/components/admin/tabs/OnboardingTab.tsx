@@ -43,21 +43,20 @@ export function OnboardingTab() {
           addToast('Erreur lors du chargement', 'error');
         }
       } else {
-        // Enrich with user emails
-        const enriched = await Promise.all(
-          (data as OnboardingAnswer[]).map(async (a) => {
-            try {
-              const { data: profile } = await supabase
-                .from('user_profiles')
-                .select('email')
-                .eq('id', a.user_id)
-                .single();
-              return { ...a, user_email: (profile as any)?.email || '' };
-            } catch {
-              return a;
-            }
-          })
-        );
+        // Enrich with user emails — bulk fetch instead of N+1
+        const rows = (data as OnboardingAnswer[]) ?? [];
+        const userIds = [...new Set(rows.map(a => a.user_id))];
+        let emailMap: Record<string, string> = {};
+        if (userIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('id, email')
+            .in('id', userIds);
+          if (profiles) {
+            emailMap = Object.fromEntries((profiles as any[]).map((p: any) => [p.id, p.email]));
+          }
+        }
+        const enriched = rows.map(a => ({ ...a, user_email: emailMap[a.user_id] || '' }));
         setAnswers(enriched);
       }
     } catch {

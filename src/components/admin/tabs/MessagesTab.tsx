@@ -173,7 +173,7 @@ export function MessagesTab() {
     if (error) {
       addToast('Erreur lors du chargement des messages', 'error');
     } else {
-      setMessages(data as ContactMessage[]);
+      setMessages((data as ContactMessage[]) ?? []);
     }
     setLoading(false);
   }, [addToast]);

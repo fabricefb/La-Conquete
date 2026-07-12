@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ── Stratégie 1 : tenter avec toutes les colonnes V2 ──
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, bio, is_admin, onboarding_completed, role_level, pastor_category, extension_id, is_principal_pastor, created_at, updated_at')
+        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, bio, is_admin, onboarding_completed, role_level, pastor_category, extension_id, is_principal_pastor, is_blocked, blocked_at, blocked_reason, last_seen_at, created_at, updated_at')
         .eq('id', userId)
         .single();
 
@@ -73,13 +73,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           birth_date: null,
           bio: null,
           is_admin: p.is_admin ?? false,
-          onboarding_completed: onboardingLocalDone || true, // par défaut considéré comme fait si colonne absente
-          role_level: p.role_level ?? (p.is_admin ? 6 : 1),
+          onboarding_completed: onboardingLocalDone,
+          role_level: p.role_level ?? 1,
           pastor_category: p.pastor_category ?? null,
           extension_id: p.extension_id ?? null,
           is_principal_pastor: p.is_principal_pastor ?? false,
-          created_at: p.created_at,
-          updated_at: p.updated_at,
+          is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
+          created_at: p.created_at, updated_at: p.updated_at,
         } as UserProfile);
         return;
       }
@@ -104,10 +104,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         bio: p.bio ?? null,
         is_admin: p.is_admin ?? false,
         onboarding_completed: p.onboarding_completed ?? false,
-        role_level: p.role_level ?? (p.is_admin ? 6 : 1),
+        role_level: p.role_level ?? 1,
         pastor_category: p.pastor_category ?? null,
         extension_id: p.extension_id ?? null,
         is_principal_pastor: p.is_principal_pastor ?? false,
+        is_blocked: p.is_blocked ?? false,
+        blocked_at: p.blocked_at ?? null,
+        blocked_reason: p.blocked_reason ?? null,
+        last_seen_at: p.last_seen_at ?? null,
         created_at: p.created_at,
         updated_at: p.updated_at,
       } as UserProfile);
@@ -127,11 +131,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: s.id, email: s.email, full_name: s.full_name,
             avatar_url: s.avatar_url ?? null, phone: null, address: null,
             gender: null, birth_date: null, bio: null, is_admin: s.is_admin ?? false,
-            onboarding_completed: onboardingLocalDone || true,
-            role_level: s.role_level ?? (s.is_admin ? 6 : 1),
+            onboarding_completed: onboardingLocalDone,
+            role_level: s.role_level ?? 1,
             pastor_category: s.pastor_category ?? null,
             extension_id: s.extension_id ?? null,
             is_principal_pastor: s.is_principal_pastor ?? false,
+            is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
             created_at: s.created_at, updated_at: s.updated_at,
           } as UserProfile);
         } else {
@@ -189,6 +194,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         gender: null,
         birth_date: null,
         bio: null,
+        is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
         onboarding_completed: false,
         role_level: 1,
         pastor_category: null,
@@ -263,7 +269,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const isAdmin = profile?.is_admin === true;
+  const isAdmin = profile?.is_admin === true || (profile?.role_level ?? 0) >= 6;
+
+  // Check if user is blocked — force sign out
+  useEffect(() => {
+    if (profile?.is_blocked && user) {
+      console.warn('User is blocked, signing out.');
+      supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+    }
+  }, [profile?.is_blocked, user]);
 
   // Fetch unread notification count
   useEffect(() => {
