@@ -28,24 +28,12 @@
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- PREREQUISITE: Ensure user_profiles has the `role` column + enum
+-- PREREQUISITE: Add missing columns to user_profiles
 -- (auto-adds if missing — safe to re-run)
+-- NOTE: user_profiles uses is_admin (boolean), NOT a role enum.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 DO $$ BEGIN
-  -- Create enum type if not exists
-  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
-    CREATE TYPE user_role AS ENUM ('visitor', 'member', 'servant', 'chief', 'pastor', 'super_admin');
-  END IF;
-
-  -- Add role column if missing
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'user_profiles' AND column_name = 'role'
-  ) THEN
-    ALTER TABLE user_profiles ADD COLUMN role user_role NOT NULL DEFAULT 'visitor';
-  END IF;
-
   -- Add phone column if missing
   IF NOT EXISTS (
     SELECT 1 FROM information_schema.columns
@@ -93,19 +81,19 @@ END $$;
 -- ═══════════════════════════════════════════════════════════════════════════
 
 CREATE OR REPLACE FUNCTION is_super_admin() RETURNS BOOLEAN AS $$
-  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role = 'super_admin');
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true);
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_pastor_or_above() RETURNS BOOLEAN AS $$
-  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IN ('pastor', 'super_admin'));
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true);
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_chief_or_above() RETURNS BOOLEAN AS $$
-  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IN ('chief', 'pastor', 'super_admin'));
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true);
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_member_or_above() RETURNS BOOLEAN AS $$
-  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IS NOT NULL AND role != 'visitor');
+  SELECT auth.uid() IS NOT NULL;
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_logged_in() RETURNS BOOLEAN AS $$
@@ -1462,7 +1450,7 @@ CREATE INDEX IF NOT EXISTS idx_nl_scheduled ON newsletters(scheduled_at) WHERE s
 CREATE OR REPLACE FUNCTION get_dashboard_stats()
 RETURNS JSON AS $$
   SELECT json_build_object(
-    'total_members', (SELECT COUNT(*) FROM user_profiles WHERE role IS NOT NULL),
+    'total_members', (SELECT COUNT(*) FROM user_profiles),
     'new_converts_month', (SELECT COUNT(*) FROM convertis WHERE created_at >= date_trunc('month', NOW())),
     'upcoming_events', (SELECT COUNT(*) FROM calendar_events WHERE event_date >= NOW()),
     'pending_visit_requests', (SELECT COUNT(*) FROM visit_requests WHERE status = 'en_attente'),

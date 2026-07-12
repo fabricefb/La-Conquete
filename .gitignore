@@ -1,2 +1,9 @@
-skills/
 node_modules/
+dist/
+tool-results/
+upload/
+skills/
+*.log
+.env
+.env.local
+.env.production
