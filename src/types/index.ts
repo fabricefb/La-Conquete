@@ -8,6 +8,50 @@ export type ToastType = 'success' | 'error' | 'info';
 export type Page = 'home' | 'about' | 'activities' | 'events' | 'media' | 'contact' | 'admin' | 'crm' | 'dashboard' | 'emissions' | 'predications' | 'departments' | 'reports' | 'communication' | 'pastoral';
 export type Theme = 'dark' | 'light';
 
+// ─── Role System V2 ──────────────────────────────────────────
+export const ROLE_LEVELS = {
+  VISITOR: 0,
+  MEMBER: 1,
+  DEPT_MEMBER: 2,
+  DEPT_LEADER: 3,
+  PASTOR_ASSOC: 4,
+  PASTOR_PRINCIPAL: 5,
+  ADMIN: 6,
+} as const;
+
+export type RoleLevel = (typeof ROLE_LEVELS)[keyof typeof ROLE_LEVELS];
+
+export type PastorCategory = null | 'ancien' | 'diacre' | 'collaborateur' | 'partenaire' | 'assistant_pastor';
+
+export const PASTOR_CATEGORY_LABELS: Record<NonNullable<PastorCategory>, string> = {
+  ancien: 'Ancien',
+  diacre: 'Diacre',
+  collaborateur: 'Collaborateur',
+  partenaire: 'Partenaire',
+  assistant_pastor: 'Assistant pasteur',
+};
+
+export const ROLE_LABELS: Record<number, string> = {
+  0: 'Visiteur',
+  1: 'Membre',
+  2: 'Membre',
+  3: 'Chef dép.',
+  4: 'Pasteur ass.',
+  5: 'Pasteur',
+  6: 'Admin',
+};
+
+export const ROLE_COLORS: Record<number, string> = {
+  1: 'bg-blue-500/20 text-blue-300',
+  2: 'bg-blue-500/30 text-blue-200',
+  3: 'bg-purple-500/20 text-purple-300',
+  4: 'bg-amber-500/20 text-amber-300',
+  5: 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/40',
+  6: 'bg-red-500/20 text-red-300',
+};
+
+export type DeptMemberRole = 'pending' | 'member' | 'leader';
+
 // ─── Auth & Profile ──────────────────────────────────────────────
 export interface UserProfile {
   id: string;
@@ -18,8 +62,13 @@ export interface UserProfile {
   address: string | null;
   gender: string | null;
   birth_date: string | null;
+  bio: string | null;
   onboarding_completed: boolean;
   is_admin: boolean;
+  role_level: number;
+  pastor_category: PastorCategory;
+  extension_id: string | null;
+  is_principal_pastor: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -167,7 +216,7 @@ export interface ThemeSettings {
 export interface Notification {
   id: string;
   user_id: string;
-  type: 'prayer_prayed' | 'service_assigned' | 'service_accepted' | 'service_declined' | 'role_approved' | 'role_rejected' | 'new_post' | 'new_comment' | 'daily_thought' | 'general' | 'visitor_assigned' | 'onboarding_reminder';
+  type: 'prayer_prayed' | 'service_assigned' | 'service_accepted' | 'service_declined' | 'role_approved' | 'role_rejected' | 'new_post' | 'new_comment' | 'daily_thought' | 'general' | 'visitor_assigned' | 'onboarding_reminder' | 'tag_mention' | 'dept_request_approved' | 'dept_request_received' | 'communique_published' | 'bureau_vote' | 'donation_received';
   title: string;
   body: string | null;
   link: string | null;
@@ -217,6 +266,7 @@ export interface Department {
   accent_color: string;
   is_active: boolean;
   sort_order: number;
+  extension_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -237,6 +287,8 @@ export interface DepartmentMember {
   user_id: string;
   department_id: string;
   position_id: string | null;
+  role_in_dept: DeptMemberRole;
+  is_primary: boolean;
   joined_at: string;
   is_active: boolean;
 }
@@ -661,6 +713,134 @@ export interface SpiritualAssessment {
   strengths?: string;
   areas_to_grow?: string;
   notes?: string;
+  created_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Dashboard Types
+// ═════════════════════════════════════════════════════
+
+// ═════════════════════════════════════════════════════
+// Extensions
+// ═════════════════════════════════════════════════════
+
+export interface Extension {
+  id: string;
+  name: string;
+  slug: string;
+  address: string | null;
+  city: string | null;
+  country: string;
+  pastor_id: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Communiqués
+// ═════════════════════════════════════════════════════
+
+export interface Communique {
+  id: string;
+  title: string;
+  content: string;
+  author_id: string | null;
+  department_id: string | null;
+  extension_scope: string | null;
+  category: 'spirituel' | 'logistique' | 'departement' | 'urgent' | 'global';
+  is_urgent: boolean;
+  is_published: boolean;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Forums inter-départementaux
+// ═════════════════════════════════════════════════════
+
+export interface ForumMessage {
+  id: string;
+  author_id: string;
+  department_id: string;
+  parent_id: string | null;
+  content: string;
+  is_pinned: boolean;
+  created_at: string;
+}
+
+export interface TagMention {
+  id: string;
+  message_id: string;
+  tag_type: 'department' | 'user';
+  target_id: string;
+  created_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Bureau Pastoral
+// ═════════════════════════════════════════════════════
+
+export interface BureauMember {
+  id: string;
+  user_id: string;
+  extension_id: string | null;
+  role_in_bureau: 'member' | 'coordinator';
+  created_at: string;
+}
+
+export interface BureauProposal {
+  id: string;
+  author_id: string;
+  extension_id: string | null;
+  title: string;
+  description: string | null;
+  status: 'open' | 'voting' | 'approved' | 'rejected' | 'archived';
+  created_at: string;
+  closed_at: string | null;
+}
+
+export interface BureauVote {
+  id: string;
+  proposal_id: string;
+  voter_id: string;
+  vote: 'pour' | 'contre' | 'abstention';
+  created_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Role Assignment Log (traçabilité)
+// ═════════════════════════════════════════════════════
+
+export interface RoleAssignmentLog {
+  id: string;
+  performed_by: string;
+  target_user: string;
+  action: 'promoted' | 'assigned_extension' | 'assigned_dept_leader' | 'revoked' | 'role_changed' | 'pastor_category_changed';
+  old_role_level: number | null;
+  new_role_level: number | null;
+  old_pastor_category: string | null;
+  new_pastor_category: string | null;
+  details: string | null;
+  created_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// Donations
+// ═════════════════════════════════════════════════════
+
+export interface Donation {
+  id: string;
+  amount: number;
+  donation_date: string;
+  donor_id: string | null;
+  donor_name: string | null;
+  purpose: string | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  currency: 'USD' | 'CDF' | 'EUR';
+  extension_id: string | null;
+  notes: string | null;
   created_at: string;
 }
 
