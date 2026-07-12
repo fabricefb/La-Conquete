@@ -269,7 +269,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const isAdmin = profile?.is_admin === true || (profile?.role_level ?? 0) >= 6;
+  const isAdmin = profile?.is_admin === true || (profile?.role_level ?? 0) >= 5;
 
   // Check if user is blocked — force sign out
   useEffect(() => {

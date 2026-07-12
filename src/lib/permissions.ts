@@ -38,7 +38,7 @@ export function isPastorPrincipal(user: UserProfile | null): boolean {
 }
 
 export function isAdmin(user: UserProfile | null): boolean {
-  return user?.is_admin === true || user?.role_level >= ROLE_LEVELS.ADMIN;
+  return user?.is_admin === true || user?.role_level >= ROLE_LEVELS.PASTOR_PRINCIPAL;
 }
 
 // ─── Périmètre d'action ───────────────────────────────────────────
