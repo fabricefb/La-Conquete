@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { db } from '../../lib/supabase';
+import { db, supabase } from '../../lib/supabase';
 import {
   Users,
   Sparkles,
@@ -233,7 +233,37 @@ export function OnboardingFlow() {
         }
       }
 
-      // 3. Seeker auto-prayer
+      // 3. Save onboarding answers for admin visibility
+      try {
+        const deptEntries = Object.entries(selectedDepts);
+        const firstDeptId = deptEntries[0]?.[0];
+        const firstPositionId = deptEntries[0]?.[1];
+        let deptName: string | null = null;
+        let posName: string | null = null;
+        if (firstDeptId) {
+          const dept = departments.find(d => d.id === firstDeptId);
+          deptName = dept?.name || null;
+          if (firstPositionId && positionsMap[firstDeptId]) {
+            const pos = positionsMap[firstDeptId].find(p => p.id === firstPositionId);
+            posName = pos?.name || null;
+          }
+        }
+        await supabase.from('onboarding_answers').insert({
+          user_id: user?.id,
+          full_name: firstName.trim() || null,
+          phone: phone.trim() || null,
+          gender: gender || null,
+          department_id: firstDeptId || null,
+          department_name: deptName,
+          position_id: firstPositionId || null,
+          position_name: posName,
+          motivation: churchStatus === 'seeker' ? 'Visiteur intéressé' : (churchStatus === 'member' ? 'Membre existant' : 'Visiteur'),
+        });
+      } catch {
+        // Non-critical: onboarding_answers table might not exist yet
+      }
+
+      // 4. Seeker auto-prayer
       if (churchStatus === 'seeker') {
         await db.submitPrayerRequest(
           "Nouveau visiteur souhaitant en savoir plus sur l'église et la vie de foi.",
@@ -242,7 +272,7 @@ export function OnboardingFlow() {
         );
       }
 
-      // 4. Custom prayer request
+      // 5. Custom prayer request
       if (prayerContent.trim()) {
         await db.submitPrayerRequest(
           prayerContent.trim(),

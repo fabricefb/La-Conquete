@@ -680,6 +680,55 @@ export const db = {
   updateUserRole(userId: string, roleLevel: number, reason?: string) {
     return supabase.from('user_profiles').update({ role_level: roleLevel, updated_at: new Date().toISOString() }).eq('id', userId).select().single();
   },
+
+  // ═══════════════════════════════════════════════
+  // Creneaux (Serviteurs Schedule System)
+  // ═══════════════════════════════════════════════
+
+  getCreneaux(status?: string) {
+    let q = supabase.from('creneaux').select('*').order('date', { ascending: false }).order('start_time');
+    if (status) q = q.eq('status', status);
+    return fetchTable<any>(q);
+  },
+
+  getCreneauResponses(creneauId?: string) {
+    let q = supabase.from('creneau_responses').select('*').order('responded_at', { ascending: false });
+    if (creneauId) q = q.eq('creneau_id', creneauId);
+    return fetchTable<any>(q);
+  },
+
+  respondToCreneau(creneauId: string, responderId: string, responderName: string | null, status: string, notes?: string) {
+    return supabase.from('creneau_responses').upsert({
+      creneau_id: creneauId,
+      responder_id: responderId,
+      responder_name: responderName,
+      status,
+      notes: notes || '',
+      responded_at: new Date().toISOString(),
+      completed_at: status === 'termine' ? new Date().toISOString() : null,
+    }, { onConflict: 'creneau_id,responder_id' }).select().single();
+  },
+
+  // ═══════════════════════════════════════════════
+  // Event Comments
+  // ═══════════════════════════════════════════════
+
+  getEventComments(eventId: string) {
+    return fetchTable<any>(supabase.from('event_comments').select('*').eq('event_id', eventId).order('created_at', { ascending: true }));
+  },
+
+  addEventComment(eventId: string, authorName: string, content: string, userId?: string) {
+    return supabase.from('event_comments').insert({
+      event_id: eventId,
+      user_id: userId || null,
+      author_name: authorName,
+      content,
+    }).select().single();
+  },
+
+  deleteEventComment(id: string) {
+    return supabase.from('event_comments').delete().eq('id', id);
+  },
 };
 
 // ─── Content helper: build a map from page_contents rows ─────────

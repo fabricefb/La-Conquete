@@ -127,12 +127,23 @@ export interface ChurchEvent {
   id: string;
   title: string;
   description: string;
-  category: 'Cultes' | 'Missions' | 'Jeunesse' | 'Communion';
+  category: 'Cultes' | 'Missions' | 'Jeunesse' | 'Communion' | 'Formation' | 'Évangélisation' | 'Spécial' | 'Autre';
   image_url: string;
   event_date: string;
   location: string;
   is_live: boolean;
   is_featured: boolean;
+  youtube_url: string;
+  facebook_url: string;
+  created_at: string;
+}
+
+export interface EventComment {
+  id: string;
+  event_id: string;
+  user_id: string | null;
+  author_name: string;
+  content: string;
   created_at: string;
 }
 
@@ -180,6 +191,13 @@ export interface Testimonial {
   photo_url: string | null;
   sort_order: number;
   is_active: boolean;
+  author_id: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'published';
+  category: 'general' | 'guerison' | 'finance' | 'maternite' | 'delivrance' | 'miracle' | 'salut' | 'famille' | 'autre';
+  is_anonymous: boolean;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  reviewer_notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -253,7 +271,10 @@ export type AdminTab =
   | 'inventory'
   | 'alerts'
   | 'pipeline'
-  | 'theme';
+  | 'theme'
+  | 'onboarding'
+  | 'users'
+  | 'creneaux';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
@@ -349,6 +370,15 @@ export interface NotificationPreferences {
 }
 
 // ─── Pastors ────────────────────────────────────────────────
+export interface PastorSocialLinks {
+  facebook?: string;
+  youtube?: string;
+  instagram?: string;
+  twitter?: string;
+  whatsapp?: string;
+  website?: string;
+}
+
 export interface Pastor {
   id: string;
   name: string;
@@ -359,6 +389,12 @@ export interface Pastor {
   sort_order: number;
   is_main: boolean;
   is_active: boolean;
+  video_url: string;
+  social_links: PastorSocialLinks;
+  extended_bio: string;
+  media_urls: string[];
+  email: string;
+  phone: string;
   created_at: string;
   updated_at: string;
 }
@@ -849,6 +885,69 @@ export interface Donation {
 // Dashboard Types
 // ═════════════════════════════════════════════════════
 
+// ─── Onboarding Answers ────────────────────────────────────
+export interface OnboardingAnswer {
+  id: string;
+  user_id: string;
+  full_name: string | null;
+  phone: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  department_id: string | null;
+  department_name: string | null;
+  position_id: string | null;
+  position_name: string | null;
+  motivation: string | null;
+  created_at: string;
+}
+
+// ─── Custom Icons ─────────────────────────────────────────
+export interface CustomIcon {
+  id: string;
+  name: string;
+  type: 'svg' | 'png';
+  svg_content: string | null;
+  file_url: string | null;
+  size: number;
+  color: string;
+  created_at: string;
+}
+
+// ─── Creneaux System ──────────────────────────────────────
+export type CreneauType = 'visite' | 'entretien' | 'culte' | 'reunion' | 'formation' | 'evangelisation' | 'priere' | 'suivi' | 'autre';
+export type CreneauStatus = 'ouvert' | 'en_cours' | 'termine' | 'annule';
+export type CreneauResponseStatus = 'accepte' | 'refuse' | 'termine' | 'annule';
+
+export interface Creneau {
+  id: string;
+  creator_id: string;
+  creator_name: string | null;
+  title: string;
+  description: string;
+  date: string;
+  start_time: string;
+  end_time: string | null;
+  location: string;
+  type: CreneauType;
+  status: CreneauStatus;
+  target_roles: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreneauResponse {
+  id: string;
+  creneau_id: string;
+  responder_id: string;
+  responder_name: string | null;
+  responder_role: string | null;
+  status: CreneauResponseStatus;
+  notes: string;
+  responded_at: string;
+  completed_at: string | null;
+}
+
+// ─── Dashboard Types ──────────────────────────────────────
 export interface DashboardStats {
   total_members: number;
   active_members_month: number;

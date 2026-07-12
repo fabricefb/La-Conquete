@@ -4,7 +4,8 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
-  Menu, X, Landmark, Crown, Package, Bell, Heart
+  Menu, X, Landmark, Crown, Package, Bell, Heart,
+  ClipboardList, Shield, Clock
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -16,6 +17,7 @@ const tabs: { id: AdminTab; label: string; Icon: typeof Settings }[] = [
   { id: 'locations', label: 'Lieux', Icon: MapPin },
   { id: 'events', label: 'Événements', Icon: Calendar },
   { id: 'assignments', label: 'Affectations', Icon: Users },
+  { id: 'creneaux', label: 'Créneaux', Icon: Clock },
   { id: 'ministries', label: 'Ministères', Icon: Users },
   { id: 'inventory', label: 'Inventaire', Icon: Package },
   { id: 'alerts', label: 'Alertes & Visites', Icon: Bell },
@@ -24,6 +26,8 @@ const tabs: { id: AdminTab; label: string; Icon: typeof Settings }[] = [
   { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
   { id: 'messages', label: 'Messages', Icon: MessageSquare },
   { id: 'pastors', label: 'Équipe Pastorale', Icon: Crown },
+  { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
+  { id: 'users', label: 'Utilisateurs', Icon: Shield },
   { id: 'theme', label: 'Thème', Icon: Palette },
 ];
 
