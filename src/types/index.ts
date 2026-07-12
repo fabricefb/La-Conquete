@@ -266,6 +266,7 @@ export type AdminTab =
   | 'contents'
   | 'locations'
   | 'events'
+  | 'departments'
   | 'assignments'
   | 'ministries'
   | 'media'
@@ -290,11 +291,23 @@ export interface Department {
   description: string;
   icon_name: string;
   accent_color: string;
+  meeting_schedule: string | null;
+  mission: string | null;
+  activities: string | null;
+  requirements: string | null;
+  image_url: string | null;
+  leader_id: string | null;
+  member_count: number;
   is_active: boolean;
   sort_order: number;
   extension_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface DepartmentWithMembers extends Department {
+  positions?: Position[];
+  members?: (DepartmentMember & { full_name?: string; avatar_url?: string })[];
 }
 
 export interface Position {

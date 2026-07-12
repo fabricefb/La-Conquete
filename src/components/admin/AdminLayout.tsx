@@ -5,7 +5,7 @@ import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
-  ClipboardList, Shield, Clock
+  ClipboardList, Shield, Clock, Building2
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -16,6 +16,7 @@ const tabs: { id: AdminTab; label: string; Icon: typeof Settings }[] = [
   { id: 'contents', label: 'Contenus', Icon: FileText },
   { id: 'locations', label: 'Lieux', Icon: MapPin },
   { id: 'events', label: 'Événements', Icon: Calendar },
+  { id: 'departments', label: 'Départements', Icon: Building2 },
   { id: 'assignments', label: 'Affectations', Icon: Users },
   { id: 'creneaux', label: 'Créneaux', Icon: Clock },
   { id: 'ministries', label: 'Ministères', Icon: Users },

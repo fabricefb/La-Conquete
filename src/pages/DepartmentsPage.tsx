@@ -5,6 +5,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import {
   Users, UserPlus, ArrowRight, Check, Send, MapPin, Calendar,
   Heart, Star, Compass, BookOpen, Mic, Music, Shield, GraduationCap, HandHeart, Loader2, LogIn, X, ChevronDown, ChevronUp,
@@ -289,11 +290,21 @@ function JoinForm({ departmentId, departmentName, onNavigate }: { departmentId: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!motivation.trim()) return;
+    if (!motivation.trim() || !user) return;
     setSubmitting(true);
     setError('');
     try {
-      await db.requestRoleUpgrade('servant', departmentId, undefined, motivation);
+      // Insérer dans department_members avec role_in_dept = 'pending'
+      const { error: insertErr } = await supabase
+        .from('department_members')
+        .upsert({
+          user_id: user.id,
+          department_id: departmentId,
+          role_in_dept: 'pending',
+          is_active: true,
+        }, { onConflict: 'user_id,department_id' });
+
+      if (insertErr) throw new Error(insertErr.message);
       setSuccess(true);
       setMotivation('');
     } catch (err) {

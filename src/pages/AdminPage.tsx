@@ -6,6 +6,7 @@ import { SettingsTab } from '../components/admin/tabs/SettingsTab';
 import { ContentsTab } from '../components/admin/tabs/ContentsTab';
 import { LocationsTab } from '../components/admin/tabs/LocationsTab';
 import { EventsTab } from '../components/admin/tabs/EventsTab';
+import { DepartmentsTab } from '../components/admin/tabs/DepartmentsTab';
 import { MinistriesTab } from '../components/admin/tabs/MinistriesTab';
 import { MediaTab } from '../components/admin/tabs/MediaTab';
 import { TestimonialsTab } from '../components/admin/tabs/TestimonialsTab';
@@ -69,6 +70,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'contents': return <ContentsTab />;
       case 'locations': return <LocationsTab />;
       case 'events': return <EventsTab />;
+      case 'departments': return <DepartmentsTab />;
       case 'assignments': return <AssignmentsTab />;
       case 'creneaux': return <CreneauxTab />;
       case 'ministries': return <MinistriesTab />;
