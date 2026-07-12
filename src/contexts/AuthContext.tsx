@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('Colonnes étendues manquantes, requête fallback…');
         const { data: fallbackData, error: fallbackErr } = await supabase
           .from('user_profiles')
-          .select('id, email, full_name, avatar_url, is_admin, onboarding_completed, created_at, updated_at')
+          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
           .eq('id', userId)
           .single();
 
@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         const p = fallbackData as any;
+        // Si onboarding n'existe pas en DB, vérifier localStorage
+        const onboardingLocalDone = localStorage.getItem('lc_onboarding_done') === userId;
         setProfile({
           id: p.id,
           email: p.email,
@@ -71,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           birth_date: null,
           bio: null,
           is_admin: p.is_admin ?? false,
-          onboarding_completed: p.onboarding_completed ?? true,
+          onboarding_completed: onboardingLocalDone || true, // par défaut considéré comme fait si colonne absente
           role_level: p.role_level ?? (p.is_admin ? 6 : 1),
           pastor_category: p.pastor_category ?? null,
           extension_id: p.extension_id ?? null,
@@ -115,16 +117,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         const { data: safeData } = await supabase
           .from('user_profiles')
-          .select('id, email, full_name, avatar_url, is_admin, onboarding_completed, created_at, updated_at')
+          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
           .eq('id', userId)
           .single();
         if (safeData) {
           const s = safeData as any;
+          const onboardingLocalDone = localStorage.getItem('lc_onboarding_done') === userId;
           setProfile({
             id: s.id, email: s.email, full_name: s.full_name,
             avatar_url: s.avatar_url ?? null, phone: null, address: null,
             gender: null, birth_date: null, bio: null, is_admin: s.is_admin ?? false,
-            onboarding_completed: s.onboarding_completed ?? true,
+            onboarding_completed: onboardingLocalDone || true,
             role_level: s.role_level ?? (s.is_admin ? 6 : 1),
             pastor_category: s.pastor_category ?? null,
             extension_id: s.extension_id ?? null,

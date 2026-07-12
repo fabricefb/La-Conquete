@@ -112,12 +112,19 @@ function AppRouter() {
 /* ─── Global onboarding gate ─────────────────────────────────── */
 function OnboardingOverlay() {
   const { user, profile, isAdmin, loading } = useAuth();
+
+  // Safety net: if localStorage says onboarding was done, never block
+  const localDone = user ? localStorage.getItem('lc_onboarding_done') === user.id : false;
+
   // Skip onboarding for admins — they go directly to the panel
+  // Also skip if profile is null (don't trap users in a loop)
   const showOnboarding =
     !loading &&
+    !localDone &&
     user !== null &&
     !isAdmin &&
-    (profile === null || !profile.onboarding_completed);
+    profile !== null &&
+    !profile.onboarding_completed;
 
   if (!showOnboarding) return null;
   return <OnboardingFlow />;
