@@ -7,3 +7,4 @@ skills/
 .env
 .env.local
 .env.production
+.github-env
