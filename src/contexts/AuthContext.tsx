@@ -35,47 +35,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     setProfileLoading(true);
     try {
+      // ── Stratégie 1 : tenter avec toutes les colonnes ──
       const { data, error } = await supabase
         .from('user_profiles')
         .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, is_admin, onboarding_completed, created_at, updated_at')
         .eq('id', userId)
         .single();
 
-      if (error || !data) {
-        // Profile doesn't exist yet — auto-create it
-        console.log('No profile found for user, creating one...');
-        const { data: userData } = await supabase.auth.getUser(userId);
-        const meta = userData?.user?.user_metadata || {};
-        const email = userData?.user?.email || '';
-
-        const newProfile = {
-          id: userId,
-          email,
-          full_name: meta.full_name || meta.name || email.split('@')[0] || null,
-          is_admin: false,
-          onboarding_completed: false,
-        };
-
-        const { error: insertErr } = await supabase
+      // ── Si erreur de colonne manquante, retenter avec colonnes de base ──
+      if (error && (error.message.includes('does not exist') || error.code === '42703')) {
+        console.warn('Colonnes étendues manquantes, requête fallback…');
+        const { data: fallbackData, error: fallbackErr } = await supabase
           .from('user_profiles')
-          .insert(newProfile);
+          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
+          .eq('id', userId)
+          .single();
 
-        if (insertErr) {
-          console.error('Failed to auto-create profile:', insertErr.message);
-          setProfile(null);
+        if (fallbackErr || !fallbackData) {
+          // Profile introuvable → auto-création minimale
+          await autoCreateProfile(userId);
           return;
         }
 
+        const p = fallbackData as any;
         setProfile({
-          ...newProfile,
-          avatar_url: null,
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name,
+          avatar_url: p.avatar_url ?? null,
           phone: null,
           address: null,
           gender: null,
           birth_date: null,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          is_admin: p.is_admin ?? false,
+          onboarding_completed: true, // pas de colonne = onboarding considéré comme fait
+          created_at: p.created_at,
+          updated_at: p.updated_at,
         } as UserProfile);
+        return;
+      }
+
+      if (error || !data) {
+        // Profile doesn't exist yet — auto-create it
+        console.log('No profile found for user, creating one...');
+        await autoCreateProfile(userId);
         return;
       }
 
@@ -97,9 +100,82 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } as UserProfile);
     } catch (err) {
       console.error('Profile fetch error:', err);
-      setProfile(null);
+      // En cas d'erreur imprévue, tenter le fallback minimal
+      try {
+        const { data: safeData } = await supabase
+          .from('user_profiles')
+          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
+          .eq('id', userId)
+          .single();
+        if (safeData) {
+          const s = safeData as any;
+          setProfile({
+            id: s.id, email: s.email, full_name: s.full_name,
+            avatar_url: s.avatar_url ?? null, phone: null, address: null,
+            gender: null, birth_date: null, is_admin: s.is_admin ?? false,
+            onboarding_completed: true, created_at: s.created_at, updated_at: s.updated_at,
+          } as UserProfile);
+        } else {
+          setProfile(null);
+        }
+      } catch {
+        setProfile(null);
+      }
     } finally {
       setProfileLoading(false);
+    }
+  }, []);
+
+  // ── Auto-création de profil (utilitaire séparé) ──
+  const autoCreateProfile = useCallback(async (userId: string) => {
+    try {
+      const { data: userData } = await supabase.auth.getUser(userId);
+      const meta = userData?.user?.user_metadata || {};
+      const email = userData?.user?.email || '';
+
+      const newProfile: Record<string, any> = {
+        id: userId,
+        email,
+        full_name: meta.full_name || meta.name || email.split('@')[0] || null,
+        is_admin: false,
+      };
+
+      // Tenter d'abord avec onboarding_completed
+      let insertErr: any = null;
+      const { error: err1 } = await supabase
+        .from('user_profiles')
+        .insert({ ...newProfile, onboarding_completed: false });
+
+      if (err1 && (err1.message.includes('does not exist') || err1.code === '42703')) {
+        // La colonne onboarding_completed n'existe pas, réessayer sans
+        const { error: err2 } = await supabase
+          .from('user_profiles')
+          .insert(newProfile);
+        insertErr = err2;
+      } else {
+        insertErr = err1;
+      }
+
+      if (insertErr) {
+        console.error('Failed to auto-create profile:', insertErr.message);
+        setProfile(null);
+        return;
+      }
+
+      setProfile({
+        ...newProfile,
+        avatar_url: null,
+        phone: null,
+        address: null,
+        gender: null,
+        birth_date: null,
+        onboarding_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      } as UserProfile);
+    } catch (err) {
+      console.error('Auto-create profile error:', err);
+      setProfile(null);
     }
   }, []);
 

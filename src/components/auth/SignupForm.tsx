@@ -121,23 +121,25 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
       }
 
       if (data.user) {
-        // Upsert profile (creates if missing, updates if exists)
-        const profileData: Record<string, any> = {
+        // Upsert profile — tenter d'abord avec toutes les colonnes
+        const baseProfileData: Record<string, any> = {
           id: data.user.id,
           email: email.trim(),
           full_name: fullName.trim(),
           phone: phone.trim() || null,
           gender: gender || null,
-          onboarding_completed: true,
         };
 
-        const { error: profileErr } = await supabase
+        const { error: err1 } = await supabase
           .from('user_profiles')
-          .upsert(profileData, { onConflict: 'id' });
+          .upsert({ ...baseProfileData, onboarding_completed: true }, { onConflict: 'id' });
 
-        if (profileErr) {
-          console.error('Profile upsert error:', profileErr.message);
-          // Non-blocking: AuthContext will auto-create profile on fetch
+        if (err1 && (err1.message.includes('does not exist') || err1.code === '42703')) {
+          // Colonnes étendues manquantes, réessayer sans
+          await supabase
+            .from('user_profiles')
+            .upsert(baseProfileData, { onConflict: 'id' })
+            .catch(() => {});
         }
 
         // If member, join department

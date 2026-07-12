@@ -79,16 +79,28 @@ export default function AdminLogin() {
       const session = data.session;
 
       if (userId) {
-        // 2. Create/update profile as admin (upsert handles both cases)
-        const { error: profileErr } = await supabase
+        // 2. Create/update profile — tenter d'abord avec onboarding_completed
+        const baseProfile: Record<string, any> = {
+          id: userId,
+          email: email.trim(),
+          full_name: name.trim(),
+          is_admin: false,
+        };
+
+        let profileErr: any = null;
+        const { error: err1 } = await supabase
           .from('user_profiles')
-          .upsert({
-            id: userId,
-            email: email.trim(),
-            full_name: name.trim(),
-            is_admin: false,
-            onboarding_completed: true,
-          }, { onConflict: 'id' });
+          .upsert({ ...baseProfile, onboarding_completed: true }, { onConflict: 'id' });
+
+        if (err1 && (err1.message.includes('does not exist') || err1.code === '42703')) {
+          // Colonne onboarding_completed inexistante, réessayer sans
+          const { error: err2 } = await supabase
+            .from('user_profiles')
+            .upsert(baseProfile, { onConflict: 'id' });
+          profileErr = err2;
+        } else {
+          profileErr = err1;
+        }
 
         if (profileErr) {
           console.error('Profile upsert error:', profileErr.message);
