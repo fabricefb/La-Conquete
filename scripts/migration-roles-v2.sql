@@ -156,6 +156,7 @@ CREATE TABLE IF NOT EXISTS bureau_pastoral_members (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(user_id, extension_id)
 );
+CREATE UNIQUE INDEX IF NOT EXISTS idx_bureau_user_global ON bureau_pastoral_members(user_id) WHERE extension_id IS NULL;
 
 CREATE TABLE IF NOT EXISTS bureau_proposals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -296,7 +297,7 @@ CREATE OR REPLACE FUNCTION is_chief_or_above() RETURNS BOOLEAN AS $$
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 CREATE OR REPLACE FUNCTION is_member_or_above() RETURNS BOOLEAN AS $$
-  SELECT auth.uid() IS NOT NULL;
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 1 AND onboarding_completed = true);
 $$ LANGUAGE sql SECURITY DEFINER STABLE;
 
 CREATE OR REPLACE FUNCTION owns_profile(p_id UUID) RETURNS BOOLEAN AS $$
@@ -332,7 +333,7 @@ ALTER TABLE communiques ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "communiques_select_published" ON communiques FOR SELECT 
   USING (is_published OR is_super_admin() OR is_pastor_or_above());
 CREATE POLICY "communiques_chief_insert" ON communiques FOR INSERT 
-  WITH CHECK (is_chief_or_above() OR is_super_admin());
+  WITH CHECK (is_chief_or_above());
 CREATE POLICY "communiques_chief_update" ON communiques FOR UPDATE 
   USING (is_super_admin() OR author_id = auth.uid());
 CREATE POLICY "communiques_admin_delete" ON communiques FOR DELETE 
@@ -387,9 +388,9 @@ CREATE POLICY "log_insert_admin" ON role_assignment_log FOR INSERT
 -- Donations
 ALTER TABLE donations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "donations_select_own" ON donations FOR SELECT 
-  USING (is_super_admin() OR donor_id = auth.uid());
+  USING (is_super_admin() OR is_pastor_or_above() OR donor_id = auth.uid());
 CREATE POLICY "donations_admin_manage" ON donations FOR ALL 
-  USING (is_super_admin() OR is_pastor_or_above());
+  USING (is_super_admin());
 
 -- ═══════════════════════════════════════════════════════════════
 -- 14. EXTENSION DEPARTMENT (optionnel — départements propres à une extension)

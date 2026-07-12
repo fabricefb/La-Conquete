@@ -8,7 +8,8 @@ import {
   X, Clock, Eye, ChevronRight, Filter, Home, BookOpen, Heart, Shield, Bell,
   ArrowRight, Star, Users, MessageSquare,
 } from '../lib/icons';
-import type { Page, PastoralAlert, VisitRequest, PastorSchedule, Converti, ConvertiPipelineStage } from '../types';
+import type { Page } from '../lib/navigation';
+import type { PastoralAlert, VisitRequest, PastorSchedule, Converti, ConvertiPipelineStage } from '../types';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';

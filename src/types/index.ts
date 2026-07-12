@@ -42,6 +42,7 @@ export const ROLE_LABELS: Record<number, string> = {
 };
 
 export const ROLE_COLORS: Record<number, string> = {
+  0: 'bg-gray-500/20 text-gray-300',
   1: 'bg-blue-500/20 text-blue-300',
   2: 'bg-blue-500/30 text-blue-200',
   3: 'bg-purple-500/20 text-purple-300',
@@ -89,7 +90,7 @@ export interface SiteSetting {
 // ─── Page Contents ───────────────────────────────────────────────
 export interface PageContent {
   id: string;
-  page: Page | 'home' | 'about' | 'activities' | 'events' | 'media' | 'contact';
+  page: Page;
   section_key: string;
   field_key: string;
   value: string;
@@ -866,7 +867,7 @@ export interface NotificationItem {
   user_id: string;
   title: string;
   message: string;
-  type: 'assignment' | 'reminder' | 'alert' | 'info' | 'visit' | 'prayer';
+  type: 'prayer_prayed' | 'service_assigned' | 'service_accepted' | 'service_declined' | 'role_approved' | 'role_rejected' | 'new_post' | 'new_comment' | 'daily_thought' | 'general' | 'visitor_assigned' | 'onboarding_reminder' | 'tag_mention' | 'dept_request_approved' | 'dept_request_received' | 'communique_published' | 'bureau_vote' | 'donation_received' | 'assignment' | 'reminder' | 'alert' | 'info' | 'visit' | 'prayer';
   is_read: boolean;
   link?: string;
   created_at: string;

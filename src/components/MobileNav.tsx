@@ -15,7 +15,7 @@ const ACTIVE_ALIAS: Partial<Record<Page, Page>> = {
   about: 'home',
   activities: 'home',
   connexion: 'home',
-  announcements: 'home',
+  annonces: 'home',
   communiques: 'home',
   extensions: 'home',
   admin: 'dashboard',

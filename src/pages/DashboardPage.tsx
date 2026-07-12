@@ -177,7 +177,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         setEvents((eventData || []) as ChurchEvent[]);
         setPrayers((prayerData || []) as PrayerReqType[]);
         setDepartments(userDepts);
-        setNotifications((notifData || []) as NotificationItem[]);
+        setNotifications((notifData || []).map((n: any) => ({
+          ...n,
+          message: n.body || n.message || '',
+        })) as NotificationItem[]);
         setUnreadCount((notifData || []).filter((n: any) => !n.is_read).length);
 
         setStats([

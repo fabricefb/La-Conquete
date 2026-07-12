@@ -162,7 +162,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
   const [respondingTo, setRespondingTo] = useState<string | null>(null);
   const [responseText, setResponseText] = useState('');
 
-  const isIntercessor = profile?.is_admin === true;
+  const isIntercessor = profile ? (profile.is_admin === true || profile.role_level >= 4) : false;
 
   useEffect(() => {
     loadRequests();

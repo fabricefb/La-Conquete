@@ -9,7 +9,8 @@ import {
   DollarSign, MapPin, Calendar, Filter, CheckCircle,
   X, Eye, ChevronDown, Save, Send,
 } from '../lib/icons';
-import type { Page, MissionReport, MissionFinance, ImpactCounter, ChurchEvent } from '../types';
+import type { Page } from '../lib/navigation';
+import type { MissionReport, MissionFinance, ImpactCounter, ChurchEvent } from '../types';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';

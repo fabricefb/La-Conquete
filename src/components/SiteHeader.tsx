@@ -2,6 +2,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { X, ChevronDown, Menu, LogIn } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
+import { can } from '../lib/permissions';
+import { ROLE_LEVELS } from '../types';
 import type { Page } from '../lib/navigation';
 import type { Theme } from '../types';
 import { ThemeToggle } from './ThemeToggle';
@@ -283,8 +285,8 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-0.5 xl:flex">
-            {/* Admin items */}
-            {user && ADMIN_ITEMS.map(item => (
+            {/* Admin items — only for dept leaders and above */}
+            {profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && ADMIN_ITEMS.map(item => (
               <button
                 key={item.page}
                 onClick={() => handleNav(item.page!)}
@@ -299,7 +301,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             ))}
 
             {/* Divider between admin and public nav */}
-            {user && <div className="mx-1.5 h-5 w-px bg-line" />}
+            {profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && <div className="mx-1.5 h-5 w-px bg-line" />}
 
             {/* Public nav items */}
             {NAV_ITEMS.map(item => {

@@ -634,22 +634,23 @@ export const db = {
     return supabase.from('notifications').update({ is_read: true }).eq('user_id', userId);
   },
 
-  createNotification(userId: string, title: string, message: string, type: NotificationItem['type'], link?: string) {
-    return supabase.from('notifications').insert({ user_id: userId, title, message, type, is_read: false, link, created_at: new Date().toISOString() });
+  createNotification(userId: string, title: string, body: string, type: string, link?: string, refTable?: string, refId?: string) {
+    return supabase.from('notifications').insert({ user_id: userId, title, body, type, is_read: false, link, ref_table: refTable, ref_id: refId, created_at: new Date().toISOString() });
   },
 
   // ═══════════════════════════════════════════════
   // Profiles & Members
   // ═══════════════════════════════════════════════
 
-  getProfiles(role?: string, departmentId?: string) {
+  getProfiles(roleLevel?: number, departmentId?: string) {
     let q = supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
-    if (role) q = q.eq('role', role);
+    if (roleLevel !== undefined) q = q.eq('role_level', roleLevel);
+    if (departmentId) q = q.eq('extension_id', departmentId);
     return fetchTable<UserProfile>(q);
   },
 
-  updateUserRole(userId: string, role: string) {
-    return supabase.from('user_profiles').update({ role }).eq('id', userId).select().single();
+  updateUserRole(userId: string, roleLevel: number, reason?: string) {
+    return supabase.from('user_profiles').update({ role_level: roleLevel, updated_at: new Date().toISOString() }).eq('id', userId).select().single();
   },
 };
 
