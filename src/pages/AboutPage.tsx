@@ -226,7 +226,7 @@ export function AboutPage({ onNavigate }: PageProps) {
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {pastors.map((member, i) => (
               <RevealSection key={member.id} className={i < 3 ? `reveal-delay-${i + 1}` : ''}>
-                <div className="glass rounded-3xl overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
+                <div className="glass card-parallax rounded-3xl overflow-hidden">
                   <div className="h-64 overflow-hidden">
                     <img src={member.photo_url || '/pasteur-kazadi.jpg'} alt={member.name} className="h-full w-full object-cover" />
                   </div>

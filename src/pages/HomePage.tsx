@@ -445,7 +445,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 className={`reveal-delay-${i + 1}`}
               >
                 <div
-                  className={`glass rounded-3xl p-8 ${radial} group transition-all duration-300 hover:scale-105 hover:shadow-xl`}
+                  className={`glass card-parallax rounded-3xl p-8 ${radial} group`}
                 >
                   <div
                     className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-line ${accent}`}

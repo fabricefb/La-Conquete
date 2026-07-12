@@ -310,7 +310,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
                 return (
                   <div
                     key={ministry.id}
-                    className={`reveal ${i < 6 ? `reveal-delay-${(i % 3) + 1}` : ''} glass rounded-3xl p-7 transition-transform duration-300 hover:scale-[1.02] ${accentClass}`}
+                    className={`reveal ${i < 6 ? `reveal-delay-${(i % 3) + 1}` : ''} glass card-parallax rounded-3xl p-7 ${accentClass}`}
                   >
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
                       <Icon className="h-6 w-6 text-gold" />

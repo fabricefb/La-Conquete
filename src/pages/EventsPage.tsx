@@ -379,7 +379,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                       const { day, month } = formatDate(event.event_date);
                       return (
                         <EvtReveal key={event.id} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
-                          <div className="glass rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] hover:shadow-lg h-full">
+                          <div className="glass card-parallax rounded-2xl overflow-hidden flex flex-col h-full">
                             <div className="relative h-48 overflow-hidden">
                               <img src={event.image_url || FALLBACK_IMG} alt={event.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
                               <div className="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-14 rounded-lg bg-black/70 backdrop-blur-sm text-center">

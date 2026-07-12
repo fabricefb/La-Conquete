@@ -8,7 +8,7 @@ import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../
 const DEFAULT_THEME: ThemeSettings = {
   id: 1,
   primary_color: '#d4a843',
-  secondary_color: '#1a1a2e',
+  secondary_color: '#d8e3fb',
   accent_color: '#e8c468',
   button_style: 'pill',
   card_style: 'glass',
@@ -406,6 +406,37 @@ export function ThemeTab() {
           <span className="flex-1 text-center text-[10px] text-muted">Primaire</span>
           <span className="flex-1 text-center text-[10px] text-muted">Secondaire</span>
           <span className="flex-1 text-center text-[10px] text-muted">Accent</span>
+        </div>
+
+        {/* Quick color presets */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-cream/80 mb-2">Palettes rapides</label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { label: 'Bleu lavande', p: '#d4a843', s: '#d8e3fb', a: '#e8c468' },
+              { label: 'Royal navy', p: '#d4a843', s: '#1a1a2e', a: '#e8c468' },
+              { label: 'For\u00eat profonde', p: '#2d6a4f', s: '#d8f3dc', a: '#95d5b2' },
+              { label: 'Terre cuite', p: '#c1666b', s: '#fdf0d5', a: '#e8985e' },
+              { label: 'Minuit dor\u00e9', p: '#f0c040', s: '#1a1a3e', a: '#f0c040' },
+            ].map((preset) => (
+              <button
+                key={preset.label}
+                type="button"
+                onClick={() => {
+                  updateField('primary_color', preset.p);
+                  updateField('secondary_color', preset.s);
+                  updateField('accent_color', preset.a);
+                }}
+                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-cream hover:border-gold-400/40 transition"
+              >
+                <span className="flex h-4 w-4 rounded-full overflow-hidden">
+                  <span className="w-1/2 h-full" style={{ backgroundColor: preset.p }} />
+                  <span className="w-1/2 h-full" style={{ backgroundColor: preset.s }} />
+                </span>
+                {preset.label}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
