@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { db } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 import {
   Bell, Phone, Mail, Send, Plus, Search, MessageSquare, Heart, Upload, Download,
   Filter, FileText, Radio, Users, Clock, CheckCircle, Eye, Image, Video, Music,
@@ -453,6 +454,28 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
     }
   }
 
+  /** Fetch all member phone numbers from user_profiles */
+  async function fetchAllMemberPhones(): Promise<string[]> {
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('phone')
+      .not('phone', 'is', null)
+      .neq('phone', '');
+    return (data || []).map((r: any) => r.phone).filter(Boolean);
+  }
+
+  /** Fetch phone numbers for specific user IDs */
+  async function fetchPhonesByIds(ids: string[]): Promise<string[]> {
+    if (ids.length === 0) return [];
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('phone')
+      .in('id', ids)
+      .not('phone', 'is', null)
+      .neq('phone', '');
+    return (data || []).map((r: any) => r.phone).filter(Boolean);
+  }
+
   async function handleSend() {
     if (!form.title.trim() || !form.content.trim()) {
       addToast('Veuillez remplir le titre et le contenu.', 'error');
@@ -460,9 +483,59 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
     }
     setSubmitting(true);
     try {
-      console.log('[Communication] Message saved:', form);
-      await db.createCommunicationMessage(form);
-      addToast('Message enregistré. Envoi réel nécessite la configuration de l\'API.', 'info');
+      // 1. Save message to database
+      const saved = await db.createCommunicationMessage(form);
+      console.log('[Communication] Message saved:', saved);
+
+      // 2. If SMS or WhatsApp, send via secure Edge Function
+      if (form.channel === 'sms' || form.channel === 'whatsapp') {
+        try {
+          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+          if (!supabaseUrl) throw new Error('Supabase URL non configurée');
+
+          // Get auth token for Edge Function
+          const { data: { session } } = await supabase.auth.getSession();
+          const token = session?.access_token;
+          if (!token) throw new Error('Non authentifié');
+
+          // Resolve target phone numbers
+          const targetPhones = form.target_type === 'all'
+            ? await fetchAllMemberPhones()
+            : form.target_ids.length > 0
+              ? await fetchPhonesByIds(form.target_ids)
+              : [];
+
+          if (targetPhones.length === 0) {
+            addToast('Aucun destinataire trouvé avec un numéro de téléphone.', 'error');
+          } else {
+            let sent = 0;
+            for (const phone of targetPhones) {
+              const res = await fetch(`${supabaseUrl}/functions/v1/send-sms`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  to: phone,
+                  message: `[${form.title}] ${form.content}`,
+                  channel: form.channel,
+                }),
+              });
+              const data = await res.json();
+              if (res.ok && data.success) sent++;
+              else console.warn(`[SMS] Failed to ${phone}:`, data.error);
+            }
+            addToast(`${sent}/${targetPhones.length} message(s) envoyé(s) via ${form.channel.toUpperCase()}.`, sent > 0 ? 'success' : 'error');
+          }
+        } catch (smsErr: any) {
+          console.error('[Communication] SMS error:', smsErr);
+          addToast(smsErr.message || 'Erreur lors de l\'envoi SMS. Vérifiez la configuration Edge Function.', 'error');
+        }
+      } else {
+        addToast('Message enregistré avec succès.', 'success');
+      }
+
       setForm(EMPTY_MSG_FORM);
       setShowForm(false);
       loadMessages();
@@ -474,7 +547,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
     }
   }
 
-  const needsApiKey = form.channel === 'sms' || form.channel === 'whatsapp' || form.channel === 'email';
+  const needsEdgeFunction = form.channel === 'sms' || form.channel === 'whatsapp';
 
   const filtered = messages.filter(m =>
     m.title.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -566,22 +639,22 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
             />
           </div>
 
-          {/* API Notice */}
-          {needsApiKey && (
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 space-y-2">
+          {/* Edge Function Notice */}
+          {needsEdgeFunction && (
+            <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-4 space-y-2">
               <div className="flex items-start gap-2">
-                <Bell className="h-4 w-4 text-amber-400 mt-0.5 shrink-0" />
+                <Send className="h-4 w-4 text-sky-400 mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-amber-300">Connectez votre clé API pour activer l'envoi réel</p>
+                  <p className="text-sm font-medium text-sky-300">Envoi sécurisé via Supabase Edge Function</p>
                   <p className="text-xs text-muted mt-1">
-                    Pour les envois via {form.channel === 'sms' ? 'SMS' : form.channel === 'whatsapp' ? 'WhatsApp' : 'Email'}, configurez les variables d'environnement suivantes :
+                    Les SMS/WhatsApp sont envoyés par le serveur (vos clés Twilio ne sont jamais exposées côté client).
                   </p>
                   <div className="mt-2 rounded bg-bg/50 p-3 font-mono text-[11px] text-muted space-y-1">
-                    <div>VITE_TWILIO_ACCOUNT_SID=votre_account_sid</div>
-                    <div>VITE_TWILIO_AUTH_TOKEN=votre_auth_token</div>
-                    <div>VITE_TWILIO_PHONE_NUMBER=+1234567890</div>
-                    <div>VITE_WHATSAPP_BUSINESS_PHONE_NUMBER=+1234567890</div>
-                    <div>VITE_WHATSINESS_ACCESS_TOKEN=votre_access_token</div>
+                    <div className="text-sky-400/70"># Supabase Dashboard → Edge Functions → Secrets :</div>
+                    <div>TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxx</div>
+                    <div>TWILIO_AUTH_TOKEN=votre_token_ici</div>
+                    <div>TWILIO_PHONE_NUMBER=+243xxxxxxxx</div>
+                    <div>WHATSAPP_BUSINESS_PHONE_NUMBER=+243xxxxxxxx</div>
                   </div>
                 </div>
               </div>
