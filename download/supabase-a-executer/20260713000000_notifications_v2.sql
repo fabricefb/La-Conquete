@@ -89,8 +89,8 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- Permet aux visiteurs non authentifiés de soumettre des prières
 -- via un appel RPC depuis le client Supabase
 CREATE OR REPLACE FUNCTION submit_prayer_request(
-  p_author_name TEXT DEFAULT 'Anonyme',
   p_content TEXT,
+  p_author_name TEXT DEFAULT 'Anonyme',
   p_is_anonymous BOOLEAN DEFAULT true,
   p_is_confidential BOOLEAN DEFAULT false
 ) RETURNS UUID AS $$
@@ -121,7 +121,7 @@ CREATE OR REPLACE FUNCTION submit_prayer_request(
       'prayer_requests'::text,
       v_id
     FROM user_profiles up
-    WHERE up.role IN ('pastor', 'super_admin');
+    WHERE up.role_level >= 5 OR up.is_admin = true;
 
     RETURN v_id;
   END;
@@ -191,14 +191,14 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
   DROP POLICY IF EXISTS notif_select ON notifications;
   CREATE POLICY notif_select ON notifications FOR SELECT
-    USING (owns_profile(user_id));
+    USING (user_id = auth.uid());
 END $$;
 
 DO $$ BEGIN
   DROP POLICY IF EXISTS notif_update ON notifications;
   CREATE POLICY notif_update ON notifications FOR UPDATE
-    USING (owns_profile(user_id))
-    WITH CHECK (owns_profile(user_id));
+    USING (user_id = auth.uid())
+    WITH CHECK (user_id = auth.uid());
 END $$;
 
 -- Pas de policy INSERT publique : les notifications sont créées
@@ -209,7 +209,8 @@ CREATE INDEX IF NOT EXISTS idx_notifs_user_unread
   ON notifications(user_id, is_read, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifs_user_created
   ON notifications(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON user_profiles(role);
+CREATE INDEX IF NOT EXISTS idx_profiles_role_level ON user_profiles(role_level);
+CREATE INDEX IF NOT EXISTS idx_profiles_is_admin ON user_profiles(is_admin) WHERE is_admin = true;
 CREATE INDEX IF NOT EXISTS idx_profiles_membership ON user_profiles(membership_date) WHERE membership_date IS NOT NULL;
 
 -- ─── 9. Mettre à jour le trigger handle_new_user pour le joined_via ─
