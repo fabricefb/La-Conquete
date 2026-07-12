@@ -9,11 +9,11 @@ export {
   Music, GraduationCap, Mic, ImageOff, LogIn, Eye, EyeOff, Lock, Loader2, User,
   Landmark, UserPlus, AlertTriangle, Filter,
   // Dashboard & member icons
-  Bell, MessageSquare, Shield,
+  Bell, MessageSquare, Shield, Building2,
   // Communication page
   Upload, Download, Video, Image,
   // Reports & stats icons
-  BarChart3, TrendingUp, TrendingDown, DollarSign, ChevronUp,
+  BarChart3, TrendingUp, TrendingDown, DollarSign, ChevronUp, Church,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;
