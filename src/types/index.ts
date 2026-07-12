@@ -18,7 +18,6 @@ export interface UserProfile {
   address: string | null;
   gender: string | null;
   birth_date: string | null;
-  role: string;
   onboarding_completed: boolean;
   is_admin: boolean;
   created_at: string;

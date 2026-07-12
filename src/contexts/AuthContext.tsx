@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, role, is_admin, onboarding_completed, created_at, updated_at')
+        .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, is_admin, onboarding_completed, created_at, updated_at')
         .eq('id', userId)
         .single();
 
@@ -73,7 +73,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           address: null,
           gender: null,
           birth_date: null,
-          role: 'member',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         } as UserProfile);
@@ -92,7 +91,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         gender: p.gender ?? null,
         birth_date: p.birth_date ?? null,
         is_admin: p.is_admin ?? false,
-        role: p.role ?? 'member',
         onboarding_completed: p.onboarding_completed ?? false,
         created_at: p.created_at,
         updated_at: p.updated_at,
