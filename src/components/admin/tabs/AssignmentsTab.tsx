@@ -72,14 +72,24 @@ export function AssignmentsTab() {
   // ---- fetch ---------------------------------------------------------------
 
   const fetchEvents = useCallback(async () => {
-    const data = await db.getEvents();
-    setEvents(data);
-  }, []);
+    try {
+      const data = await db.getEvents();
+      setEvents(data);
+    } catch (err) {
+      addToast('Erreur de chargement des événements. Vérifiez la connexion.', 'error');
+      console.error('fetchEvents error:', err);
+    }
+  }, [addToast]);
 
   const fetchProfiles = useCallback(async () => {
-    const data = await db.getProfiles();
-    setProfiles(data);
-  }, []);
+    try {
+      const data = await db.getProfiles();
+      setProfiles(data);
+    } catch (err) {
+      addToast('Erreur de chargement des profils. Vérifiez la connexion.', 'error');
+      console.error('fetchProfiles error:', err);
+    }
+  }, [addToast]);
 
   const fetchAssignments = useCallback(async (eventId: string) => {
     if (!eventId) { setAssignments([]); return; }

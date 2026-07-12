@@ -9,7 +9,7 @@ export {
   Music, GraduationCap, Mic, ImageOff, LogIn, Eye, EyeOff, Lock, Loader2, User,
   Landmark, UserPlus, AlertTriangle, Filter,
   // Dashboard & member icons
-  Bell, MessageSquare, Shield, Building2,
+  Bell, MessageSquare, Shield, Building2, LogOut,
   // Communication page
   Upload, Download, Video, Image,
   // Reports & stats icons

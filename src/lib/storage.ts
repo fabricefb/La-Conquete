@@ -5,23 +5,15 @@ const STORAGE_BUCKET = 'media';
 /**
  * Upload a file to Supabase Storage bucket "media".
  * Returns the public URL of the uploaded file.
+ *
+ * NOTE: The "media" bucket must be created manually in Supabase Dashboard:
+ *   Storage → New Bucket → name: "media" → Public: true
  */
 export async function uploadFile(
   file: File,
   path?: string,
   _onProgress?: (percent: number) => void,
 ): Promise<string> {
-  // Ensure bucket exists (non-breaking if it does)
-  const { error: bucketError } = await supabase.storage.createBucket(STORAGE_BUCKET, {
-    public: true,
-    fileSizeLimit: 10 * 1024 * 1024, // 10 MB
-    allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'video/mp4', 'audio/mpeg'],
-  });
-  // Ignore "already exists" error
-  if (bucketError && !bucketError.message.includes('already exists')) {
-    console.warn('Bucket creation skipped:', bucketError.message);
-  }
-
   const ext = file.name.split('.').pop() ?? 'jpg';
   const fileName = path
     ? `${path}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
@@ -34,7 +26,14 @@ export async function uploadFile(
       upsert: false,
     });
 
-  if (uploadError) throw new Error(`Upload failed: ${uploadError.message}`);
+  if (uploadError) {
+    if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('storage resource not found')) {
+      throw new Error(
+        'Bucket "media" introuvable. Allez dans Supabase → Storage → Nouveau bucket → nom: media → Public: coché, puis réessayez.'
+      );
+    }
+    throw new Error(`Upload échoué: ${uploadError.message}`);
+  }
 
   const { data: urlData } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
   return urlData.publicUrl;
@@ -44,10 +43,8 @@ export async function uploadFile(
  * Delete a file from Supabase Storage.
  */
 export async function deleteFile(publicUrl: string): Promise<void> {
-  // Extract path from public URL
   try {
     const url = new URL(publicUrl);
-    // URL pattern: .../storage/v1/object/public/media/path/file.ext
     const parts = url.pathname.split('/');
     const bucketIdx = parts.indexOf(STORAGE_BUCKET);
     if (bucketIdx === -1) return;
