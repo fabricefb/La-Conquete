@@ -28,8 +28,68 @@
 
 
 -- ═══════════════════════════════════════════════════════════════════════════
--- HELPER FUNCTIONS (idempotent — already exist from erp_roles migration,
--- but re-declared here for standalone execution)
+-- PREREQUISITE: Ensure user_profiles has the `role` column + enum
+-- (auto-adds if missing — safe to re-run)
+-- ═══════════════════════════════════════════════════════════════════════════
+
+DO $$ BEGIN
+  -- Create enum type if not exists
+  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+    CREATE TYPE user_role AS ENUM ('visitor', 'member', 'servant', 'chief', 'pastor', 'super_admin');
+  END IF;
+
+  -- Add role column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'role'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN role user_role NOT NULL DEFAULT 'visitor';
+  END IF;
+
+  -- Add phone column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'phone'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN phone TEXT;
+  END IF;
+
+  -- Add address column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'address'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN address TEXT;
+  END IF;
+
+  -- Add gender column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'gender'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN gender TEXT CHECK (gender IN ('male', 'female', 'other'));
+  END IF;
+
+  -- Add birth_date column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'birth_date'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN birth_date DATE;
+  END IF;
+
+  -- Add onboarding_completed column if missing
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'user_profiles' AND column_name = 'onboarding_completed'
+  ) THEN
+    ALTER TABLE user_profiles ADD COLUMN onboarding_completed BOOLEAN NOT NULL DEFAULT false;
+  END IF;
+END $$;
+
+
+-- ═══════════════════════════════════════════════════════════════════════════
+-- HELPER FUNCTIONS (idempotent)
 -- ═══════════════════════════════════════════════════════════════════════════
 
 CREATE OR REPLACE FUNCTION is_super_admin() RETURNS BOOLEAN AS $$
@@ -37,15 +97,15 @@ CREATE OR REPLACE FUNCTION is_super_admin() RETURNS BOOLEAN AS $$
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_pastor_or_above() RETURNS BOOLEAN AS $$
-  SELECT role IN ('pastor', 'super_admin') FROM user_profiles WHERE id = auth.uid();
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IN ('pastor', 'super_admin'));
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_chief_or_above() RETURNS BOOLEAN AS $$
-  SELECT role IN ('chief', 'pastor', 'super_admin') FROM user_profiles WHERE id = auth.uid();
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IN ('chief', 'pastor', 'super_admin'));
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_member_or_above() RETURNS BOOLEAN AS $$
-  SELECT role NOT IN ('visitor') FROM user_profiles WHERE id = auth.uid();
+  SELECT EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role IS NOT NULL AND role != 'visitor');
 $$ LANGUAGE sql STABLE SECURITY DEFINER;
 
 CREATE OR REPLACE FUNCTION is_logged_in() RETURNS BOOLEAN AS $$
