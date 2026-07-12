@@ -231,7 +231,7 @@ interface SiteHeaderProps {
 }
 
 export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp }: SiteHeaderProps) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
