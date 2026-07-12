@@ -28,9 +28,11 @@ DELETE FROM role_assignment_log WHERE target_user IN (SELECT id FROM test_user_i
 
 DELETE FROM donations WHERE donor_id IN (SELECT id FROM test_user_ids);
 
+DELETE FROM communiques WHERE title LIKE 'TEST_%';
 DELETE FROM communiques WHERE author_id IN (SELECT id FROM test_user_ids);
 
 DELETE FROM tag_mentions; -- purger aussi les tags orphelins
+DELETE FROM prayer_requests WHERE content LIKE 'TEST_%';
 DELETE FROM prayer_requests WHERE user_id IN (SELECT id FROM test_user_ids);
 
 DELETE FROM department_members WHERE user_id IN (SELECT id FROM test_user_ids);
@@ -46,16 +48,20 @@ DELETE FROM visitor_followups WHERE assigned_to IN (SELECT id FROM test_user_ids
 -- 3. Supprimer les profils
 DELETE FROM user_profiles WHERE id IN (SELECT id FROM test_user_ids);
 
--- 4. Supprimer les comptes auth (cascade via trigger ou manuel)
-DELETE FROM auth.users WHERE email LIKE 'test_%@laconquete.test';
+-- 4. Supprimer les événements et réponses onboarding de test
+DELETE FROM events WHERE title LIKE 'TEST_%';
+DELETE FROM onboarding_answers WHERE full_name LIKE 'TEST_%';
 
--- 5. Nettoyer les extensions de test
-DELETE FROM extensions WHERE name LIKE 'Extension TEST%';
+-- 5. Supprimer les comptes auth (cascade via trigger ou manuel)
+DELETE FROM auth.users WHERE email LIKE 'test.%@laconquete.test' OR email LIKE 'test_%@laconquete.test';
 
--- 6. Supprimer les départements de test (si créés par le script de test)
+-- 6. Nettoyer les extensions de test
+DELETE FROM extensions WHERE name LIKE 'Extension TEST%' OR name LIKE 'TEST_%';
+
+-- 7. Supprimer les départements de test (si créés par le script de test)
 DELETE FROM departments WHERE name LIKE 'TEST%';
 
--- 7. Notification de résultat
+-- 8. Notification de résultat
 DO $$ BEGIN
   RAISE NOTICE '✅ Nettoyage terminé. Toutes les données TEST_ ont été supprimées.';
 END $$;
