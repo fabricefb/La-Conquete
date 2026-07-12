@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { X, ChevronDown, Menu, LogIn } from '../lib/icons';
+import { X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
-import { can } from '../lib/permissions';
+import { can, getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
 import { ROLE_LEVELS } from '../types';
 import type { Page } from '../lib/navigation';
 import type { Theme } from '../types';
@@ -221,6 +221,91 @@ function MobileAccordion({
   );
 }
 
+/* ─── User Avatar ────────────────────────────────────────────── */
+function UserAvatar({ name, size = 'sm' }: { name?: string | null; size?: 'sm' | 'md' | 'lg' }) {
+  const s = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-14 w-14 text-lg' }[size];
+  const initials = name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
+  return (
+    <div className={`${s} rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center font-bold text-ink-950 shrink-0`}>
+      {initials}
+    </div>
+  );
+}
+
+/* ─── Desktop User Menu ────────────────────────────────────────── */
+function DesktopUserMenu({
+  profile,
+  onNavigate,
+  onSignOut,
+  onOpenAuth,
+}: {
+  profile: any;
+  onNavigate: (page: Page) => void;
+  onSignOut: () => void;
+  onOpenAuth: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const roleLabel = getFullRoleLabel(profile);
+  const badgeClass = getRoleBadgeClass(profile);
+  const displayName = profile?.full_name || profile?.email?.split('@')[0] || 'Membre';
+
+  const handleEnter = useCallback(() => { clearTimeout(timeoutRef.current); setOpen(true); }, []);
+  const handleLeave = useCallback(() => { timeoutRef.current = setTimeout(() => setOpen(false), 200); }, []);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); }
+    if (open) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+      <button className="flex items-center gap-2.5 rounded-full border border-line pl-1 pr-3 py-1 transition-all duration-200 hover:border-gold-400/40 hover:bg-white/5">
+        <UserAvatar name={displayName} />
+        <div className="hidden lg:flex flex-col items-start leading-tight">
+          <span className="text-xs font-medium text-cream truncate max-w-[100px]">{displayName}</span>
+          <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full leading-none ${badgeClass}`}>
+            {roleLabel}
+          </span>
+        </div>
+        <ChevronDown className={`h-3.5 w-3.5 text-muted transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      <div className={`absolute right-0 top-full pt-2 transition-all duration-200 ${
+        open ? 'pointer-events-auto translate-y-0 opacity-100' : 'pointer-events-none -translate-y-2 opacity-0'
+      }`}>
+        <div className="glass rounded-xl p-2 min-w-[220px] shadow-xl shadow-black/30">
+          {/* User info header */}
+          <div className="px-3 py-2.5 mb-1 border-b border-line">
+            <p className="text-sm font-medium text-cream truncate">{displayName}</p>
+            <p className="text-xs text-muted truncate">{profile?.email}</p>
+            <span className={`inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeClass}`}>
+              <Shield className="inline h-3 w-3 mr-1 -mt-0.5" />{roleLabel}
+            </span>
+          </div>
+
+          {/* Menu actions */}
+          <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
+            <User className="h-4 w-4 text-muted" /> Mon profil
+          </button>
+          <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
+            <Bell className="h-4 w-4 text-muted" /> Notifications
+          </button>
+          <div className="my-1 h-px bg-line" />
+          <button onClick={() => { onSignOut(); setOpen(false); }}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
+            <LogOut className="h-4 w-4" /> Se déconnecter
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main Header Component ────────────────────────────────────── */
 
 interface SiteHeaderProps {
@@ -231,7 +316,7 @@ interface SiteHeaderProps {
 }
 
 export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp }: SiteHeaderProps) {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -334,7 +419,9 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
           {/* Right actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} className="hidden sm:flex" />
-            {!user && (
+            {user && profile ? (
+              <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} onOpenAuth={() => handleNav('connexion')} />
+            ) : (
               <button
                 onClick={() => handleNav('connexion')}
                 className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 lg:flex"
@@ -386,8 +473,34 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
 
           {/* Drawer nav */}
           <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-4 py-6">
+            {/* ── Connected user card (mobile) ── */}
+            {user && profile && (
+              <>
+                <div className="flex items-center gap-3 rounded-2xl border border-line bg-white/[0.03] p-4 mb-2">
+                  <UserAvatar name={profile.full_name} size="md" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-cream truncate">
+                      {profile.full_name || profile.email?.split('@')[0]}
+                    </p>
+                    <p className="text-xs text-muted truncate">{profile.email}</p>
+                    <span className={`inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${getRoleBadgeClass(profile)}`}>
+                      <Shield className="inline h-3 w-3 mr-1 -mt-0.5" />{getFullRoleLabel(profile)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={signOut}
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition-colors"
+                    title="Se déconnecter"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mx-4 my-2 h-px bg-line" />
+              </>
+            )}
+
             {/* Admin items */}
-            {user && (
+            {user && profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
               <>
                 {ADMIN_ITEMS.map(item => (
                   <button
@@ -444,6 +557,15 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               >
                 <LogIn className="h-4 w-4" />
                 Se connecter
+              </button>
+            )}
+            {user && (
+              <button
+                onClick={signOut}
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-red-500/30 px-4 py-3 text-sm font-medium text-red-400 transition-all duration-200 hover:border-red-400/50 hover:bg-red-500/10"
+              >
+                <LogOut className="h-4 w-4" />
+                Se déconnecter
               </button>
             )}
             <button onClick={() => handleNav('contact')} className="btn-gold flex-1 py-3 text-sm">
