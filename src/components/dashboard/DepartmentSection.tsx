@@ -20,6 +20,11 @@ import {
   CalendarClock,
   Shield,
   BookOpen,
+  UserPlus,
+  Phone,
+  MapPin,
+  CheckCircle,
+  Eye,
 } from '../../lib/icons';
 import type { LucideIcon } from '../../lib/icons';
 
@@ -33,7 +38,23 @@ interface DepartmentSectionProps {
   accentColor?: string;
 }
 
-type SubAccordion = 'overview' | 'members' | 'activity' | 'notes';
+type SubAccordion = 'overview' | 'members' | 'activity' | 'notes' | 'visitors';
+
+interface VisitorRow {
+  id: string;
+  visitor_name: string;
+  visitor_phone: string | null;
+  visitor_gender: string | null;
+  visitor_quartier: string | null;
+  how_known: string | null;
+  invited_by: string | null;
+  follow_up_type: string | null;
+  cult_day: string | null;
+  cult_date: string;
+  status: string;
+  created_at: string;
+  follow_up_notes: string | null;
+}
 
 interface DepartmentConfig {
   icon: LucideIcon;
@@ -128,11 +149,38 @@ const DEPARTMENT_CONFIGS: { keyword: string; config: DepartmentConfig }[] = [
   },
 ];
 
-const SUB_SECTIONS: { key: SubAccordion; icon: LucideIcon; label: string }[] = [
+const SUB_SECTIONS_BASE: { key: SubAccordion; icon: LucideIcon; label: string }[] = [
   { key: 'overview', icon: Info, label: 'Aperçu' },
   { key: 'members', icon: Users, label: 'Membres du département' },
   { key: 'activity', icon: Clock, label: 'Activité récente' },
   { key: 'notes', icon: FileText, label: 'Mes notes' },
+];
+
+const VISITORS_SECTION: { key: SubAccordion; icon: LucideIcon; label: string } = {
+  key: 'visitors', icon: UserPlus, label: 'Nouveaux Venus à suivre',
+};
+
+const HOW_KNOWN_MAP: Record<string, string> = {
+  membre_invitation: 'Invitation membre',
+  reseaux_sociaux: 'Réseaux sociaux',
+  passant: 'Passant',
+  media: 'Média',
+  autre: 'Autre',
+};
+
+const VISITOR_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
+  nouveau: { label: 'Nouveau', color: 'bg-blue-500/20 text-blue-300' },
+  contacte: { label: 'Contacté', color: 'bg-purple-500/20 text-purple-300' },
+  suivi_en_cours: { label: 'Suivi en cours', color: 'bg-amber-500/20 text-amber-300' },
+  integre: { label: 'Intégré', color: 'bg-emerald-500/20 text-emerald-300' },
+  perdu: { label: 'Perdu', color: 'bg-red-500/20 text-red-300' },
+};
+
+const FOLLOW_UP_OPTIONS = [
+  { value: 'visite', label: 'Visite à domicile' },
+  { value: 'appel', label: 'Appel téléphonique' },
+  { value: 'information', label: 'Envoyer informations' },
+  { value: 'aucun', label: 'Aucun suivi' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -199,6 +247,12 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
     });
   };
 
+  /* ── Evangelisation detection ─────────────────────────────────── */
+  const isEvangelisation = departmentName.toLowerCase().includes('évangélisation');
+  const subSections = isEvangelisation
+    ? [SUB_SECTIONS_BASE[0], VISITORS_SECTION, ...SUB_SECTIONS_BASE.slice(1)]
+    : SUB_SECTIONS_BASE;
+
   /* ── Data state ────────────────────────────────────────────────── */
   const [loading, setLoading] = useState(true);
   const [moduleError, setModuleError] = useState(false);
@@ -207,6 +261,11 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
   const [notes, setNotes] = useState('');
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesFallback, setNotesFallback] = useState(false);
+
+  /* ── Visitors state (évangélisation only) ─────────────────────── */
+  const [visitors, setVisitors] = useState<VisitorRow[]>([]);
+  const [visitorsLoading, setVisitorsLoading] = useState(false);
+  const [updatingVisitorId, setUpdatingVisitorId] = useState<string | null>(null);
 
   /* ── Fetch all data ────────────────────────────────────────────── */
   const fetchData = useCallback(async () => {
@@ -290,6 +349,26 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
       if (tableError && !deptRes.data && members.length === 0) {
         setModuleError(true);
       }
+
+      // Fetch new visitors for évangélisation department
+      if (isEvangelisation) {
+        setVisitorsLoading(true);
+        try {
+          const { data: visitorsData, error: vErr } = await supabase
+            .from('new_visitors')
+            .select('id, visitor_name, visitor_phone, visitor_gender, visitor_quartier, how_known, invited_by, follow_up_type, cult_day, cult_date, status, created_at, follow_up_notes')
+            .in('status', ['nouveau', 'contacte', 'suivi_en_cours'])
+            .order('created_at', { ascending: false })
+            .limit(50);
+          if (!vErr && visitorsData) {
+            setVisitors(visitorsData as unknown as VisitorRow[]);
+          }
+        } catch (e) {
+          console.error('Visitors fetch error:', e);
+        } finally {
+          setVisitorsLoading(false);
+        }
+      }
     } catch (err) {
       if (isTableNotFoundError(err)) {
         setModuleError(true);
@@ -299,7 +378,7 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
     } finally {
       setLoading(false);
     }
-  }, [user, departmentId]);
+  }, [user, departmentId, isEvangelisation]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -510,6 +589,151 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
     </div>
   );
 
+  /* ── Update visitor follow-up status ─────────────────────────── */
+  const handleUpdateVisitorStatus = async (visitorId: string, newStatus: string) => {
+    if (!user) return;
+    setUpdatingVisitorId(visitorId);
+    try {
+      const { error } = await supabase
+        .from('new_visitors')
+        .update({
+          status: newStatus,
+          follow_up_by: user.id,
+          follow_up_at: new Date().toISOString(),
+        })
+        .eq('id', visitorId);
+      if (error) throw error;
+      // Update local state
+      setVisitors(prev => prev.map(v =>
+        v.id === visitorId ? { ...v, status: newStatus } : v
+      ));
+      addToast('Statut du visiteur mis à jour.', 'success');
+    } catch (err) {
+      console.error('Update visitor status error:', err);
+      addToast('Erreur lors de la mise à jour.', 'error');
+    } finally {
+      setUpdatingVisitorId(null);
+    }
+  };
+
+  /* ── Render visitors section ───────────────────────────────────── */
+  const renderVisitors = () => (
+    <div className="space-y-4">
+      <p className="text-xs text-muted">
+        Ces visiteurs ont été enregistrés lors des cultes par l'équipe Protocole. Prenez-les en suivi pour l'évangélisation.
+      </p>
+
+      {visitorsLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="w-6 h-6 animate-spin text-muted" />
+        </div>
+      ) : visitors.length === 0 ? (
+        <div className="text-center py-8">
+          <UserPlus className="w-8 h-8 mx-auto mb-2 text-muted/50" />
+          <p className="text-muted text-sm">Aucun nouveau visiteur à suivre</p>
+          <p className="text-muted/60 text-xs mt-1">
+            Les visiteurs enregistrés par le Protocole apparaîtront ici.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs font-medium text-cream">{visitors.length} visiteur{visitors.length > 1 ? 's' : ''} en attente de suivi</span>
+          </div>
+          <div className="max-h-[500px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+            {visitors.map(v => {
+              const statusCfg = VISITOR_STATUS_CONFIG[v.status] || VISITOR_STATUS_CONFIG.nouveau;
+              return (
+                <div key={v.id} className="glass rounded-xl p-4 space-y-3">
+                  {/* Header: name + status */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-cream truncate">{v.visitor_name}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        {v.visitor_phone && (
+                          <span className="text-[11px] text-muted flex items-center gap-1">
+                            <Phone className="w-3 h-3" /> {v.visitor_phone}
+                          </span>
+                        )}
+                        {v.visitor_quartier && (
+                          <span className="text-[11px] text-muted flex items-center gap-1">
+                            <MapPin className="w-3 h-3" /> {v.visitor_quartier}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <span className={`text-[10px] font-medium px-2 py-1 rounded-full shrink-0 ${statusCfg.color}`}>
+                      {statusCfg.label}
+                    </span>
+                  </div>
+
+                  {/* Details row */}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted/80">
+                    {v.cult_day && (
+                      <span>Culte: <span className="text-cream/70 capitalize">{v.cult_day}</span></span>
+                    )}
+                    {v.how_known && (
+                      <span>Source: <span className="text-cream/70">{HOW_KNOWN_MAP[v.how_known] || v.how_known}</span></span>
+                    )}
+                    {v.invited_by && (
+                      <span>Invité par: <span className="text-cream/70">{v.invited_by}</span></span>
+                    )}
+                    <span>Enregistré: <span className="text-cream/70">{formatDate(v.created_at)}</span></span>
+                  </div>
+
+                  {/* Follow-up actions */}
+                  <div className="flex items-center gap-2 pt-1 border-t border-line/20">
+                    <Eye className="w-3.5 h-3.5 text-muted shrink-0" />
+                    <span className="text-[11px] text-muted shrink-0">Suivi :</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {v.status !== 'contacte' && (
+                        <button
+                          onClick={() => handleUpdateVisitorStatus(v.id, 'contacte')}
+                          disabled={updatingVisitorId === v.id}
+                          className="text-[10px] px-2.5 py-1 rounded-lg bg-purple-500/15 text-purple-300 hover:bg-purple-500/25 transition-colors disabled:opacity-50"
+                        >
+                          Marquer contacté
+                        </button>
+                      )}
+                      {v.status !== 'suivi_en_cours' && (
+                        <button
+                          onClick={() => handleUpdateVisitorStatus(v.id, 'suivi_en_cours')}
+                          disabled={updatingVisitorId === v.id}
+                          className="text-[10px] px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition-colors disabled:opacity-50"
+                        >
+                          Suivi en cours
+                        </button>
+                      )}
+                      {v.status !== 'integre' && (
+                        <button
+                          onClick={() => handleUpdateVisitorStatus(v.id, 'integre')}
+                          disabled={updatingVisitorId === v.id}
+                          className="text-[10px] px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50"
+                        >
+                          <CheckCircle className="w-3 h-3 inline mr-0.5" />
+                          Intégré
+                        </button>
+                      )}
+                      {v.status !== 'perdu' && (
+                        <button
+                          onClick={() => handleUpdateVisitorStatus(v.id, 'perdu')}
+                          disabled={updatingVisitorId === v.id}
+                          className="text-[10px] px-2.5 py-1 rounded-lg bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-colors disabled:opacity-50"
+                        >
+                          Perdu de vue
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+
   /* ═══════════════════════════════════════════════════════════════════
      Render
      ═══════════════════════════════════════════════════════════════════ */
@@ -526,7 +750,7 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
 
   return (
     <div className="space-y-2">
-      {SUB_SECTIONS.map(section => {
+      {subSections.map(section => {
         const isOpen = openSections.has(section.key);
         const SectionIcon = section.icon;
         return (
@@ -557,6 +781,7 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
                    section.key === 'members' ? renderMembers() :
                    section.key === 'activity' ? renderActivity() :
                    section.key === 'notes' ? renderNotes() :
+                   section.key === 'visitors' ? renderVisitors() :
                    null}
               </div>
             )}

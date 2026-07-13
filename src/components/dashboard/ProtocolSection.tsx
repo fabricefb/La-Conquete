@@ -270,7 +270,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
         children_count: reportForm.children_count,
         new_comers_count: reportForm.new_comers_count,
         empty_seats: reportForm.empty_seats,
-        total_attendance: total,
+        // total_attendance est GENERATED ALWAYS — ne pas insérer
         incidents: reportForm.incidents || null,
         team_group: reportForm.team_group || null,
         extension_id: reportForm.extension_id || null,
