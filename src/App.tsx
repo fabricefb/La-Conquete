@@ -57,6 +57,24 @@ export const useAuthModal = () => {
 function AppRouter() {
   const [page, setPage] = useState<Page>(getPage);
   const { authOpen, authView, openAuth, closeAuth } = useAuthModal();
+  const { user, isAdmin, loading: authLoading } = useAuth();
+
+  // ── Redirect admin/pastor to #admin after login ──
+  useEffect(() => {
+    if (!authLoading && user && isAdmin && page === 'home') {
+      // Only auto-redirect if user just landed on home after login
+      // (not if they manually navigated back to home)
+      const redirected = sessionStorage.getItem('lc_admin_redirected');
+      if (!redirected) {
+        sessionStorage.setItem('lc_admin_redirected', '1');
+        setPage('admin');
+      }
+    }
+    // Clear flag on logout
+    if (!user) {
+      sessionStorage.removeItem('lc_admin_redirected');
+    }
+  }, [authLoading, user, isAdmin, page, setPage]);
 
   useEffect(() => {
     // Handle #connexion route → open auth modal
@@ -104,7 +122,7 @@ function AppRouter() {
           }
         })()}
       </Suspense>
-      <AuthModal isOpen={authOpen} onClose={closeAuth} initialView={authView} />
+      <AuthModal isOpen={authOpen} onClose={() => { closeAuth(); sessionStorage.removeItem('lc_admin_redirected'); }} initialView={authView} />
     </>
   );
 }
