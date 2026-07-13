@@ -276,12 +276,41 @@ export function DepartmentsTab() {
 
   const fetchDeptRequests = useCallback(async () => {
     setReqLoading(true);
-    const { data, error } = await supabase
-      .from('department_requests')
-      .select('id, user_id, department_id, message, status, created_at, responded_at, user_profiles(full_name, email), departments(name)')
-      .eq('status', 'en_attente')
-      .order('created_at', { ascending: true });
-    if (!error) setDeptRequests((data as any[]) ?? []);
+    try {
+      const { data: reqs, error } = await supabase
+        .from('department_requests')
+        .select('id, user_id, department_id, message, status, created_at, responded_at')
+        .eq('status', 'en_attente')
+        .order('created_at', { ascending: true });
+
+      if (error || !reqs || reqs.length === 0) {
+        setDeptRequests([]);
+        setReqLoading(false);
+        return;
+      }
+
+      // Récupérer les profils utilisateurs et noms de départements séparément
+      const userIds = [...new Set(reqs.map(r => r.user_id))];
+      const deptIds = [...new Set(reqs.map(r => r.department_id))];
+
+      const [profilesRes, deptsRes] = await Promise.all([
+        supabase.from('user_profiles').select('id, full_name, email').in('id', userIds),
+        supabase.from('departments').select('id, name').in('id', deptIds),
+      ]);
+
+      const profileMap = new Map((profilesRes.data || []).map((p: any) => [p.id, p]));
+      const deptMap = new Map((deptsRes.data || []).map((d: any) => [d.id, d]));
+
+      const enriched = reqs.map(r => ({
+        ...r,
+        user_profiles: profileMap.get(r.user_id) || null,
+        departments: deptMap.get(r.department_id) || null,
+      }));
+
+      setDeptRequests(enriched);
+    } catch {
+      setDeptRequests([]);
+    }
     setReqLoading(false);
   }, []);
 
@@ -585,11 +614,19 @@ export function DepartmentsTab() {
     try {
       const { data: req } = await supabase
         .from('department_requests')
-        .select('user_id, department_id, departments(name), user_profiles(full_name)')
+        .select('user_id, department_id')
         .eq('id', reqId)
         .single();
 
       if (!req) throw new Error('Demande introuvable');
+
+      // Récupérer nom du département et profil séparément
+      const [deptRes, profileRes] = await Promise.all([
+        supabase.from('departments').select('name').eq('id', req.department_id).single(),
+        supabase.from('user_profiles').select('full_name').eq('id', req.user_id).single(),
+      ]);
+      const deptName = (deptRes.data as any)?.name || 'le département';
+      const userName = (profileRes.data as any)?.full_name || 'Un membre';
 
       const { error } = await supabase.from('department_requests').update({
         status: approve ? 'accepte' : 'refuse',
@@ -614,17 +651,17 @@ export function DepartmentsTab() {
           user_id: req.user_id,
           type: 'dept_approved',
           title: 'Demande de département acceptée',
-          body: `Votre demande pour rejoindre "${(req.departments as any)?.name || 'le département'}" a été acceptée. Bienvenue !`,
+          body: `Votre demande pour rejoindre "${deptName}" a été acceptée. Bienvenue !`,
           link: '#dashboard',
         });
 
-        addToast(`${(req.user_profiles as any)?.full_name || 'Membre'} ajouté au département.`, 'success');
+        addToast(`${userName} ajouté au département.`, 'success');
       } else {
         await supabase.from('notifications').insert({
           user_id: req.user_id,
           type: 'dept_rejected',
           title: 'Demande de département refusée',
-          body: `Votre demande pour rejoindre "${(req.departments as any)?.name || 'le département'}" n'a pas été acceptée.`,
+          body: `Votre demande pour rejoindre "${deptName}" n'a pas été acceptée.`,
           link: '#dashboard',
         });
 
@@ -647,8 +684,8 @@ export function DepartmentsTab() {
             type: 'dept_request_resolved',
             title: approve ? 'Nouveau membre accepté' : 'Demande refusée',
             body: approve
-              ? `${(req.user_profiles as any)?.full_name || 'Un membre'} a été accepté dans votre département.`
-              : `La demande de ${(req.user_profiles as any)?.full_name || 'un membre'} a été refusée.`,
+              ? `${userName} a été accepté dans votre département.`
+              : `La demande de ${userName} a été refusée.`,
             link: '#admin/departments',
           }));
         if (leaderNotifs.length > 0) {
