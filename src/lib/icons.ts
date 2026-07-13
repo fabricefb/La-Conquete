@@ -14,6 +14,8 @@ export {
   Upload, Download, Video, Image,
   // Reports & stats icons
   BarChart3, TrendingUp, TrendingDown, DollarSign, ChevronUp, Church,
+  // Auth & password recovery
+  KeyRound, MessageCircle,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;
