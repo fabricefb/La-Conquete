@@ -18,6 +18,8 @@ export {
   KeyRound, MessageCircle,
   // Donations page
   Smartphone, CreditCard, Copy, ClipboardList,
+  // Protocol module
+  UserCheck, Shirt, UsersRound, FileBarChart, AlertCircle, Info, Timer, CalendarClock,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;

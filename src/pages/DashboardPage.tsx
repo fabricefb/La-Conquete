@@ -8,6 +8,8 @@ import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
   MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList,
 } from '../lib/icons';
+import { ProtocolSection } from '../components/dashboard/ProtocolSection';
+import { useEventReminders } from '../lib/hooks/useEventReminders';
 import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
@@ -135,6 +137,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [newPrayerConfidential, setNewPrayerConfidential] = useState(false);
   const [newPrayerAnonymous, setNewPrayerAnonymous] = useState(false);
   const [prayerSubmitting, setPrayerSubmitting] = useState(false);
+
+  // ── Event Reminders (3x/day) ────────────────────────────────
+  const { upcomingReminders } = useEventReminders();
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Membre';
 
@@ -1296,9 +1301,20 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
-               8. RECENT ACTIVITY
+               8. DÉPARTEMENT-SPECIFIC SECTIONS
                ═══════════════════════════════════════════════════════ */}
-            <EvtReveal delay={7}>
+            {departments.some((d) => d.department_name.toLowerCase().includes('protocole')) && (
+              <EvtReveal delay={7}>
+                <section className="mb-10">
+                  <ProtocolSection accentColor={departments.find((d) => d.department_name.toLowerCase().includes('protocole'))?.accent_color} />
+                </section>
+              </EvtReveal>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════
+               9. RECENT ACTIVITY
+               ═══════════════════════════════════════════════════════ */}
+            <EvtReveal delay={8}>
               <section id="recent-activity" className="mb-10">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">

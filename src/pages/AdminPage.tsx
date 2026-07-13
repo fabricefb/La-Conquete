@@ -22,6 +22,7 @@ import { PipelineTab } from '../components/admin/tabs/PipelineTab';
 import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
 import { UsersTab } from '../components/admin/tabs/UsersTab';
 import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
+import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
 import { RefreshCw, ShieldOff } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
@@ -166,6 +167,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'onboarding': return <OnboardingTab />;
       case 'users': return <UsersTab />;
       case 'theme': return <ThemeTab />;
+      case 'protocol': return <ProtocolTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

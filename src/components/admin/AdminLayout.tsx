@@ -6,6 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
+  UserCheck,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -51,6 +52,7 @@ const tabGroups: TabGroup[] = [
       { id: 'pastors', label: 'Équipe Pastorale', Icon: Crown },
       { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
       { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
+      { id: 'protocol', label: 'Protocole', Icon: UserCheck },
     ],
   },
   {

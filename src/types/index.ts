@@ -279,7 +279,8 @@ export type AdminTab =
   | 'theme'
   | 'onboarding'
   | 'users'
-  | 'creneaux';
+  | 'creneaux'
+  | 'protocol';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
@@ -986,5 +987,124 @@ export interface NotificationItem {
   type: 'prayer_prayed' | 'service_assigned' | 'service_accepted' | 'service_declined' | 'role_approved' | 'role_rejected' | 'new_post' | 'new_comment' | 'daily_thought' | 'general' | 'visitor_assigned' | 'onboarding_reminder' | 'tag_mention' | 'dept_request_approved' | 'dept_request_received' | 'communique_published' | 'bureau_vote' | 'donation_received' | 'assignment' | 'reminder' | 'alert' | 'info' | 'visit' | 'prayer';
   is_read: boolean;
   link?: string;
+  created_at: string;
+}
+
+// ═════════════════════════════════════════════════════
+// MODULE 6 — Protocole & Accueil
+// ═════════════════════════════════════════════════════
+
+export type CultDay = 'mercredi' | 'vendredi' | 'samedi' | 'dimanche' | 'autre';
+export type FormalityLevel = 'decontracte' | 'correct' | 'formel';
+
+export const CULT_DAY_LABELS: Record<CultDay, string> = {
+  mercredi: 'Mercredi',
+  vendredi: 'Vendredi',
+  samedi: 'Samedi',
+  dimanche: 'Dimanche',
+  autre: 'Autre (Spécial)',
+};
+
+export const CULT_DAY_COLORS: Record<CultDay, string> = {
+  mercredi: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
+  vendredi: 'bg-purple-500/15 text-purple-300 border-purple-500/20',
+  samedi: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20',
+  dimanche: 'bg-gold-400/15 text-gold-400 border-gold-400/20',
+  autre: 'bg-gray-500/15 text-gray-300 border-gray-500/20',
+};
+
+export interface CultReport {
+  id: string;
+  user_id: string;
+  reporter_name: string;
+  cult_day: CultDay;
+  cult_date: string;
+  men_count: number;
+  women_count: number;
+  children_count: number;
+  new_comers_count: number;
+  empty_seats: number;
+  total_attendance: number;
+  incidents: string | null;
+  team_group: string | null;
+  status: 'brouillon' | 'soumis' | 'valide' | 'rejete';
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProtocolTeam {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface ProtocolTeamMember {
+  id: string;
+  team_id: string;
+  user_id: string;
+  role_in_team: 'agent' | 'responsable' | 'adjoint';
+  is_active: boolean;
+  joined_at: string;
+}
+
+export interface ProtocolSchedule {
+  id: string;
+  team_id: string;
+  cult_day: CultDay;
+  week_number: number | null;
+  month: number | null;
+  year: number;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  team_name?: string;
+  team_color?: string;
+}
+
+export interface ProtocolDressCode {
+  id: string;
+  cult_day: CultDay;
+  description: string;
+  required_items: string[];
+  formality_level: FormalityLevel;
+  icon_hint: string | null;
+  updated_at: string;
+}
+
+export interface NewVisitor {
+  id: string;
+  recorded_by: string;
+  visitor_name: string;
+  visitor_phone: string | null;
+  visitor_gender: 'homme' | 'femme' | null;
+  visitor_quartier: string | null;
+  how_known: 'membre_invitation' | 'reseaux_sociaux' | 'passant' | 'media' | 'autre' | null;
+  invited_by: string | null;
+  follow_up_type: 'visite' | 'appel' | 'information' | 'aucun' | null;
+  cult_day: CultDay | null;
+  cult_date: string;
+  status: 'nouveau' | 'contacte' | 'suivi_en_cours' | 'integre' | 'perdu';
+  follow_up_notes: string | null;
+  follow_up_by: string | null;
+  follow_up_at: string | null;
+  created_at: string;
+}
+
+export interface EventReminder {
+  id: string;
+  event_id: string;
+  reminder_time: 'matin' | 'apres_midi' | 'soir';
+  reminder_offset_hours: number;
+  message_template: string | null;
+  target_type: 'all' | 'department' | 'team' | 'custom';
+  target_ids: string[];
+  is_active: boolean;
   created_at: string;
 }
