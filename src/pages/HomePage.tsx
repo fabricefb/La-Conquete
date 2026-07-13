@@ -370,7 +370,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/50 to-bg" />
 
-        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-24 pb-16 text-center">
+        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-20 pb-24 sm:pt-24 sm:pb-16 text-center">
           <div className="animate-fade-up mb-6 flex justify-center">
             <span className="inline-flex items-center gap-2 rounded-full border border-gold-400/30 bg-gold-400/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold-300">
               <Sparkles className="h-3.5 w-3.5" />
@@ -415,9 +415,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </button>
           </div>
 
-          {/* Scroll indicator */}
+          {/* Scroll indicator — uniquement desktop */}
           <div
-            className="animate-fade-up absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+            className="animate-fade-up absolute bottom-8 left-1/2 -translate-x-1/2 hidden flex-col items-center gap-2 lg:flex"
             style={{ animationDelay: '0.8s' }}
           >
             <span className="text-[10px] font-semibold uppercase tracking-widest text-muted/60">
