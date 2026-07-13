@@ -638,13 +638,30 @@ export function DepartmentsTab() {
       if (error) throw error;
 
       if (approve) {
-        // Add to department_members
-        await supabase.from('department_members').upsert({
+        // Add to department_members — triple stratégie pour garantir l'insertion
+        const upsertRes = await supabase.from('department_members').upsert({
           user_id: req.user_id,
           department_id: req.department_id,
           role_in_dept: 'member',
           is_active: true,
         }, { onConflict: 'user_id,department_id' });
+
+        if (upsertRes.error) {
+          // Fallback: insert simple
+          const insertRes = await supabase.from('department_members').insert({
+            user_id: req.user_id,
+            department_id: req.department_id,
+            role_in_dept: 'member',
+            is_active: true,
+          });
+          if (insertRes.error) {
+            // Dernier recours: forcer is_active = true si la ligne existe déjà
+            await supabase.from('department_members')
+              .update({ is_active: true })
+              .eq('user_id', req.user_id)
+              .eq('department_id', req.department_id);
+          }
+        }
 
         // Notify user
         await supabase.from('notifications').insert({

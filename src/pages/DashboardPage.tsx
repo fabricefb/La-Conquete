@@ -262,10 +262,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         setPrayers((prayerData || []) as PrayerReqType[]);
         setDepartments(userDepts);
 
-        // ── Auto-réparation : demandes acceptées sans department_members ──
+        // ── Auto-réparation : demandes acceptées sans department_members actif ──
         if (userDepts.length === 0) {
           try {
-            // Vérifier les demandes acceptées (status = 'accepte' ou 'accepted')
             const { data: acceptedReqs } = await supabase
               .from('department_requests')
               .select('id, department_id, status')
@@ -273,16 +272,34 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               .in('status', ['accepte', 'accepted', 'approuve', 'approved']);
 
             if (acceptedReqs && acceptedReqs.length > 0) {
-              // Réparer : insérer dans department_members pour chaque demande acceptée
               for (const req of acceptedReqs) {
-                await supabase.from('department_members').upsert({
+                // Stratégie 1: upsert
+                const r1 = await supabase.from('department_members').upsert({
                   user_id: user.id,
                   department_id: req.department_id,
                   role_in_dept: 'member',
                   is_active: true,
-                }, { onConflict: 'user_id,department_id' }).catch(() => {});
+                }, { onConflict: 'user_id,department_id' });
+
+                if (r1.error) {
+                  // Stratégie 2: insert simple
+                  const r2 = await supabase.from('department_members').insert({
+                    user_id: user.id,
+                    department_id: req.department_id,
+                    role_in_dept: 'member',
+                    is_active: true,
+                  });
+                  if (r2.error) {
+                    // Stratégie 3: forcer is_active = true
+                    await supabase.from('department_members')
+                      .update({ is_active: true })
+                      .eq('user_id', user.id)
+                      .eq('department_id', req.department_id);
+                  }
+                }
               }
-              // Re-fetch departments after repair
+
+              // Re-fetch departments après réparation
               const { data: repairedDepts } = await supabase
                 .from('department_members')
                 .select('department_id, position_id, is_active')
