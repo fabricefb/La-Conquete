@@ -85,6 +85,28 @@ function EvtReveal({
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   DeptMemberCount — petit composant pour afficher le nombre de membres
+   ═══════════════════════════════════════════════════════════════════ */
+
+function DeptMemberCount({ departmentId }: { departmentId: string }) {
+  const [count, setCount] = useState<number | null>(null);
+  useEffect(() => {
+    supabase.from('department_members')
+      .select('id', { count: 'exact', head: true })
+      .eq('department_id', departmentId)
+      .eq('is_active', true)
+      .then(({ count: c }) => setCount(c ?? 0));
+  }, [departmentId]);
+  if (count === null) return null;
+  return (
+    <div className="mt-3 flex items-center gap-2 text-xs text-muted">
+      <Users className="h-3.5 w-3.5 text-emerald-400/70" />
+      <span>{count} membre{count > 1 ? 's' : ''} actif{count > 1 ? 's' : ''}</span>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Dashboard Page
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -190,12 +212,26 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             .eq('onboarding_completed', true),
         ]);
 
-        // 4. User's departments
+        // 4. User's departments (sans jointure PostgREST — fetch séparé)
         const { data: deptMembers } = await supabase
           .from('department_members')
-          .select('department_id, position_id, departments(name, accent_color, icon_name), positions(name)')
+          .select('department_id, position_id')
           .eq('user_id', user.id)
           .eq('is_active', true);
+
+        // Récupérer les infos départements et positions séparément
+        let deptMap: Record<string, any> = {};
+        let posMap: Record<string, any> = {};
+        if (deptMembers && deptMembers.length > 0) {
+          const deptIds = [...new Set(deptMembers.map((d: any) => d.department_id))];
+          const posIds = [...new Set((deptMembers as any[]).map((d: any) => d.position_id).filter(Boolean))];
+          const [deptsRes, posRes] = await Promise.all([
+            supabase.from('departments').select('id, name, accent_color, icon_name').in('id', deptIds),
+            posIds.length > 0 ? supabase.from('positions').select('id, name').in('id', posIds) : Promise.resolve({ data: [] }),
+          ]);
+          deptMap = Object.fromEntries((deptsRes.data || []).map((d: any) => [d.id, d]));
+          posMap = Object.fromEntries((posRes.data || []).map((p: any) => [p.id, p]));
+        }
 
         // 5. Notifications
         const { data: notifData } = await supabase
@@ -212,10 +248,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         const userDepts: UserDepartment[] = (deptMembers || []).map((dm: any) => ({
           id: dm.department_id,
-          department_name: dm.departments?.name || 'Département',
-          position_name: dm.positions?.name || null,
-          accent_color: dm.departments?.accent_color || 'gold',
-          icon_name: dm.departments?.icon_name || 'Star',
+          department_name: deptMap[dm.department_id]?.name || 'Département',
+          position_name: posMap[dm.position_id]?.name || null,
+          accent_color: deptMap[dm.department_id]?.accent_color || 'gold',
+          icon_name: deptMap[dm.department_id]?.icon_name || 'Star',
         }));
 
         setEvents((eventData || []) as ChurchEvent[]);
@@ -247,8 +283,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             color: 'text-amber-400',
           },
           {
-            label: 'Membres actifs ce mois',
-            value: memberRes.count ?? 0,
+            label: userDepts.length > 0
+              ? `Membres de ${userDepts[0].department_name}`
+              : 'Membres inscrits',
+            value: userDepts.length > 0
+              ? (await supabase
+                  .from('department_members')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('department_id', userDepts[0].id)
+                  .eq('is_active', true)).count ?? 0
+              : memberRes.count ?? 0,
             Icon: Users,
             color: 'text-emerald-400',
           },
@@ -1002,7 +1046,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                             )}
                           </div>
                         </div>
-                        <div className="mt-4 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
+                        <DeptMemberCount departmentId={dept.id} />
+                        <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
                           <Clock className="h-3.5 w-3.5 shrink-0 text-gold-400/70" />
                           <span>Réunion hebdomadaire —</span>
                           <span className="text-cream/70 font-medium">

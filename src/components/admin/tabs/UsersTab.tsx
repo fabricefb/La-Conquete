@@ -172,13 +172,17 @@ export function UsersTab() {
       if (error) throw error;
 
       if (approve) {
-        // Ajouter au département
-        await supabase.from('department_members').upsert({
-          user_id: selectedUserId,
-          department_id: (await supabase.from('department_requests').select('department_id').eq('id', reqId).single()).data?.department_id,
-          role_in_dept: 'member',
-          is_active: true,
-        }, { onConflict: 'user_id,department_id' });
+        // Récupérer le department_id AVANT l'update (qui change le statut)
+        const { data: reqData } = await supabase.from('department_requests').select('department_id').eq('id', reqId).single();
+        const deptId = reqData?.department_id;
+        if (deptId) {
+          await supabase.from('department_members').upsert({
+            user_id: selectedUserId,
+            department_id: deptId,
+            role_in_dept: 'member',
+            is_active: true,
+          }, { onConflict: 'user_id,department_id' });
+        }
 
         await supabase.from('notifications').insert({
           user_id: selectedUserId,
