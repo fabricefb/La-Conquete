@@ -123,6 +123,9 @@ export function AlertsTab() {
   const [visitStatusFilter, setVisitStatusFilter] = useState('');
   const [visitUrgencyFilter, setVisitUrgencyFilter] = useState('');
 
+  // Table missing state
+  const [tableMissing, setTableMissing] = useState(false);
+
   // Assign modal
   const [assignModal, setAssignModal] = useState<{ type: 'alert' | 'visit'; id: string } | null>(null);
   const [assignTarget, setAssignTarget] = useState('');
@@ -139,8 +142,13 @@ export function AlertsTab() {
     try {
       const data = await db.getPastoralAlerts(alertStatusFilter || undefined);
       setAlerts(data);
-    } catch {
-      addToast('Erreur lors du chargement des alertes', 'error');
+    } catch (err: any) {
+      if (err?.code === '42P01' || err?.message?.includes('does not exist') || err?.message?.includes('relation')) {
+        setAlerts([]);
+        setTableMissing(true);
+      } else {
+        addToast('Erreur lors du chargement des alertes', 'error');
+      }
     }
     setAlertLoading(false);
   }, [addToast, alertStatusFilter]);
@@ -150,8 +158,13 @@ export function AlertsTab() {
     try {
       const data = await db.getVisitRequests(visitStatusFilter || undefined);
       setVisits(data);
-    } catch {
-      addToast('Erreur lors du chargement des demandes', 'error');
+    } catch (err: any) {
+      if (err?.code === '42P01' || err?.message?.includes('does not exist') || err?.message?.includes('relation')) {
+        setVisits([]);
+        setTableMissing(true);
+      } else {
+        addToast('Erreur lors du chargement des demandes', 'error');
+      }
     }
     setVisitLoading(false);
   }, [addToast, visitStatusFilter]);
@@ -243,6 +256,21 @@ export function AlertsTab() {
       <h2 className="font-serif text-2xl font-semibold text-cream">
         Alertes & Visites
       </h2>
+
+      {tableMissing && (
+        <div className="glass rounded-xl p-5 border border-amber-500/20 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-cream">Tables de données non configurées</p>
+              <p className="text-xs text-muted mt-1">
+                Certaines tables nécessaires ne sont pas encore créées dans Supabase.
+                Veuillez exécuter le fichier <code className="text-amber-400">14_missing_tables_consolidated.sql</code> dans l'éditeur SQL de Supabase.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X } from 'lucide-react';
+import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X, XCircle, CheckCircle } from 'lucide-react';
 import { ROLE_LABELS, PASTOR_CATEGORY_LABELS } from '../../../types';
 
 interface UserProfileExt {
@@ -155,6 +155,56 @@ export function UsersTab() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail>({ departments: [], recentActivity: [], roleRequests: [], deptRequests: [] });
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deptReqProcessing, setDeptReqProcessing] = useState<string | null>(null);
+
+  // ── Approuver/Refuser une demande de département depuis le panneau détail ──
+  const handleDeptRequestAction = async (reqId: string, deptName: string, approve: boolean) => {
+    if (!selectedUserId) return;
+    setDeptReqProcessing(reqId);
+    try {
+      const { error } = await supabase.from('department_requests').update({
+        status: approve ? 'accepte' : 'refuse',
+        responded_by: adminProfile?.id,
+        responded_at: new Date().toISOString(),
+      }).eq('id', reqId);
+      if (error) throw error;
+
+      if (approve) {
+        // Ajouter au département
+        await supabase.from('department_members').upsert({
+          user_id: selectedUserId,
+          department_id: (await supabase.from('department_requests').select('department_id').eq('id', reqId).single()).data?.department_id,
+          role_in_dept: 'member',
+          is_active: true,
+        }, { onConflict: 'user_id,department_id' });
+
+        await supabase.from('notifications').insert({
+          user_id: selectedUserId,
+          type: 'dept_approved',
+          title: 'Demande de département acceptée',
+          body: `Votre demande pour rejoindre "${deptName}" a été acceptée. Bienvenue !`,
+          link: '#dashboard',
+        });
+        addToast(`Membre ajouté au département "${deptName}".`, 'success');
+      } else {
+        await supabase.from('notifications').insert({
+          user_id: selectedUserId,
+          type: 'dept_rejected',
+          title: 'Demande de département refusée',
+          body: `Votre demande pour rejoindre "${deptName}" n'a pas été acceptée.`,
+          link: '#dashboard',
+        });
+        addToast('Demande refusée.', 'info');
+      }
+
+      // Rafraîchir le panneau détail
+      fetchUserDetail(selectedUserId);
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    } finally {
+      setDeptReqProcessing(null);
+    }
+  };
 
   const fetchUserDetail = useCallback(async (userId: string) => {
     setDetailLoading(true);
@@ -541,7 +591,7 @@ export function UsersTab() {
                 </div>
               )}
 
-              {/* Department Requests History */}
+              {/* Department Requests — avec boutons Accepter/Refuser */}
               {userDetail.deptRequests.length > 0 && (
                 <div>
                   <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
@@ -550,20 +600,43 @@ export function UsersTab() {
                   </h4>
                   <div className="space-y-2">
                     {userDetail.deptRequests.map(r => (
-                      <div key={r.id} className="rounded-lg bg-white/3 p-3 flex items-center justify-between">
-                        <div>
+                      <div key={r.id} className={`rounded-lg bg-white/3 p-3 flex flex-col sm:flex-row sm:items-center gap-2 ${r.status === 'en_attente' ? 'border border-amber-500/20' : ''}`}>
+                        <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-cream">{r.department_name}</p>
                           <p className="text-[10px] text-muted">
                             {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </p>
                         </div>
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                          r.status === 'accepte' ? 'bg-emerald-500/20 text-emerald-400' :
-                          r.status === 'refuse' ? 'bg-red-500/20 text-red-400' :
-                          'bg-amber-500/20 text-amber-400'
-                        }`}>
-                          {r.status === 'accepte' ? 'Accepté' : r.status === 'refuse' ? 'Refusé' : 'En attente'}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {r.status === 'en_attente' ? (
+                            <>
+                              <button
+                                onClick={() => handleDeptRequestAction(r.id, r.department_name, false)}
+                                disabled={deptReqProcessing === r.id}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-[10px] font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50"
+                              >
+                                {deptReqProcessing === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
+                                Refuser
+                              </button>
+                              <button
+                                onClick={() => handleDeptRequestAction(r.id, r.department_name, true)}
+                                disabled={deptReqProcessing === r.id}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50"
+                              >
+                                {deptReqProcessing === r.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
+                                Accepter
+                              </button>
+                            </>
+                          ) : (
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                              r.status === 'accepte' ? 'bg-emerald-500/20 text-emerald-400' :
+                              r.status === 'refuse' ? 'bg-red-500/20 text-red-400' :
+                              'bg-amber-500/20 text-amber-400'
+                            }`}>
+                              {r.status === 'accepte' ? 'Accepté' : r.status === 'refuse' ? 'Refusé' : r.status}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>

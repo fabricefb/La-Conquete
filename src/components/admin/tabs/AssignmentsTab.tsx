@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import type { ChurchEvent, EventAssignment, UserProfile } from '../../../types';
-import { Plus, Trash2, Save, X, Loader2, Bell, Check } from 'lucide-react';
+import { Plus, Trash2, Save, X, Loader2, Bell, Check, AlertTriangle } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -62,6 +62,7 @@ export function AssignmentsTab() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [tableMissing, setTableMissing] = useState(false);
 
   // Form state
   const [formOpen, setFormOpen] = useState(false);
@@ -97,8 +98,13 @@ export function AssignmentsTab() {
     try {
       const data = await db.getEventAssignments(eventId);
       setAssignments(data);
-    } catch {
-      addToast('Erreur lors du chargement des affectations', 'error');
+    } catch (err: any) {
+      if (err?.code === '42P01' || err?.message?.includes('does not exist') || err?.message?.includes('relation')) {
+        setAssignments([]);
+        setTableMissing(true);
+      } else {
+        addToast('Erreur lors du chargement des affectations', 'error');
+      }
     }
     setLoading(false);
   }, [addToast]);
@@ -227,6 +233,21 @@ export function AssignmentsTab() {
           Ajouter
         </button>
       </div>
+
+      {tableMissing && (
+        <div className="glass rounded-xl p-5 border border-amber-500/20 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-cream">Tables de données non configurées</p>
+              <p className="text-xs text-muted mt-1">
+                Certaines tables nécessaires ne sont pas encore créées dans Supabase.
+                Veuillez exécuter le fichier <code className="text-amber-400">14_missing_tables_consolidated.sql</code> dans l'éditeur SQL de Supabase.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Event selector */}
       <div className="glass rounded-2xl p-4">

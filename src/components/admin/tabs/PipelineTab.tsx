@@ -259,6 +259,7 @@ export function PipelineTab() {
   const [convertis, setConvertis] = useState<Converti[]>([]);
   const [loading, setLoading] = useState(true);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [tableMissing, setTableMissing] = useState(false);
 
   // Sort
   const [sortField, setSortField] = useState<SortField>('date');
@@ -287,8 +288,15 @@ export function PipelineTab() {
       setConvertis(data);
       setProfiles(profs);
       setAlerts72h(alerts);
-    } catch {
-      addToast('Erreur lors du chargement', 'error');
+    } catch (err: any) {
+      if (err?.code === '42P01' || err?.message?.includes('does not exist') || err?.message?.includes('relation')) {
+        setConvertis([]);
+        setProfiles([]);
+        setAlerts72h([]);
+        setTableMissing(true);
+      } else {
+        addToast('Erreur lors du chargement', 'error');
+      }
     }
     setLoading(false);
   }, [addToast]);
@@ -437,6 +445,21 @@ export function PipelineTab() {
       <h2 className="font-serif text-2xl font-semibold text-cream">
         Pipeline Âmes
       </h2>
+
+      {tableMissing && (
+        <div className="glass rounded-xl p-5 border border-amber-500/20 mb-4">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-400 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-cream">Tables de données non configurées</p>
+              <p className="text-xs text-muted mt-1">
+                Certaines tables nécessaires ne sont pas encore créées dans Supabase.
+                Veuillez exécuter le fichier <code className="text-amber-400">14_missing_tables_consolidated.sql</code> dans l'éditeur SQL de Supabase.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Section toggle */}
       <div className="flex gap-1 rounded-xl bg-white/5 p-1">
