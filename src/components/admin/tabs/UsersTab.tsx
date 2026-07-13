@@ -2,8 +2,77 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X, XCircle, CheckCircle, Crown, UserCog } from 'lucide-react';
+import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X, XCircle, CheckCircle, Crown, UserCog, Heart, MapPin } from 'lucide-react';
 import { ROLE_LABELS, PASTOR_CATEGORY_LABELS, ROLE_LEVELS } from '../../../types';
+
+/* ── Pending requests counter for member detail ────────────── */
+function UserPendingCounts({ userId }: { userId: string }) {
+  const [counts, setCounts] = useState({ prayers: 0, visits: 0, deptReqs: 0, contactMsgs: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const [prayers, visits, deptReqs, contactMsgs] = await Promise.all([
+          supabase.from('prayer_requests').select('id', { count: 'exact', head: true })
+            .eq('user_id', userId).eq('status', 'active'),
+          supabase.from('pastoral_visits').select('id', { count: 'exact', head: true })
+            .eq('user_id', userId).in('status', ['en_attente', 'planifiee', 'en_cours']),
+          supabase.from('department_requests').select('id', { count: 'exact', head: true })
+            .eq('user_id', userId).eq('status', 'en_attente'),
+          supabase.from('contact_messages').select('id', { count: 'exact', head: true })
+            .eq('phone', '').limit(0), // fallback — we count by phone later
+        ]);
+        if (!cancelled) {
+          setCounts({
+            prayers: prayers.count ?? 0,
+            visits: visits.count ?? 0,
+            deptReqs: deptReqs.count ?? 0,
+            contactMsgs: 0,
+          });
+        }
+      } catch {
+        // silent
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const total = counts.prayers + counts.visits + counts.deptReqs;
+
+  if (loading) return <div className="animate-pulse h-6 rounded bg-white/3 mt-2" />;
+  if (total === 0) return null;
+
+  return (
+    <div className="grid grid-cols-3 gap-2 mt-2">
+      {counts.prayers > 0 && (
+        <div className="rounded-lg bg-rose-500/10 p-2.5 text-center">
+          <Heart className="h-3.5 w-3.5 text-rose-400 mx-auto mb-1" />
+          <p className="text-sm font-bold text-rose-300">{counts.prayers}</p>
+          <p className="text-[9px] text-rose-300/70">Prière{counts.prayers > 1 ? 's' : ''}</p>
+        </div>
+      )}
+      {counts.visits > 0 && (
+        <div className="rounded-lg bg-amber-500/10 p-2.5 text-center">
+          <MapPin className="h-3.5 w-3.5 text-amber-400 mx-auto mb-1" />
+          <p className="text-sm font-bold text-amber-300">{counts.visits}</p>
+          <p className="text-[9px] text-amber-300/70">Visite{counts.visits > 1 ? 's' : ''}</p>
+        </div>
+      )}
+      {counts.deptReqs > 0 && (
+        <div className="rounded-lg bg-blue-500/10 p-2.5 text-center">
+          <UserPlus className="h-3.5 w-3.5 text-blue-400 mx-auto mb-1" />
+          <p className="text-sm font-bold text-blue-300">{counts.deptReqs}</p>
+          <p className="text-[9px] text-blue-300/70">Département</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface UserProfileExt {
   id: string;
@@ -569,6 +638,7 @@ export function UsersTab() {
                 const u = users.find(u => u.id === selectedUserId);
                 if (!u) return null;
                 return (
+                  <>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="rounded-xl bg-white/3 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Statut</p>
@@ -591,6 +661,10 @@ export function UsersTab() {
                       <p className="text-xs font-medium text-cream">{new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
                     </div>
                   </div>
+
+                  {/* Pending requests summary */}
+                  <UserPendingCounts userId={selectedUserId} />
+                  </>
                 );
               })()}
 

@@ -225,8 +225,13 @@ export const db = {
   },
 
   // Contact form submission
-  async submitContactMessage(name: string, email: string, subject: string, message: string): Promise<void> {
-    const { error } = await supabase.from('contact_messages').insert({ name, email, subject, message });
+  async submitContactMessage(name: string, phone: string, email: string | null, visitorType: string | null, subject: string, message: string): Promise<void> {
+    const { error } = await supabase.from('contact_messages').insert({
+      name, phone, email: email || null, subject, message,
+      visitor_type: visitorType || null,
+      status: 'nouveau',
+      created_at: new Date().toISOString(),
+    });
     if (error) throw new Error(error.message);
   },
 

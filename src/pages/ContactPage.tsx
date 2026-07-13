@@ -61,9 +61,27 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   // ── Form state ─────────────────────────────────────────────────
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    visitorType: '' as '' | 'nouveau' | 'visiteur' | 'membre' | 'autre',
+    subject: '',
+    customSubject: '',
+    message: '',
+  });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+
+  const SUBJECT_SUGGESTIONS = [
+    'Demande de prière',
+    'Demande de visite pastorale',
+    'Information sur un culte',
+    'Question sur l\'église',
+    'Témoignage',
+    'Demande d\'informations générales',
+    'Autre',
+  ];
 
   // ── Fetch page contents on mount ───────────────────────────────
   useEffect(() => {
@@ -150,10 +168,17 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       setSending(true);
 
       try {
-        await db.submitContactMessage(form.name, form.email, form.subject, form.message);
+        await db.submitContactMessage(
+          form.name,
+          form.phone,
+          form.email || null,
+          form.visitorType || null,
+          form.subject === 'Autre' ? form.customSubject : form.subject,
+          form.message,
+        );
         setSent(true);
         addToast('Votre message a été envoyé avec succès !', 'success');
-        setForm({ name: '', email: '', subject: '', message: '' });
+        setForm({ name: '', phone: '', email: '', visitorType: '', subject: '', customSubject: '', message: '' });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Une erreur est survenue.';
         addToast(`Erreur : ${message}`, 'error');
@@ -312,6 +337,34 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                    {/* Type de visiteur */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted">
+                        Vous êtes <span className="text-gold-400">*</span>
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { val: 'nouveau', label: 'Nouveau' },
+                          { val: 'visiteur', label: 'Visiteur' },
+                          { val: 'membre', label: 'Membre' },
+                          { val: 'autre', label: 'Autre' },
+                        ].map(opt => (
+                          <button
+                            key={opt.val}
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, visitorType: opt.val }))}
+                            className={`rounded-xl px-3 py-2.5 text-xs font-medium border transition-all ${
+                              form.visitorType === opt.val
+                                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                                : 'border-line text-muted hover:text-cream hover:border-white/20'
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
@@ -328,27 +381,67 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       </div>
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
-                          Adresse email <span className="text-gold-400">*</span>
+                          Téléphone <span className="text-gold-400">*</span>
                         </label>
                         <input
-                          type="email"
+                          type="tel"
                           required
-                          value={form.email}
-                          onChange={(e) => updateField('email', e.target.value)}
-                          placeholder="vous@email.com"
+                          value={form.phone}
+                          onChange={(e) => updateField('phone', e.target.value)}
+                          placeholder="+243 812 345 678"
                           className="input-surface w-full px-4 py-3 text-sm"
                         />
                       </div>
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-medium text-muted">Sujet</label>
+                      <label className="mb-1.5 block text-xs font-medium text-muted">
+                        Adresse email <span className="text-muted/50">(optionnel)</span>
+                      </label>
                       <input
-                        type="text"
-                        value={form.subject}
-                        onChange={(e) => updateField('subject', e.target.value)}
-                        placeholder="Comment pouvons-nous vous aider ?"
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => updateField('email', e.target.value)}
+                        placeholder="vous@email.com"
                         className="input-surface w-full px-4 py-3 text-sm"
                       />
+                    </div>
+                    {/* Sujets suggérés */}
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted">
+                        Sujet <span className="text-gold-400">*</span>
+                      </label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {SUBJECT_SUGGESTIONS.map(s => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setForm(f => ({ ...f, subject: s }))}
+                            className={`rounded-lg px-3 py-1.5 text-[11px] font-medium border transition-all ${
+                              form.subject === s
+                                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                                : 'border-line text-muted hover:text-cream hover:border-white/20'
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                      {(form.subject === 'Autre' || !form.subject) && (
+                        <input
+                          type="text"
+                          required={!form.subject || form.subject === 'Autre'}
+                          value={form.subject === 'Autre' ? form.customSubject : form.subject ? '' : form.customSubject}
+                          onChange={(e) => {
+                            if (form.subject === 'Autre') {
+                              setForm(f => ({ ...f, customSubject: e.target.value }));
+                            } else if (!form.subject) {
+                              setForm(f => ({ ...f, customSubject: e.target.value }));
+                            }
+                          }}
+                          placeholder="Décrivez votre sujet..."
+                          className="input-surface w-full px-4 py-3 text-sm"
+                        />
+                      )}
                     </div>
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
@@ -356,7 +449,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       </label>
                       <textarea
                         required
-                        rows={5}
+                        rows={4}
                         value={form.message}
                         onChange={(e) => updateField('message', e.target.value)}
                         placeholder="Votre message…"

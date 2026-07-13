@@ -173,7 +173,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   }
 
   return (
-    <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onNavigate={onNavigate}>
+    <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onNavigate={onNavigate} isFullAdmin={isFullAdmin}>
       {/* Bannière lecture seule pour Pasteur principal */}
       {isAdmin && !isFullAdmin && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">

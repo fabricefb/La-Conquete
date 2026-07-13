@@ -68,20 +68,32 @@ interface AdminLayoutProps {
   onTabChange: (tab: AdminTab) => void;
   onNavigate: (page: Page) => void;
   children: ReactNode;
+  isFullAdmin?: boolean;
 }
+
+// Onglets masqués pour le pasteur principal (consultation uniquement)
+const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>(['theme', 'settings', 'inventory', 'media']);
 
 function SidebarNav({
   activeTab,
   onTabChange,
   onClose,
+  isFullAdmin = true,
 }: {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   onClose?: () => void;
+  isFullAdmin?: boolean;
 }) {
+  // Filtrer les onglets selon le rôle
+  const visibleGroups = isFullAdmin ? tabGroups : tabGroups.map(g => ({
+    ...g,
+    tabs: g.tabs.filter(t => !HIDDEN_TABS_FOR_PASTOR.has(t.id)),
+  })).filter(g => g.tabs.length > 0);
+
   return (
     <nav className="flex-1 overflow-y-auto p-3">
-      {tabGroups.map((group, gi) => (
+      {visibleGroups.map((group, gi) => (
         <div key={group.title} className={gi > 0 ? 'mt-4' : ''}>
           {/* ── Section header ── */}
           <div className="text-[10px] font-semibold uppercase tracking-widest text-muted/60 mb-1 px-3">
@@ -112,7 +124,7 @@ function SidebarNav({
   );
 }
 
-export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: AdminLayoutProps) {
+export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFullAdmin = true }: AdminLayoutProps) {
   const { profile, signOut } = useAuth();
   const { addToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -173,7 +185,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: Ad
       <div className="flex">
         {/* ─── Sidebar (desktop) ─── */}
         <aside className="hidden lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-3.5rem)] lg:w-56 lg:flex-col lg:border-r border-line bg-bg/50">
-          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} />
+          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} />
         </aside>
 
         {/* ─── Mobile sidebar overlay ─── */}
@@ -191,7 +203,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: Ad
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} />
+              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} isFullAdmin={isFullAdmin} />
             </aside>
           </div>
         )}

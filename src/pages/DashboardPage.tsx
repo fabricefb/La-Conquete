@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -135,6 +135,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [showRoleRequest, setShowRoleRequest] = useState(false);
   const [roleRequestForm, setRoleRequestForm] = useState({ requested_role: '', reason: '' });
   const [roleRequestSubmitting, setRoleRequestSubmitting] = useState(false);
+
+  // ── Notification dropdown state ───────────────────────────────
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifRef = React.useRef<HTMLDivElement>(null);
 
   // ── Espace Pastoral: Accordion & Form State ────────────────────
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
@@ -417,6 +421,17 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       cancelled = true;
     };
   }, [user]);
+
+  // ── Close notification dropdown on outside click ──────────
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
+        setShowNotifDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   // ── Load user's own requests ─────────────────────────────────
   const loadMyRequests = async () => {
@@ -767,21 +782,80 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => {
-                    const el = document.getElementById('recent-activity');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="relative flex items-center gap-2.5 rounded-xl glass px-4 py-3 text-sm font-medium text-cream transition-all duration-200 hover:border-gold-400/30 hover:bg-white/5"
-                >
-                  <Bell className="h-5 w-5 text-gold-400" />
-                  <span className="hidden sm:inline">Notifications</span>
-                  {unreadCount > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1.5 text-[11px] font-bold text-white">
-                      {unreadCount > 99 ? '99+' : unreadCount}
-                    </span>
+                <div className="relative" ref={notifRef}>
+                  <button
+                    onClick={() => setShowNotifDropdown(p => !p)}
+                    className="relative flex items-center gap-2.5 rounded-xl glass px-4 py-3 text-sm font-medium text-cream transition-all duration-200 hover:border-gold-400/30 hover:bg-white/5"
+                  >
+                    <Bell className="h-5 w-5 text-gold-400" />
+                    <span className="hidden sm:inline">Notifications</span>
+                    {unreadCount > 0 && (
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gold-500 px-1.5 text-[11px] font-bold text-white">
+                        {unreadCount > 99 ? '99+' : unreadCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* ── Notification Dropdown ── */}
+                  {showNotifDropdown && (
+                    <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 glass-card rounded-2xl border border-line shadow-2xl shadow-black/40 z-50 overflow-hidden">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-line/50">
+                        <span className="text-sm font-semibold text-cream">Notifications</span>
+                        {unreadCount > 0 && (
+                          <button
+                            onClick={async () => {
+                              await supabase.from('notifications').update({ is_read: true }).eq('user_id', user?.id).is('is_read', false);
+                              setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+                              setUnreadCount(0);
+                            }}
+                            className="text-[11px] text-gold-400 hover:text-gold-300 transition"
+                          >
+                            Tout marquer lu
+                          </button>
+                        )}
+                      </div>
+                      <div className="max-h-80 overflow-y-auto custom-scrollbar">
+                        {!dataLoading && notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center">
+                            <Bell className="w-6 h-6 mx-auto mb-2 text-muted/40" />
+                            <p className="text-xs text-muted">Aucune notification</p>
+                          </div>
+                        ) : (
+                          notifications.slice(0, 10).map((notif, idx) => {
+                            const notifIcon = notif.type === 'prayer' ? Heart
+                              : notif.type === 'visit' ? MapPin
+                              : notif.type === 'dept_approved' || notif.type === 'dept_rejected' ? CheckCircle
+                              : notif.type === 'alert' ? AlertTriangle
+                              : MessageSquare;
+                            const NIcon = notifIcon;
+                            return (
+                              <div
+                                key={notif.id || idx}
+                                className={`flex items-start gap-3 px-4 py-3 hover:bg-white/[0.03] transition-colors border-b border-line/20 last:border-0 ${!notif.is_read ? 'bg-gold-400/[0.03]' : ''}`}
+                              >
+                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/5 mt-0.5">
+                                  <NIcon className="h-3.5 w-3.5 text-muted" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-medium text-cream truncate">{notif.title}</p>
+                                  {notif.message && (
+                                    <p className="text-[11px] text-muted truncate mt-0.5">{notif.message}</p>
+                                  )}
+                                  <p className="text-[10px] text-muted/60 mt-1">
+                                    {new Date(notif.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                                  </p>
+                                </div>
+                                {!notif.is_read && (
+                                  <div className="w-2 h-2 rounded-full bg-gold-400 shrink-0 mt-2" />
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
               </div>
             </EvtReveal>
 
