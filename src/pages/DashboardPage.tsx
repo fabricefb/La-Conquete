@@ -214,11 +214,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         ]);
 
         // 4. User's departments (sans jointure PostgREST — fetch séparé)
+        // Cherche d'abord les membres actifs, puis aussi les inactifs pour réparation
         const { data: deptMembers } = await supabase
           .from('department_members')
-          .select('department_id, position_id')
-          .eq('user_id', user.id)
-          .eq('is_active', true);
+          .select('department_id, position_id, is_active')
+          .eq('user_id', user.id);
 
         // Récupérer les infos départements et positions séparément
         let deptMap: Record<string, any> = {};
@@ -247,7 +247,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         // 6. User's own requests (visit, prayer, department)
         loadMyRequests();
 
-        const userDepts: UserDepartment[] = (deptMembers || []).map((dm: any) => ({
+        // Filtrer uniquement les membres actifs pour l'affichage
+        const activeDeptMembers = (deptMembers || []).filter((dm: any) => dm.is_active !== false);
+
+        const userDepts: UserDepartment[] = activeDeptMembers.map((dm: any) => ({
           id: dm.department_id,
           department_name: deptMap[dm.department_id]?.name || 'Département',
           position_name: posMap[dm.position_id]?.name || null,
@@ -262,11 +265,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         // ── Auto-réparation : demandes acceptées sans department_members ──
         if (userDepts.length === 0) {
           try {
+            // Vérifier les demandes acceptées (status = 'accepte' ou 'accepted')
             const { data: acceptedReqs } = await supabase
               .from('department_requests')
               .select('id, department_id, status')
               .eq('user_id', user.id)
-              .eq('status', 'accepte');
+              .in('status', ['accepte', 'accepted', 'approuve', 'approved']);
 
             if (acceptedReqs && acceptedReqs.length > 0) {
               // Réparer : insérer dans department_members pour chaque demande acceptée
@@ -281,19 +285,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               // Re-fetch departments after repair
               const { data: repairedDepts } = await supabase
                 .from('department_members')
-                .select('department_id, position_id')
-                .eq('user_id', user.id)
-                .eq('is_active', true);
-              if (repairedDepts && repairedDepts.length > 0) {
-                const rDeptIds = [...new Set(repairedDepts.map((d: any) => d.department_id))];
-                const rPosIds = [...new Set(repairedDepts.map((d: any) => d.position_id).filter(Boolean))];
+                .select('department_id, position_id, is_active')
+                .eq('user_id', user.id);
+              const activeRepaired = (repairedDepts || []).filter((dm: any) => dm.is_active !== false);
+              if (activeRepaired.length > 0) {
+                const rDeptIds = [...new Set(activeRepaired.map((d: any) => d.department_id))];
+                const rPosIds = [...new Set(activeRepaired.map((d: any) => d.position_id).filter(Boolean))];
                 const [rDeptsRes, rPosRes] = await Promise.all([
                   supabase.from('departments').select('id, name, accent_color, icon_name').in('id', rDeptIds),
                   rPosIds.length > 0 ? supabase.from('positions').select('id, name').in('id', rPosIds) : Promise.resolve({ data: [] }),
                 ]);
                 const rDeptMap = Object.fromEntries((rDeptsRes.data || []).map((d: any) => [d.id, d]));
                 const rPosMap = Object.fromEntries((rPosRes.data || []).map((p: any) => [p.id, p]));
-                const repairedUserDepts: UserDepartment[] = repairedDepts.map((dm: any) => ({
+                const repairedUserDepts: UserDepartment[] = activeRepaired.map((dm: any) => ({
                   id: dm.department_id,
                   department_name: rDeptMap[dm.department_id]?.name || 'Département',
                   position_name: rPosMap[dm.position_id]?.name || null,

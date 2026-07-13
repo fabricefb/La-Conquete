@@ -4,6 +4,7 @@
 --   1. Absence de contrainte unique → upsert échouait silencieusement
 --   2. Colonnes manquantes potentielles
 --   3. Demandes acceptées sans entrée correspondante dans department_members
+--   4. Membres avec is_active = false filtrés incorrectement
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ─── 1. Assurer la structure de department_members ──────────────
@@ -40,6 +41,8 @@ BEGIN
       ALTER TABLE department_members ADD COLUMN joined_at TIMESTAMPTZ NOT NULL DEFAULT now();
       RAISE NOTICE 'Colonne joined_at ajoutée';
     END IF;
+    -- Assurer que is_active n'est pas NULL (réparer les NULL existants)
+    UPDATE department_members SET is_active = true WHERE is_active IS NULL;
     RAISE NOTICE 'Table department_members vérifiée';
   END IF;
 END $$;
@@ -61,20 +64,29 @@ END $$;
 ALTER TABLE department_members DISABLE ROW LEVEL SECURITY;
 
 -- ─── 2. Auto-réparation : demandes acceptées sans membre ────────
--- Pour chaque demande acceptée sans entrée correspondante dans department_members
+-- Pour chaque demande acceptée (status en 'accepte' ou variantes) sans entrée
 INSERT INTO department_members (user_id, department_id, role_in_dept, is_active, joined_at)
-SELECT dr.user_id, dr.department_id, 'member', true, dr.responded_at
+SELECT dr.user_id, dr.department_id, 'member', true, COALESCE(dr.responded_at, now())
 FROM department_requests dr
-WHERE dr.status = 'accepte'
+WHERE dr.status IN ('accepte', 'accepted', 'approuve', 'approved')
   AND NOT EXISTS (
     SELECT 1 FROM department_members dm
     WHERE dm.user_id = dr.user_id AND dm.department_id = dr.department_id
   )
 ON CONFLICT (user_id, department_id) DO UPDATE SET is_active = true;
 
--- ─── 3. Auto-réparation : membres sans demande acceptée ────────
--- Si un membre est dans department_members mais sa demande est encore 'en_attente'
--- ou n'existe pas, mettre la demande à jour
+-- ─── 3. Auto-réparation : membres inactifs avec demande acceptée ──
+-- Si un membre existe mais is_active = false et la demande est acceptée → réactiver
+UPDATE department_members dm
+SET is_active = true
+FROM department_requests dr
+WHERE dm.user_id = dr.user_id
+  AND dm.department_id = dr.department_id
+  AND dm.is_active = false
+  AND dr.status IN ('accepte', 'accepted', 'approuve', 'approved');
+
+-- ─── 4. Auto-réparation : membres sans demande acceptée ────────
+-- Si un membre est actif mais sa demande est encore 'en_attente' → accepter la demande
 UPDATE department_requests
 SET status = 'accepte', responded_at = now()
 WHERE (user_id, department_id) IN (
@@ -89,6 +101,8 @@ AND status = 'en_attente';
 -- - Structure de department_members vérifiée/corrigée
 -- - Contrainte unique (user_id, department_id) ajoutée
 -- - RLS désactivé
--- - Auto-réparation des demandes acceptées sans membre
+-- - NULL sur is_active corrigés → true
+-- - Auto-réparation des demandes acceptées (toutes variantes de statut) sans membre
+-- - Auto-réparation des membres inactifs dont la demande est acceptée
 -- - Auto-réparation des membres sans demande acceptée
 -- ═══════════════════════════════════════════════════════════════════════════

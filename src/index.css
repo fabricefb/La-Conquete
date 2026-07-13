@@ -54,7 +54,11 @@
   /* --custom-theme-active: '1' when custom theme is on                 */
 }
 
-/* Override border-radius globally when custom theme is active */
+/* ═══════════════════════════════════════════════════════════════════════
+   WHEN CUSTOM THEME IS ACTIVE — override ALL themed elements
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Border-radius override (already working) ─── */
 html[style*="--custom-theme-active"] {
   --dynamic-radius: var(--custom-radius, 12px);
   .glass, .btn-gold, .btn-ghost, .btn-ember, .input-surface, [class*="rounded-"] {
@@ -62,10 +66,100 @@ html[style*="--custom-theme-active"] {
   }
 }
 
-/* Override gold gradient when custom primary is set */
-html[style*="--custom-primary"] .gold-text,
-html[style*="--custom-primary"] .btn-gold {
-  --override: var(--custom-primary);
+/* ─── PRIMARY COLOR — replaces hardcoded gold/red in .gold-text ─── */
+html[style*="--custom-theme-active"] .gold-text {
+  background: linear-gradient(
+    135deg,
+    var(--custom-primary) 0%,
+    var(--custom-primary) 50%,
+    var(--custom-accent) 100%
+  ) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+/* ─── SECONDARY COLOR — for subtle backgrounds ─── */
+html[style*="--custom-theme-active"] .section-label {
+  color: var(--custom-primary) !important;
+}
+html[style*="--custom-theme-active"] .section-label::before {
+  background: var(--custom-primary) !important;
+}
+
+/* ─── GOLD LINE — decorative dividers ─── */
+html[style*="--custom-theme-active"] .gold-line {
+  background: linear-gradient(90deg, transparent, var(--custom-primary), transparent) !important;
+}
+
+/* ─── BUTTON: .btn-gold — primary CTA ─── */
+html[style*="--custom-theme-active"] .btn-gold {
+  background: var(--custom-primary) !important;
+  background-image: none !important;
+  color: var(--text-on-gold-rgb, #fff) !important;
+  border: none !important;
+}
+html[style*="--custom-theme-active"] .btn-gold:hover {
+  filter: brightness(1.15) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+
+/* ─── BUTTON: .btn-ghost — secondary button hover accent ─── */
+html[style*="--custom-theme-active"] .btn-ghost:hover {
+  border-color: var(--custom-primary) !important;
+}
+
+/* ─── BUTTON: .btn-ember — accent CTA ─── */
+html[style*="--custom-theme-active"] .btn-ember {
+  background: var(--custom-accent) !important;
+  background-image: none !important;
+}
+
+/* ─── INPUT: focus border uses primary color ─── */
+html[style*="--custom-theme-active"] .input-surface:focus {
+  border-color: var(--custom-primary) !important;
+}
+
+/* ─── RADIAL: background glow uses primary ─── */
+html[style*="--custom-theme-active"] .bg-radial-gold {
+  background: radial-gradient(
+    ellipse at center,
+    rgba(var(--radial-gold-rgb), 0.08) 0%,
+    transparent 70%
+  ) !important;
+}
+
+/* ─── PULSE ANIMATION: uses primary color ─── */
+html[style*="--custom-theme-active"] .animate-pulse-gold {
+  animation: pulseCustom 2s ease-in-out infinite !important;
+}
+@keyframes pulseCustom {
+  0%,100% { box-shadow: 0 0 0 0 var(--custom-primary, rgba(227,34,31,0.4)); }
+  50% { box-shadow: 0 0 0 8px transparent; }
+}
+
+/* ─── SELECTION: uses primary color ─── */
+html[style*="--custom-theme-active"] ::selection {
+  background: var(--custom-primary) !important;
+  opacity: 0.3;
+}
+
+/* ─── AUTH TAB ACTIVE: uses primary ─── */
+html[style*="--custom-theme-active"] .auth-tab-active {
+  border-color: var(--custom-primary) !important;
+  background: color-mix(in srgb, var(--custom-primary) 15%, transparent) !important;
+  color: var(--custom-primary) !important;
+}
+html[style*="--custom-theme-active"] .auth-text-link {
+  color: var(--custom-primary) !important;
+}
+
+/* ─── Live dot: uses primary ─── */
+html[style*="--custom-theme-active"] .live-dot {
+  background: var(--custom-primary) !important;
+}
+html[style*="--custom-theme-active"] .live-dot::before {
+  background: color-mix(in srgb, var(--custom-primary) 40%, transparent) !important;
 }
 
 @layer components {
