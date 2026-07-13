@@ -121,6 +121,21 @@ const ADMIN_ITEMS: NavItem[] = [
 // Pages where the nav should be simplified (admin/back-office)
 const ADMIN_PAGES: Page[] = ['admin', 'dashboard', 'pastoral', 'reports', 'communication', 'crm', 'annonces', 'communiques'];
 
+/** Build compact display name for logged-in user: "FirstName emailSuffix" */
+function getLoggedInDisplayName(profile: any): string {
+  const fullName = profile?.full_name || '';
+  const email = profile?.email || '';
+  const firstName = fullName.split(' ')[0] || '';
+  const emailLocal = email.split('@')[0] || '';
+  if (!firstName) return emailLocal || 'Membre';
+  const suffix =
+    emailLocal.length > firstName.length &&
+    emailLocal.toLowerCase().startsWith(firstName.toLowerCase())
+      ? emailLocal.slice(firstName.length)
+      : '';
+  return suffix ? `${firstName} ${suffix}` : firstName;
+}
+
 /* ─── Live Indicators ──────────────────────────────────────────── */
 
 function LiveIndicators() {
@@ -405,7 +420,7 @@ function DesktopUserMenu({
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const roleLabel = getFullRoleLabel(profile);
   const badgeClass = getRoleBadgeClass(profile);
-  const displayName = profile?.full_name || profile?.email?.split('@')[0] || 'Membre';
+  const displayName = getLoggedInDisplayName(profile);
 
   const handleEnter = useCallback(() => { clearTimeout(timeoutRef.current); setOpen(true); }, []);
   const handleLeave = useCallback(() => { timeoutRef.current = setTimeout(() => setOpen(false), 200); }, []);
@@ -588,39 +603,20 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-0.5 xl:flex">
-            {isAdminPage ? (
-              /* ── Simplified nav for admin/back-office pages ── */
-              <button
-                onClick={() => handleNav('home')}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Retour au site
-              </button>
+            {user && profile ? (
+              /* ── Simplified nav for logged-in users ── */
+              activePage !== 'home' ? (
+                <button
+                  onClick={() => handleNav('home')}
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour au site
+                </button>
+              ) : null
             ) : (
-              /* ── Normal nav with mega menus ── */
-              <>
-                {/* Admin items (only on public pages) */}
-                {profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
-                  <>
-                    {ADMIN_ITEMS.map(item => (
-                      <button
-                        key={item.page}
-                        onClick={() => handleNav(item.page!)}
-                        className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                          activePage === item.page
-                            ? 'text-gold-300 bg-gold-400/10'
-                            : 'text-muted hover:text-cream hover:bg-white/5'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                    <div className="mx-1.5 h-5 w-px bg-line" />
-                  </>
-                )}
-                {NAV_ITEMS.map(renderDesktopItem)}
-              </>
+              /* ── Normal nav with mega menus (visitors only) ── */
+              NAV_ITEMS.map(renderDesktopItem)
             )}
           </nav>
 
@@ -682,7 +678,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
                   <UserAvatar name={profile.full_name} size="md" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-cream truncate">
-                      {profile.full_name || profile.email?.split('@')[0]}
+                      {getLoggedInDisplayName(profile)}
                     </p>
                     <p className="text-xs text-muted truncate">{profile.email}</p>
                     <span className={`inline-block mt-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${getRoleBadgeClass(profile)}`}>
@@ -701,8 +697,8 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               </>
             )}
 
-            {isAdminPage ? (
-              /* ── Simplified mobile nav for admin pages ── */
+            {user && profile ? (
+              /* ── Simplified mobile nav for logged-in users ── */
               <>
                 <button
                   onClick={() => handleNav('home')}
@@ -712,44 +708,39 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
                   Retour au site
                 </button>
                 <div className="mx-4 my-2 h-px bg-line" />
-                {ADMIN_ITEMS.map(item => (
+                <button
+                  onClick={() => handleNav('dashboard')}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
+                >
+                  <User className="h-4 w-4 text-muted" /> Mon profil
+                </button>
+                <button
+                  onClick={() => handleNav('dashboard')}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
+                >
+                  <Bell className="h-4 w-4 text-muted" /> Notifications
+                </button>
+                {profile?.is_admin && (
                   <button
-                    key={item.page}
-                    onClick={() => handleNav(item.page!)}
-                    className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
-                      activePage === item.page
-                        ? 'text-gold-300 bg-gold-400/10'
-                        : 'text-cream hover:bg-white/5'
-                    }`}
+                    onClick={() => handleNav('admin')}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
                   >
-                    {item.label}
+                    <Shield className="h-4 w-4 text-gold-400" /> Administration du site
                   </button>
-                ))}
+                )}
               </>
             ) : (
-              /* ── Normal mobile nav ── */
+              /* ── Normal mobile nav for visitors ── */
               <>
-                {/* Admin items */}
-                {user && profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
-                  <>
-                    {ADMIN_ITEMS.map(item => (
-                      <button
-                        key={item.page}
-                        onClick={() => handleNav(item.page!)}
-                        className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
-                          activePage === item.page
-                            ? 'text-gold-300 bg-gold-400/10'
-                            : 'text-cream hover:bg-white/5'
-                        }`}
-                      >
-                        {item.label}
-                      </button>
-                    ))}
-                    <div className="mx-4 my-2 h-px bg-line" />
-                  </>
+                {isAdminPage && (
+                  <button
+                    onClick={() => handleNav('home')}
+                    className="flex items-center gap-3 rounded-xl px-4 py-4 text-base font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                    Retour au site
+                  </button>
                 )}
-
-                {/* Public nav */}
                 {NAV_ITEMS.map(renderMobileItem)}
               </>
             )}

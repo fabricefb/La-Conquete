@@ -5,31 +5,60 @@ import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
-  ClipboardList, Shield, Clock, Building2
+  ClipboardList, Shield, Clock, Building2, LayoutDashboard,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
 
-// ─── Tab definitions ─────────────────────────────────────────────
-const tabs: { id: AdminTab; label: string; Icon: typeof Settings }[] = [
-  { id: 'settings', label: 'Paramètres', Icon: Settings },
-  { id: 'contents', label: 'Contenus', Icon: FileText },
-  { id: 'locations', label: 'Lieux', Icon: MapPin },
-  { id: 'events', label: 'Événements', Icon: Calendar },
-  { id: 'departments', label: 'Départements', Icon: Building2 },
-  { id: 'assignments', label: 'Affectations', Icon: Users },
-  { id: 'creneaux', label: 'Créneaux', Icon: Clock },
-  { id: 'ministries', label: 'Ministères', Icon: Users },
-  { id: 'inventory', label: 'Inventaire', Icon: Package },
-  { id: 'alerts', label: 'Alertes & Visites', Icon: Bell },
-  { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
-  { id: 'media', label: 'Médias', Icon: Image },
-  { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
-  { id: 'messages', label: 'Messages', Icon: MessageSquare },
-  { id: 'pastors', label: 'Équipe Pastorale', Icon: Crown },
-  { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
-  { id: 'users', label: 'Utilisateurs', Icon: Shield },
-  { id: 'theme', label: 'Thème', Icon: Palette },
+// ─── Grouped tab definitions ──────────────────────────────────────
+interface TabDef { id: AdminTab; label: string; Icon: typeof Settings }
+interface TabGroup { title: string; tabs: TabDef[] }
+
+const tabGroups: TabGroup[] = [
+  {
+    title: 'Monitoring',
+    tabs: [
+      { id: 'dashboard', label: 'Tableau de bord', Icon: LayoutDashboard },
+      { id: 'users', label: 'Utilisateurs', Icon: Shield },
+      { id: 'alerts', label: 'Alertes & Visites', Icon: Bell },
+    ],
+  },
+  {
+    title: 'Contenu',
+    tabs: [
+      { id: 'contents', label: 'Contenus', Icon: FileText },
+      { id: 'media', label: 'Médias', Icon: Image },
+      { id: 'theme', label: 'Thème', Icon: Palette },
+      { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
+      { id: 'messages', label: 'Messages', Icon: MessageSquare },
+    ],
+  },
+  {
+    title: 'Organisation',
+    tabs: [
+      { id: 'departments', label: 'Départements', Icon: Building2 },
+      { id: 'ministries', label: 'Ministères', Icon: Users },
+      { id: 'assignments', label: 'Affectations', Icon: Users },
+      { id: 'creneaux', label: 'Créneaux', Icon: Clock },
+      { id: 'events', label: 'Événements', Icon: Calendar },
+      { id: 'locations', label: 'Lieux', Icon: MapPin },
+      { id: 'inventory', label: 'Inventaire', Icon: Package },
+    ],
+  },
+  {
+    title: 'Pastorale',
+    tabs: [
+      { id: 'pastors', label: 'Équipe Pastorale', Icon: Crown },
+      { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
+      { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
+    ],
+  },
+  {
+    title: 'Système',
+    tabs: [
+      { id: 'settings', label: 'Paramètres', Icon: Settings },
+    ],
+  },
 ];
 
 interface AdminLayoutProps {
@@ -37,6 +66,48 @@ interface AdminLayoutProps {
   onTabChange: (tab: AdminTab) => void;
   onNavigate: (page: Page) => void;
   children: ReactNode;
+}
+
+function SidebarNav({
+  activeTab,
+  onTabChange,
+  onClose,
+}: {
+  activeTab: AdminTab;
+  onTabChange: (tab: AdminTab) => void;
+  onClose?: () => void;
+}) {
+  return (
+    <nav className="flex-1 overflow-y-auto p-3">
+      {tabGroups.map((group, gi) => (
+        <div key={group.title} className={gi > 0 ? 'mt-4' : ''}>
+          {/* ── Section header ── */}
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-muted/60 mb-1 px-3">
+            {group.title}
+          </div>
+          {/* ── Divider line ── */}
+          <div className="h-px bg-line mb-1 mx-3" />
+          {/* ── Tab items ── */}
+          <div className="flex flex-col gap-0.5">
+            {group.tabs.map(({ id, label, Icon }) => (
+              <button
+                key={id}
+                onClick={() => { onTabChange(id); onClose?.(); }}
+                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                  activeTab === id
+                    ? 'bg-gold-400/10 text-gold-400'
+                    : 'text-muted hover:text-cream hover:bg-white/5'
+                }`}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </nav>
+  );
 }
 
 export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: AdminLayoutProps) {
@@ -100,24 +171,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: Ad
       <div className="flex">
         {/* ─── Sidebar (desktop) ─── */}
         <aside className="hidden lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-3.5rem)] lg:w-56 lg:flex-col lg:border-r border-line bg-bg/50">
-          <nav className="flex-1 overflow-y-auto p-3">
-            <div className="flex flex-col gap-0.5">
-              {tabs.map(({ id, label, Icon }) => (
-                <button
-                  key={id}
-                  onClick={() => onTabChange(id)}
-                  className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                    activeTab === id
-                      ? 'bg-gold-400/10 text-gold-400'
-                      : 'text-muted hover:text-cream hover:bg-white/5'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {label}
-                </button>
-              ))}
-            </div>
-          </nav>
+          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} />
         </aside>
 
         {/* ─── Mobile sidebar overlay ─── */}
@@ -135,24 +189,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children }: Ad
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <nav className="flex-1 overflow-y-auto p-3">
-                <div className="flex flex-col gap-0.5">
-                  {tabs.map(({ id, label, Icon }) => (
-                    <button
-                      key={id}
-                      onClick={() => { onTabChange(id); setSidebarOpen(false); }}
-                      className={`flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                        activeTab === id
-                          ? 'bg-gold-400/10 text-gold-400'
-                          : 'text-muted hover:text-cream hover:bg-white/5'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </nav>
+              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} />
             </aside>
           </div>
         )}

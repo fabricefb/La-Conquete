@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import AdminLogin from '../components/admin/AdminLogin';
 import { AdminLayout } from '../components/admin/AdminLayout';
+import { DashboardTab } from '../components/admin/tabs/DashboardTab';
 import { SettingsTab } from '../components/admin/tabs/SettingsTab';
 import { ContentsTab } from '../components/admin/tabs/ContentsTab';
 import { LocationsTab } from '../components/admin/tabs/LocationsTab';
@@ -31,7 +32,7 @@ interface AdminPageProps {
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
   const { user, isAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminTab>('settings');
+  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [fixing, setFixing] = useState(false);
   const [diagInfo, setDiagInfo] = useState<string | null>(null);
 
@@ -146,6 +147,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   // Admin → show back-office
   function renderTab() {
     switch (activeTab) {
+      case 'dashboard': return <DashboardTab onTabChange={setActiveTab} />;
       case 'settings': return <SettingsTab />;
       case 'contents': return <ContentsTab />;
       case 'locations': return <LocationsTab />;
@@ -164,7 +166,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'onboarding': return <OnboardingTab />;
       case 'users': return <UsersTab />;
       case 'theme': return <ThemeTab />;
-      default: return <SettingsTab />;
+      default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }
 
