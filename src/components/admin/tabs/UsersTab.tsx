@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X, XCircle, CheckCircle } from 'lucide-react';
-import { ROLE_LABELS, PASTOR_CATEGORY_LABELS } from '../../../types';
+import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X, XCircle, CheckCircle, Crown, UserCog } from 'lucide-react';
+import { ROLE_LABELS, PASTOR_CATEGORY_LABELS, ROLE_LEVELS } from '../../../types';
 
 interface UserProfileExt {
   id: string;
@@ -152,6 +152,8 @@ export function UsersTab() {
   const [blockModal, setBlockModal] = useState<{ userId: string; userName: string; isBlocked: boolean } | null>(null);
   const [blockReason, setBlockReason] = useState('');
   const [saving, setSaving] = useState(false);
+  const [roleModal, setRoleModal] = useState<{ userId: string; userName: string; currentLevel: number; currentCategory: string | null; isAdmin: boolean; isPrincipal: boolean } | null>(null);
+  const [roleSaving, setRoleSaving] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail>({ departments: [], recentActivity: [], roleRequests: [], deptRequests: [] });
   const [detailLoading, setDetailLoading] = useState(false);
@@ -342,6 +344,51 @@ export function UsersTab() {
     setSaving(false);
   };
 
+  const assignRole = async (roleLevel: number, pastorCat: string | null, makeAdmin: boolean, makePrincipal: boolean) => {
+    if (!roleModal) return;
+    setRoleSaving(true);
+    try {
+      const updates: any = { role_level: roleLevel, pastor_category: pastorCat };
+      if (makeAdmin) {
+        updates.is_admin = true;
+        updates.is_principal_pastor = makePrincipal;
+      } else if (roleLevel >= ROLE_LEVELS.PASTOR_PRINCIPAL) {
+        updates.is_admin = true;
+        updates.is_principal_pastor = makePrincipal;
+      } else {
+        updates.is_admin = false;
+        updates.is_principal_pastor = false;
+      }
+
+      const { error } = await supabase.from('user_profiles').update(updates).eq('id', roleModal.userId);
+      if (error) throw error;
+
+      const roleNames: Record<string, string> = {
+        '0': 'Visiteur', '1': 'Membre', '3': 'Chef de département',
+        '4_ancien': 'Ancien', '4_diacre': 'Diacre', '4_collaborateur': 'Collaborateur',
+        '5': 'Pasteur associé', '5_principal': 'Pasteur principal', '6': 'Admin',
+      };
+      const key = pastorCat ? `4_${pastorCat}` : makePrincipal && roleLevel >= 5 ? '5_principal' : String(roleLevel);
+      addToast(`${roleModal.userName} → ${roleNames[key] || 'Rôle mis à jour'}`, 'success');
+
+      // Notifier l'utilisateur
+      await supabase.from('notifications').insert({
+        user_id: roleModal.userId,
+        type: 'role_changed',
+        title: 'Votre rôle a été mis à jour',
+        body: `Vous êtes maintenant ${roleNames[key] || 'un membre avec un nouveau rôle'}.`,
+        link: '#dashboard',
+      });
+
+      setRoleModal(null);
+      fetchUsers();
+      if (selectedUserId === roleModal.userId) fetchUserDetail(selectedUserId);
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    }
+    setRoleSaving(false);
+  };
+
   const getRoleBadge = (u: UserProfileExt) => {
     if (u.is_blocked) return <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-red-400">Bloqué</span>;
     if (u.is_admin) return <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-red-300">Admin</span>;
@@ -455,6 +502,17 @@ export function UsersTab() {
               >
                 {selectedUserId === u.id ? <ChevronDown className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
+
+              {/* Role assignment button */}
+              {u.id !== adminProfile?.id && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setRoleModal({ userId: u.id, userName: u.full_name || u.email, currentLevel: u.role_level, currentCategory: u.pastor_category, isAdmin: u.is_admin, isPrincipal: u.is_principal_pastor }); }}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-500/40 text-purple-400 hover:bg-purple-500/10 transition shrink-0"
+                  title="Assigner un rôle"
+                >
+                  <Crown className="h-4 w-4" />
+                </button>
+              )}
 
               {/* Block/Unblock button */}
               {u.id !== adminProfile?.id && (
@@ -667,6 +725,90 @@ export function UsersTab() {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* Role Assignment Modal */}
+      {roleModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setRoleModal(null)} />
+          <div className="relative glass rounded-2xl p-6 w-full max-w-md space-y-4 border border-line max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/20">
+                <Crown className="h-5 w-5 text-purple-400" />
+              </div>
+              <div>
+                <h3 className="font-serif text-lg font-semibold text-cream">Assigner un rôle</h3>
+                <p className="text-sm text-muted">{roleModal.userName}</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted">Rôle actuel : <span className="text-cream font-medium">{ROLE_LABELS[roleModal.currentLevel] || 'Membre'}{roleModal.currentCategory ? ` · ${PASTOR_CATEGORY_LABELS[roleModal.currentCategory as keyof typeof PASTOR_CATEGORY_LABELS] || roleModal.currentCategory}` : ''}</span></p>
+
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-cream/70 uppercase tracking-wider mb-2">Rôles disponibles</p>
+
+              {/* Membre */}
+              <button onClick={() => assignRole(1, null, false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-blue-500/40 hover:bg-blue-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-blue-500/20 flex items-center justify-center"><Users className="h-4 w-4 text-blue-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Membre</p><p className="text-[10px] text-muted">Accès de base au dashboard</p></div>
+              </button>
+
+              {/* Chef de département */}
+              <button onClick={() => assignRole(3, null, false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-purple-500/40 hover:bg-purple-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><UserCog className="h-4 w-4 text-purple-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Chef de département</p><p className="text-[10px] text-muted">Gère un département et ses membres</p></div>
+              </button>
+
+              {/* Ancien */}
+              <button onClick={() => assignRole(4, 'ancien', false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-amber-500/40 hover:bg-amber-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><Shield className="h-4 w-4 text-amber-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Ancien</p><p className="text-[10px] text-muted">Conseiller spirituel, accès pastoral</p></div>
+              </button>
+
+              {/* Diacre */}
+              <button onClick={() => assignRole(4, 'diacre', false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-amber-500/40 hover:bg-amber-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><Shield className="h-4 w-4 text-amber-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Diacre</p><p className="text-[10px] text-muted">Service d'assistance et diaconie</p></div>
+              </button>
+
+              {/* Collaborateur */}
+              <button onClick={() => assignRole(4, 'collaborateur', false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-amber-500/40 hover:bg-amber-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-amber-500/20 flex items-center justify-center"><Shield className="h-4 w-4 text-amber-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Collaborateur</p><p className="text-[10px] text-muted">Collabore avec la direction pastorale</p></div>
+              </button>
+
+              {/* Pasteur associé */}
+              <button onClick={() => assignRole(5, 'assistant_pastor', true, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-yellow-500/40 hover:bg-yellow-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Crown className="h-4 w-4 text-yellow-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Pasteur associé</p><p className="text-[10px] text-muted">Accès admin + fonctions pastorales</p></div>
+              </button>
+
+              {/* Pasteur principal */}
+              <button onClick={() => assignRole(5, null, true, true)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-yellow-500/40 hover:bg-yellow-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Crown className="h-4 w-4 text-yellow-200" /></div>
+                <div><p className="text-sm font-medium text-cream">Pasteur principal</p><p className="text-[10px] text-muted">Direction spirituelle complète + admin</p></div>
+              </button>
+
+              {/* Admin */}
+              <button onClick={() => assignRole(6, null, true, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-red-500/20 flex items-center justify-center"><ShieldCheck className="h-4 w-4 text-red-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Admin</p><p className="text-[10px] text-muted">Accès total à l'administration</p></div>
+              </button>
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <button onClick={() => setRoleModal(null)} className="btn-ghost px-4 py-2 text-sm">Annuler</button>
+            </div>
+          </div>
         </div>
       )}
 
