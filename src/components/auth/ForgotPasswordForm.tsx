@@ -22,7 +22,7 @@ const FONT_BODY = { fontFamily: "'Inter', sans-serif" };
 const FONT_DISPLAY = { fontFamily: "'Cormorant Garamond', serif" };
 
 /* ─── Admin WhatsApp number (configurable) ────────────────── */
-const ADMIN_WHATSAPP = '243000000000'; // Remplacer par le vrai numéro de l'admin
+const ADMIN_WHATSAPP = '243999071754';
 
 /* ═══════════════════════════════════════════════════════════════════
    Component
