@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, MapPin, HandHeart, Mic,
+  Calendar, MapPin, HandHeart, Mic, ArrowLeft,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
@@ -117,6 +117,9 @@ const ADMIN_ITEMS: NavItem[] = [
   { label: 'Rapports', page: 'reports' },
   { label: 'Communication', page: 'communication' },
 ];
+
+// Pages where the nav should be simplified (admin/back-office)
+const ADMIN_PAGES: Page[] = ['admin', 'dashboard', 'pastoral', 'reports', 'communication', 'crm', 'annonces', 'communiques'];
 
 /* ─── Live Indicators ──────────────────────────────────────────── */
 
@@ -441,6 +444,12 @@ function DesktopUserMenu({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
             <User className="h-4 w-4 text-muted" /> Mon profil
           </button>
+          {profile?.is_admin && (
+            <button onClick={() => { onNavigate('admin'); setOpen(false); }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
+              <Shield className="h-4 w-4 text-gold-400" /> Administration
+            </button>
+          )}
           <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
             <Bell className="h-4 w-4 text-muted" /> Notifications
@@ -497,6 +506,9 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
   }, [drawerOpen]);
 
   const handleNav = (page: Page) => { onNavigate(page); setDrawerOpen(false); };
+
+  // Detect if current page is admin/back-office
+  const isAdminPage = ADMIN_PAGES.includes(activePage) || activePage === 'admin';
 
   /* ── Desktop nav item renderer ── */
   const renderDesktopItem = (item: NavItem) => {
@@ -574,29 +586,42 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             <LiveIndicators />
           </div>
 
-          {/* Desktop Navigation — 7 items */}
+          {/* Desktop Navigation */}
           <nav className="hidden items-center gap-0.5 xl:flex">
-            {/* Admin items */}
-            {profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
+            {isAdminPage ? (
+              /* ── Simplified nav for admin/back-office pages ── */
+              <button
+                onClick={() => handleNav('home')}
+                className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Retour au site
+              </button>
+            ) : (
+              /* ── Normal nav with mega menus ── */
               <>
-                {ADMIN_ITEMS.map(item => (
-                  <button
-                    key={item.page}
-                    onClick={() => handleNav(item.page!)}
-                    className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                      activePage === item.page
-                        ? 'text-gold-300 bg-gold-400/10'
-                        : 'text-muted hover:text-cream hover:bg-white/5'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <div className="mx-1.5 h-5 w-px bg-line" />
+                {/* Admin items (only on public pages) */}
+                {profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
+                  <>
+                    {ADMIN_ITEMS.map(item => (
+                      <button
+                        key={item.page}
+                        onClick={() => handleNav(item.page!)}
+                        className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                          activePage === item.page
+                            ? 'text-gold-300 bg-gold-400/10'
+                            : 'text-muted hover:text-cream hover:bg-white/5'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                    <div className="mx-1.5 h-5 w-px bg-line" />
+                  </>
+                )}
+                {NAV_ITEMS.map(renderDesktopItem)}
               </>
             )}
-
-            {NAV_ITEMS.map(renderDesktopItem)}
           </nav>
 
           {/* Right actions */}
@@ -676,9 +701,17 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               </>
             )}
 
-            {/* Admin items */}
-            {user && profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
+            {isAdminPage ? (
+              /* ── Simplified mobile nav for admin pages ── */
               <>
+                <button
+                  onClick={() => handleNav('home')}
+                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-base font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                  Retour au site
+                </button>
+                <div className="mx-4 my-2 h-px bg-line" />
                 {ADMIN_ITEMS.map(item => (
                   <button
                     key={item.page}
@@ -692,12 +725,34 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
                     {item.label}
                   </button>
                 ))}
-                <div className="mx-4 my-2 h-px bg-line" />
+              </>
+            ) : (
+              /* ── Normal mobile nav ── */
+              <>
+                {/* Admin items */}
+                {user && profile && can(profile, ROLE_LEVELS.DEPT_LEADER) && (
+                  <>
+                    {ADMIN_ITEMS.map(item => (
+                      <button
+                        key={item.page}
+                        onClick={() => handleNav(item.page!)}
+                        className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
+                          activePage === item.page
+                            ? 'text-gold-300 bg-gold-400/10'
+                            : 'text-cream hover:bg-white/5'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                    <div className="mx-4 my-2 h-px bg-line" />
+                  </>
+                )}
+
+                {/* Public nav */}
+                {NAV_ITEMS.map(renderMobileItem)}
               </>
             )}
-
-            {/* Public nav */}
-            {NAV_ITEMS.map(renderMobileItem)}
           </nav>
 
           {/* Drawer footer */}
