@@ -49,49 +49,80 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.warn('Colonnes étendues manquantes, requête fallback…');
         const { data: fallbackData, error: fallbackErr } = await supabase
           .from('user_profiles')
-          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
+          .select('id, email, full_name, avatar_url, is_admin, role_level, created_at, updated_at')
           .eq('id', userId)
           .single();
 
-        if (fallbackErr || !fallbackData) {
-          // Profile introuvable → auto-création minimale
+        if (!fallbackErr && fallbackData) {
+          const p = fallbackData as any;
+          const onboardingLocalDone = localStorage.getItem('lc_onboarding_done') === userId;
+          setProfile({
+            id: p.id, email: p.email, full_name: p.full_name,
+            avatar_url: p.avatar_url ?? null, phone: null, address: null,
+            gender: null, birth_date: null, bio: null,
+            is_admin: p.is_admin ?? false,
+            onboarding_completed: onboardingLocalDone,
+            role_level: p.role_level ?? 1,
+            pastor_category: null, extension_id: null, is_principal_pastor: false,
+            is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
+            created_at: p.created_at, updated_at: p.updated_at,
+          } as UserProfile);
+        } else {
+          // Profil introuvable → auto-création
           await autoCreateProfile(userId);
-          return;
         }
-
-        const p = fallbackData as any;
-        // Si onboarding n'existe pas en DB, vérifier localStorage
-        const onboardingLocalDone = localStorage.getItem('lc_onboarding_done') === userId;
-        setProfile({
-          id: p.id,
-          email: p.email,
-          full_name: p.full_name,
-          avatar_url: p.avatar_url ?? null,
-          phone: null,
-          address: null,
-          gender: null,
-          birth_date: null,
-          bio: null,
-          is_admin: p.is_admin ?? false,
-          onboarding_completed: onboardingLocalDone,
-          role_level: p.role_level ?? 1,
-          pastor_category: p.pastor_category ?? null,
-          extension_id: p.extension_id ?? null,
-          is_principal_pastor: p.is_principal_pastor ?? false,
-          is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
-          created_at: p.created_at, updated_at: p.updated_at,
-        } as UserProfile);
         return;
       }
 
+      // ── Erreur autre que colonne manquante (ex: PGRST116 = no rows) → créer le profil ──
       if (error || !data) {
-        // Profile doesn't exist yet — auto-create it
-        console.log('No profile found for user, creating one...');
-        await autoCreateProfile(userId);
+        // Vérifier si le profil existe déjà (erreur réseau temporaire ?)
+        const { data: retryData, error: retryErr } = await supabase
+          .from('user_profiles')
+          .select('id, is_admin, role_level')
+          .eq('id', userId)
+          .single();
+
+        if (!retryErr && retryData) {
+          // Le profil existe, relancer la requête complète
+          console.log('Profile exists but first query failed, retrying full fetch...');
+          const { data: fullData, error: fullErr } = await supabase
+            .from('user_profiles')
+            .select('id, email, full_name, avatar_url, phone, address, gender, birth_date, bio, is_admin, onboarding_completed, role_level, pastor_category, extension_id, is_principal_pastor, is_blocked, blocked_at, blocked_reason, last_seen_at, created_at, updated_at')
+            .eq('id', userId)
+            .single();
+
+          if (!fullErr && fullData) {
+            const p = fullData as any;
+            setProfile({
+              id: p.id, email: p.email, full_name: p.full_name,
+              avatar_url: p.avatar_url ?? null, phone: p.phone ?? null,
+              address: p.address ?? null, gender: p.gender ?? null,
+              birth_date: p.birth_date ?? null, bio: p.bio ?? null,
+              is_admin: p.is_admin ?? false,
+              onboarding_completed: p.onboarding_completed ?? false,
+              role_level: p.role_level ?? 1,
+              pastor_category: p.pastor_category ?? null,
+              extension_id: p.extension_id ?? null,
+              is_principal_pastor: p.is_principal_pastor ?? false,
+              is_blocked: p.is_blocked ?? false,
+              blocked_at: p.blocked_at ?? null, blocked_reason: p.blocked_reason ?? null,
+              last_seen_at: p.last_seen_at ?? null,
+              created_at: p.created_at, updated_at: p.updated_at,
+            } as UserProfile);
+          } else {
+            await autoCreateProfile(userId);
+          }
+        } else {
+          // Profil n'existe vraiment pas → auto-création
+          console.log('No profile found for user, creating one...');
+          await autoCreateProfile(userId);
+        }
         return;
       }
 
       const p = data as any;
+      console.log('Profile loaded:', { id: p.id, is_admin: p.is_admin, role_level: p.role_level });
       setProfile({
         id: p.id,
         email: p.email,
@@ -117,34 +148,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } as UserProfile);
     } catch (err) {
       console.error('Profile fetch error:', err);
-      // En cas d'erreur imprévue, tenter le fallback minimal
-      try {
-        const { data: safeData } = await supabase
-          .from('user_profiles')
-          .select('id, email, full_name, avatar_url, is_admin, created_at, updated_at')
-          .eq('id', userId)
-          .single();
-        if (safeData) {
-          const s = safeData as any;
-          const onboardingLocalDone = localStorage.getItem('lc_onboarding_done') === userId;
-          setProfile({
-            id: s.id, email: s.email, full_name: s.full_name,
-            avatar_url: s.avatar_url ?? null, phone: null, address: null,
-            gender: null, birth_date: null, bio: null, is_admin: s.is_admin ?? false,
-            onboarding_completed: onboardingLocalDone,
-            role_level: s.role_level ?? 1,
-            pastor_category: s.pastor_category ?? null,
-            extension_id: s.extension_id ?? null,
-            is_principal_pastor: s.is_principal_pastor ?? false,
-            is_blocked: false, blocked_at: null, blocked_reason: null, last_seen_at: null,
-            created_at: s.created_at, updated_at: s.updated_at,
-          } as UserProfile);
-        } else {
-          setProfile(null);
-        }
-      } catch {
-        setProfile(null);
-      }
+      setProfile(null);
     } finally {
       setProfileLoading(false);
     }

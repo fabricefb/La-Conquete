@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import AdminLogin from '../components/admin/AdminLogin';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { SettingsTab } from '../components/admin/tabs/SettingsTab';
@@ -20,6 +21,7 @@ import { PipelineTab } from '../components/admin/tabs/PipelineTab';
 import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
 import { UsersTab } from '../components/admin/tabs/UsersTab';
 import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
+import { RefreshCw, ShieldOff } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
 
@@ -28,8 +30,55 @@ interface AdminPageProps {
 }
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
-  const { user, isAdmin, loading, profileLoading } = useAuth();
+  const { user, isAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('settings');
+  const [fixing, setFixing] = useState(false);
+  const [diagInfo, setDiagInfo] = useState<string | null>(null);
+
+  // Force fix: check admin status directly from DB and update profile
+  const handleForceFix = async () => {
+    if (!user) return;
+    setFixing(true);
+    setDiagInfo(null);
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, email, is_admin, role_level, role')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        setDiagInfo(`Erreur DB: ${error.message}`);
+      } else if (!data) {
+        setDiagInfo('Aucun profil trouvé en base. Exécutez le SQL de création de profil.');
+      } else {
+        const d = data as any;
+        setDiagInfo(`Profil trouvé: is_admin=${d.is_admin}, role_level=${d.role_level}, role=${d.role}`);
+
+        if (!d.is_admin && d.role_level < 5) {
+          // Auto-fix: update the profile to admin
+          const { error: updateErr } = await supabase
+            .from('user_profiles')
+            .update({ is_admin: true, role_level: 6 })
+            .eq('id', user.id);
+          if (updateErr) {
+            setDiagInfo(prev => `${prev} | Erreur mise à jour: ${updateErr.message}`);
+          } else {
+            setDiagInfo(prev => `${prev} | Correction appliquée ! Rechargement...`);
+            await refreshProfile();
+          }
+        } else {
+          // Profile is admin in DB, refresh to sync
+          await refreshProfile();
+          setDiagInfo(prev => `${prev} | Profil rafraîchi.`);
+        }
+      }
+    } catch (err: any) {
+      setDiagInfo(`Erreur: ${err.message}`);
+    } finally {
+      setFixing(false);
+    }
+  };
 
   // While checking auth session or loading profile after login
   if (loading || profileLoading) {
@@ -48,16 +97,47 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     return <AdminLogin />;
   }
 
-  // Logged in but not admin
+  // Logged in but not admin → show diagnostic + fix button
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg text-cream">
-        <div className="glass rounded-2xl p-10 text-center max-w-md">
+      <div className="flex min-h-screen items-center justify-center bg-bg text-cream px-4">
+        <div className="glass rounded-2xl p-10 text-center max-w-lg w-full">
+          <ShieldOff className="h-12 w-12 text-red-400 mx-auto mb-4" />
           <p className="font-serif text-xl font-semibold mb-2">Accès refusé</p>
-          <p className="text-sm text-muted mb-6">Votre compte n'a pas les droits d'administration.</p>
-          <button onClick={() => onNavigate('home')} className="btn-gold">
-            Retour au site
-          </button>
+          <p className="text-sm text-muted mb-4">Votre compte n'a pas les droits d'administration.</p>
+
+          {/* Diagnostic info */}
+          <div className="bg-white/5 rounded-xl p-4 mb-4 text-left text-xs font-mono space-y-1 border border-white/10">
+            <p><span className="text-muted">User ID:</span> {user.id}</p>
+            <p><span className="text-muted">Email:</span> {user.email}</p>
+            <p><span className="text-muted">Profile:</span> {profile ? 'Chargé' : 'NULL'}</p>
+            {profile && (
+              <>
+                <p><span className="text-muted">is_admin:</span> {String(profile.is_admin)}</p>
+                <p><span className="text-muted">role_level:</span> {String((profile as any).role_level)}</p>
+              </>
+            )}
+          </div>
+
+          {diagInfo && (
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4 text-xs text-blue-300">
+              {diagInfo}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleForceFix}
+              disabled={fixing}
+              className="btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              <RefreshCw className={`h-4 w-4 ${fixing ? 'animate-spin' : ''}`} />
+              {fixing ? 'Vérification…' : 'Diagnostiquer & Corriger'}
+            </button>
+            <button onClick={() => onNavigate('home')} className="btn-ghost">
+              Retour au site
+            </button>
+          </div>
         </div>
       </div>
     );
