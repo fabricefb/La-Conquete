@@ -27,6 +27,114 @@ const STATUS_COLORS: Record<string, string> = {
   false: 'bg-green-500/20 text-green-400',
 };
 
+function RoleRequestSection() {
+  const { addToast } = useToast();
+  const { profile: adminProfile } = useAuth();
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadRequests();
+  }, []);
+
+  async function loadRequests() {
+    setLoading(true);
+    const { data } = await supabase
+      .from('role_requests')
+      .select('id, user_id, requested_role, reason, status, created_at, user_profiles!inner(full_name, email, role_level)')
+      .eq('status', 'en_attente')
+      .order('created_at', { ascending: true });
+    setRequests((data || []) as any[]);
+    setLoading(false);
+  }
+
+  async function handleAction(id: string, approve: boolean) {
+    setProcessing(id);
+    try {
+      const { error } = await supabase.from('role_requests').update({
+        status: approve ? 'approuve' : 'refuse',
+        reviewed_by: adminProfile?.id,
+        reviewed_at: new Date().toISOString(),
+      }).eq('id', id);
+      if (error) throw error;
+
+      if (approve) {
+        const { data: req } = await supabase.from('role_requests').select('user_id, requested_role').eq('id', id).single();
+        if (req) {
+          const roleMap: Record<string, number> = { ancien: 4, diacre: 4, collaborateur: 4, assistant_pastor: 4, pastor_assoc: 4 };
+          const catMap: Record<string, string> = { ancien: 'ancien', diacre: 'diacre', collaborateur: 'collaborateur', assistant_pastor: 'assistant_pastor', pastor_assoc: 'assistant_pastor' };
+          const newLevel = roleMap[req.requested_role] || 3;
+          await supabase.from('user_profiles').update({
+            role_level: newLevel,
+            pastor_category: catMap[req.requested_role] || null,
+          }).eq('id', req.user_id);
+
+          await supabase.from('notifications').insert({
+            user_id: req.user_id,
+            type: 'role_approved',
+            title: 'Rôle pastoral approuvé',
+            body: `Votre demande de rôle "${req.requested_role}" a été approuvée.`,
+            link: '#dashboard',
+          });
+        }
+        addToast('Demande approuvée et rôle assigné.', 'success');
+      } else {
+        const { data: req } = await supabase.from('role_requests').select('user_id, requested_role').eq('id', id).single();
+        if (req) {
+          await supabase.from('notifications').insert({
+            user_id: req.user_id,
+            type: 'role_rejected',
+            title: 'Demande de rôle refusée',
+            body: `Votre demande de rôle "${req.requested_role}" n'a pas pu être acceptée.`,
+            link: '#dashboard',
+          });
+        }
+        addToast('Demande refusée.', 'info');
+      }
+
+      loadRequests();
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    } finally {
+      setProcessing(null);
+    }
+  }
+
+  if (loading) return <div className="animate-pulse h-20 bg-white/5 rounded-xl mb-6" />;
+  if (requests.length === 0) return null;
+
+  const roleLabels: Record<string, string> = { ancien: 'Ancien', diacre: 'Diacre', collaborateur: 'Collaborateur', assistant_pastor: 'Assistant pasteur', pastor_assoc: 'Pasteur associé' };
+
+  return (
+    <div className="glass rounded-xl p-5 mb-6 border-amber-500/20">
+      <h3 className="text-sm font-semibold text-amber-400 mb-4 flex items-center gap-2">
+        <Shield className="h-4 w-4" />
+        Demandes de rôle pastoral ({requests.length})
+      </h3>
+      <div className="space-y-3">
+        {requests.map((req) => (
+          <div key={req.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-lg bg-white/3">
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-cream">{req.user_profiles?.full_name || 'Inconnu'}</p>
+              <p className="text-xs text-muted">{req.user_profiles?.email} · {roleLabels[req.requested_role] || req.requested_role}</p>
+              {req.reason && <p className="text-xs text-muted/70 mt-1 line-clamp-2">{req.reason}</p>}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button onClick={() => handleAction(req.id, true)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50">
+                {processing === req.id ? '...' : 'Approuver'}
+              </button>
+              <button onClick={() => handleAction(req.id, false)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50">
+                Refuser
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function UsersTab() {
   const { addToast } = useToast();
   const { profile: adminProfile } = useAuth();
@@ -116,6 +224,9 @@ export function UsersTab() {
 
   return (
     <div className="space-y-6">
+      {/* Pending Role Requests */}
+      <RoleRequestSection />
+
       <div>
         <h2 className="font-serif text-2xl font-semibold text-cream">Utilisateurs</h2>
         <p className="text-sm text-muted mt-1">

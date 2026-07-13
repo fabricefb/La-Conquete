@@ -6,7 +6,7 @@ import { db, supabase } from '../lib/supabase';
 import { formatDate } from '../lib/date';
 import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
-  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home,
+  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList,
 } from '../lib/icons';
 import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
 import type { Page } from '../lib/navigation';
@@ -106,6 +106,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [requestedDept, setRequestedDept] = useState<string>('');
   const [deptRequestSubmitting, setDeptRequestSubmitting] = useState(false);
 
+  // ── Role request state ────────────────────────────────────────
+  const [showRoleRequest, setShowRoleRequest] = useState(false);
+  const [roleRequestForm, setRoleRequestForm] = useState({ requested_role: '', reason: '' });
+  const [roleRequestSubmitting, setRoleRequestSubmitting] = useState(false);
+
   // ── Espace Pastoral: Accordion & Form State ────────────────────
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
   const [visitForm, setVisitForm] = useState({ name: '', phone: '', address: '', motif: '', timeOfDay: 'Matin', dayRange: 'Lundi-Vendredi' });
@@ -116,6 +121,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [evalSubmitted, setEvalSubmitted] = useState(false);
   const [evalScore, setEvalScore] = useState(0);
   const [evalWantInterview, setEvalWantInterview] = useState(false);
+
+  // ── My Requests state ─────────────────────────────────────────
+  const [myRequests, setMyRequests] = useState<any[]>([]);
+  const [myRequestsLoading, setMyRequestsLoading] = useState(false);
+
+  // ── Eval sub-accordion state ──────────────────────────────────
+  const [openEvalCat, setOpenEvalCat] = useState<string | null>(null);
 
   // ── Prayer form state ────────────────────────────────────────
   const [showPrayerForm, setShowPrayerForm] = useState(false);
@@ -190,6 +202,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         if (cancelled) return;
 
+        // 6. User's own requests (visit, prayer, department)
+        loadMyRequests();
+
         const userDepts: UserDepartment[] = (deptMembers || []).map((dm: any) => ({
           id: dm.department_id,
           department_name: dm.departments?.name || 'Département',
@@ -245,6 +260,31 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       cancelled = true;
     };
   }, [user]);
+
+  // ── Load user's own requests ─────────────────────────────────
+  const loadMyRequests = async () => {
+    if (!user) return;
+    setMyRequestsLoading(true);
+    try {
+      const [visitRes, prayerRes, deptRes] = await Promise.all([
+        supabase.from('visit_requests').select('id, reason, status, created_at, response, responded_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('prayer_requests').select('id, content, status, created_at, visibility, is_confidential').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('department_requests').select('id, department_id, status, created_at, departments(name)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+      ]);
+
+      const items: any[] = [];
+      (visitRes.data || []).forEach((r: any) => items.push({ type: 'visit', id: r.id, label: `Visite: ${r.reason || 'Demande pastorale'}`, status: r.status, date: r.created_at, response: r.response, responded_at: r.responded_at }));
+      (prayerRes.data || []).forEach((r: any) => items.push({ type: 'prayer', id: r.id, label: r.content?.slice(0, 60) + '...', status: r.status, date: r.created_at, visibility: r.visibility }));
+      (deptRes.data || []).forEach((r: any) => items.push({ type: 'department', id: r.id, label: `Département: ${r.departments?.name || 'N/A'}`, status: r.status, date: r.created_at }));
+
+      items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setMyRequests(items.slice(0, 8));
+    } catch (err) {
+      console.error('Load my requests error:', err);
+    } finally {
+      setMyRequestsLoading(false);
+    }
+  };
 
   // ── Prayer action ──────────────────────────────────────────────
   const handlePray = async (prayerId: string) => {
@@ -364,6 +404,27 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     }
   };
 
+  // ── Role request submission ─────────────────────────────────────
+  const handleRoleRequestSubmit = async () => {
+    if (!user || !roleRequestForm.requested_role) return;
+    setRoleRequestSubmitting(true);
+    try {
+      const { error } = await supabase.from('role_requests').insert({
+        user_id: user.id,
+        requested_role: roleRequestForm.requested_role,
+        reason: roleRequestForm.reason || null,
+      });
+      if (error) throw error;
+      addToast('Votre demande de rôle a été envoyée à l\'administrateur.', 'success');
+      setShowRoleRequest(false);
+      setRoleRequestForm({ requested_role: '', reason: '' });
+    } catch (err: any) {
+      addToast(err.message || 'Erreur lors de l\'envoi de la demande.', 'error');
+    } finally {
+      setRoleRequestSubmitting(false);
+    }
+  };
+
   // ── Pre-fill pastoral forms from profile ──────────────────────
   useEffect(() => {
     if (profile) {
@@ -469,34 +530,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       </div>
     );
   }
-
-  // ── Quick actions ──────────────────────────────────────────────
-  const quickActions = [
-    {
-      label: 'Soumettre une demande de visite',
-      Icon: MapPin,
-      page: 'contact' as Page,
-      desc: 'Demandez une visite pastorale',
-    },
-    {
-      label: 'Soumettre une requête de prière',
-      Icon: Heart,
-      page: 'contact' as Page,
-      desc: 'Partagez vos besoins de prière',
-    },
-    {
-      label: 'Auto-évaluation spirituelle',
-      Icon: BookOpen,
-      page: 'contact' as Page,
-      desc: 'Évaluez votre croissance spirituelle',
-    },
-    {
-      label: 'Voir mes notifications',
-      Icon: Bell,
-      page: 'dashboard' as Page,
-      desc: `${unreadCount} non lue${unreadCount !== 1 ? 's' : ''}`,
-    },
-  ];
 
   /* ════════════════════════════════════════════════════════════════
      RENDER
@@ -939,48 +972,81 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     ))}
                   </div>
                 )}
+                {/* Demander un rôle pastoral */}
+                <div className="mt-4 pt-4 border-t border-line">
+                  <button
+                    onClick={() => setShowRoleRequest(true)}
+                    className="text-xs text-muted hover:text-gold-400 transition-colors flex items-center gap-1.5"
+                  >
+                    <Shield className="h-3.5 w-3.5" />
+                    Demander un rôle pastoral (ancien, diacre, pasteur...)
+                  </button>
+                </div>
               </section>
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
-               6. QUICK ACTIONS
+               6. MES DEMANDES & RÉPONSES
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={5}>
               <section className="mb-10">
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10">
-                    <Send className="h-5 w-5 text-amber-400" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10">
+                    <ClipboardList className="h-5 w-5 text-cyan-400" />
                   </div>
-                  <h2 className="text-headline-md font-display text-cream">
-                    Actions Rapides
-                  </h2>
+                  <h2 className="text-headline-md font-display text-cream">Mes Demandes & Réponses</h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {quickActions.map((action) => {
-                    const Icon = action.Icon;
-                    return (
-                      <button
-                        key={action.label}
-                        onClick={() => onNavigate(action.page)}
-                        className="glass-card group flex items-center gap-4 p-4 sm:p-5 text-left transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-gold-500/5"
-                      >
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gold-400/10 ring-1 ring-gold-400/20 transition-all duration-300 group-hover:bg-gold-400 group-hover:ring-gold-400/40 group-hover:text-white">
-                          <Icon className="h-5 w-5 text-gold-400 transition-colors duration-300 group-hover:text-white" />
+                {myRequestsLoading ? (
+                  <div className="glass-card p-5 animate-pulse"><div className="h-4 w-40 bg-white/5 rounded" /></div>
+                ) : myRequests.length === 0 ? (
+                  <div className="glass-card flex flex-col items-center justify-center py-10 text-center">
+                    <ClipboardList className="mb-3 h-10 w-10 text-muted/40" />
+                    <p className="text-muted text-sm">Aucune demande envoyée</p>
+                    <p className="text-xs text-muted/60 mt-1">Utilisez l'Espace Pastoral ci-dessous pour soumettre vos premières demandes.</p>
+                  </div>
+                ) : (
+                  <div className="glass-card divide-y divide-white/5">
+                    {myRequests.map((req) => (
+                      <div key={req.id} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${req.type === 'visit' ? 'bg-amber-500/10' : req.type === 'prayer' ? 'bg-rose-500/10' : 'bg-emerald-500/10'}`}>
+                            {req.type === 'visit' ? <MapPin className="h-4 w-4 text-amber-400" /> : req.type === 'prayer' ? <Heart className="h-4 w-4 text-rose-400" /> : <Users className="h-4 w-4 text-emerald-400" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-cream truncate">{req.label}</p>
+                            <p className="text-xs text-muted/60">{new Date(req.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-sm sm:text-base font-semibold text-cream group-hover:text-gold-300 transition-colors duration-200 truncate">
-                            {action.label}
-                          </h3>
-                          <p className="text-xs text-muted mt-0.5 truncate">
-                            {action.desc}
-                          </p>
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          {req.response && (
+                            <div className="flex items-start gap-2 max-w-[200px]">
+                              <CheckCircle className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
+                              <div>
+                                <p className="text-xs font-medium text-emerald-400">Réponse reçue</p>
+                                <p className="text-xs text-muted line-clamp-2">{req.response}</p>
+                              </div>
+                            </div>
+                          )}
+                          <span className={`shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                            req.status === 'en_attente' ? 'bg-amber-500/15 text-amber-400' :
+                            req.status === 'accepte' || req.status === 'repondu' || req.status === 'answered' ? 'bg-emerald-500/15 text-emerald-400' :
+                            req.status === 'refuse' ? 'bg-red-500/15 text-red-400' :
+                            'bg-sky-500/15 text-sky-400'
+                          }`}>
+                            {req.status === 'en_attente' ? 'En attente' :
+                             req.status === 'accepte' ? 'Acceptée' :
+                             req.status === 'refuse' ? 'Refusée' :
+                             req.status === 'repondu' || req.status === 'answered' ? 'Répondue' :
+                             req.status === 'received' ? 'Reçue' :
+                             req.status === 'praying' || req.status === 'en_priere' ? 'En prière' :
+                             req.status}
+                          </span>
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted/40 shrink-0 transition-all duration-300 group-hover:text-gold-400 group-hover:translate-x-1" />
-                      </button>
-                    );
-                  })}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </EvtReveal>
 
@@ -989,11 +1055,24 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={6}>
               <section className="mb-10">
-                <div className="flex items-center gap-3 mb-5">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
-                    <BookOpen className="h-5 w-5 text-purple-400" />
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
+                      <BookOpen className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <h2 className="text-headline-md font-display text-cream">Espace Pastoral</h2>
                   </div>
-                  <h2 className="text-headline-md font-display text-cream">Espace Pastoral</h2>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setOpenAccordion(1)} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition">
+                      <MapPin className="h-3.5 w-3.5" /> Visite
+                    </button>
+                    <button onClick={() => setOpenAccordion(2)} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 transition">
+                      <Heart className="h-3.5 w-3.5" /> Prière
+                    </button>
+                    <button onClick={() => setOpenAccordion(3)} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-sky-400 bg-sky-500/10 border border-sky-500/20 hover:bg-sky-500/20 transition">
+                      <Star className="h-3.5 w-3.5" /> Auto-éval
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -1153,32 +1232,47 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           </div>
                         ) : (
                           <>
-                            {(['Intimité avec Dieu', 'Vie Communautaire', 'Service et Mission', 'Transformation du Caractère'] as const).map((cat) => (
-                              <div key={cat}>
-                                <h3 className="text-sm font-semibold text-gold-400 mb-3 flex items-center gap-2">
-                                  <span className="h-1 w-5 rounded-full bg-gold-400/50" />
-                                  {cat}
-                                </h3>
-                                <div className="space-y-4">
-                                  {EVAL_QUESTIONS.filter((q) => q.cat === cat).map((q) => (
-                                    <div key={q.id}>
-                                      <label className="text-sm font-medium text-cream mb-2 block leading-snug">{q.q}</label>
-                                      <div className="flex flex-wrap gap-2">
-                                        {q.opts.map((opt, oi) => (
-                                          <button
-                                            key={opt}
-                                            onClick={() => setEvalAnswers((prev) => ({ ...prev, [q.id]: oi }))}
-                                            className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${evalAnswers[q.id] === oi ? 'bg-gold-400/15 border-gold-400/40 text-gold-400' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5 hover:text-cream'}`}
-                                          >
-                                            {opt}
-                                          </button>
-                                        ))}
-                                      </div>
+                            {(['Intimité avec Dieu', 'Vie Communautaire', 'Service et Mission', 'Transformation du Caractère'] as const).map((cat, ci) => {
+                              const catQuestions = EVAL_QUESTIONS.filter((q) => q.cat === cat);
+                              const answered = catQuestions.filter((q) => evalAnswers[q.id] !== undefined).length;
+                              const isOpen = openEvalCat === cat;
+                              return (
+                                <div key={cat} className="rounded-xl border border-line overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => setOpenEvalCat(isOpen ? null : cat)}
+                                    className="w-full p-3.5 flex items-center justify-between hover:bg-white/3 transition"
+                                  >
+                                    <div className="flex items-center gap-2.5">
+                                      <span className="h-1.5 w-1.5 rounded-full bg-gold-400" />
+                                      <span className="text-sm font-medium text-cream">{cat}</span>
+                                      <span className="text-[10px] text-muted">{answered}/{catQuestions.length}</span>
                                     </div>
-                                  ))}
+                                    <ChevronDown className={`h-4 w-4 text-muted transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                                  </button>
+                                  <div className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                    <div className="px-3.5 pb-4 space-y-4">
+                                      {catQuestions.map((q) => (
+                                        <div key={q.id}>
+                                          <label className="text-sm font-medium text-cream mb-2 block leading-snug">{q.q}</label>
+                                          <div className="flex flex-wrap gap-2">
+                                            {q.opts.map((opt, oi) => (
+                                              <button
+                                                key={opt}
+                                                onClick={() => setEvalAnswers((prev) => ({ ...prev, [q.id]: oi }))}
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${evalAnswers[q.id] === oi ? 'bg-gold-400/15 border-gold-400/40 text-gold-400' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5 hover:text-cream'}`}
+                                              >
+                                                {opt}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
 
                             <div className="border-t border-line pt-4">
                               <label className="text-sm font-medium text-cream mb-2 block">Souhaitez-vous planifier un entretien pastoral ?</label>
@@ -1281,6 +1375,38 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="dashboard" />
+
+      {/* ── Role Request Modal ──────────────────────────────────── */}
+      {showRoleRequest && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setShowRoleRequest(false)}>
+          <div className="glass rounded-2xl p-6 max-w-md w-full space-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-display font-semibold text-cream">Demander un rôle pastoral</h3>
+              <button onClick={() => setShowRoleRequest(false)} className="text-muted hover:text-cream"><X className="h-5 w-5" /></button>
+            </div>
+            <p className="text-xs text-muted">Soumettez votre demande. L'administrateur examinera votre profil et vous répondra.</p>
+            <div>
+              <label className="text-sm font-medium text-cream mb-1.5 block">Rôle souhaité *</label>
+              <select value={roleRequestForm.requested_role} onChange={e => setRoleRequestForm({...roleRequestForm, requested_role: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-gold-400/50 transition appearance-none cursor-pointer">
+                <option value="" className="bg-bg text-muted">— Choisir —</option>
+                <option value="ancien" className="bg-bg text-cream">Ancien</option>
+                <option value="diacre" className="bg-bg text-cream">Diacre</option>
+                <option value="collaborateur" className="bg-bg text-cream">Collaborateur</option>
+                <option value="assistant_pastor" className="bg-bg text-cream">Assistant pasteur</option>
+                <option value="pastor_assoc" className="bg-bg text-cream">Pasteur associé</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-cream mb-1.5 block">Pourquoi souhaitez-vous ce rôle ?</label>
+              <textarea value={roleRequestForm.reason} onChange={e => setRoleRequestForm({...roleRequestForm, reason: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-gold-400/50 transition min-h-[100px] resize-y" placeholder="Décrivez votre appel et votre engagement..." />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowRoleRequest(false)} className="btn-ghost text-sm px-4 py-2">Annuler</button>
+              <button onClick={handleRoleRequestSubmit} disabled={roleRequestSubmitting || !roleRequestForm.requested_role} className="btn-gold px-5 py-2 text-sm disabled:opacity-50">Envoyer la demande</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

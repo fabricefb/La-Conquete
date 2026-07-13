@@ -17,7 +17,7 @@ export {
   // Auth & password recovery
   KeyRound, MessageCircle,
   // Donations page
-  Smartphone, CreditCard, Copy,
+  Smartphone, CreditCard, Copy, ClipboardList,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;
