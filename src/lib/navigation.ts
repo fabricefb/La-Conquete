@@ -5,6 +5,7 @@ export type Page =
   | 'events'
   | 'media'
   | 'contact'
+  | 'dons'
   | 'admin'
   | 'connexion'
   | 'dashboard'

@@ -16,6 +16,8 @@ export {
   BarChart3, TrendingUp, TrendingDown, DollarSign, ChevronUp, Church,
   // Auth & password recovery
   KeyRound, MessageCircle,
+  // Donations page
+  Smartphone, CreditCard, Copy,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;

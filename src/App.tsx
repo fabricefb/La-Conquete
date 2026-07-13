@@ -25,8 +25,9 @@ const DepartmentsPage = lazy(() => import('./pages/DepartmentsPage').then(m => (
 const ExtensionsPage = lazy(() => import('./pages/ExtensionsPage').then(m => ({ default: m.ExtensionsPage })));
 const CommuniquesPage = lazy(() => import('./pages/CommuniquesPage').then(m => ({ default: m.CommuniquesPage })));
 const AnnoncesPage = lazy(() => import('./pages/AnnoncesPage').then(m => ({ default: m.AnnoncesPage })));
+const DonsPage = lazy(() => import('./pages/DonsPage').then(m => ({ default: m.DonsPage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques'];
 function getPage(): Page {
   const h = window.location.hash.replace('#', '');
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
@@ -118,6 +119,7 @@ function AppRouter() {
             case 'extensions': return <ExtensionsPage {...nav} />;
             case 'communiques': return <CommuniquesPage {...nav} />;
             case 'annonces': return <AnnoncesPage {...nav} />;
+            case 'dons': return <DonsPage {...nav} />;
             default: return <HomePage {...nav} />;
           }
         })()}
