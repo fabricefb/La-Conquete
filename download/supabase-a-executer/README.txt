@@ -25,7 +25,6 @@ ORDRE D'EXECUTION (important - respecte cet ordre) :
 5. 20260712000000_create_media_bucket.sql  <-- Stockage fichiers
 6. 20260713000000_notifications_v2.sql    <-- Systeme notifications
 7. 20260714000000_features_batch.sql      <-- Les 7 nouvelles fonctionnalites
-8. 20260715000000_departments_module.sql   <-- MODULE DEPARTEMENTS (tables, RLS, triggers)
 
 ================================================================
 SI UNE REQUETE ECHOUE :
