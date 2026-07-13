@@ -74,7 +74,7 @@ function getDeptIcon(iconName: string): LucideIcon {
    Main Component
    ═══════════════════════════════════════════════════════════════════ */
 export function OnboardingFlow() {
-  const { refreshProfile } = useAuth();
+  const { profile, user, refreshProfile } = useAuth();
   const { addToast } = useToast();
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -108,6 +108,41 @@ export function OnboardingFlow() {
   const [prayerContent, setPrayerContent] = useState('');
   const [isConfidential, setIsConfidential] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
+
+  /* ── Profile completeness detection ──────────────────────── */
+  const profileComplete = !!(
+    profile?.full_name?.trim() &&
+    profile?.phone?.trim() &&
+    profile?.gender
+  );
+  const hasPartialProfileData = !!(
+    profile?.full_name?.trim() ||
+    profile?.phone?.trim() ||
+    profile?.gender
+  );
+
+  /* ── Pre-fill from profile & skip duplicated steps ─────────── */
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (initializedRef.current || !profile) return;
+    initializedRef.current = true;
+
+    if (profileComplete) {
+      // All three fields already filled during signup → skip welcome + profile
+      setStep(2);
+    } else {
+      // Pre-fill whatever is available
+      if (profile.full_name) {
+        const parts = profile.full_name.trim().split(/\s+/);
+        setFirstName(parts[0]);
+      }
+      if (profile.phone) setPhone(profile.phone);
+      if (profile.gender === 'homme' || profile.gender === 'femme') {
+        setGender(profile.gender);
+      }
+    }
+  }, [profile, profileComplete]);
 
   /* ── Progress bar ──────────────────────────────────────────── */
   const isMemberPath = churchStatus === 'member';
@@ -437,6 +472,17 @@ export function OnboardingFlow() {
             Ces informations nous aident à vous accueillir au mieux.
           </p>
         </div>
+
+        {/* Indicateur « déjà rempli » */}
+        {hasPartialProfileData && (
+          <div className="flex items-start gap-3 rounded-xl bg-gold-500/5 border border-gold-500/20 px-4 py-3 mb-2">
+            <CheckCircle2 className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+            <p className="text-sm text-gold-400/80 leading-relaxed">
+              Ces informations ont été renseignées lors de votre inscription.
+              Vous pouvez les modifier si besoin.
+            </p>
+          </div>
+        )}
 
         <div className="space-y-5">
           {/* Prénom */}

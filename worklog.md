@@ -57,3 +57,22 @@ Stage Summary:
 - New professional dashboard with live data from Supabase
 - Admin sidebar now organized into logical groups with section headers
 - Dashboard is the default landing tab when entering admin panel
+
+---
+Task ID: 3-8
+Agent: Main Agent (via 3 parallel subagents)
+Task: Fix onboarding duplication + Espace Pastoral + Dashboard improvements
+
+Work Log:
+- Fixed OnboardingFlow: detects profile completeness, skips duplicate profile step, pre-fills from existing data
+- Added 3 pastoral accordion forms to DashboardPage: Visit Request (auto-fill), Prayer Request (3-level privacy), Spiritual Self-Evaluation (12 questions, 4 categories, scoring)
+- Improved "Requêtes de Prière" section: inline submission form, anonymous/confidential options, "En prière" state
+- Improved "Mon Département" empty state: interactive department request grid with "Demander à rejoindre" flow
+- Build: 0 TypeScript errors, Vite build successful (5.28s)
+
+Stage Summary:
+- DashboardPage grew from 719 to 1285 lines with all new features
+- OnboardingFlow now smart-skips profile step if data exists from signup
+- 3-level prayer privacy: publique (all), équipe pastorale (pastor+anciens+diacres), confidentielle (pastor only)
+- Spiritual self-eval: 12 questions, max 36 points, tiered feedback messages
+- Department request: inserts into department_requests table with fallback to notifications
