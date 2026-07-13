@@ -19,6 +19,7 @@ import {
   Phone,
   Mail,
   ArrowRight,
+  X,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
@@ -169,6 +170,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
   /* ── Data state ──────────────────────────────────────────────── */
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
+  const [testimonials, setTestimonials] = useState<any[]>([]);
+  const [selectedTestimony, setSelectedTestimony] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
@@ -177,13 +180,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings] = await Promise.all([
+        const [contents, settings, testimonialData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
+          db.getActiveTestimonials(),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
         setSettingsMap(buildSettingsMap(settings));
+        setTestimonials((testimonialData || []).filter((t: any) => t.status === 'published' && t.is_active));
       } catch {
         // Silently fall back to defaults
       } finally {
@@ -544,6 +549,65 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
+      {/* ─── TÉMOIGNAGES CAROUSEL ─── */}
+      {testimonials.length > 0 && (
+        <section className="py-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <RevealSection className="mb-12 text-center">
+              <p className="section-label justify-center">Témoignages</p>
+              <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">
+                Ce que Dieu fait parmi nous
+              </h2>
+            </RevealSection>
+
+            <RevealSection>
+              <div className="relative">
+                {/* Left fade */}
+                <div className="pointer-events-none absolute left-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-r from-bg to-transparent" />
+                {/* Right fade */}
+                <div className="pointer-events-none absolute right-0 top-0 bottom-0 z-10 w-12 bg-gradient-to-l from-bg to-transparent" />
+
+                {/* Scrollable container */}
+                <div className="flex gap-5 overflow-x-auto px-4 pb-4 snap-x snap-mandatory scrollbar-hide">
+                  {testimonials.map((t) => (
+                    <div
+                      key={t.id}
+                      onClick={() => setSelectedTestimony(t)}
+                      className="group snap-start shrink-0 w-[300px] sm:w-[340px] cursor-pointer"
+                    >
+                      <div className="glass-card h-full p-6 flex flex-col transition-all duration-300 hover:border-gold-400/20 hover:-translate-y-1">
+                        {/* Quote icon */}
+                        <div className="mb-4 text-gold-400/30">
+                          <Quote className="h-8 w-8" />
+                        </div>
+                        {/* Excerpt */}
+                        <p className="flex-1 text-sm leading-relaxed text-cream/80 line-clamp-4">
+                          {t.content}
+                        </p>
+                        {/* Author */}
+                        <div className="mt-5 flex items-center gap-3 pt-4 border-t border-line">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/15 text-sm font-bold text-gold-400">
+                            {t.is_anonymous ? '?' : (t.author_name || 'A').charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-cream truncate">
+                              {t.is_anonymous ? 'Anonyme' : (t.author_name || 'Membre')}
+                            </p>
+                            {t.category && t.category !== 'general' && (
+                              <p className="text-xs text-gold-400/70 capitalize">{t.category}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </RevealSection>
+          </div>
+        </section>
+      )}
+
       {/* ─── QUOTE ─── */}
       <section className="py-24 bg-radial-gold">
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
@@ -610,6 +674,45 @@ export function HomePage({ onNavigate }: HomePageProps) {
         onNavigate={onNavigate}
         active="home"
       />
+
+      {/* ─── TESTIMONY MODAL ─── */}
+      {selectedTestimony && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setSelectedTestimony(null)}>
+          <div className="glass rounded-3xl p-8 max-w-lg w-full max-h-[80vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gold-400/15 text-lg font-bold text-gold-400">
+                  {selectedTestimony.is_anonymous ? '?' : (selectedTestimony.author_name || 'A').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-serif text-lg font-semibold text-cream">
+                    {selectedTestimony.is_anonymous ? 'Témoignage Anonyme' : selectedTestimony.author_name}
+                  </p>
+                  {selectedTestimony.category && selectedTestimony.category !== 'general' && (
+                    <p className="text-xs text-gold-400 capitalize">{selectedTestimony.category}</p>
+                  )}
+                </div>
+              </div>
+              <button onClick={() => setSelectedTestimony(null)} className="text-muted hover:text-cream transition">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {/* Admin comment if present */}
+            {selectedTestimony.admin_comment && (
+              <div className="mb-4 rounded-xl bg-gold-400/5 border border-gold-400/15 p-4">
+                <p className="text-xs font-semibold text-gold-400 mb-1">Note pastorale</p>
+                <p className="text-sm text-cream/80">{selectedTestimony.admin_comment}</p>
+              </div>
+            )}
+            <div className="relative">
+              <Quote className="absolute -top-2 -left-1 h-6 w-6 text-gold-400/20 rotate-180" />
+              <p className="text-base leading-relaxed text-cream/90 pl-6">
+                {selectedTestimony.content}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -16,9 +16,9 @@ function UserPendingCounts({ userId }: { userId: string }) {
       try {
         const [prayers, visits, deptReqs, contactMsgs] = await Promise.all([
           supabase.from('prayer_requests').select('id', { count: 'exact', head: true })
-            .eq('user_id', userId).eq('status', 'active'),
-          supabase.from('pastoral_visits').select('id', { count: 'exact', head: true })
-            .eq('user_id', userId).in('status', ['en_attente', 'planifiee', 'en_cours']),
+            .eq('user_id', userId).neq('status', 'answered'),
+          supabase.from('visit_requests').select('id', { count: 'exact', head: true })
+            .eq('user_id', userId).eq('status', 'en_attente'),
           supabase.from('department_requests').select('id', { count: 'exact', head: true })
             .eq('user_id', userId).eq('status', 'en_attente'),
           supabase.from('contact_messages').select('id', { count: 'exact', head: true })

@@ -259,4 +259,7 @@ html[style*="--custom-theme-active"] .live-dot::before {
   .auth-info-box { background: #111b30; border-color: rgba(255,255,255,0.1); }
   .light .auth-info-box { background: #f9fafb; border-color: #e5e7eb; }
   .light .auth-whatsapp-divider { border-color: #e5e7eb; }
+  /* Hide scrollbar for horizontal carousels */
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 }

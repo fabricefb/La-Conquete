@@ -78,20 +78,22 @@ export function TestimonialsTab() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [reviewModal, setReviewModal] = useState<{ item: Testimonial; action: 'approve' | 'reject' } | null>(null);
   const [reviewNotes, setReviewNotes] = useState('');
+  const [adminComment, setAdminComment] = useState('');
 
   // ---- Fetch --------------------------------------------------------------
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('testimonials')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const [{ data: adminData, error }, { data: memberData }] = await Promise.all([
+      supabase.from('testimonials').select('*').order('created_at', { ascending: false }),
+      supabase.from('member_testimonies').select('*').order('created_at', { ascending: false }),
+    ]);
 
     if (error) {
       addToast('Erreur lors du chargement des témoignages', 'error');
     } else {
-      setItems((data as any[])?.map(t => ({
+      // Map admin testimonials
+      const adminItems = (adminData as any[])?.map(t => ({
         ...t,
         status: t.status || 'published',
         category: t.category || 'general',
@@ -100,7 +102,54 @@ export function TestimonialsTab() {
         reviewed_by: t.reviewed_by || null,
         reviewed_at: t.reviewed_at || null,
         reviewer_notes: t.reviewer_notes || null,
-      })) ?? []);
+        _source: 'admin' as const,
+      })) ?? [];
+
+      // Map member-submitted testimonials
+      const memberItems = (memberData as any[])?.map(t => ({
+        ...t,
+        author_name: t.is_anonymous ? 'Anonyme' : '', // will be filled by join if possible
+        author_title: null,
+        photo_url: null,
+        sort_order: 0,
+        is_active: true,
+        status: t.status || 'pending',
+        category: t.category || 'general',
+        is_anonymous: t.is_anonymous || false,
+        author_id: t.user_id || null,
+        reviewed_by: t.reviewed_by || null,
+        reviewed_at: t.reviewed_at || null,
+        reviewer_notes: t.reviewer_notes || null,
+        _source: 'member' as const,
+      })) ?? [];
+
+      // Fetch user names for member testimonies that aren't anonymous
+      const nonAnonIds = [...new Set(memberItems.filter(t => !t.is_anonymous && t.author_id).map(t => t.author_id!))];
+      let nameMap: Record<string, string> = {};
+      if (nonAnonIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('id, full_name')
+          .in('id', nonAnonIds);
+        if (profiles) {
+          nameMap = Object.fromEntries(profiles.map((p: any) => [p.id, p.full_name || 'Membre']));
+        }
+      }
+
+      // Fill in author names
+      memberItems.forEach(t => {
+        if (!t.is_anonymous && t.author_id && nameMap[t.author_id]) {
+          t.author_name = nameMap[t.author_id];
+        } else if (t.is_anonymous) {
+          t.author_name = 'Anonyme';
+        }
+      });
+
+      // Merge and sort by date
+      const all = [...adminItems, ...memberItems].sort(
+        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+      setItems(all);
     }
     setLoading(false);
   }, [addToast]);
@@ -175,10 +224,11 @@ export function TestimonialsTab() {
     fetchItems();
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, source?: string) => {
     if (!confirm('Supprimer ce témoignage ?')) return;
     try {
-      await supabase.from('testimonials').delete().eq('id', id);
+      const table = source === 'member' ? 'member_testimonies' : 'testimonials';
+      await supabase.from(table).delete().eq('id', id);
       addToast('Témoignage supprimé', 'success');
       fetchItems();
     } catch {
@@ -193,17 +243,24 @@ export function TestimonialsTab() {
     setSaving(true);
     const newStatus = reviewModal.action === 'approve' ? 'published' : 'rejected';
     try {
-      const { error } = await supabase.from('testimonials').update({
+      const table = (reviewModal.item as any)._source === 'member' ? 'member_testimonies' : 'testimonials';
+      const updateData: any = {
         status: newStatus,
         reviewed_by: profile?.id || null,
         reviewed_at: new Date().toISOString(),
         reviewer_notes: reviewNotes.trim() || null,
-        is_active: newStatus === 'published',
-      }).eq('id', reviewModal.item.id);
+        ...(table === 'testimonials' ? { is_active: newStatus === 'published' } : { published_at: newStatus === 'published' ? new Date().toISOString() : null }),
+      };
+      // Add admin_comment for member testimonies
+      if (table === 'member_testimonies' && adminComment.trim() && newStatus === 'published') {
+        updateData.admin_comment = adminComment.trim();
+      }
+      const { error } = await supabase.from(table).update(updateData).eq('id', reviewModal.item.id);
       if (error) throw error;
       addToast(newStatus === 'published' ? 'Témoignage publié' : 'Témoignage rejeté', 'success');
       setReviewModal(null);
       setReviewNotes('');
+      setAdminComment('');
       fetchItems();
     } catch {
       addToast('Erreur lors de la validation', 'error');
@@ -401,7 +458,7 @@ export function TestimonialsTab() {
                           </>
                         )}
                         <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
-                        <button onClick={() => handleDelete(item.id)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
+                        <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
 
@@ -453,6 +510,18 @@ export function TestimonialsTab() {
                 placeholder={reviewModal.action === 'approve' ? 'Commentaire optionnel...' : 'Expliquez pourquoi ce témoignage est rejeté...'}
                 className="input-surface w-full px-4 py-2.5 text-sm resize-none"
               />
+              {(reviewModal.item as any)._source === 'member' && reviewModal.action === 'approve' && (
+                <div className="mt-3">
+                  <label className="mb-1.5 block text-xs font-medium text-gold-400">Note pastorale (visible sur le site)</label>
+                  <textarea
+                    value={adminComment}
+                    onChange={e => setAdminComment(e.target.value)}
+                    rows={2}
+                    placeholder="Un mot d'encouragement ou de contexte..."
+                    className="input-surface w-full px-4 py-2.5 text-sm resize-none"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end gap-3 pt-2">

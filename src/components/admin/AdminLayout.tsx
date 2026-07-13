@@ -72,23 +72,45 @@ interface AdminLayoutProps {
 }
 
 // Onglets masqués pour le pasteur principal (consultation uniquement)
-const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>(['theme', 'settings', 'inventory', 'media']);
+const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>([
+  'theme', 'settings', 'inventory', 'media',
+  'pipeline', 'onboarding', 'protocol', 'creneaux',
+]);
+
+// Onglets masqués pour les utilisateurs niveau 4 (diacre, collaborateur, etc.)
+const HIDDEN_TABS_FOR_LEVEL4 = new Set<AdminTab>([
+  'theme', 'settings', 'inventory', 'media',
+  'pipeline', 'creneaux',
+]);
 
 function SidebarNav({
   activeTab,
   onTabChange,
   onClose,
   isFullAdmin = true,
+  userRoleLevel = 0,
+  isPrincipalPastor = false,
 }: {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   onClose?: () => void;
   isFullAdmin?: boolean;
+  userRoleLevel?: number;
+  isPrincipalPastor?: boolean;
 }) {
   // Filtrer les onglets selon le rôle
-  const visibleGroups = isFullAdmin ? tabGroups : tabGroups.map(g => ({
+  let hiddenTabs = new Set<AdminTab>();
+  if (isPrincipalPastor) {
+    hiddenTabs = HIDDEN_TABS_FOR_PASTOR;
+  } else if (!isFullAdmin && userRoleLevel >= 4) {
+    hiddenTabs = HIDDEN_TABS_FOR_LEVEL4;
+  } else if (!isFullAdmin) {
+    hiddenTabs = HIDDEN_TABS_FOR_PASTOR;
+  }
+
+  const visibleGroups = hiddenTabs.size === 0 ? tabGroups : tabGroups.map(g => ({
     ...g,
-    tabs: g.tabs.filter(t => !HIDDEN_TABS_FOR_PASTOR.has(t.id)),
+    tabs: g.tabs.filter(t => !hiddenTabs.has(t.id)),
   })).filter(g => g.tabs.length > 0);
 
   return (
@@ -128,6 +150,8 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
   const { profile, signOut } = useAuth();
   const { addToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const userRoleLevel = profile?.role_level ?? 0;
+  const isPrincipalPastor = profile?.is_principal_pastor ?? false;
 
   async function handleSignOut() {
     try {
@@ -185,7 +209,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
       <div className="flex">
         {/* ─── Sidebar (desktop) ─── */}
         <aside className="hidden lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-3.5rem)] lg:w-56 lg:flex-col lg:border-r border-line bg-bg/50">
-          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} />
+          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} userRoleLevel={userRoleLevel} isPrincipalPastor={isPrincipalPastor} />
         </aside>
 
         {/* ─── Mobile sidebar overlay ─── */}
@@ -203,7 +227,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} isFullAdmin={isFullAdmin} />
+              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} isFullAdmin={isFullAdmin} userRoleLevel={userRoleLevel} isPrincipalPastor={isPrincipalPastor} />
             </aside>
           </div>
         )}

@@ -6,7 +6,7 @@ import { db, supabase } from '../lib/supabase';
 import { formatDate } from '../lib/date';
 import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
-  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList,
+  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList, Quote, Sparkles, Eye, EyeOff,
 } from '../lib/icons';
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
@@ -163,12 +163,60 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [newPrayerContent, setNewPrayerContent] = useState('');
   const [newPrayerConfidential, setNewPrayerConfidential] = useState(false);
   const [newPrayerAnonymous, setNewPrayerAnonymous] = useState(false);
+  const [newPrayerUrgency, setNewPrayerUrgency] = useState<'basse' | 'normale' | 'haute' | 'urgente'>('normale');
   const [prayerSubmitting, setPrayerSubmitting] = useState(false);
+  const [expandedPrayer, setExpandedPrayer] = useState<string | null>(null);
+
+  // ── Testimony state ───────────────────────────────────────────
+  const [showTestimonyForm, setShowTestimonyForm] = useState(false);
+  const [testimonyContent, setTestimonyContent] = useState('');
+  const [testimonyCategory, setTestimonyCategory] = useState('general');
+  const [testimonyAnonymous, setTestimonyAnonymous] = useState(false);
+  const [testimonySubmitting, setTestimonySubmitting] = useState(false);
+  const [testimonySubmitted, setTestimonySubmitted] = useState(false);
+
+  // ── Daily verse / Hero state ────────────────────────────────
+  const [dailyVerse, setDailyVerse] = useState<any>(null);
+  const [heroExhortation, setHeroExhortation] = useState<string>('Que la paix du Seigneur soit avec vous aujourd\'hui !');
 
   // ── Event Reminders (3x/day) ────────────────────────────────
   const { upcomingReminders } = useEventReminders();
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Membre';
+
+  // ── Role-based section visibility ─────────────────────────────
+  const PASTOR_HIDDEN_SECTIONS = new Set([
+    'protocol_report',
+    'rotation_planning',
+    'dress_code',
+    'pipeline',
+  ]);
+
+  const LEVEL4_HIDDEN_SECTIONS = new Set([
+    'protocol_report',
+    'rotation_planning',
+    'dress_code',
+    'pipeline',
+  ]);
+
+  const shouldHideDeptSection = (dept: UserDepartment): boolean => {
+    const isPrincipalPastor = profile?.is_principal_pastor === true;
+    const isLevel4Plus = (profile?.role_level ?? 0) >= 4 && !profile?.is_admin;
+
+    if (!isPrincipalPastor && !isLevel4Plus) return false;
+
+    const hiddenSet = isPrincipalPastor ? PASTOR_HIDDEN_SECTIONS : LEVEL4_HIDDEN_SECTIONS;
+    const deptName = dept.department_name.toLowerCase();
+
+    const isProtocole = deptName.includes('protocole');
+    if (isProtocole) return hiddenSet.has('protocol_report');
+
+    if (deptName.includes('rotation') || deptName.includes('planning')) return hiddenSet.has('rotation_planning');
+    if (deptName.includes('vestimentaire') || deptName.includes('dress') || deptName.includes('tenue')) return hiddenSet.has('dress_code');
+    if (deptName.includes('pipeline') || deptName.includes('âme') || deptName.includes('cellule') || deptName.includes('zone')) return hiddenSet.has('pipeline');
+
+    return false;
+  };
 
   // ── Fetch all dashboard data ────────────────────────────────────
   useEffect(() => {
@@ -196,6 +244,28 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           .neq('status', 'answered')
           .order('created_at', { ascending: false })
           .limit(5);
+
+        // 2b. Daily verse
+        const todayStr = new Date().toISOString().split('T')[0];
+        const { data: verseData } = await supabase
+          .from('daily_verses')
+          .select('*')
+          .eq('verse_date', todayStr)
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        // 2c. Default exhortation from site_settings
+        const defaultExhortation = await db.getSetting('hero_default_exhortation').catch(() => null);
+
+        if (cancelled) return;
+
+        if (verseData) {
+          setDailyVerse(verseData);
+        }
+        if (defaultExhortation) {
+          setHeroExhortation(defaultExhortation);
+        }
 
         // 3. Count queries for stats
         const [evtRes, prayRes, visitRes, memberRes] = await Promise.all([
@@ -500,12 +570,15 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         is_anonymous: newPrayerAnonymous,
         is_confidential: newPrayerConfidential,
         status: 'received',
+        urgency: newPrayerUrgency,
+        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       });
       if (error) throw error;
       addToast('Votre requête de prière a été soumise. 🙏', 'success');
       setNewPrayerContent('');
       setNewPrayerConfidential(false);
       setNewPrayerAnonymous(false);
+      setNewPrayerUrgency('normale');
       setShowPrayerForm(false);
       // Refresh prayer list
       const { data: refreshed } = await supabase
@@ -522,6 +595,46 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       setPrayerSubmitting(false);
     }
   };
+
+  // ── Submit testimony ──────────────────────────────────────
+  const handleSubmitTestimony = async () => {
+    if (!user || !testimonyContent.trim()) {
+      addToast('Veuillez écrire votre témoignage.', 'error');
+      return;
+    }
+    setTestimonySubmitting(true);
+    try {
+      const { error } = await supabase.from('member_testimonies').insert({
+        user_id: user.id,
+        content: testimonyContent.trim(),
+        category: testimonyCategory,
+        is_anonymous: testimonyAnonymous,
+        status: 'pending',
+      });
+      if (error) throw error;
+      addToast('Témoignage soumis ! Il sera publié après examen.', 'success');
+      setTestimonyContent('');
+      setTestimonyCategory('general');
+      setTestimonyAnonymous(false);
+      setTestimonySubmitted(true);
+      setShowTestimonyForm(false);
+    } catch {
+      addToast('Erreur lors de la soumission du témoignage.', 'error');
+    } finally {
+      setTestimonySubmitting(false);
+    }
+  };
+
+  const TESTIMONY_CATEGORIES = [
+    { val: 'general', label: 'Général' },
+    { val: 'guerison', label: 'Guérison' },
+    { val: 'finance', label: 'Finance' },
+    { val: 'miracle', label: 'Miracle' },
+    { val: 'salut', label: 'Salut' },
+    { val: 'famille', label: 'Famille' },
+    { val: 'delivrance', label: 'Délivrance' },
+    { val: 'autre', label: 'Autre' },
+  ];
 
   // ── Fetch available departments ────────────────────────────────
   const handleShowDeptRequest = async () => {
@@ -860,6 +973,47 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
+               1b. HERO — DAILY BIBLE VERSE
+               ═══════════════════════════════════════════════════════ */}
+            <EvtReveal>
+              <div className="mb-10 relative overflow-hidden rounded-2xl bg-gradient-to-br from-gold-400/10 via-bg to-amber-400/5 border border-gold-400/10">
+                {/* Subtle pattern overlay */}
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+
+                <div className="relative flex flex-col items-center justify-center px-6 py-6 sm:py-8 text-center max-h-[150px]">
+                  {dailyVerse ? (
+                    <>
+                      {dailyVerse.reference && (
+                        <p className="gold-text text-xs sm:text-sm font-semibold font-display tracking-wide uppercase mb-1.5">
+                          {dailyVerse.reference}
+                        </p>
+                      )}
+                      {dailyVerse.content && (
+                        <p className="text-sm sm:text-base text-cream/90 leading-relaxed italic max-w-2xl line-clamp-2">
+                          « {dailyVerse.content} »
+                        </p>
+                      )}
+                      {dailyVerse.exhortation && (
+                        <p className="text-xs text-muted mt-1.5 max-w-xl line-clamp-1">
+                          {dailyVerse.exhortation}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm sm:text-base text-cream/80 leading-relaxed italic max-w-2xl line-clamp-2">
+                        « {heroExhortation} »
+                      </p>
+                      <p className="text-xs text-gold-400/70 mt-2 font-display">
+                        — Église Évangélique La Conquête
+                      </p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </EvtReveal>
+
+            {/* ═══════════════════════════════════════════════════════
                2. STATS ROW
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={1}>
@@ -1021,6 +1175,29 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         Masquer mon nom (demande anonyme)
                       </label>
                     </div>
+                    {/* Urgency selector */}
+                    <div>
+                      <label className="text-xs text-muted font-medium mb-2 block">Niveau d'urgence</label>
+                      <div className="flex flex-wrap gap-2">
+                        {([
+                          ['basse', 'Basse', 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400', 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'],
+                          ['normale', 'Normale', 'bg-sky-500/10 border-sky-500/20 text-sky-400', 'bg-sky-500/15 border-sky-500/40 text-sky-400'],
+                          ['haute', 'Haute', 'bg-orange-500/10 border-orange-500/20 text-orange-400', 'bg-orange-500/15 border-orange-500/40 text-orange-400'],
+                          ['urgente', 'Urgente', 'bg-red-500/10 border-red-500/20 text-red-400', 'bg-red-500/15 border-red-500/40 text-red-400'],
+                        ] as const).map(([val, label, baseClasses, activeClasses]) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setNewPrayerUrgency(val)}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-medium border transition-all duration-200 ${
+                              newPrayerUrgency === val ? activeClasses : `${baseClasses} opacity-60 hover:opacity-100`
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <div className="flex items-center gap-3 justify-end">
                       <button
                         onClick={() => setShowPrayerForm(false)}
@@ -1049,45 +1226,116 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </div>
                 ) : prayers.length > 0 ? (
                   <div className="space-y-3">
-                    {prayers.slice(0, 5).map((prayer) => (
-                      <div
-                        key={prayer.id}
-                        className="glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between transition-all duration-300 hover:border-gold-400/15"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-xs font-medium text-muted">
-                              {prayer.is_anonymous ? 'Anonyme' : (prayer.author_name || 'Anonyme')}
-                            </span>
-                            <span className="text-muted/30">·</span>
-                            <span className="text-xs text-muted/70">
-                              {formatDate(prayer.created_at).full}
-                            </span>
-                            {prayer.status === 'praying' && (
-                              <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">
-                                <Heart className="h-3 w-3" />
-                                En prière
-                              </span>
-                            )}
+                    {prayers.slice(0, 5).map((prayer) => {
+                      const isExpanded = expandedPrayer === prayer.id;
+                      return (
+                        <div key={prayer.id}>
+                          <div
+                            onClick={() => setExpandedPrayer(isExpanded ? null : prayer.id)}
+                            className={`glass-card flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between transition-all duration-300 cursor-pointer hover:border-gold-400/15 ${isExpanded ? 'border-rose-500/20' : ''}`}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1.5">
+                                <span className="text-xs font-medium text-muted">
+                                  {prayer.is_anonymous ? 'Anonyme' : (prayer.author_name || 'Anonyme')}
+                                </span>
+                                <span className="text-muted/30">·</span>
+                                <span className="text-xs text-muted/70">
+                                  {formatDate(prayer.created_at).full}
+                                </span>
+                                {prayer.status === 'praying' && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-medium text-amber-400">
+                                    <Heart className="h-3 w-3" />
+                                    En prière
+                                  </span>
+                                )}
+                                {(prayer as any).urgency && (prayer as any).urgency !== 'normale' && (
+                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                                    (prayer as any).urgency === 'urgente' ? 'bg-red-500/15 text-red-400' :
+                                    (prayer as any).urgency === 'haute' ? 'bg-orange-500/15 text-orange-400' :
+                                    (prayer as any).urgency === 'basse' ? 'bg-emerald-500/15 text-emerald-400' :
+                                    'bg-sky-500/15 text-sky-400'
+                                  }`}>
+                                    {(prayer as any).urgency === 'urgente' ? '🔴 Urgente' :
+                                     (prayer as any).urgency === 'haute' ? '🟠 Haute' :
+                                     (prayer as any).urgency === 'basse' ? '🟢 Basse' :
+                                     (prayer as any).urgency}
+                                  </span>
+                                )}
+                              </div>
+                              <p className={`text-sm text-cream/90 leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
+                                {prayer.content}
+                              </p>
+                            </div>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handlePray(prayer.id); }}
+                              disabled={prayer.status === 'praying'}
+                              className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
+                                prayer.status === 'praying'
+                                  ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 cursor-default'
+                                  : 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/30'
+                              }`}
+                            >
+                              <Heart className={`h-4 w-4 ${prayer.status === 'praying' ? 'fill-current' : ''}`} />
+                              {prayer.status === 'praying' ? 'En prière' : 'Prier'}
+                            </button>
                           </div>
-                          <p className="text-sm text-cream/90 leading-relaxed line-clamp-2">
-                            {prayer.content}
-                          </p>
+                          {/* Inline expanded details */}
+                          {isExpanded && (
+                            <div className="glass-card mt-0 rounded-t-none border-t-0 p-4 space-y-3">
+                              {prayer.status === 'praying' && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-medium text-amber-400">
+                                  <Heart className="h-3.5 w-3.5" />
+                                  Cette requête est en cours de prière
+                                </span>
+                              )}
+                              {(prayer as any).urgency && (prayer as any).urgency !== 'normale' && (
+                                <div className="flex items-center gap-2 text-xs">
+                                  <span className="text-muted">Urgence :</span>
+                                  <span className={`font-medium ${
+                                    (prayer as any).urgency === 'urgente' ? 'text-red-400' :
+                                    (prayer as any).urgency === 'haute' ? 'text-orange-400' :
+                                    (prayer as any).urgency === 'basse' ? 'text-emerald-400' :
+                                    'text-sky-400'
+                                  }`}>
+                                    {(prayer as any).urgency === 'urgente' ? '🔴 Urgente' :
+                                     (prayer as any).urgency === 'haute' ? '🟠 Haute' :
+                                     (prayer as any).urgency === 'basse' ? '🟢 Basse' :
+                                     (prayer as any).urgency}
+                                  </span>
+                                </div>
+                              )}
+                              {(prayer as any).expires_at && (
+                                <div className="flex items-center gap-2 text-xs">
+                                  <Clock className="h-3.5 w-3.5 text-muted" />
+                                  <span className="text-muted">Expire le</span>
+                                  <span className="text-cream/70 font-medium">
+                                    {new Date((prayer as any).expires_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                                <span className="text-xs text-muted">
+                                  {formatDate(prayer.created_at).full}
+                                </span>
+                                <button
+                                  onClick={() => handlePray(prayer.id)}
+                                  disabled={prayer.status === 'praying'}
+                                  className={`flex items-center gap-2 rounded-xl border px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-95 ${
+                                    prayer.status === 'praying'
+                                      ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 cursor-default'
+                                      : 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/30'
+                                  }`}
+                                >
+                                  <Heart className={`h-4 w-4 ${prayer.status === 'praying' ? 'fill-current' : ''}`} />
+                                  {prayer.status === 'praying' ? 'En prière' : 'Prier'}
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                        <button
-                          onClick={() => handlePray(prayer.id)}
-                          disabled={prayer.status === 'praying'}
-                          className={`flex shrink-0 items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-200 active:scale-95 ${
-                            prayer.status === 'praying'
-                              ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 cursor-default'
-                              : 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20 hover:border-rose-500/30'
-                          }`}
-                        >
-                          <Heart className={`h-4 w-4 ${prayer.status === 'praying' ? 'fill-current' : ''}`} />
-                          {prayer.status === 'praying' ? 'En prière' : 'Prier'}
-                        </button>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div className="pt-2 text-center">
                       <button
                         onClick={() => onNavigate('communication')}
@@ -1570,9 +1818,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
-               8. DÉPARTEMENT-SPECIFIC SECTIONS
+               8. DÉPARTEMENT-SPECIFIC SECTIONS (role-filtered)
                ═══════════════════════════════════════════════════════ */}
-            {!dataLoading && departments.map((dept, idx) => {
+            {!dataLoading && departments
+              .filter((dept) => !shouldHideDeptSection(dept))
+              .map((dept, idx) => {
               const isProtocole = dept.department_name.toLowerCase().includes('protocole');
               return (
                 <EvtReveal key={dept.id} delay={7 + idx}>
@@ -1592,9 +1842,102 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             })}
 
             {/* ═══════════════════════════════════════════════════════
-               9. RECENT ACTIVITY
+               8.5 TÉMOIGNAGE
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={8}>
+              <section className="mb-10">
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gold-400/10">
+                      <Sparkles className="h-5 w-5 text-gold-400" />
+                    </div>
+                    <h2 className="text-headline-md font-display text-cream">
+                      Témoignage
+                    </h2>
+                  </div>
+                  {!testimonySubmitted && (
+                    <button
+                      onClick={() => setShowTestimonyForm(p => !p)}
+                      className="btn-ghost text-sm flex items-center gap-1.5"
+                    >
+                      <Plus className={`h-4 w-4 transition-transform duration-200 ${showTestimonyForm ? 'rotate-45' : ''}`} />
+                      Partager mon témoignage
+                    </button>
+                  )}
+                </div>
+
+                {testimonySubmitted ? (
+                  <div className="glass-card p-6 text-center">
+                    <CheckCircle className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
+                    <p className="text-sm font-medium text-cream">Merci pour votre témoignage !</p>
+                    <p className="text-xs text-muted mt-1">Il sera examiné par le pasteur puis publié sur le site.</p>
+                    <button onClick={() => setTestimonySubmitted(false)} className="btn-ghost text-sm px-4 py-2 mt-4">
+                      Partager un autre témoignage
+                    </button>
+                  </div>
+                ) : showTestimonyForm ? (
+                  <div className="glass-card p-5 space-y-4 border-gold-400/15">
+                    <div>
+                      <label className="mb-1.5 block text-xs font-medium text-muted">Catégorie</label>
+                      <div className="flex flex-wrap gap-2">
+                        {TESTIMONY_CATEGORIES.map(c => (
+                          <button
+                            key={c.val}
+                            type="button"
+                            onClick={() => setTestimonyCategory(c.val)}
+                            className={`rounded-lg px-3 py-1.5 text-[11px] font-medium border transition-all ${
+                              testimonyCategory === c.val
+                                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                                : 'border-line text-muted hover:text-cream hover:border-white/20'
+                            }`}
+                          >
+                            {c.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <textarea
+                      rows={4}
+                      placeholder="Partagez ce que Dieu a fait dans votre vie..."
+                      value={testimonyContent}
+                      onChange={(e) => setTestimonyContent(e.target.value)}
+                      className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/30 focus:border-gold-400/30 resize-none"
+                    />
+                    <label className="flex items-center gap-2 text-sm text-muted cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={testimonyAnonymous}
+                        onChange={(e) => setTestimonyAnonymous(e.target.checked)}
+                        className="h-4 w-4 rounded border-white/20 bg-white/5 text-gold-400 focus:ring-gold-400/30"
+                      />
+                      Publier anonymement
+                    </label>
+                    <div className="flex items-center gap-3 justify-end">
+                      <button onClick={() => setShowTestimonyForm(false)} className="btn-ghost text-sm px-4 py-2">Annuler</button>
+                      <button
+                        onClick={handleSubmitTestimony}
+                        disabled={testimonySubmitting || !testimonyContent.trim()}
+                        className="btn-gold px-5 py-2 text-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Send className="h-4 w-4" />
+                        {testimonySubmitting ? 'Envoi...' : 'Soumettre'}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass-card flex flex-col items-center justify-center py-10 text-center">
+                    <Quote className="mb-3 h-10 w-10 text-gold-400/30" />
+                    <p className="text-muted text-sm mb-1">Aucun témoignage partagé</p>
+                    <p className="text-xs text-muted/60">Partagez ce que Dieu a fait dans votre vie pour encourager l'église.</p>
+                  </div>
+                )}
+              </section>
+            </EvtReveal>
+
+            {/* ═══════════════════════════════════════════════════════
+               9. RECENT ACTIVITY
+               ═══════════════════════════════════════════════════════ */}
+            <EvtReveal delay={9}>
               <section id="recent-activity" className="mb-10">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
