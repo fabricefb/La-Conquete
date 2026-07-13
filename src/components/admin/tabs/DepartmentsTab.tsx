@@ -639,12 +639,14 @@ export function DepartmentsTab() {
 
       if (approve) {
         // Add to department_members — triple stratégie pour garantir l'insertion
+        console.log('[ADMIN DEPT] Acceptation — user_id:', req.user_id, 'dept_id:', req.department_id);
         const upsertRes = await supabase.from('department_members').upsert({
           user_id: req.user_id,
           department_id: req.department_id,
           role_in_dept: 'member',
           is_active: true,
         }, { onConflict: 'user_id,department_id' });
+        console.log('[ADMIN DEPT] upsert:', upsertRes.error ? 'ÉCHEC: ' + upsertRes.error.message : 'OK', upsertRes.data);
 
         if (upsertRes.error) {
           // Fallback: insert simple
@@ -654,12 +656,14 @@ export function DepartmentsTab() {
             role_in_dept: 'member',
             is_active: true,
           });
+          console.log('[ADMIN DEPT] insert:', insertRes.error ? 'ÉCHEC: ' + insertRes.error.message : 'OK', insertRes.data);
           if (insertRes.error) {
             // Dernier recours: forcer is_active = true si la ligne existe déjà
-            await supabase.from('department_members')
+            const updateRes = await supabase.from('department_members')
               .update({ is_active: true })
               .eq('user_id', req.user_id)
               .eq('department_id', req.department_id);
+            console.log('[ADMIN DEPT] update is_active:', updateRes.error ? 'ÉCHEC: ' + updateRes.error.message : 'OK');
           }
         }
 

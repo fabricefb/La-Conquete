@@ -215,10 +215,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         // 4. User's departments (sans jointure PostgREST — fetch séparé)
         // Cherche d'abord les membres actifs, puis aussi les inactifs pour réparation
-        const { data: deptMembers } = await supabase
+        const { data: deptMembers, error: dmError } = await supabase
           .from('department_members')
           .select('department_id, position_id, is_active')
           .eq('user_id', user.id);
+        if (dmError) console.error('[DASHBOARD] dept_members query error:', dmError);
+        console.log('[DASHBOARD] dept_members for user', user.id, ':', deptMembers?.length ?? 0, 'rows');
 
         // Récupérer les infos départements et positions séparément
         let deptMap: Record<string, any> = {};
@@ -265,14 +267,17 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         // ── Auto-réparation : demandes acceptées sans department_members actif ──
         if (userDepts.length === 0) {
           try {
-            const { data: acceptedReqs } = await supabase
+            console.log('[DASHBOARD] Aucun dept actif trouvé, démarrage auto-réparation...');
+            const { data: acceptedReqs, error: reqErr } = await supabase
               .from('department_requests')
               .select('id, department_id, status')
               .eq('user_id', user.id)
               .in('status', ['accepte', 'accepted', 'approuve', 'approved']);
+            console.log('[DASHBOARD] demandes acceptées:', acceptedReqs, 'erreur:', reqErr);
 
             if (acceptedReqs && acceptedReqs.length > 0) {
               for (const req of acceptedReqs) {
+                console.log('[DASHBOARD] Réparation pour dept', req.department_id);
                 // Stratégie 1: upsert
                 const r1 = await supabase.from('department_members').upsert({
                   user_id: user.id,
@@ -280,6 +285,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   role_in_dept: 'member',
                   is_active: true,
                 }, { onConflict: 'user_id,department_id' });
+                console.log('[DASHBOARD] upsert résultat:', r1.error ? 'ÉCHEC: ' + r1.error.message : 'OK');
 
                 if (r1.error) {
                   // Stratégie 2: insert simple
@@ -289,22 +295,26 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     role_in_dept: 'member',
                     is_active: true,
                   });
+                  console.log('[DASHBOARD] insert résultat:', r2.error ? 'ÉCHEC: ' + r2.error.message : 'OK');
                   if (r2.error) {
                     // Stratégie 3: forcer is_active = true
-                    await supabase.from('department_members')
+                    const r3 = await supabase.from('department_members')
                       .update({ is_active: true })
                       .eq('user_id', user.id)
                       .eq('department_id', req.department_id);
+                    console.log('[DASHBOARD] update résultat:', r3.error ? 'ÉCHEC: ' + r3.error.message : 'OK');
                   }
                 }
               }
 
               // Re-fetch departments après réparation
-              const { data: repairedDepts } = await supabase
+              const { data: repairedDepts, error: repErr } = await supabase
                 .from('department_members')
                 .select('department_id, position_id, is_active')
                 .eq('user_id', user.id);
+              console.log('[DASHBOARD] re-fetch après réparation:', repairedDepts?.length ?? 0, 'rows, err:', repErr);
               const activeRepaired = (repairedDepts || []).filter((dm: any) => dm.is_active !== false);
+              console.log('[DASHBOARD] actifs après réparation:', activeRepaired.length);
               if (activeRepaired.length > 0) {
                 const rDeptIds = [...new Set(activeRepaired.map((d: any) => d.department_id))];
                 const rPosIds = [...new Set(activeRepaired.map((d: any) => d.position_id).filter(Boolean))];
@@ -321,10 +331,38 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   accent_color: rDeptMap[dm.department_id]?.accent_color || 'gold',
                   icon_name: rDeptMap[dm.department_id]?.icon_name || 'Star',
                 }));
+                console.log('[DASHBOARD] RÉPARATION RÉUSSIE, départements:', repairedUserDepts.map(d => d.department_name));
                 setDepartments(repairedUserDepts);
+              } else {
+                console.error('[DASHBOARD] RÉPARATION ÉCHOUÉE — aucun membre actif trouvé après toutes les tentatives');
+
+                // ── FILET DE SÉCURITÉ : utiliser directement les demandes acceptées ──
+                console.log('[DASHBOARD] Filet de sécurité : construction des départements depuis les demandes acceptées...');
+                const fbDeptIds = [...new Set(acceptedReqs.map((r: any) => r.department_id))];
+                const { data: fbDepts } = await supabase
+                  .from('departments')
+                  .select('id, name, accent_color, icon_name')
+                  .in('id', fbDeptIds);
+                if (fbDepts && fbDepts.length > 0) {
+                  const fallbackDepts: UserDepartment[] = fbDepts.map((d: any) => ({
+                    id: d.id,
+                    department_name: d.name,
+                    position_name: null,
+                    accent_color: d.accent_color || 'gold',
+                    icon_name: d.icon_name || 'Star',
+                  }));
+                  console.log('[DASHBOARD] Filet de sécurité OK — départements:', fallbackDepts.map(d => d.department_name));
+                  setDepartments(fallbackDepts);
+                } else {
+                  console.error('[DASHBOARD] Filet de sécurité échoué aussi — départements introuvables pour IDs:', fbDeptIds);
+                }
               }
+            } else {
+              console.log('[DASHBOARD] Aucune demande acceptée trouvée pour cet utilisateur');
             }
-          } catch { /* silent repair attempt */ }
+          } catch (repairErr) {
+            console.error('[DASHBOARD] Exception pendant auto-réparation:', repairErr);
+          }
         }
 
         setNotifications((notifData || []).map((n: any) => ({
@@ -1004,7 +1042,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </h2>
                 </div>
 
-                {departments.length === 0 ? (
+                {dataLoading ? (
+                  <div className="glass-card p-5 sm:p-6 animate-pulse">
+                    <div className="h-5 w-40 rounded bg-white/5 mb-4" />
+                    <div className="h-4 w-64 rounded bg-white/5 mb-2" />
+                    <div className="h-4 w-48 rounded bg-white/5" />
+                  </div>
+                ) : departments.length === 0 ? (
                   <div className="glass-card p-5 sm:p-6">
                     {!showDeptRequest ? (
                       <div className="flex flex-col items-center justify-center py-6 text-center">
@@ -1454,7 +1498,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             {/* ═══════════════════════════════════════════════════════
                8. DÉPARTEMENT-SPECIFIC SECTIONS
                ═══════════════════════════════════════════════════════ */}
-            {departments.map((dept, idx) => {
+            {!dataLoading && departments.map((dept, idx) => {
               const isProtocole = dept.department_name.toLowerCase().includes('protocole');
               return (
                 <EvtReveal key={dept.id} delay={7 + idx}>
