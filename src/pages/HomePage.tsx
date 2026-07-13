@@ -415,16 +415,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </button>
           </div>
 
-          {/* Scroll indicator — uniquement desktop */}
-          <div
-            className="animate-fade-up absolute bottom-8 left-1/2 -translate-x-1/2 hidden flex-col items-center gap-2 lg:flex"
-            style={{ animationDelay: '0.8s' }}
-          >
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-muted/60">
-              Défiler
-            </span>
-            <div className="h-12 w-px bg-gradient-to-b from-gold-400/60 to-transparent" />
-          </div>
+          {/* Scroll indicator — supprimé, les boutons CTA suffisent */}
         </div>
       </section>
 

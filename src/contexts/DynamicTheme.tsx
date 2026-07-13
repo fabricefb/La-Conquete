@@ -138,8 +138,7 @@ export function DynamicThemeProvider({ children }: { children: React.ReactNode }
   // ── Sync color-mode class on <html> ───────────────────────────
   useEffect(() => {
     const el = document.documentElement;
-    el.classList.remove('dark', 'light');
-    el.classList.add(colorMode);
+    el.className = 'fr ' + colorMode;
   }, [colorMode]);
 
   // ── Fetch theme settings on mount ─────────────────────────────
