@@ -36,7 +36,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 function RoleRequestSection() {
   const { addToast } = useToast();
-  const { profile: adminProfile } = useAuth();
+  const { profile: adminProfile, isFullAdmin } = useAuth();
   const [requests, setRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
@@ -128,12 +128,19 @@ function RoleRequestSection() {
               {req.reason && <p className="text-xs text-muted/70 mt-1 line-clamp-2">{req.reason}</p>}
             </div>
             <div className="flex items-center gap-2 shrink-0">
-              <button onClick={() => handleAction(req.id, true)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50">
-                {processing === req.id ? '...' : 'Approuver'}
-              </button>
-              <button onClick={() => handleAction(req.id, false)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50">
-                Refuser
-              </button>
+              {isFullAdmin && (
+                <>
+                  <button onClick={() => handleAction(req.id, true)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50">
+                    {processing === req.id ? '...' : 'Approuver'}
+                  </button>
+                  <button onClick={() => handleAction(req.id, false)} disabled={processing === req.id} className="px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50">
+                    Refuser
+                  </button>
+                </>
+              )}
+              {!isFullAdmin && (
+                <span className="text-[10px] text-muted italic">Lecture seule</span>
+              )}
             </div>
           </div>
         ))}
@@ -144,7 +151,7 @@ function RoleRequestSection() {
 
 export function UsersTab() {
   const { addToast } = useToast();
-  const { profile: adminProfile } = useAuth();
+  const { profile: adminProfile, isFullAdmin } = useAuth();
   const [users, setUsers] = useState<UserProfileExt[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -507,8 +514,8 @@ export function UsersTab() {
                 {selectedUserId === u.id ? <ChevronDown className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
 
-              {/* Role assignment button */}
-              {u.id !== adminProfile?.id && (
+              {/* Role assignment button — Admin complet uniquement */}
+              {isFullAdmin && u.id !== adminProfile?.id && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setRoleModal({ userId: u.id, userName: u.full_name || u.email, currentLevel: u.role_level, currentCategory: u.pastor_category, isAdmin: u.is_admin, isPrincipal: u.is_principal_pastor }); }}
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-500/40 text-purple-400 hover:bg-purple-500/10 transition shrink-0"
@@ -518,8 +525,8 @@ export function UsersTab() {
                 </button>
               )}
 
-              {/* Block/Unblock button */}
-              {u.id !== adminProfile?.id && (
+              {/* Block/Unblock button — Admin complet uniquement */}
+              {isFullAdmin && u.id !== adminProfile?.id && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setBlockModal({ userId: u.id, userName: u.full_name || u.email, isBlocked: u.is_blocked }); }}
                   className={`flex h-9 w-9 items-center justify-center rounded-lg border transition shrink-0 ${
@@ -788,24 +795,24 @@ export function UsersTab() {
               </button>
 
               {/* Pasteur associé */}
-              <button onClick={() => assignRole(5, 'assistant_pastor', true, false)} disabled={roleSaving}
+              <button onClick={() => assignRole(4, 'assistant_pastor', false, false)} disabled={roleSaving}
                 className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-yellow-500/40 hover:bg-yellow-500/5 transition flex items-center gap-3 disabled:opacity-50">
                 <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Crown className="h-4 w-4 text-yellow-300" /></div>
-                <div><p className="text-sm font-medium text-cream">Pasteur associé</p><p className="text-[10px] text-muted">Accès admin + fonctions pastorales</p></div>
+                <div><p className="text-sm font-medium text-cream">Pasteur associé</p><p className="text-[10px] text-muted">Direction spirituelle complète + fonctions pastorales</p></div>
               </button>
 
               {/* Pasteur principal */}
               <button onClick={() => assignRole(5, null, true, true)} disabled={roleSaving}
                 className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-yellow-500/40 hover:bg-yellow-500/5 transition flex items-center gap-3 disabled:opacity-50">
                 <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Crown className="h-4 w-4 text-yellow-200" /></div>
-                <div><p className="text-sm font-medium text-cream">Pasteur principal</p><p className="text-[10px] text-muted">Direction spirituelle complète + admin</p></div>
+                <div><p className="text-sm font-medium text-cream">Pasteur principal</p><p className="text-[10px] text-muted">Voir les statistiques et rapports. Pas les ajouts, suppressions ni assignations de rôles</p></div>
               </button>
 
               {/* Admin */}
               <button onClick={() => assignRole(6, null, true, false)} disabled={roleSaving}
                 className="w-full text-left px-4 py-3 rounded-xl border border-red-500/20 hover:border-red-500/40 hover:bg-red-500/5 transition flex items-center gap-3 disabled:opacity-50">
                 <div className="h-8 w-8 rounded-lg bg-red-500/20 flex items-center justify-center"><ShieldCheck className="h-4 w-4 text-red-300" /></div>
-                <div><p className="text-sm font-medium text-cream">Admin</p><p className="text-[10px] text-muted">Accès total à l'administration</p></div>
+                <div><p className="text-sm font-medium text-cream">Admin</p><p className="text-[10px] text-muted">Accès total : design, ajouts, suppressions, assignations de tous les rôles</p></div>
               </button>
             </div>
 

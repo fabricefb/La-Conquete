@@ -1027,6 +1027,7 @@ export interface CultReport {
   total_attendance: number;
   incidents: string | null;
   team_group: string | null;
+  extension_id: string | null;
   status: 'brouillon' | 'soumis' | 'valide' | 'rejete';
   reviewed_by: string | null;
   reviewed_at: string | null;

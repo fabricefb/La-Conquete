@@ -15,7 +15,8 @@ import type { UserProfile } from '../types';
 interface AuthContextValue {
   user: User | null;
   profile: UserProfile | null;
-  isAdmin: boolean;
+  isAdmin: boolean;          // Pasteur principal + Admin : accès au panneau admin
+  isFullAdmin: boolean;     // Admin seulement : ajout, suppression, assignation de rôles, design
   loading: boolean;
   profileLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
@@ -273,7 +274,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
-  const isAdmin = profile?.is_admin === true || (profile?.role_level ?? 0) >= 5;
+  // isAdmin : Pasteur principal (is_admin=true) et Admin peuvent accéder au panneau admin
+  const isAdmin = profile?.is_admin === true;
+  // isFullAdmin : seul l'Admin (level 6) peut faire les actions destructives (ajout, suppression, assignation rôles, design)
+  const isFullAdmin = profile?.is_admin === true && !profile?.is_principal_pastor;
 
   // Check if user is blocked — force sign out
   useEffect(() => {
@@ -306,8 +310,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount }),
-    [user, profile, isAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount],
+    () => ({ user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount }),
+    [user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

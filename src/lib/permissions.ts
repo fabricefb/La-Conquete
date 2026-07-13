@@ -34,11 +34,17 @@ export function isPastorAssoc(user: UserProfile | null): boolean {
 }
 
 export function isPastorPrincipal(user: UserProfile | null): boolean {
-  return user?.is_principal_pastor === true || user?.role_level >= ROLE_LEVELS.PASTOR_PRINCIPAL;
+  return user?.is_principal_pastor === true;
 }
 
 export function isAdmin(user: UserProfile | null): boolean {
-  return user?.is_admin === true || user?.role_level >= ROLE_LEVELS.PASTOR_PRINCIPAL;
+  // Admin complet (level 6) uniquement — pas le pasteur principal
+  return (user?.is_admin === true && !user?.is_principal_pastor) || (user?.role_level ?? 0) >= ROLE_LEVELS.ADMIN;
+}
+
+export function canViewAdmin(user: UserProfile | null): boolean {
+  // Pasteur principal + Admin peuvent accéder au panneau admin
+  return user?.is_admin === true;
 }
 
 // ─── Périmètre d'action ───────────────────────────────────────────
@@ -52,8 +58,11 @@ export type ScopeFilter = Record<string, unknown> | null;
 export function getScopeFilter(user: UserProfile | null): ScopeFilter {
   if (!user) return null;
 
-  // Admin et pasteur principal voient tout
-  if (isAdmin(user) || isPastorPrincipal(user)) return {};
+  // Admin voit tout
+  if (isAdmin(user)) return {};
+
+  // Pasteur principal : voir les statistiques mais scope limité
+  if (isPastorPrincipal(user)) return {};
 
   // Pasteur associé : filtré par son extension
   if (isPastorAssoc(user) && user.extension_id) {
@@ -78,8 +87,11 @@ export function canActOnUser(
 ): boolean {
   if (!actor || !target) return false;
 
-  // Admin et pasteur principal peuvent tout voir
-  if (isAdmin(actor) || isPastorPrincipal(actor)) return true;
+  // Admin peut tout voir
+  if (isAdmin(actor)) return true;
+
+  // Pasteur principal peut voir mais pas agir
+  if (isPastorPrincipal(actor)) return true;
 
   // Pasteur associé : seulement les membres de son extension
   if (isPastorAssoc(actor)) {

@@ -23,7 +23,7 @@ import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
 import { UsersTab } from '../components/admin/tabs/UsersTab';
 import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
 import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
-import { RefreshCw, ShieldOff } from '../lib/icons';
+import { RefreshCw, ShieldOff, Eye } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
 
@@ -32,7 +32,7 @@ interface AdminPageProps {
 }
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
-  const { user, isAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
+  const { user, isAdmin, isFullAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [fixing, setFixing] = useState(false);
   const [diagInfo, setDiagInfo] = useState<string | null>(null);
@@ -174,6 +174,16 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
 
   return (
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onNavigate={onNavigate}>
+      {/* Bannière lecture seule pour Pasteur principal */}
+      {isAdmin && !isFullAdmin && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+          <Eye className="h-5 w-5 text-amber-400 shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-amber-300">Mode Pasteur principal — Consultation</p>
+            <p className="text-xs text-amber-300/70 mt-0.5">Vous pouvez voir les statistiques et rapports. Les ajouts, suppressions et assignations de rôles sont réservés à l'Admin.</p>
+          </div>
+        </div>
+      )}
       {renderTab()}
     </AdminLayout>
   );

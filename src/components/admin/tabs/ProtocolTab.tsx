@@ -6,7 +6,7 @@ import type { CultReport, ProtocolTeam, ProtocolDressCode, NewVisitor, CultDay }
 import { CULT_DAY_LABELS, CULT_DAY_COLORS } from '../../../types';
 import {
   Loader2, Plus, Trash2, Save, X, Edit3, Check, FileBarChart,
-  UsersRound, CalendarClock, UserCheck, Shirt, ChevronLeft, ChevronRight,
+  UsersRound, CalendarClock, UserCheck, Shirt, ChevronLeft, ChevronRight, ChevronDown,
 } from '../../../lib/icons';
 
 // ═══════════════════════════════════════════════════════════════════
@@ -103,11 +103,18 @@ export function ProtocolTab() {
   const [dressCodes, setDressCodes] = useState<ProtocolDressCode[]>([]);
   const [dressSaving, setDressSaving] = useState<string | null>(null);
 
+  // ─── Consolidated Reports (multi-extension) ─────────────────
+  const [extensions, setExtensions] = useState<{ id: string; name: string; is_active: boolean }[]>([]);
+  const [allReportsForConsol, setAllReportsForConsol] = useState<CultReport[]>([]);
+  const [expandedConsolidated, setExpandedConsolidated] = useState<Set<string>>(new Set());
+
   // ─── Fetch all data ──────────────────────────────────────────
   const fetchAll = useCallback(async () => {
     setLoading(true);
     const promises = [
       fetchReports(),
+      fetchExtensions(),
+      fetchAllReportsForConsol(),
       fetchTeams(),
       fetchSchedules(),
       fetchVisitors(),
@@ -128,6 +135,37 @@ export function ProtocolTab() {
       if (error) throw error;
       setReports((data as CultReport[]) ?? []);
     } catch { /* graceful */ }
+  }
+
+  async function fetchExtensions() {
+    try {
+      const { data, error } = await supabase.from('extensions').select('id, name, is_active').eq('is_active', true);
+      if (error) throw error;
+      setExtensions((data as any[]) ?? []);
+    } catch { /* graceful */ }
+  }
+
+  async function fetchAllReportsForConsol() {
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const dateStr = thirtyDaysAgo.toISOString().slice(0, 10);
+      const { data, error } = await supabase
+        .from('cult_reports')
+        .select('*')
+        .gte('cult_date', dateStr)
+        .order('cult_date', { ascending: false });
+      if (error) throw error;
+      setAllReportsForConsol((data as CultReport[]) ?? []);
+    } catch { /* graceful */ }
+  }
+
+  function toggleConsolidated(key: string) {
+    setExpandedConsolidated(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
   }
 
   async function handleReview() {
@@ -408,6 +446,61 @@ export function ProtocolTab() {
     );
   }
 
+  // ─── Consolidated multi-extension groups ──────────────────
+  interface ConsolidatedGroup {
+    key: string;
+    cult_date: string;
+    cult_day: CultDay;
+    reports: (CultReport & { extension_name: string | null })[];
+    totalMen: number;
+    totalWomen: number;
+    totalChildren: number;
+    totalAttendance: number;
+    totalNewComers: number;
+    extensionIds: Set<string | null>;
+  }
+
+  const extNameMap = new Map(extensions.map(e => [e.id, e.name]));
+
+  const reportsWithExt = allReportsForConsol.map(r => ({
+    ...r,
+    extension_name: r.extension_id ? extNameMap.get(r.extension_id) || 'Extension inconnue' : null,
+  }));
+
+  const groupedForConsol = new Map<string, ConsolidatedGroup>();
+  for (const r of reportsWithExt) {
+    const key = `${r.cult_date}_${r.cult_day}`;
+    const existing = groupedForConsol.get(key);
+    if (existing) {
+      existing.reports.push(r);
+      existing.totalMen += r.men_count;
+      existing.totalWomen += r.women_count;
+      existing.totalChildren += r.children_count;
+      existing.totalAttendance += r.total_attendance;
+      existing.totalNewComers += r.new_comers_count;
+      if (r.extension_id) existing.extensionIds.add(r.extension_id);
+    } else {
+      const ids = new Set<string | null>();
+      if (r.extension_id) ids.add(r.extension_id);
+      groupedForConsol.set(key, {
+        key,
+        cult_date: r.cult_date,
+        cult_day: r.cult_day,
+        reports: [r],
+        totalMen: r.men_count,
+        totalWomen: r.women_count,
+        totalChildren: r.children_count,
+        totalAttendance: r.total_attendance,
+        totalNewComers: r.new_comers_count,
+        extensionIds: ids,
+      });
+    }
+  }
+
+  const consolidatedGroups = Array.from(groupedForConsol.values())
+    .filter(g => g.extensionIds.size >= 2)
+    .sort((a, b) => b.cult_date.localeCompare(a.cult_date));
+
   // ═══════════════════════════════════════════════════════════════
   // Render
   // ═══════════════════════════════════════════════════════════════
@@ -465,6 +558,152 @@ export function ProtocolTab() {
               {showAll ? 'Voir 30 derniers jours' : 'Voir tout'}
             </button>
           </div>
+
+          {/* ─── Consolidated multi-extension reports ──────────── */}
+          {consolidatedGroups.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <FileBarChart className="h-5 w-5 text-gold-400" />
+                <h3 className="font-display text-base font-semibold text-cream">Rapports consolidés multi-églises</h3>
+                <span className="text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 rounded-full px-2 py-0.5">
+                  {consolidatedGroups.length} date{consolidatedGroups.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+
+              {consolidatedGroups.map(group => {
+                const isExpanded = expandedConsolidated.has(group.key);
+                const extCount = group.extensionIds.size;
+                // Build per-extension summary
+                const perExt = new Map<string, { name: string; total: number; men: number; women: number; children: number; newComers: number; reportCount: number }>();
+                for (const r of group.reports) {
+                  const extKey = r.extension_id || '_none';
+                  const existing = perExt.get(extKey);
+                  if (existing) {
+                    existing.total += r.total_attendance;
+                    existing.men += r.men_count;
+                    existing.women += r.women_count;
+                    existing.children += r.children_count;
+                    existing.newComers += r.new_comers_count;
+                    existing.reportCount += 1;
+                  } else {
+                    perExt.set(extKey, {
+                      name: r.extension_name || 'Sans extension',
+                      total: r.total_attendance,
+                      men: r.men_count,
+                      women: r.women_count,
+                      children: r.children_count,
+                      newComers: r.new_comers_count,
+                      reportCount: 1,
+                    });
+                  }
+                }
+
+                return (
+                  <div key={group.key} className="glass-card rounded-2xl overflow-hidden">
+                    {/* Card header — always visible */}
+                    <div
+                      className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/[0.02] transition"
+                      onClick={() => toggleConsolidated(group.key)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-cream font-medium">
+                            {new Date(group.cult_date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
+                          </span>
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold border ${CULT_DAY_COLORS[group.cult_day]}`}>
+                            {CULT_DAY_LABELS[group.cult_day]}
+                          </span>
+                          <span className="text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 rounded-full px-2 py-0.5">
+                            {extCount} extensions
+                          </span>
+                        </div>
+                        {/* Merged totals row */}
+                        <div className="flex items-center gap-4 mt-2 text-xs">
+                          <span className="text-cream/70">
+                            <span className="text-muted">H:</span> <span className="text-cream font-semibold">{group.totalMen}</span>
+                          </span>
+                          <span className="text-cream/70">
+                            <span className="text-muted">F:</span> <span className="text-cream font-semibold">{group.totalWomen}</span>
+                          </span>
+                          <span className="text-cream/70">
+                            <span className="text-muted">E:</span> <span className="text-cream font-semibold">{group.totalChildren}</span>
+                          </span>
+                          <span className="text-emerald-400 font-bold">
+                            Total: {group.totalAttendance}
+                          </span>
+                          <span className="text-gold-400 font-semibold">
+                            Nvx: {group.totalNewComers}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Extension mini-list (names + individual totals) */}
+                      <div className="hidden md:flex items-center gap-2">
+                        {Array.from(perExt.values()).map(ext => (
+                          <div key={ext.name} className="text-right bg-white/5 rounded-lg px-3 py-1.5 border border-line/50">
+                            <p className="text-[10px] text-muted leading-none">{ext.name}</p>
+                            <p className="text-sm font-bold text-cream">{ext.total}</p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <ChevronDown className={`h-4 w-4 text-muted transition-transform flex-shrink-0 ${isExpanded ? 'rotate-180' : ''}`} />
+                    </div>
+
+                    {/* Expanded per-extension breakdown */}
+                    {isExpanded && (
+                      <div className="border-t border-line bg-white/[0.01] p-4">
+                        <p className="text-xs font-medium text-muted mb-3 uppercase tracking-wider">Détails par extension</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {Array.from(perExt.values()).map(ext => (
+                            <div key={ext.name} className="rounded-xl bg-white/5 border border-line p-3 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-semibold text-cream">{ext.name}</span>
+                                <span className="text-[10px] text-muted">{ext.reportCount} rapport{ext.reportCount !== 1 ? 's' : ''}</span>
+                              </div>
+                              <div className="grid grid-cols-4 gap-1 text-center">
+                                <div>
+                                  <p className="text-[10px] text-muted">H</p>
+                                  <p className="text-sm font-semibold text-cream">{ext.men}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-muted">F</p>
+                                  <p className="text-sm font-semibold text-cream">{ext.women}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-muted">E</p>
+                                  <p className="text-sm font-semibold text-cream">{ext.children}</p>
+                                </div>
+                                <div>
+                                  <p className="text-[10px] text-gold-400">Nvx</p>
+                                  <p className="text-sm font-bold text-gold-400">{ext.newComers}</p>
+                                </div>
+                              </div>
+                              <div className="text-center pt-1 border-t border-line/50">
+                                <p className="text-emerald-400 font-bold text-lg">{ext.total}</p>
+                                <p className="text-[10px] text-muted">Total</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Grand total bar */}
+                        <div className="mt-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 px-4 py-3 flex items-center justify-between">
+                          <span className="text-sm font-semibold text-emerald-400">Total consolidé</span>
+                          <div className="flex items-center gap-6 text-sm">
+                            <span className="text-cream/70">H <span className="text-cream font-bold">{group.totalMen}</span></span>
+                            <span className="text-cream/70">F <span className="text-cream font-bold">{group.totalWomen}</span></span>
+                            <span className="text-cream/70">E <span className="text-cream font-bold">{group.totalChildren}</span></span>
+                            <span className="text-emerald-400 font-bold text-base">{group.totalAttendance}</span>
+                            <span className="text-gold-400 font-semibold">+{group.totalNewComers} nvx</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {reports.length === 0 ? (
             <div className="glass-card rounded-2xl p-12 text-center">

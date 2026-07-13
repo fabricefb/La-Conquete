@@ -153,6 +153,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
   const [recentReports, setRecentReports] = useState<CultReport[]>([]);
   const [recentVisitors, setRecentVisitors] = useState<NewVisitor[]>([]);
   const [schedules, setSchedules] = useState<ProtocolSchedule[]>([]);
+  const [extensions, setExtensions] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [moduleError, setModuleError] = useState(false);
 
@@ -161,6 +162,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
     cult_day: 'dimanche' as CultDay,
     reporter_name: profile?.full_name || '',
     team_group: '',
+    extension_id: profile?.extension_id || '',
     men_count: 0,
     women_count: 0,
     children_count: 0,
@@ -183,12 +185,15 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
   });
   const [submittingVisitor, setSubmittingVisitor] = useState(false);
 
-  /* ── Sync profile name ─────────────────────────────────────────── */
+  /* ── Sync profile name + extension ────────────────────────────── */
   useEffect(() => {
     if (profile?.full_name) {
       setReportForm(f => ({ ...f, reporter_name: profile.full_name! }));
     }
-  }, [profile?.full_name]);
+    if (profile?.extension_id) {
+      setReportForm(f => ({ ...f, extension_id: profile.extension_id! }));
+    }
+  }, [profile?.full_name, profile?.extension_id]);
 
   /* ── Data fetching ─────────────────────────────────────────────── */
   const fetchData = useCallback(async () => {
@@ -197,7 +202,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
     setModuleError(false);
 
     try {
-      const [teamsRes, dressRes, reportsRes, visitorsRes, schedulesRes] = await Promise.all([
+      const [teamsRes, dressRes, reportsRes, visitorsRes, schedulesRes, extRes] = await Promise.all([
         supabase.from('protocol_teams').select('*').eq('is_active', true).order('sort_order'),
         supabase.from('protocol_dress_code').select('*'),
         supabase.from('cult_reports').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(3),
@@ -206,6 +211,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
           .select('*, protocol_teams(name, color)')
           .eq('is_active', true)
           .order('cult_day'),
+        supabase.from('extensions').select('id, name').eq('is_active', true).order('name'),
       ]);
 
       if (teamsRes.error && !isTableNotFoundError(teamsRes.error)) throw teamsRes.error;
@@ -233,6 +239,8 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
         });
         setSchedules(enriched);
       }
+      if (extRes.error && !isTableNotFoundError(extRes.error)) throw extRes.error;
+      if (extRes.data) setExtensions(extRes.data as { id: string; name: string }[]);
     } catch (err) {
       if (isTableNotFoundError(err)) {
         setModuleError(true);
@@ -265,6 +273,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
         total_attendance: total,
         incidents: reportForm.incidents || null,
         team_group: reportForm.team_group || null,
+        extension_id: reportForm.extension_id || null,
         status: 'soumis',
       });
       if (error) throw error;
@@ -399,6 +408,16 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
             options={[
               { value: '', label: '— Aucune —' },
               ...teams.map(t => ({ value: t.id, label: t.name })),
+            ]}
+          />
+        )}
+        {extensions.length > 1 && (
+          <SelectField
+            label="Extension / Église" value={reportForm.extension_id}
+            onChange={v => setReportForm(f => ({ ...f, extension_id: v }))}
+            options={[
+              { value: '', label: '— Siège principal —' },
+              ...extensions.map(e => ({ value: e.id, label: e.name })),
             ]}
           />
         )}
