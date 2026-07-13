@@ -16,6 +16,12 @@ import {
   UserMinus,
   UserCheck,
   Shield,
+  UserPlus,
+  Clock,
+  XCircle,
+  MessageSquare,
+  Inbox,
+  RefreshCw,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -40,7 +46,7 @@ const ICON_OPTIONS = [
   'Cross',
 ] as const;
 
-type SubTab = 'departments' | 'positions-members';
+type SubTab = 'departments' | 'positions-members' | 'requests';
 
 // ---------------------------------------------------------------------------
 // Form types
@@ -199,6 +205,12 @@ export function DepartmentsTab() {
   const [posSaving, setPosSaving] = useState(false);
   const [addingPos, setAddingPos] = useState(false);
 
+  // ---- Department Requests state -------------------------------------------
+  const [deptRequests, setDeptRequests] = useState<any[]>([]);
+  const [reqLoading, setReqLoading] = useState(true);
+  const [reqProcessing, setReqProcessing] = useState<string | null>(null);
+  const [responseText, setResponseText] = useState<Record<string, string>>({});
+
   // =========================================================================
   // FETCH
   // =========================================================================
@@ -262,9 +274,21 @@ export function DepartmentsTab() {
     [addToast],
   );
 
+  const fetchDeptRequests = useCallback(async () => {
+    setReqLoading(true);
+    const { data, error } = await supabase
+      .from('department_requests')
+      .select('id, user_id, department_id, message, status, created_at, responded_at, user_profiles(full_name, email), departments(name)')
+      .eq('status', 'en_attente')
+      .order('created_at', { ascending: true });
+    if (!error) setDeptRequests((data as any[]) ?? []);
+    setReqLoading(false);
+  }, []);
+
   useEffect(() => {
     fetchDepartments();
-  }, [fetchDepartments]);
+    fetchDeptRequests();
+  }, [fetchDepartments, fetchDeptRequests]);
 
   useEffect(() => {
     if (subTab === 'positions-members' && selectedDeptId) {
@@ -553,6 +577,95 @@ export function DepartmentsTab() {
   };
 
   // =========================================================================
+  // REQUESTS ACTIONS
+  // =========================================================================
+
+  const handleRequestAction = async (reqId: string, approve: boolean) => {
+    setReqProcessing(reqId);
+    try {
+      const { data: req } = await supabase
+        .from('department_requests')
+        .select('user_id, department_id, departments(name), user_profiles(full_name)')
+        .eq('id', reqId)
+        .single();
+
+      if (!req) throw new Error('Demande introuvable');
+
+      const { error } = await supabase.from('department_requests').update({
+        status: approve ? 'accepte' : 'refuse',
+        responded_by: (await supabase.auth.getUser()).data.user?.id,
+        responded_at: new Date().toISOString(),
+        response: responseText[reqId] || null,
+      }).eq('id', reqId);
+
+      if (error) throw error;
+
+      if (approve) {
+        // Add to department_members
+        await supabase.from('department_members').upsert({
+          user_id: req.user_id,
+          department_id: req.department_id,
+          role_in_dept: 'member',
+          is_active: true,
+        }, { onConflict: 'user_id,department_id' });
+
+        // Notify user
+        await supabase.from('notifications').insert({
+          user_id: req.user_id,
+          type: 'dept_approved',
+          title: 'Demande de département acceptée',
+          body: `Votre demande pour rejoindre "${(req.departments as any)?.name || 'le département'}" a été acceptée. Bienvenue !`,
+          link: '#dashboard',
+        });
+
+        addToast(`${(req.user_profiles as any)?.full_name || 'Membre'} ajouté au département.`, 'success');
+      } else {
+        await supabase.from('notifications').insert({
+          user_id: req.user_id,
+          type: 'dept_rejected',
+          title: 'Demande de département refusée',
+          body: `Votre demande pour rejoindre "${(req.departments as any)?.name || 'le département'}" n'a pas été acceptée.`,
+          link: '#dashboard',
+        });
+
+        addToast('Demande refusée.', 'info');
+      }
+
+      // Also notify department leaders
+      const { data: leaders } = await supabase
+        .from('department_members')
+        .select('user_id')
+        .eq('department_id', req.department_id)
+        .eq('role_in_dept', 'leader')
+        .eq('is_active', true);
+
+      if (leaders && leaders.length > 0) {
+        const leaderNotifs = leaders
+          .filter(l => l.user_id !== req.user_id)
+          .map(l => ({
+            user_id: l.user_id,
+            type: 'dept_request_resolved',
+            title: approve ? 'Nouveau membre accepté' : 'Demande refusée',
+            body: approve
+              ? `${(req.user_profiles as any)?.full_name || 'Un membre'} a été accepté dans votre département.`
+              : `La demande de ${(req.user_profiles as any)?.full_name || 'un membre'} a été refusée.`,
+            link: '#admin/departments',
+          }));
+        if (leaderNotifs.length > 0) {
+          await supabase.from('notifications').insert(leaderNotifs);
+        }
+      }
+
+      setResponseText(prev => { const n = { ...prev }; delete n[reqId]; return n; });
+      fetchDeptRequests();
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    } finally {
+      setReqProcessing(null);
+    }
+  };
+
+  // =========================================================================
   // RENDER
   // =========================================================================
 
@@ -565,6 +678,7 @@ export function DepartmentsTab() {
         {([
           { key: 'departments' as SubTab, label: 'Départements' },
           { key: 'positions-members' as SubTab, label: 'Postes & Membres' },
+          { key: 'requests' as SubTab, label: 'Demandes' },
         ]).map((tab) => (
           <button
             key={tab.key}
@@ -576,6 +690,11 @@ export function DepartmentsTab() {
             }`}
           >
             {tab.label}
+            {tab.key === 'requests' && deptRequests.length > 0 && (
+              <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-bold px-1.5">
+                {deptRequests.length}
+              </span>
+            )}
           </button>
         ))}
       </div>
@@ -1259,6 +1378,92 @@ export function DepartmentsTab() {
             </>
           )}
         </>
+      )}
+
+      {/* ================================================================= */}
+      {/* SUB-TAB 3: Demandes d'assignation                                */}
+      {/* ================================================================= */}
+      {subTab === 'requests' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-lg font-semibold text-cream">Demandes d'assignation</h3>
+            <button onClick={fetchDeptRequests} className="text-xs text-muted hover:text-gold-400 transition flex items-center gap-1">
+              <RefreshCw className="h-3 w-3" /> Actualiser
+            </button>
+          </div>
+
+          {reqLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[1, 2, 3].map(i => <div key={i} className="glass rounded-xl p-4 h-24 bg-white/3" />)}
+            </div>
+          ) : deptRequests.length === 0 ? (
+            <div className="glass rounded-xl p-10 text-center">
+              <Inbox className="mx-auto h-10 w-10 text-muted/30 mb-3" />
+              <p className="text-muted text-sm">Aucune demande en attente.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {deptRequests.map(req => (
+                <div key={req.id} className="glass rounded-xl p-4 border border-amber-500/10 hover:border-amber-500/20 transition">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                    {/* User info */}
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20 text-amber-400 font-serif text-sm font-bold shrink-0">
+                        {(req.user_profiles?.full_name || '?').charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-cream">{req.user_profiles?.full_name || 'Inconnu'}</p>
+                        <p className="text-xs text-muted">{req.user_profiles?.email}</p>
+                        <p className="text-xs text-gold-400/80 mt-0.5">
+                          Département : <span className="font-medium">{req.departments?.name || '—'}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Date + message */}
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-muted flex items-center gap-1 justify-end">
+                        <Clock className="h-3 w-3" /> {new Date(req.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                      {req.message && (
+                        <p className="text-xs text-muted/70 mt-1 italic">"{req.message}"</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Response textarea + actions */}
+                  <div className="mt-3 pt-3 border-t border-line/50">
+                    <textarea
+                      value={responseText[req.id] || ''}
+                      onChange={e => setResponseText(prev => ({ ...prev, [req.id]: e.target.value }))}
+                      placeholder="Réponse optionnelle au demandeur..."
+                      rows={2}
+                      className="input-surface w-full px-3 py-2 text-xs resize-none mb-3"
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleRequestAction(req.id, false)}
+                        disabled={reqProcessing === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-medium text-red-400 hover:bg-red-500/20 transition disabled:opacity-50"
+                      >
+                        {reqProcessing === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <XCircle className="h-3 w-3" />}
+                        Refuser
+                      </button>
+                      <button
+                        onClick={() => handleRequestAction(req.id, true)}
+                        disabled={reqProcessing === req.id}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-medium text-emerald-400 hover:bg-emerald-500/20 transition disabled:opacity-50"
+                      >
+                        {reqProcessing === req.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle className="h-3 w-3" />}
+                        Accepter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

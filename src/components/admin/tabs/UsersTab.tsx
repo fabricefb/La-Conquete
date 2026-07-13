@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAuth } from '../../../contexts/AuthContext';
-import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Shield, Ban, ShieldCheck, Search, Loader2, Users, AlertTriangle, CheckCircle2, ChevronDown, ChevronRight, Building2, Clock, UserPlus, Mail, Phone, Calendar, Activity, AlertCircle, RefreshCw, Eye, X } from 'lucide-react';
 import { ROLE_LABELS, PASTOR_CATEGORY_LABELS } from '../../../types';
 
 interface UserProfileExt {
@@ -20,6 +20,13 @@ interface UserProfileExt {
   last_seen_at: string | null;
   onboarding_completed: boolean;
   created_at: string;
+}
+
+interface UserDetail {
+  departments: { department_id: string; department_name: string; role_in_dept: string; position_name?: string; joined_at: string }[];
+  recentActivity: { id: string; type: string; title: string; created_at: string; is_read: boolean }[];
+  roleRequests: { id: string; requested_role: string; status: string; created_at: string; reason?: string }[];
+  deptRequests: { id: string; department_name: string; status: string; created_at: string }[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -145,6 +152,77 @@ export function UsersTab() {
   const [blockModal, setBlockModal] = useState<{ userId: string; userName: string; isBlocked: boolean } | null>(null);
   const [blockReason, setBlockReason] = useState('');
   const [saving, setSaving] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [userDetail, setUserDetail] = useState<UserDetail>({ departments: [], recentActivity: [], roleRequests: [], deptRequests: [] });
+  const [detailLoading, setDetailLoading] = useState(false);
+
+  const fetchUserDetail = useCallback(async (userId: string) => {
+    setDetailLoading(true);
+    setSelectedUserId(userId);
+    try {
+      const [deptRes, actRes, roleReqRes, deptReqRes] = await Promise.all([
+        supabase
+          .from('department_members')
+          .select('department_id, role_in_dept, position_id, joined_at, departments(name), positions(name)')
+          .eq('user_id', userId)
+          .eq('is_active', true),
+        supabase
+          .from('notifications')
+          .select('id, type, title, created_at, is_read')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(10),
+        supabase
+          .from('role_requests')
+          .select('id, requested_role, status, created_at, reason')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(5),
+        supabase
+          .from('department_requests')
+          .select('id, status, created_at, departments(name)')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(5),
+      ]);
+
+      const depts = (deptRes.data || []).map((d: any) => ({
+        department_id: d.department_id,
+        department_name: d.departments?.name || 'Inconnu',
+        role_in_dept: d.role_in_dept,
+        position_name: d.positions?.name || null,
+        joined_at: d.joined_at,
+      }));
+
+      const activity = (actRes.data || []).map((a: any) => ({
+        id: a.id,
+        type: a.type || 'info',
+        title: a.title,
+        created_at: a.created_at,
+        is_read: a.is_read,
+      }));
+
+      const roleReqs = (roleReqRes.data || []).map((r: any) => ({
+        id: r.id,
+        requested_role: r.requested_role,
+        status: r.status,
+        created_at: r.created_at,
+        reason: r.reason,
+      }));
+
+      const deptReqs = (deptReqRes.data || []).map((r: any) => ({
+        id: r.id,
+        department_name: r.departments?.name || 'Inconnu',
+        status: r.status,
+        created_at: r.created_at,
+      }));
+
+      setUserDetail({ departments: depts, recentActivity: activity, roleRequests: roleReqs, deptRequests: deptReqs });
+    } catch {
+      // Silent fail — detail panel just stays empty
+    }
+    setDetailLoading(false);
+  }, []);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -281,7 +359,7 @@ export function UsersTab() {
       ) : (
         <div className="space-y-2">
           {filtered.map(u => (
-            <div key={u.id} className={`glass rounded-xl p-4 flex items-center gap-4 transition ${u.is_blocked ? 'opacity-60' : ''}`}>
+            <div key={u.id} onClick={() => selectedUserId === u.id ? setSelectedUserId(null) : fetchUserDetail(u.id)} className={`glass rounded-xl p-4 flex items-center gap-4 transition cursor-pointer ${u.is_blocked ? 'opacity-60' : ''} ${selectedUserId === u.id ? 'ring-1 ring-gold-400/30' : ''}`}>
               {/* Online indicator + avatar */}
               <div className="relative shrink-0">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 font-serif text-sm font-bold">
@@ -319,10 +397,19 @@ export function UsersTab() {
                 )}
               </div>
 
+              {/* Eye/Chevron detail button */}
+              <button
+                onClick={(e) => { e.stopPropagation(); selectedUserId === u.id ? setSelectedUserId(null) : fetchUserDetail(u.id); }}
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted hover:text-gold-400 hover:border-gold-400/30 transition shrink-0"
+                title="Voir les détails"
+              >
+                {selectedUserId === u.id ? <ChevronDown className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+
               {/* Block/Unblock button */}
               {u.id !== adminProfile?.id && (
                 <button
-                  onClick={() => setBlockModal({ userId: u.id, userName: u.full_name || u.email, isBlocked: u.is_blocked })}
+                  onClick={(e) => { e.stopPropagation(); setBlockModal({ userId: u.id, userName: u.full_name || u.email, isBlocked: u.is_blocked }); }}
                   className={`flex h-9 w-9 items-center justify-center rounded-lg border transition shrink-0 ${
                     u.is_blocked
                       ? 'border-green-500/40 text-green-400 hover:bg-green-500/10'
@@ -335,6 +422,178 @@ export function UsersTab() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* User Detail Panel */}
+      {selectedUserId && (
+        <div className="glass rounded-2xl p-6 space-y-6 border border-gold-400/10 animate-in">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
+              <Activity className="h-5 w-5 text-gold-400" />
+              Détails du membre
+            </h3>
+            <button onClick={() => setSelectedUserId(null)} className="text-muted hover:text-cream transition">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {detailLoading ? (
+            <div className="animate-pulse space-y-3">
+              {[1, 2, 3].map(i => <div key={i} className="h-16 rounded-xl bg-white/3" />)}
+            </div>
+          ) : (
+            <>
+              {/* Status Summary */}
+              {(() => {
+                const u = users.find(u => u.id === selectedUserId);
+                if (!u) return null;
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="rounded-xl bg-white/3 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Statut</p>
+                      <p className={`text-sm font-semibold ${u.is_blocked ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {u.is_blocked ? 'Bloqué' : 'Actif'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/3 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Onboarding</p>
+                      <p className={`text-sm font-semibold ${u.onboarding_completed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                        {u.onboarding_completed ? 'Complété' : 'En cours'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/3 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Départements</p>
+                      <p className="text-sm font-semibold text-cream">{userDetail.departments.length}</p>
+                    </div>
+                    <div className="rounded-xl bg-white/3 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Inscrit le</p>
+                      <p className="text-xs font-medium text-cream">{new Date(u.created_at).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Department Memberships */}
+              <div>
+                <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-gold-400" />
+                  Départements ({userDetail.departments.length})
+                </h4>
+                {userDetail.departments.length === 0 ? (
+                  <p className="text-xs text-muted">Aucun département assigné.</p>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {userDetail.departments.map((d, i) => (
+                      <div key={i} className="rounded-lg bg-white/3 p-3 flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-lg bg-gold-400/20 flex items-center justify-center text-gold-400">
+                          <Building2 className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-medium text-cream truncate">{d.department_name}</p>
+                          <div className="flex items-center gap-2 text-[10px] text-muted">
+                            <span className={`rounded-full px-1.5 py-0.5 ${
+                              d.role_in_dept === 'leader' ? 'bg-purple-500/20 text-purple-300' :
+                              d.role_in_dept === 'member' ? 'bg-blue-500/20 text-blue-300' :
+                              'bg-amber-500/20 text-amber-300'
+                            }`}>
+                              {d.role_in_dept === 'leader' ? 'Leader' : d.role_in_dept === 'member' ? 'Membre' : 'En attente'}
+                            </span>
+                            {d.position_name && <span>· {d.position_name}</span>}
+                          </div>
+                        </div>
+                        <span className="text-[10px] text-muted/60 shrink-0">
+                          {new Date(d.joined_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Role Requests History */}
+              {userDetail.roleRequests.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-amber-400" />
+                    Demandes de rôle pastoral ({userDetail.roleRequests.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {userDetail.roleRequests.map(r => (
+                      <div key={r.id} className="rounded-lg bg-white/3 p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-cream">{r.requested_role}</p>
+                          <p className="text-[10px] text-muted">
+                            {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          r.status === 'approuve' ? 'bg-emerald-500/20 text-emerald-400' :
+                          r.status === 'refuse' ? 'bg-red-500/20 text-red-400' :
+                          'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {r.status === 'approuve' ? 'Approuvé' : r.status === 'refuse' ? 'Refusé' : 'En attente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Department Requests History */}
+              {userDetail.deptRequests.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
+                    <UserPlus className="h-4 w-4 text-blue-400" />
+                    Demandes de département ({userDetail.deptRequests.length})
+                  </h4>
+                  <div className="space-y-2">
+                    {userDetail.deptRequests.map(r => (
+                      <div key={r.id} className="rounded-lg bg-white/3 p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-medium text-cream">{r.department_name}</p>
+                          <p className="text-[10px] text-muted">
+                            {new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                          r.status === 'accepte' ? 'bg-emerald-500/20 text-emerald-400' :
+                          r.status === 'refuse' ? 'bg-red-500/20 text-red-400' :
+                          'bg-amber-500/20 text-amber-400'
+                        }`}>
+                          {r.status === 'accepte' ? 'Accepté' : r.status === 'refuse' ? 'Refusé' : 'En attente'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Recent Activity / Notifications */}
+              <div>
+                <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-blue-400" />
+                  Activité récente ({userDetail.recentActivity.length})
+                </h4>
+                {userDetail.recentActivity.length === 0 ? (
+                  <p className="text-xs text-muted">Aucune activité récente.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-60 overflow-y-auto">
+                    {userDetail.recentActivity.map(a => (
+                      <div key={a.id} className="rounded-lg bg-white/3 px-3 py-2 flex items-center gap-3">
+                        <div className={`h-2 w-2 rounded-full shrink-0 ${a.is_read ? 'bg-muted/30' : 'bg-gold-400'}`} />
+                        <p className="text-xs text-cream/80 flex-1 truncate">{a.title}</p>
+                        <span className="text-[10px] text-muted shrink-0">
+                          {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       )}
 

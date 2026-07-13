@@ -400,6 +400,42 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           throw error;
         }
       }
+
+      // Notifier les chefs du département + admins
+      try {
+        const { data: leaders } = await supabase
+          .from('department_members')
+          .select('user_id')
+          .eq('department_id', deptId)
+          .eq('role_in_dept', 'leader')
+          .eq('is_active', true);
+
+        const { data: admins } = await supabase
+          .from('user_profiles')
+          .select('id')
+          .eq('is_admin', true)
+          .limit(10);
+
+        const notifyIds = [
+          ...(leaders || []).map(l => l.user_id),
+          ...(admins || []).map(a => a.id),
+        ].filter(id => id !== user.id);
+
+        if (notifyIds.length > 0) {
+          const requesterName = profile?.full_name || user.email;
+          await supabase.from('notifications').insert(
+            notifyIds.map(uid => ({
+              user_id: uid,
+              type: 'dept_request_pending',
+              title: `Nouvelle demande : ${deptName}`,
+              body: `${requesterName} souhaite rejoindre le département "${deptName}".`,
+              link: '#admin/departments',
+              is_read: false,
+            }))
+          );
+        }
+      } catch { /* silent — notification is best-effort */ }
+
       setRequestedDept((prev) => (prev ? `${prev},${deptId}` : deptId));
       addToast('Votre demande a été envoyée au responsable du département.', 'success');
     } catch {
