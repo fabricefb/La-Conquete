@@ -283,7 +283,8 @@ export type AdminTab =
   | 'protocol'
   | 'homepage_builder'
   | 'page_builder'
-  | 'animations';
+  | 'animations'
+  | 'live_stream';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';

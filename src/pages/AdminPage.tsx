@@ -26,6 +26,7 @@ import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
 import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab';
 import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
 import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
+import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
 import { RefreshCw, ShieldOff, Eye } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
@@ -174,6 +175,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'homepage_builder': return <HomepageBuilderTab />;
       case 'page_builder': return <PageBuilderTab />;
       case 'animations': return <AnimationsTab />;
+      case 'live_stream': return <LiveStreamTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

@@ -6,6 +6,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { TopBar } from '../components/home/TopBar';
+import { LiveStreamModal } from '../components/LiveStreamModal';
 import { TypingText, AnimatedCounter } from '../components/home/TypingHero';
 import { VerseRotator } from '../components/home/VerseRotator';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
@@ -188,6 +189,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [pastors, setPastors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveModalOpen, setLiveModalOpen] = useState(false);
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
@@ -399,7 +401,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      <TopBar onNavigate={onNavigate} />
+      <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} />
 
       {/* ═══════ SECTION 2: BIBLE VERSES ═══════ */}
       <section className="py-24">
@@ -840,6 +842,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
         onNavigate={onNavigate}
         theme={colorMode}
         onToggleTheme={toggleColorMode}
+      />
+
+      {/* ═══════ LIVE STREAM MODAL ═══════ */}
+      <LiveStreamModal
+        open={liveModalOpen}
+        onClose={() => setLiveModalOpen(false)}
       />
     </>
   );

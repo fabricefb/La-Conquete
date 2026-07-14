@@ -72,9 +72,10 @@ function useCountdown(targetDate: string | null) {
 /* ------------------------------------------------------------------ */
 interface TopBarProps {
   onNavigate?: (page: string) => void;
+  onLiveClick?: () => void;
 }
 
-export function TopBar({ onNavigate }: TopBarProps) {
+export function TopBar({ onNavigate, onLiveClick }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
     'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
     'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
@@ -166,11 +167,14 @@ export function TopBar({ onNavigate }: TopBarProps) {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5">
+            <button
+              onClick={onLiveClick}
+              className="flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform"
+            >
               <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white animate-pulse">
                 EN DIRECT
               </span>
-            </div>
+            </button>
           )}
         </div>
 

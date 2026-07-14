@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, Blocks, Zap,
+  UserCheck, Blocks, Zap, Radio,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -62,6 +62,7 @@ const tabGroups: TabGroup[] = [
     title: 'Système',
     tabs: [
       { id: 'settings', label: 'Paramètres', Icon: Settings },
+      { id: 'live_stream', label: 'Live / Direct', Icon: Radio },
     ],
   },
 ];
