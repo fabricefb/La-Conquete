@@ -829,7 +829,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   if (!user) {
     return (
       <div className="min-h-screen bg-bg text-cream font-sans">
-        <SiteHeader onNavigate={onNavigate} activePage="dashboard" theme={colorMode} onToggleTheme={toggleColorMode} />
+        <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-evangile-600/10">
@@ -858,7 +858,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
-      <SiteHeader onNavigate={onNavigate} activePage="dashboard" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
 
       <main className="pt-16">
         {/* ── Subtle radial background ─────────────────────────────── */}

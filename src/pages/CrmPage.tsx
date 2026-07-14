@@ -351,7 +351,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
   // ─── Render ──────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
-      <SiteHeader onNavigate={onNavigate} activePage="crm" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="crm" />
       <MobileNav onNavigate={onNavigate} active="crm" />
 
       <main className="px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto pb-24 pt-32 md:pt-40">

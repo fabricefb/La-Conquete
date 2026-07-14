@@ -365,7 +365,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
-      <SiteHeader onNavigate={onNavigate} activePage="reports" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="reports" />
 
       <main className="pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto space-y-24">
 

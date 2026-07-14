@@ -72,7 +72,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="pasteurs" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="pasteurs" onNavigate={onNavigate} />
       <MobileNav active="pasteurs" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

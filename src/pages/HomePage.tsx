@@ -231,8 +231,22 @@ export function HomePage({ onNavigate }: HomePageProps) {
   /* ── Derived content ─────────────────────────────────────────── */
   const cm = contentMap;
 
-  // Hero
+  // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
+  const heroImagesStr = getContent(cm, 'hero', 'bg_images', '');
+  const heroImages = heroImagesStr
+    ? heroImagesStr.split(',').map((u: string) => u.trim()).filter(Boolean)
+    : [DEFAULT_HERO_IMG];
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  // Slideshow: change every 30 seconds
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const timer = setInterval(() => {
+      setHeroIndex(prev => (prev + 1) % heroImages.length);
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [heroImages.length]);
   const heroSubtitle = getContent(
     cm,
     'hero',
@@ -319,11 +333,41 @@ export function HomePage({ onNavigate }: HomePageProps) {
         ref={parallaxRef}
         className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden"
       >
-        {/* Background image layer */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroImg})` }}
-        />
+        {/* Background slideshow layer */}
+        {heroImages.length > 1 ? (
+          heroImages.map((img: string, i: number) => (
+            <div
+              key={i}
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+              style={{
+                backgroundImage: `url(${img})`,
+                opacity: i === heroIndex ? 1 : 0,
+              }}
+            />
+          ))
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url(${heroImg})` }}
+          />
+        )}
+        {/* Slideshow dots (only if multiple images) */}
+        {heroImages.length > 1 && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+            {heroImages.map((_: string, i: number) => (
+              <button
+                key={i}
+                onClick={() => setHeroIndex(i)}
+                className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                  i === heroIndex
+                    ? 'bg-evangile-500 w-6'
+                    : 'bg-white/30 hover:bg-white/50'
+                }`}
+                aria-label={`Image ${i + 1}`}
+              />
+            ))}
+          </div>
+        )}
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
 

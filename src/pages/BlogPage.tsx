@@ -84,7 +84,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="blog" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="blog" onNavigate={onNavigate} />
       <MobileNav active="blog" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

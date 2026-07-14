@@ -43,7 +43,7 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="culte" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="culte" onNavigate={onNavigate} />
       <MobileNav active="culte" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

@@ -276,8 +276,6 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
       <SiteHeader
         onNavigate={onNavigate}
         activePage="media"
-        theme={colorMode}
-        onToggleTheme={toggleColorMode}
       />
 
       {/* ─── HERO ─── */}

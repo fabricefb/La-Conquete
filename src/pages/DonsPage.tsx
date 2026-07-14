@@ -114,7 +114,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
 
   return (
     <div className="min-h-screen bg-bg">
-      <SiteHeader onNavigate={onNavigate} activePage="dons" theme={theme} onToggleTheme={() => applyTheme(theme === 'dark' ? 'light' : 'dark')} />
+      <SiteHeader onNavigate={onNavigate} activePage="dons" />
 
       {/* ── Hero ──────────────────────────────────────────────── */}
       <section className="relative pt-28 pb-16 px-4 overflow-hidden">

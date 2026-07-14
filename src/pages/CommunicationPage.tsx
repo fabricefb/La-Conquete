@@ -1200,7 +1200,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
   if (!user) {
     return (
       <div className="min-h-screen bg-bg text-cream font-sans">
-        <SiteHeader onNavigate={onNavigate} activePage="communication" theme={colorMode} onToggleTheme={toggleColorMode} />
+        <SiteHeader onNavigate={onNavigate} activePage="communication" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
             <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-evangile-600/10">
@@ -1223,7 +1223,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-cream">
-      <SiteHeader onNavigate={onNavigate} activePage="communication" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="communication" />
 
       <main className="pt-16">
         <div className="relative overflow-hidden">

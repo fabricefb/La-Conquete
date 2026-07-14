@@ -319,7 +319,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
-      <SiteHeader onNavigate={onNavigate} activePage="emissions" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="emissions" />
 
       {/* ─── HERO ─── */}
       <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">

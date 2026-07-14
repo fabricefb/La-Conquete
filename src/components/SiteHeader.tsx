@@ -2,17 +2,17 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, MapPin, HandHeart, Mic, ArrowLeft, Building2, MonitorPlay,
+  Calendar, MapPin, HandHeart, Mic, Building2, MonitorPlay,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
-import { can, getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
-import { ROLE_LEVELS } from '../types';
+import { getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
 import type { Page } from '../lib/navigation';
-import type { Theme } from '../types';
 import { ThemeToggle } from './ThemeToggle';
 
-const LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
+// Default logo — overridable via Supabase site_settings (key: site_logo_url)
+const DEFAULT_LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
 
 /* ═══════════════════════════════════════════════════════════════════
    Navigation Data — 7 main items with mega menu support
@@ -149,14 +149,6 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Contact', page: 'contact' },
 ];
 
-const ADMIN_ITEMS: NavItem[] = [
-  { label: 'Tableau de bord', page: 'dashboard' },
-  { label: 'Espace Pastoral', page: 'pastoral' },
-  { label: 'Rapports', page: 'reports' },
-  { label: 'Communication', page: 'communication' },
-];
-
-// Pages where the nav should be simplified (admin/back-office)
 const ADMIN_PAGES: Page[] = ['admin', 'dashboard', 'pastoral', 'reports', 'communication', 'crm', 'annonces', 'communiques'];
 
 /** Build compact display name for logged-in user: "FirstName emailSuffix" */
@@ -279,23 +271,22 @@ function MegaMenu({
         <ChevronDown className={`h-3 w-3 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      {/* Mega panel */}
+      {/* Mega panel — FULL WIDTH */}
       <div
-        className={`absolute left-1/2 -translate-x-1/2 top-full pt-3 transition-all duration-300 ${
+        className={`fixed left-0 right-0 top-16 z-30 transition-all duration-300 ${
           open
             ? 'pointer-events-auto translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-3 opacity-0'
         }`}
-        style={{ width: 'min(900px, 92vw)' }}
       >
-        <div className="glass rounded-2xl shadow-2xl shadow-black/40 overflow-hidden">
-          <div className="flex">
-            {/* 3 Columns */}
-            <div className="flex-1 grid grid-cols-3 gap-0 divide-x divide-white/[0.06] p-3">
+        <div className="glass border-t border-white/[0.06] shadow-2xl shadow-black/50">
+          <div className="mx-auto max-w-[1400px] flex min-h-[280px]">
+            {/* Nav columns */}
+            <div className="flex-1 grid grid-cols-3 gap-0 divide-x divide-white/[0.06] p-5">
               {item.mega.columns.map((col, ci) => (
-                <div key={ci} className="px-3 py-2">
+                <div key={ci} className="px-4 py-3">
                   {col.title && (
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/70 mb-2 px-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/70 mb-3 px-1">
                       {col.title}
                     </p>
                   )}
@@ -308,7 +299,7 @@ function MegaMenu({
                           key={si}
                           onClick={() => !disabled && handleItemClick(sub)}
                           disabled={disabled}
-                          className={`group flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-all duration-200 ${
+                          className={`group flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ${
                             disabled
                               ? 'opacity-40 cursor-default'
                               : activePage === sub.page
@@ -333,18 +324,21 @@ function MegaMenu({
               ))}
             </div>
 
-            {/* Image panel */}
-            <div className="hidden md:block w-[200px] shrink-0 relative">
+            {/* Image panel — defines mega menu HEIGHT */}
+            <div className="hidden lg:block w-[320px] xl:w-[380px] shrink-0 relative">
               <img
                 src={item.mega.image.src}
                 alt={item.mega.image.alt}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-white text-xs font-semibold leading-snug">
-                  Église Évangélique<br />La Conquête
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest mb-1">
+                  Église Évangélique
+                </p>
+                <p className="text-white text-sm font-bold leading-snug">
+                  LA CONQUÊTE
                 </p>
               </div>
             </div>
@@ -446,12 +440,10 @@ function DesktopUserMenu({
   profile,
   onNavigate,
   onSignOut,
-  onOpenAuth,
 }: {
   profile: any;
   onNavigate: (page: Page) => void;
   onSignOut: () => void;
-  onOpenAuth: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -525,27 +517,14 @@ function DesktopUserMenu({
 interface SiteHeaderProps {
   onNavigate: (page: Page) => void;
   activePage?: Page;
-  theme?: Theme;
-  onToggleTheme?: () => void;
   topOffset?: string;
 }
 
-export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp, topOffset }: SiteHeaderProps) {
+export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProps) {
   const { user, profile, signOut } = useAuth();
+  const { colorMode, toggleColorMode } = useDynamicTheme();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const [ctxTheme, setCtxTheme] = useState<Theme>('dark');
-  const [ctxToggle] = useState<() => void>(() => {
-    const next = ctxTheme === 'dark' ? 'light' : 'dark';
-    setCtxTheme(next);
-    document.documentElement.classList.remove('dark', 'light');
-    document.documentElement.classList.add(next);
-    try { localStorage.setItem('la-conquete-theme', next); } catch { /* */ }
-  });
-
-  const theme = themeProp ?? ctxTheme;
-  const onToggleTheme = toggleProp ?? ctxToggle;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -560,9 +539,6 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
   }, [drawerOpen]);
 
   const handleNav = (page: Page) => { onNavigate(page); setDrawerOpen(false); };
-
-  // Detect if current page is admin/back-office
-  const isAdminPage = ADMIN_PAGES.includes(activePage) || activePage === 'admin';
 
   /* ── Desktop nav item renderer ── */
   const renderDesktopItem = (item: NavItem) => {
@@ -626,16 +602,26 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
         scrolled ? 'glass border-b border-line shadow-lg' : 'bg-bg/80 border-b border-transparent'
       }`}>
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Left: Desktop Navigation */}
-          <nav className="hidden items-center gap-0.5 xl:flex">
-            {NAV_ITEMS.map(renderDesktopItem)}
-          </nav>
+          {/* LEFT: Logo */}
+          <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-3 transition-opacity duration-200 hover:opacity-80">
+            <img src={DEFAULT_LOGO} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
+            <div className="hidden sm:flex flex-col leading-tight">
+              <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
+              <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
+            </div>
+          </button>
 
-          {/* Right: Actions + Logo */}
-          <div className="flex items-center gap-3">
-            <ThemeToggle theme={theme} onToggle={onToggleTheme} className="hidden sm:flex" />
+          {/* RIGHT: Desktop Navigation + Actions */}
+          <div className="flex items-center gap-2">
+            <nav className="hidden items-center gap-0.5 xl:flex">
+              {NAV_ITEMS.map(renderDesktopItem)}
+            </nav>
+
+            <div className="hidden sm:block w-px h-6 bg-line/50 mx-1" />
+
+            <ThemeToggle theme={colorMode} onToggle={toggleColorMode} className="hidden sm:flex" />
             {user && profile ? (
-              <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} onOpenAuth={() => handleNav('connexion')} />
+              <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} />
             ) : (
               <button
                 onClick={() => handleNav('connexion')}
@@ -646,14 +632,6 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               </button>
             )}
 
-            {/* Logo RIGHT side */}
-            <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-2.5 transition-opacity duration-200 hover:opacity-80 ml-1">
-              <div className="hidden sm:flex flex-col leading-tight">
-                <span className="brand-text text-xs font-bold tracking-wide">Église Évangélique</span>
-                <span className="brand-text text-sm font-bold tracking-wider">La Conquête</span>
-              </div>
-              <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover ring-2 ring-evangile-600/30" />
-            </button>
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Ouvrir le menu"
@@ -671,11 +649,11 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
+              <img src={DEFAULT_LOGO} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
               <div className="flex flex-col leading-tight">
-                <span className="brand-text text-xs font-bold tracking-wide">Église Évangélique</span>
-                <span className="brand-text text-sm font-bold tracking-wider">La Conquête</span>
+                <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
+                <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
               </div>
-              <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover ring-2 ring-evangile-600/30" />
             </button>
             <button
               onClick={() => setDrawerOpen(false)}
@@ -741,7 +719,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
 
           {/* Drawer footer */}
           <div className="border-t border-line px-4 py-6 flex items-center gap-4">
-            <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+            <ThemeToggle theme={colorMode} onToggle={toggleColorMode} />
             {!user ? (
               <button
                 onClick={() => handleNav('connexion')}

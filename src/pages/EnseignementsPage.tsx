@@ -88,7 +88,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="enseignements" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="enseignements" onNavigate={onNavigate} />
       <MobileNav active="enseignements" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

@@ -48,7 +48,7 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="ministeres" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="ministeres" onNavigate={onNavigate} />
       <MobileNav active="ministeres" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

@@ -128,7 +128,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
-      <SiteHeader onNavigate={onNavigate} activePage="events" theme={colorMode} onToggleTheme={toggleColorMode} />
+      <SiteHeader onNavigate={onNavigate} activePage="events" />
 
       <main className="min-h-screen">
         {/* ═══════ HERO — Bento Calendar Overview ═══════ */}

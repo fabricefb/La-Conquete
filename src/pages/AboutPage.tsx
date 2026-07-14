@@ -97,7 +97,7 @@ export function AboutPage({ onNavigate }: PageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg text-cream font-sans">
-        <SiteHeader activePage="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <SiteHeader activePage="about" onNavigate={onNavigate} />
         <MobileNav active="about" onNavigate={onNavigate} />
         <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
           <div className="mx-auto max-w-4xl px-4 text-center">
@@ -112,7 +112,7 @@ export function AboutPage({ onNavigate }: PageProps) {
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="about" onNavigate={onNavigate} />
       <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}

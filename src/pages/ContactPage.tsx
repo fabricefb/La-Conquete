@@ -198,8 +198,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       <SiteHeader
         onNavigate={onNavigate}
         activePage="contact"
-        theme={colorMode}
-        onToggleTheme={toggleColorMode}
       />
 
       {/* ─── HERO ─── */}

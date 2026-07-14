@@ -229,7 +229,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
   if (loading) {
     return (
       <div className="min-h-screen bg-bg text-cream font-sans">
-        <SiteHeader activePage="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <SiteHeader activePage="activities" onNavigate={onNavigate} />
         <MobileNav active="activities" onNavigate={onNavigate} />
 
         {/* Hero skeleton */}
@@ -268,7 +268,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="activities" onNavigate={onNavigate} />
       <MobileNav active="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
       {/* ── Hero ── */}

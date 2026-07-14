@@ -49,7 +49,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="jeunesse" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="jeunesse" onNavigate={onNavigate} />
       <MobileNav active="jeunesse" onNavigate={onNavigate} />
 
       {/* ═══ HERO — Particles ═══ */}

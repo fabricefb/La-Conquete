@@ -46,7 +46,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
 
   return (
     <div className="bg-bg min-h-screen">
-      <SiteHeader activePage="vision" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <SiteHeader activePage="vision" onNavigate={onNavigate} />
       <MobileNav active="vision" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
