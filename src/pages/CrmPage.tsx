@@ -29,7 +29,7 @@ const PIPELINE_STAGES: { key: ConvertiPipelineStage; label: string; color: strin
   { key: 'visite_domicile',  label: 'Visite Domicile',  color: 'text-emerald-400', border: 'border-emerald-500', bg: 'bg-emerald-500', icon: 'Home' },
   { key: 'cellule',          label: 'En Cellule',        color: 'text-amber-400',  border: 'border-amber-500',  bg: 'bg-amber-500',  icon: 'Users' },
   { key: 'cours_bapteme',    label: 'Cours Baptême',     color: 'text-orange-400', border: 'border-orange-500', bg: 'bg-orange-500', icon: 'BookOpen' },
-  { key: 'membre_actif',     label: 'Membre Actif',      color: 'text-gold-500',   border: 'border-gold-500',   bg: 'bg-gold-500',   icon: 'CheckCircle' },
+  { key: 'membre_actif',     label: 'Membre Actif',      color: 'text-evangile-600',   border: 'border-evangile-600',   bg: 'bg-evangile-600',   icon: 'CheckCircle' },
 ];
 
 const ICON_MAP: Record<string, LucideIcon> = { User, Phone, Home, Users, BookOpen, CheckCircle };
@@ -385,7 +385,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
             <p className="text-muted text-sm mt-1">Membres actifs</p>
           </div>
           <div className="glass rounded-2xl p-5 text-center">
-            <p className={`text-3xl font-bold ${stats.alertCount > 0 ? 'text-gold-500' : 'text-cream'}`}>
+            <p className={`text-3xl font-bold ${stats.alertCount > 0 ? 'text-evangile-600' : 'text-cream'}`}>
               {stats.alertCount}
             </p>
             <p className="text-muted text-sm mt-1">Alertes 72h</p>
@@ -470,7 +470,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
         {/* ── Kanban Board ───────────────────────────────────────── */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-evangile-600 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
@@ -535,10 +535,10 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
                     type="text"
                     value={form.first_name}
                     onChange={e => handleFormChange('first_name', e.target.value)}
-                    className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.first_name ? '!border-gold-500' : ''}`}
+                    className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.first_name ? '!border-evangile-600' : ''}`}
                     placeholder="Jean"
                   />
-                  {formErrors.first_name && <p className="text-gold-500 text-xs mt-1">{formErrors.first_name}</p>}
+                  {formErrors.first_name && <p className="text-evangile-600 text-xs mt-1">{formErrors.first_name}</p>}
                 </div>
                 <div>
                   <label className="text-xs text-muted uppercase tracking-wider mb-1 block">Nom *</label>
@@ -546,10 +546,10 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
                     type="text"
                     value={form.last_name}
                     onChange={e => handleFormChange('last_name', e.target.value)}
-                    className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.last_name ? '!border-gold-500' : ''}`}
+                    className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.last_name ? '!border-evangile-600' : ''}`}
                     placeholder="Dupont"
                   />
-                  {formErrors.last_name && <p className="text-gold-500 text-xs mt-1">{formErrors.last_name}</p>}
+                  {formErrors.last_name && <p className="text-evangile-600 text-xs mt-1">{formErrors.last_name}</p>}
                 </div>
               </div>
 
@@ -562,11 +562,11 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
                     type="tel"
                     value={form.phone}
                     onChange={e => handleFormChange('phone', e.target.value)}
-                    className={`input-surface w-full pl-10 pr-4 py-2.5 text-sm ${formErrors.phone ? '!border-gold-500' : ''}`}
+                    className={`input-surface w-full pl-10 pr-4 py-2.5 text-sm ${formErrors.phone ? '!border-evangile-600' : ''}`}
                     placeholder="+243 812 345 678"
                   />
                 </div>
-                {formErrors.phone && <p className="text-gold-500 text-xs mt-1">{formErrors.phone}</p>}
+                {formErrors.phone && <p className="text-evangile-600 text-xs mt-1">{formErrors.phone}</p>}
               </div>
 
               {/* Email */}
@@ -576,10 +576,10 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
                   type="email"
                   value={form.email}
                   onChange={e => handleFormChange('email', e.target.value)}
-                  className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.email ? '!border-gold-500' : ''}`}
+                  className={`input-surface w-full px-3 py-2.5 text-sm ${formErrors.email ? '!border-evangile-600' : ''}`}
                   placeholder="jean@exemple.com"
                 />
-                {formErrors.email && <p className="text-gold-500 text-xs mt-1">{formErrors.email}</p>}
+                {formErrors.email && <p className="text-evangile-600 text-xs mt-1">{formErrors.email}</p>}
               </div>
 
               {/* Quartier + Zone */}
@@ -677,7 +677,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
               {/* Pastoral care */}
               <label className="flex items-center gap-3 cursor-pointer select-none py-1">
                 <div
-                  className={`w-10 h-6 rounded-full transition-colors relative ${form.needs_pastoral_care ? 'bg-gold-500' : 'bg-white/10'}`}
+                  className={`w-10 h-6 rounded-full transition-colors relative ${form.needs_pastoral_care ? 'bg-evangile-600' : 'bg-white/10'}`}
                   onClick={() => handleFormChange('needs_pastoral_care', !form.needs_pastoral_care)}
                   role="switch"
                   aria-checked={form.needs_pastoral_care}
@@ -776,9 +776,9 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
 
               {/* Pastoral care badge */}
               {selectedConverti.needs_pastoral_care && (
-                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-gold-500/10 border border-gold-500/30">
-                  <AlertTriangle className="w-4 h-4 text-gold-500 flex-shrink-0" />
-                  <span className="text-sm text-gold-500 font-semibold">Suivi pastoral requis</span>
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-evangile-600/10 border border-evangile-600/30">
+                  <AlertTriangle className="w-4 h-4 text-evangile-600 flex-shrink-0" />
+                  <span className="text-sm text-evangile-600 font-semibold">Suivi pastoral requis</span>
                 </div>
               )}
 
@@ -800,7 +800,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
                     <div className="absolute left-2 top-2 bottom-2 w-px bg-line" />
                     {timeline.map((entry) => (
                       <div key={entry.id} className="relative">
-                        <div className="absolute -left-[18px] top-1.5 w-3 h-3 rounded-full bg-gold-500 border-2 border-bg-elevated" />
+                        <div className="absolute -left-[18px] top-1.5 w-3 h-3 rounded-full bg-evangile-600 border-2 border-bg-elevated" />
                         <div>
                           <p className="text-sm font-semibold text-cream">{entry.action}</p>
                           {entry.notes && <p className="text-xs text-muted mt-0.5">{entry.notes}</p>}
@@ -940,7 +940,7 @@ function ConvertiCard({ c, onCardClick, onQuickAdvance, advancing }: {
     <div
       className={`relative rounded-xl p-3 cursor-pointer transition-all duration-200 hover:brightness-110 ${
         isDanger
-          ? 'bg-gold-500/5 border-2 border-gold-500 animate-pulse-gold'
+          ? 'bg-evangile-600/5 border-2 border-evangile-600 animate-pulse-gold'
           : 'glass'
       }`}
       onClick={() => onCardClick(c)}
@@ -950,14 +950,14 @@ function ConvertiCard({ c, onCardClick, onQuickAdvance, advancing }: {
         <p className="text-sm font-bold text-cream leading-tight truncate pr-2">
           {c.first_name} {c.last_name}
         </p>
-        <span className={`text-[10px] font-semibold flex-shrink-0 whitespace-nowrap ${isDanger ? 'text-gold-500' : 'text-muted'}`}>
+        <span className={`text-[10px] font-semibold flex-shrink-0 whitespace-nowrap ${isDanger ? 'text-evangile-600' : 'text-muted'}`}>
           {isDanger && <AlertTriangle className="w-3 h-3 inline mr-0.5" />}
           {timeInfo.text}
         </span>
       </div>
 
       {isDanger && (
-        <p className="text-[10px] text-gold-500 font-bold mb-1.5">⚠ Âme en danger !</p>
+        <p className="text-[10px] text-evangile-600 font-bold mb-1.5">⚠ Âme en danger !</p>
       )}
 
       {/* Phone + quartier */}
@@ -984,7 +984,7 @@ function ConvertiCard({ c, onCardClick, onQuickAdvance, advancing }: {
           </span>
         )}
         {c.needs_pastoral_care && (
-          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold-500/15 text-gold-500 font-medium flex items-center gap-0.5">
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-evangile-600/15 text-evangile-600 font-medium flex items-center gap-0.5">
             <Heart className="w-2.5 h-2.5" />
             Pastoral
           </span>

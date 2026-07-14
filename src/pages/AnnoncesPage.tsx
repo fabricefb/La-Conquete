@@ -41,7 +41,7 @@ export function AnnoncesPage() {
   return (
     <div className="min-h-screen bg-bg pt-16">
       <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-radial-gold" />
+        <div className="absolute inset-0 bg-radial-primary" />
         <div className="relative mx-auto max-w-4xl text-center">
           <span className="section-label">Restez informé</span>
           <h1 className="mt-6 text-4xl font-bold text-cream sm:text-5xl">
@@ -58,8 +58,8 @@ export function AnnoncesPage() {
           {ANNONCES.map(a => (
             <div key={a.id} className={`glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer ${a.urgent ? 'border-l-4 border-l-red-500' : ''}`}>
               <div className="flex items-start gap-4">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-gold-500/10'}`}>
-                  <Bell className={`h-5 w-5 ${a.urgent ? 'text-red-400' : 'text-gold-500'}`} />
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-evangile-600/10'}`}>
+                  <Bell className={`h-5 w-5 ${a.urgent ? 'text-red-400' : 'text-evangile-600'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
@@ -70,10 +70,10 @@ export function AnnoncesPage() {
                       {new Date(a.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-cream group-hover:text-gold-300 transition-colors">{a.title}</h3>
+                  <h3 className="text-lg font-semibold text-cream group-hover:text-evangile-400 transition-colors">{a.title}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{a.content}</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted group-hover:text-gold-400 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-5 w-5 text-muted group-hover:text-evangile-500 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
               </div>
             </div>
           ))}

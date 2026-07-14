@@ -345,7 +345,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
           min={min} max={max}
           value={value}
           onChange={e => onChange(Math.min(max, Math.max(min, parseInt(e.target.value) || 0)))}
-          className="w-16 text-center bg-white/5 border border-line rounded-lg px-1 py-1.5 text-cream text-sm focus:outline-none focus:border-gold-400/50 transition-colors"
+          className="w-16 text-center bg-white/5 border border-line rounded-lg px-1 py-1.5 text-cream text-sm focus:outline-none focus:border-evangile-600/50 transition-colors"
         />
         <button
           type="button"
@@ -372,7 +372,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
       <select
         value={value} required={required}
         onChange={e => onChange(e.target.value)}
-        className="bg-white/5 border border-line rounded-xl px-3 py-2.5 text-cream text-sm focus:outline-none focus:border-gold-400/50 transition-colors appearance-none"
+        className="bg-white/5 border border-line rounded-xl px-3 py-2.5 text-cream text-sm focus:outline-none focus:border-evangile-600/50 transition-colors appearance-none"
       >
         {options.map(o => (
           <option key={o.value} value={o.value} className="bg-bg text-cream">{o.label}</option>
@@ -381,7 +381,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
     </div>
   );
 
-  const inputClass = "bg-white/5 border border-line rounded-xl px-3 py-2.5 text-cream text-sm focus:outline-none focus:border-gold-400/50 transition-colors w-full placeholder:text-muted/60";
+  const inputClass = "bg-white/5 border border-line rounded-xl px-3 py-2.5 text-cream text-sm focus:outline-none focus:border-evangile-600/50 transition-colors w-full placeholder:text-muted/60";
 
   /* ── Section renderers ──────────────────────────────────────────── */
 
@@ -484,7 +484,7 @@ export function ProtocolSection({ accentColor }: ProtocolSectionProps) {
             <ul className="space-y-0.5 mt-1">
               {dc.required_items.map((item, i) => (
                 <li key={i} className="text-xs text-muted flex items-center gap-1.5">
-                  <span className="w-1 h-1 rounded-full bg-gold-400/60 shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-evangile-600/60 shrink-0" />
                   {item}
                 </li>
               ))}

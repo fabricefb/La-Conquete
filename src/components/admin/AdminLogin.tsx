@@ -135,10 +135,10 @@ export default function AdminLogin() {
     }
   };
 
-  const inputClass = `w-full pl-11 pr-4 py-3 rounded-lg bg-white/5 border text-cream placeholder-cream/30 outline-none transition-colors focus:ring-2 focus:ring-gold-400/50 ${
+  const inputClass = `w-full pl-11 pr-4 py-3 rounded-lg bg-white/5 border text-cream placeholder-cream/30 outline-none transition-colors focus:ring-2 focus:ring-evangile-600/50 ${
     error
       ? 'border-red-500 focus:border-red-400'
-      : 'border-white/10 focus:border-gold-400/60'
+      : 'border-white/10 focus:border-evangile-600/60'
   }`;
 
   return (
@@ -146,7 +146,7 @@ export default function AdminLogin() {
       <div className="glass w-full max-w-md rounded-2xl p-8 sm:p-10 shadow-2xl">
         {/* Header */}
         <div className="flex flex-col items-center mb-8">
-          <Landmark className="w-14 h-14 text-gold-400 mb-4" aria-hidden="true" />
+          <Landmark className="w-14 h-14 text-evangile-500 mb-4" aria-hidden="true" />
           <h1 className="font-serif text-3xl font-bold text-cream tracking-tight">
             Administration
           </h1>
@@ -272,7 +272,7 @@ export default function AdminLogin() {
               setMode(mode === 'login' ? 'signup' : 'login');
               setError('');
             }}
-            className="text-sm text-gold-400 hover:text-gold-300 transition-colors"
+            className="text-sm text-evangile-500 hover:text-evangile-400 transition-colors"
           >
             {mode === 'login'
               ? "Première fois ? Créer un compte admin"

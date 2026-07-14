@@ -282,13 +282,13 @@ export function PastorsTab() {
             </div>
             <div className="flex items-end gap-4">
               <label className="flex items-center gap-2 cursor-pointer pb-2.5">
-                <input type="checkbox" checked={form.is_main} onChange={e => setField('is_main', e.target.checked)} className="h-4 w-4 rounded border-line accent-gold-400" />
+                <input type="checkbox" checked={form.is_main} onChange={e => setField('is_main', e.target.checked)} className="h-4 w-4 rounded border-line accent-evangile-600" />
                 <span className="text-sm text-cream">Principal</span>
               </label>
             </div>
             <div className="flex items-end">
               <label className="flex items-center gap-2 cursor-pointer pb-2.5">
-                <input type="checkbox" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} className="h-4 w-4 rounded border-line accent-gold-400" />
+                <input type="checkbox" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} className="h-4 w-4 rounded border-line accent-evangile-600" />
                 <span className="text-sm text-cream">Actif</span>
               </label>
             </div>
@@ -353,13 +353,13 @@ export function PastorsTab() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-serif text-base font-semibold text-cream truncate">{p.name}</h3>
                       {p.is_main && (
-                        <span className="shrink-0 rounded-full bg-gold-400/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-gold-400">Principal</span>
+                        <span className="shrink-0 rounded-full bg-evangile-600/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-evangile-500">Principal</span>
                       )}
                       {!p.is_active && (
                         <span className="shrink-0 rounded-full bg-ember-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-ember-400">Inactif</span>
                       )}
                     </div>
-                    <p className="text-sm text-gold-400 truncate">{p.role}</p>
+                    <p className="text-sm text-evangile-500 truncate">{p.role}</p>
                     {p.bio && <p className="text-xs text-muted mt-1 line-clamp-1">{p.bio}</p>}
                     {/* Social links inline */}
                     <div className="flex items-center gap-2 mt-1.5">
@@ -374,7 +374,7 @@ export function PastorsTab() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); toggleMain(p.id, p.is_main); }} className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${p.is_main ? 'text-gold-400' : 'text-muted hover:text-cream'}`} title={p.is_main ? 'Retirer principal' : 'Définir principal'}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleMain(p.id, p.is_main); }} className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${p.is_main ? 'text-evangile-500' : 'text-muted hover:text-cream'}`} title={p.is_main ? 'Retirer principal' : 'Définir principal'}>
                       {p.is_main ? <Star className="h-4 w-4" /> : <StarOff className="h-4 w-4" />}
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); startEdit(p); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-cream transition"><Edit3 className="h-4 w-4" /></button>
@@ -400,9 +400,9 @@ export function PastorsTab() {
 
                     {/* Thought */}
                     {p.thought && (
-                      <div className="rounded-xl bg-gold-400/5 border-l-2 border-gold-400/30 p-4">
+                      <div className="rounded-xl bg-evangile-600/5 border-l-2 border-evangile-600/30 p-4">
                         <p className="text-sm text-cream/80 italic">"{p.thought}"</p>
-                        <p className="text-[10px] text-gold-400 mt-2">— {p.name}</p>
+                        <p className="text-[10px] text-evangile-500 mt-2">— {p.name}</p>
                       </div>
                     )}
 
@@ -456,12 +456,12 @@ export function PastorsTab() {
                         <h4 className="text-xs font-semibold uppercase tracking-widest text-muted mb-2">Contact</h4>
                         <div className="flex gap-4">
                           {p.email && (
-                            <a href={`mailto:${p.email}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-gold-400 transition">
+                            <a href={`mailto:${p.email}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-evangile-500 transition">
                               <Mail className="h-3 w-3" /> {p.email}
                             </a>
                           )}
                           {p.phone && (
-                            <a href={`tel:${p.phone}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-gold-400 transition">
+                            <a href={`tel:${p.phone}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-evangile-500 transition">
                               <Phone className="h-3 w-3" /> {p.phone}
                             </a>
                           )}

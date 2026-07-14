@@ -288,12 +288,12 @@ export function EventsTab() {
 
       {/* Form panel */}
       {formOpen && (
-        <div className="glass rounded-2xl p-6 space-y-5 border border-gold-400/20">
+        <div className="glass rounded-2xl p-6 space-y-5 border border-evangile-600/20">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">
               {editingId ? "Modifier l'événement" : 'Nouvel événement'}
             </h3>
-            <button onClick={closeForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
+            <button onClick={closeForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -344,8 +344,8 @@ export function EventsTab() {
 
           <div className="flex flex-wrap gap-6">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.is_featured} onChange={(e) => handleField('is_featured', e.target.checked)} className="h-4 w-4 rounded border-line accent-gold-400" />
-              <span className="text-sm text-cream/80 flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-gold-400" /> Mis en avant</span>
+              <input type="checkbox" checked={form.is_featured} onChange={(e) => handleField('is_featured', e.target.checked)} className="h-4 w-4 rounded border-line accent-evangile-600" />
+              <span className="text-sm text-cream/80 flex items-center gap-1.5"><Star className="h-3.5 w-3.5 text-evangile-500" /> Mis en avant</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.is_live} onChange={(e) => handleField('is_live', e.target.checked)} className="h-4 w-4 rounded border-line accent-red-500" />
@@ -393,7 +393,7 @@ export function EventsTab() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h4 className="font-serif text-base font-semibold text-cream truncate">{event.title}</h4>
-                            <span className="rounded-full bg-gold-400/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400">{event.category}</span>
+                            <span className="rounded-full bg-evangile-600/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">{event.category}</span>
                             {event.is_live && (
                               <span className="flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-red-400">
                                 <span className="relative flex h-1.5 w-1.5"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" /><span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" /></span>
@@ -420,16 +420,16 @@ export function EventsTab() {
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => openComments(event.id)} title="Commentaires" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
+                          <button onClick={() => openComments(event.id)} title="Commentaires" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                             <MessageCircle className="h-4 w-4" />
                           </button>
-                          <button onClick={() => toggleFeatured(event)} title="Mis en avant" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
-                            <Star className={`h-4 w-4 ${event.is_featured ? 'fill-gold-400 text-gold-400' : ''}`} />
+                          <button onClick={() => toggleFeatured(event)} title="Mis en avant" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
+                            <Star className={`h-4 w-4 ${event.is_featured ? 'fill-evangile-500 text-evangile-500' : ''}`} />
                           </button>
                           <button onClick={() => toggleLive(event)} title="En direct" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition">
                             {event.is_live ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                           </button>
-                          <button onClick={() => openEdit(event)} title="Modifier" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
+                          <button onClick={() => openEdit(event)} title="Modifier" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                             <Edit3 className="h-4 w-4" />
                           </button>
                           <button onClick={() => handleDelete(event.id)} title="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition">
@@ -440,8 +440,8 @@ export function EventsTab() {
 
                       {event.is_featured && !event.is_live && (
                         <div className="mt-1.5 flex items-center gap-1">
-                          <Star className="h-3 w-3 fill-gold-400 text-gold-400" />
-                          <span className="text-[10px] text-gold-400 font-medium">Mis en avant</span>
+                          <Star className="h-3 w-3 fill-evangile-500 text-evangile-500" />
+                          <span className="text-[10px] text-evangile-500 font-medium">Mis en avant</span>
                         </div>
                       )}
                     </div>
@@ -452,7 +452,7 @@ export function EventsTab() {
                 {showComments && (
                   <div className="border-t border-line p-4 bg-white/[0.01] space-y-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <MessageCircle className="h-4 w-4 text-gold-400" />
+                      <MessageCircle className="h-4 w-4 text-evangile-500" />
                       <span className="text-sm font-medium text-cream">Commentaires ({eventComments.length})</span>
                     </div>
 
@@ -464,7 +464,7 @@ export function EventsTab() {
                       <div className="space-y-2 max-h-60 overflow-y-auto">
                         {eventComments.map(c => (
                           <div key={c.id} className="flex items-start gap-3 rounded-xl bg-white/5 p-3">
-                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 text-[10px] font-bold">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 text-[10px] font-bold">
                               {c.author_name.charAt(0).toUpperCase()}
                             </div>
                             <div className="flex-1 min-w-0">

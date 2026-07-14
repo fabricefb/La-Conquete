@@ -1011,7 +1011,7 @@ export const CULT_DAY_COLORS: Record<CultDay, string> = {
   mercredi: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
   vendredi: 'bg-purple-500/15 text-purple-300 border-purple-500/20',
   samedi: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20',
-  dimanche: 'bg-gold-400/15 text-gold-400 border-gold-400/20',
+  dimanche: 'bg-evangile-600/15 text-evangile-500 border-evangile-600/20',
   autre: 'bg-gray-500/15 text-gray-300 border-gray-500/20',
 };
 

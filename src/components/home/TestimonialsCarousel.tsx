@@ -67,16 +67,16 @@ export function TestimonialsCarousel({
     <div className="glass-card relative overflow-hidden rounded-2xl p-8 sm:p-10 md:p-12">
       {/* Decorative corners */}
       <div className="absolute left-0 top-0 h-8 w-8">
-        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-gold-400/80 to-transparent" />
-        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-gold-400/80 to-transparent" />
+        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-evangile-600/80 to-transparent" />
+        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-evangile-600/80 to-transparent" />
       </div>
       <div className="absolute bottom-0 right-0 h-8 w-8">
-        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-gold-400/80 to-transparent" />
-        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-gold-400/80 to-transparent" />
+        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-evangile-600/80 to-transparent" />
+        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-evangile-600/80 to-transparent" />
       </div>
 
       {/* Quote decoration */}
-      <div className="absolute right-6 top-6 text-gold-400/20">
+      <div className="absolute right-6 top-6 text-evangile-500/20">
         <Quote className="h-10 w-10" />
       </div>
 
@@ -90,7 +90,7 @@ export function TestimonialsCarousel({
             &ldquo;{current.content}&rdquo;
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/15 text-sm font-bold text-gold-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-evangile-600/15 text-sm font-bold text-evangile-500">
               {current.is_anonymous
                 ? '?'
                 : (current.author_name || 'A').charAt(0).toUpperCase()}
@@ -100,7 +100,7 @@ export function TestimonialsCarousel({
                 {current.is_anonymous ? 'Anonyme' : current.author_name || 'Membre'}
               </p>
               {current.category && current.category !== 'general' && (
-                <p className="text-xs capitalize" style={{ color: 'rgb(var(--gold-400-rgb, 250,204,21))' }}>
+                <p className="text-xs capitalize" style={{ color: 'rgb(var(--radial-primary-rgb, 227,34,31))' }}>
                   {current.category}
                 </p>
               )}
@@ -134,7 +134,7 @@ export function TestimonialsCarousel({
                 onClick={() => handleManualNav(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex
-                    ? 'w-6 bg-gradient-to-r from-gold-400 to-red-500'
+                    ? 'w-6 bg-gradient-to-r from-evangile-600 to-red-500'
                     : 'w-2 hover:scale-125'
                 }`}
                 style={

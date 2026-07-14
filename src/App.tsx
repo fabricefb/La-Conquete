@@ -37,7 +37,7 @@ function getPage(): Page {
 function PageLoader() {
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-gold-500/30 border-t-gold-500 rounded-full animate-spin" />
+      <div className="w-8 h-8 border-2 border-evangile-600/30 border-t-evangile-600 rounded-full animate-spin" />
     </div>
   );
 }

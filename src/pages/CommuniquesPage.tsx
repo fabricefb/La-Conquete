@@ -34,7 +34,7 @@ export function CommuniquesPage() {
   return (
     <div className="min-h-screen bg-bg pt-16">
       <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-radial-gold" />
+        <div className="absolute inset-0 bg-radial-primary" />
         <div className="relative mx-auto max-w-4xl text-center">
           <span className="section-label">Informations officielles</span>
           <h1 className="mt-6 text-4xl font-bold text-cream sm:text-5xl">
@@ -51,18 +51,18 @@ export function CommuniquesPage() {
           {COMMUNIQUES.map(c => (
             <div key={c.id} className="glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer">
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-500/10">
-                  <FileText className="h-5 w-5 text-gold-500" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evangile-600/10">
+                  <FileText className="h-5 w-5 text-evangile-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-gold-500">{c.category}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-evangile-600">{c.category}</span>
                     <span className="text-xs text-muted">{new Date(c.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-cream group-hover:text-gold-300 transition-colors">{c.title}</h3>
+                  <h3 className="text-lg font-semibold text-cream group-hover:text-evangile-400 transition-colors">{c.title}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{c.excerpt}</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted group-hover:text-gold-400 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-5 w-5 text-muted group-hover:text-evangile-500 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
               </div>
             </div>
           ))}

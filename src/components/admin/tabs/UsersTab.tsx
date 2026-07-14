@@ -513,7 +513,7 @@ export function UsersTab() {
               onClick={() => setFilterRole(f.value)}
               className={`rounded-lg px-3 py-2 text-xs font-medium transition ${
                 filterRole === f.value
-                  ? 'bg-gold-400/20 text-gold-400'
+                  ? 'bg-evangile-600/20 text-evangile-500'
                   : 'bg-white/5 text-muted hover:text-cream'
               }`}
             >
@@ -526,7 +526,7 @@ export function UsersTab() {
       {/* List */}
       {loading ? (
         <div className="glass rounded-2xl p-12 text-center">
-          <Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" />
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
@@ -536,10 +536,10 @@ export function UsersTab() {
       ) : (
         <div className="space-y-2">
           {filtered.map(u => (
-            <div key={u.id} onClick={() => selectedUserId === u.id ? setSelectedUserId(null) : fetchUserDetail(u.id)} className={`glass rounded-xl p-4 flex items-center gap-4 transition cursor-pointer ${u.is_blocked ? 'opacity-60' : ''} ${selectedUserId === u.id ? 'ring-1 ring-gold-400/30' : ''}`}>
+            <div key={u.id} onClick={() => selectedUserId === u.id ? setSelectedUserId(null) : fetchUserDetail(u.id)} className={`glass rounded-xl p-4 flex items-center gap-4 transition cursor-pointer ${u.is_blocked ? 'opacity-60' : ''} ${selectedUserId === u.id ? 'ring-1 ring-evangile-600/30' : ''}`}>
               {/* Online indicator + avatar */}
               <div className="relative shrink-0">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 font-serif text-sm font-bold">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 font-serif text-sm font-bold">
                   {(u.full_name || u.email).charAt(0).toUpperCase()}
                 </div>
                 {(u as any).is_online && (
@@ -563,7 +563,7 @@ export function UsersTab() {
               <div className="hidden md:flex items-center gap-4 text-xs text-muted shrink-0">
                 <span>{new Date(u.created_at).toLocaleDateString('fr-FR')}</span>
                 {u.last_seen_at && (
-                  <span className="text-gold-400/70" title="Dernière connexion">
+                  <span className="text-evangile-500/70" title="Dernière connexion">
                     Dernière: {new Date(u.last_seen_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
                   </span>
                 )}
@@ -577,7 +577,7 @@ export function UsersTab() {
               {/* Eye/Chevron detail button */}
               <button
                 onClick={(e) => { e.stopPropagation(); selectedUserId === u.id ? setSelectedUserId(null) : fetchUserDetail(u.id); }}
-                className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted hover:text-gold-400 hover:border-gold-400/30 transition shrink-0"
+                className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted hover:text-evangile-500 hover:border-evangile-600/30 transition shrink-0"
                 title="Voir les détails"
               >
                 {selectedUserId === u.id ? <ChevronDown className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -615,11 +615,11 @@ export function UsersTab() {
 
       {/* User Detail Panel */}
       {selectedUserId && (
-        <div className="glass rounded-2xl p-6 space-y-6 border border-gold-400/10 animate-in">
+        <div className="glass rounded-2xl p-6 space-y-6 border border-evangile-600/10 animate-in">
           {/* Header */}
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
-              <Activity className="h-5 w-5 text-gold-400" />
+              <Activity className="h-5 w-5 text-evangile-500" />
               Détails du membre
             </h3>
             <button onClick={() => setSelectedUserId(null)} className="text-muted hover:text-cream transition">
@@ -671,7 +671,7 @@ export function UsersTab() {
               {/* Department Memberships */}
               <div>
                 <h4 className="text-sm font-semibold text-cream mb-3 flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-gold-400" />
+                  <Building2 className="h-4 w-4 text-evangile-500" />
                   Départements ({userDetail.departments.length})
                 </h4>
                 {userDetail.departments.length === 0 ? (
@@ -680,7 +680,7 @@ export function UsersTab() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     {userDetail.departments.map((d, i) => (
                       <div key={i} className="rounded-lg bg-white/3 p-3 flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-gold-400/20 flex items-center justify-center text-gold-400">
+                        <div className="h-8 w-8 rounded-lg bg-evangile-600/20 flex items-center justify-center text-evangile-500">
                           <Building2 className="h-4 w-4" />
                         </div>
                         <div className="min-w-0 flex-1">
@@ -798,7 +798,7 @@ export function UsersTab() {
                   <div className="space-y-1.5 max-h-60 overflow-y-auto">
                     {userDetail.recentActivity.map(a => (
                       <div key={a.id} className="rounded-lg bg-white/3 px-3 py-2 flex items-center gap-3">
-                        <div className={`h-2 w-2 rounded-full shrink-0 ${a.is_read ? 'bg-muted/30' : 'bg-gold-400'}`} />
+                        <div className={`h-2 w-2 rounded-full shrink-0 ${a.is_read ? 'bg-muted/30' : 'bg-evangile-600'}`} />
                         <p className="text-xs text-cream/80 flex-1 truncate">{a.title}</p>
                         <span className="text-[10px] text-muted shrink-0">
                           {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}

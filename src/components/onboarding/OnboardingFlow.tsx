@@ -382,7 +382,7 @@ export function OnboardingFlow() {
       {/* ── Progress bar ─────────────────────────────────────── */}
       <div className="sticky top-0 z-10 h-1 bg-ink-900">
         <div
-          className="h-full bg-gradient-to-r from-gold-400 to-gold-500 transition-all duration-700 ease-out"
+          className="h-full bg-gradient-to-r from-evangile-600 to-evangile-600 transition-all duration-700 ease-out"
           style={{ width: `${progress}%` }}
         />
       </div>
@@ -409,9 +409,9 @@ export function OnboardingFlow() {
               key={i}
               className={`h-1.5 rounded-full transition-all duration-500 ${
                 i === activeDot
-                  ? 'w-6 bg-gold-400'
+                  ? 'w-6 bg-evangile-600'
                   : i < activeDot
-                    ? 'w-1.5 bg-gold-500/60'
+                    ? 'w-1.5 bg-evangile-600/60'
                     : 'w-1.5 bg-cream/15'
               }`}
             />
@@ -428,7 +428,7 @@ export function OnboardingFlow() {
     return (
       <div className="relative flex flex-col items-center text-center gap-6">
         {/* Decorative radial glow */}
-        <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-72 bg-radial-gold rounded-full opacity-80" />
+        <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-72 bg-radial-primary rounded-full opacity-80" />
 
         <div className="relative">
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold gold-text leading-tight">
@@ -475,9 +475,9 @@ export function OnboardingFlow() {
 
         {/* Indicateur « déjà rempli » */}
         {hasPartialProfileData && (
-          <div className="flex items-start gap-3 rounded-xl bg-gold-500/5 border border-gold-500/20 px-4 py-3 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-gold-400/80 leading-relaxed">
+          <div className="flex items-start gap-3 rounded-xl bg-evangile-600/5 border border-evangile-600/20 px-4 py-3 mb-2">
+            <CheckCircle2 className="w-5 h-5 text-evangile-500 shrink-0 mt-0.5" />
+            <p className="text-sm text-evangile-500/80 leading-relaxed">
               Ces informations ont été renseignées lors de votre inscription.
               Vous pouvez les modifier si besoin.
             </p>
@@ -488,7 +488,7 @@ export function OnboardingFlow() {
           {/* Prénom */}
           <div>
             <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Prénom <span className="text-gold-400">*</span>
+              Prénom <span className="text-evangile-500">*</span>
             </label>
             <input
               type="text"
@@ -528,8 +528,8 @@ export function OnboardingFlow() {
                   onClick={() => setGender(g)}
                   className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 border ${
                     gender === g
-                      ? 'bg-gold-500/15 border-gold-500/50 text-gold-400'
-                      : 'bg-ink-900/50 border-line text-muted hover:border-gold-500/30'
+                      ? 'bg-evangile-600/15 border-evangile-600/50 text-evangile-500'
+                      : 'bg-ink-900/50 border-line text-muted hover:border-evangile-600/30'
                   }`}
                 >
                   {g === 'homme' ? '\u{1F468} Homme' : '\u{1F469} Femme'}
@@ -605,15 +605,15 @@ export function OnboardingFlow() {
                 onClick={() => setChurchStatus(value)}
                 className={`w-full glass rounded-xl p-4 sm:p-5 text-left transition-all duration-300 flex items-start gap-4 group ${
                   selected
-                    ? 'border-gold-500/60 bg-gold-500/5 shadow-lg shadow-gold-500/5'
-                    : 'hover:border-gold-500/30'
+                    ? 'border-evangile-600/60 bg-evangile-600/5 shadow-lg shadow-evangile-600/5'
+                    : 'hover:border-evangile-600/30'
                 }`}
               >
                 <div
                   className={`shrink-0 w-11 h-11 rounded-lg flex items-center justify-center transition-colors duration-300 ${
                     selected
-                      ? 'bg-gold-500/20 text-gold-400'
-                      : 'bg-ink-800 text-muted group-hover:text-gold-400'
+                      ? 'bg-evangile-600/20 text-evangile-500'
+                      : 'bg-ink-800 text-muted group-hover:text-evangile-500'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -627,7 +627,7 @@ export function OnboardingFlow() {
                   </div>
                 </div>
                 {selected && (
-                  <CheckCircle2 className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                  <CheckCircle2 className="w-5 h-5 text-evangile-500 shrink-0 mt-0.5" />
                 )}
               </button>
             );
@@ -691,16 +691,16 @@ export function OnboardingFlow() {
                     onClick={() => toggleDepartment(dept.id)}
                     className={`w-full glass rounded-xl p-4 text-left transition-all duration-300 group ${
                       isSelected
-                        ? 'border-gold-500/60 bg-gold-500/5'
-                        : 'hover:border-gold-500/30'
+                        ? 'border-evangile-600/60 bg-evangile-600/5'
+                        : 'hover:border-evangile-600/30'
                     }`}
                   >
                     <div className="flex items-start gap-3">
                       <div
                         className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 ${
                           isSelected
-                            ? 'bg-gold-500/20 text-gold-400'
-                            : 'bg-ink-800 text-muted group-hover:text-gold-400'
+                            ? 'bg-evangile-600/20 text-evangile-500'
+                            : 'bg-ink-800 text-muted group-hover:text-evangile-500'
                         }`}
                       >
                         <DeptIcon className="w-5 h-5" />
@@ -716,7 +716,7 @@ export function OnboardingFlow() {
                         )}
                       </div>
                       {isSelected && (
-                        <Check className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
+                        <Check className="w-4 h-4 text-evangile-500 shrink-0 mt-0.5" />
                       )}
                     </div>
                   </button>
@@ -815,8 +815,8 @@ export function OnboardingFlow() {
                   onChange={(e) => setIsConfidential(e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-gold-500/20 peer-checked:border-gold-500/50 transition-all duration-200">
-                  <Check className="w-3 h-3 text-gold-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-evangile-600/20 peer-checked:border-evangile-600/50 transition-all duration-200">
+                  <Check className="w-3 h-3 text-evangile-500 opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
               </div>
               <span className="text-sm text-muted group-hover:text-cream/80 transition-colors leading-relaxed">
@@ -832,8 +832,8 @@ export function OnboardingFlow() {
                   onChange={(e) => setIsAnonymous(e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-gold-500/20 peer-checked:border-gold-500/50 transition-all duration-200">
-                  <Check className="w-3 h-3 text-gold-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
+                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-evangile-600/20 peer-checked:border-evangile-600/50 transition-all duration-200">
+                  <Check className="w-3 h-3 text-evangile-500 opacity-0 peer-checked:opacity-100 transition-opacity" />
                 </div>
               </div>
               <span className="text-sm text-muted group-hover:text-cream/80 transition-colors leading-relaxed">

@@ -308,7 +308,7 @@ export function AlertsTab() {
         <button
           onClick={() => setActiveSection('alerts')}
           className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-            activeSection === 'alerts' ? 'bg-gold-400/20 text-gold-400' : 'text-muted hover:text-cream'
+            activeSection === 'alerts' ? 'bg-evangile-600/20 text-evangile-500' : 'text-muted hover:text-cream'
           }`}
         >
           <AlertTriangle className="h-4 w-4" />
@@ -317,7 +317,7 @@ export function AlertsTab() {
         <button
           onClick={() => setActiveSection('visits')}
           className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-            activeSection === 'visits' ? 'bg-gold-400/20 text-gold-400' : 'text-muted hover:text-cream'
+            activeSection === 'visits' ? 'bg-evangile-600/20 text-evangile-500' : 'text-muted hover:text-cream'
           }`}
         >
           <Home className="h-4 w-4" />
@@ -345,7 +345,7 @@ export function AlertsTab() {
           </div>
 
           {alertLoading ? (
-            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" /></div>
+            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" /></div>
           ) : filteredAlerts.length === 0 ? (
             <div className="glass rounded-2xl p-12 text-center"><p className="text-muted text-sm">Aucune alerte.</p></div>
           ) : (
@@ -380,7 +380,7 @@ export function AlertsTab() {
                       {alert.status !== 'en_cours' && alert.status !== 'resolue' && (
                         <button
                           onClick={() => { setAssignModal({ type: 'alert', id: alert.id }); }}
-                          className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-gold-400 hover:border-gold-400/40 transition"
+                          className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition"
                           title="Assigner"
                         >
                           <UserCheck className="h-3.5 w-3.5" />
@@ -426,7 +426,7 @@ export function AlertsTab() {
           </div>
 
           {visitLoading ? (
-            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" /></div>
+            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" /></div>
           ) : filteredVisits.length === 0 ? (
             <div className="glass rounded-2xl p-12 text-center"><p className="text-muted text-sm">Aucune demande de visite.</p></div>
           ) : (
@@ -476,7 +476,7 @@ export function AlertsTab() {
                       {v.status === 'en_attente' && (
                         <button
                           onClick={() => { setAssignModal({ type: 'visit', id: v.id }); }}
-                          className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[10px] text-muted hover:text-gold-400 hover:border-gold-400/40 transition"
+                          className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[10px] text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition"
                         >
                           <UserCheck className="h-3 w-3" /> Assigner
                         </button>
@@ -494,7 +494,7 @@ export function AlertsTab() {
       {assignModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50" onClick={() => setAssignModal(null)} />
-          <div className="relative glass rounded-2xl p-6 w-full max-w-sm space-y-4 border border-gold-400/20">
+          <div className="relative glass rounded-2xl p-6 w-full max-w-sm space-y-4 border border-evangile-600/20">
             <h3 className="font-serif text-lg font-semibold text-cream">Assigner</h3>
             <select
               value={assignTarget}

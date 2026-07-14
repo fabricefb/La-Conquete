@@ -92,7 +92,7 @@ export function OnboardingTab() {
 
       {loading ? (
         <div className="glass rounded-2xl p-12 text-center">
-          <Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" />
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" />
           <p className="text-muted text-sm mt-3">Chargement des réponses...</p>
         </div>
       ) : answers.length === 0 ? (
@@ -111,12 +111,12 @@ export function OnboardingTab() {
                 onClick={() => setSelectedAnswer(a)}
                 className={`w-full text-left glass rounded-xl p-4 transition-all duration-200 ${
                   selectedAnswer?.id === a.id
-                    ? 'border-gold-400/40 bg-gold-400/5'
+                    ? 'border-evangile-600/40 bg-evangile-600/5'
                     : 'hover:bg-white/[0.03]'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 font-serif text-sm font-bold">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 font-serif text-sm font-bold">
                     {(a.full_name || a.user_email || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
@@ -140,7 +140,7 @@ export function OnboardingTab() {
             {selectedAnswer ? (
               <div className="glass rounded-2xl p-6 space-y-6">
                 <div className="flex items-center gap-4">
-                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gold-400/20 text-gold-400 font-serif text-2xl font-bold">
+                  <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-evangile-600/20 text-evangile-500 font-serif text-2xl font-bold">
                     {(selectedAnswer.full_name || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -163,7 +163,7 @@ export function OnboardingTab() {
                 {selectedAnswer.motivation && (
                   <div>
                     <label className="mb-1.5 block text-xs font-medium text-muted">Motivation / Message</label>
-                    <div className="rounded-xl bg-white/5 p-4 border-l-2 border-gold-400/30">
+                    <div className="rounded-xl bg-white/5 p-4 border-l-2 border-evangile-600/30">
                       <p className="text-sm text-cream/80 leading-relaxed">{selectedAnswer.motivation}</p>
                     </div>
                   </div>
@@ -184,7 +184,7 @@ export function OnboardingTab() {
 function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gold-400/10 text-gold-400">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-evangile-600/10 text-evangile-500">
         {icon}
       </div>
       <div className="min-w-0">

@@ -38,7 +38,7 @@ const STATUS_COLORS: Record<EventAssignment['status'], string> = {
 };
 
 const ROLE_COLORS: Record<EventAssignment['role'], string> = {
-  preacher: 'bg-gold-400/20 text-gold-400',
+  preacher: 'bg-evangile-600/20 text-evangile-500',
   intercessor: 'bg-purple-500/20 text-purple-400',
   logistician: 'bg-blue-500/20 text-blue-400',
   worship_leader: 'bg-pink-500/20 text-pink-400',
@@ -270,7 +270,7 @@ export function AssignmentsTab() {
 
       {/* Add form */}
       {formOpen && (
-        <div className="glass rounded-2xl p-6 space-y-4 border border-gold-400/20">
+        <div className="glass rounded-2xl p-6 space-y-4 border border-evangile-600/20">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">
               Nouvelle affectation
@@ -341,7 +341,7 @@ export function AssignmentsTab() {
         </div>
       ) : loading ? (
         <div className="glass rounded-2xl p-12 text-center">
-          <Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" />
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" />
         </div>
       ) : assignments.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
@@ -355,7 +355,7 @@ export function AssignmentsTab() {
               <button
                 onClick={handleNotifyAll}
                 disabled={saving}
-                className="flex items-center gap-2 rounded-lg border border-gold-400/40 px-4 py-2 text-sm font-medium text-gold-400 hover:bg-gold-400/10 transition disabled:opacity-50"
+                className="flex items-center gap-2 rounded-lg border border-evangile-600/40 px-4 py-2 text-sm font-medium text-evangile-500 hover:bg-evangile-600/10 transition disabled:opacity-50"
               >
                 <Bell className="h-4 w-4" />
                 Notifier tous les en attente

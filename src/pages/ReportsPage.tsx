@@ -41,10 +41,10 @@ interface ImpactCard {
 
 const IMPACT_CARDS: ImpactCard[] = [
   { key: 'persons_contacted', label: 'Personnes contactées', Icon: Users, color: 'text-sky-400' },
-  { key: 'decisions', label: 'Décisions pour Christ', Icon: Heart, color: 'text-gold-400' },
+  { key: 'decisions', label: 'Décisions pour Christ', Icon: Heart, color: 'text-evangile-500' },
   { key: 'bibles_distributed', label: 'Bibles distribuées', Icon: BookOpen, color: 'text-ember-400' },
   { key: 'baptisms_water', label: 'Baptêmes d\'eau', Icon: CheckCircle, color: 'text-sky-300' },
-  { key: 'new_active_members', label: 'Nouveaux membres actifs', Icon: Users, color: 'text-gold-300' },
+  { key: 'new_active_members', label: 'Nouveaux membres actifs', Icon: Users, color: 'text-evangile-400' },
   { key: 'prayer_requests_answered', label: 'Requêtes de prière exaucées', Icon: Heart, color: 'text-ember-400' },
 ];
 
@@ -58,7 +58,7 @@ const PIPELINE_STAGES = [
 ];
 
 const PIPELINE_COLORS = [
-  'bg-sky-500', 'bg-sky-400', 'bg-gold-300', 'bg-gold-400', 'bg-ember-400', 'bg-gold-600',
+  'bg-sky-500', 'bg-sky-400', 'bg-evangile-400', 'bg-evangile-600', 'bg-ember-400', 'bg-evangile-700',
 ];
 
 const MONTH_NAMES = [
@@ -388,7 +388,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
         <section className="space-y-6">
           <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-gold-400" />
+              <BarChart3 className="h-6 w-6 text-evangile-500" />
               <h2 className="font-playfair text-headline-md text-cream">Compteurs d&apos;Impact</h2>
             </div>
             <div className="flex gap-1 rounded-full border border-line p-1">
@@ -398,7 +398,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                   onClick={() => setPeriod(p)}
                   className={`rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ${
                     period === p
-                      ? 'bg-gold-500 text-white shadow-lg shadow-gold-500/20'
+                      ? 'bg-evangile-600 text-white shadow-lg shadow-evangile-600/20'
                       : 'text-muted hover:text-cream'
                   }`}
                 >
@@ -416,7 +416,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
               const trend = totalVal > 0 ? Math.round(((periodVal / totalVal) * 100)) : 0;
               return (
                 <Reveal key={card.key} delay={Math.min(i, 4) as 1 | 2 | 3 | 4}>
-                  <div className="glass-card rounded-2xl p-4 lg:p-5 space-y-3 text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-gold-500/5">
+                  <div className="glass-card rounded-2xl p-4 lg:p-5 space-y-3 text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-xl hover:shadow-evangile-600/5">
                     <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-bg-card ${card.color}`}>
                       <Icon className="h-5 w-5" />
                     </div>
@@ -428,7 +428,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                       {periodVal >= (totalVal / 12 || 1) ? (
                         <TrendingUp className="h-3 w-3 text-green-400" />
                       ) : (
-                        <TrendingDown className="h-3 w-3 text-gold-400" />
+                        <TrendingDown className="h-3 w-3 text-evangile-500" />
                       )}
                       <span className="text-muted">{trend}% de la période</span>
                     </div>
@@ -445,7 +445,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
         <section className="space-y-8">
           <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <FileText className="h-6 w-6 text-gold-400" />
+              <FileText className="h-6 w-6 text-evangile-500" />
               <h2 className="font-playfair text-headline-md text-cream">Rapports de Mission</h2>
             </div>
             <button
@@ -594,7 +594,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                 onClick={() => setReportFilter(s)}
                 className={`shrink-0 rounded-full px-4 py-1.5 text-xs font-semibold transition-all duration-200 ${
                   reportFilter === s
-                    ? 'bg-gold-500 text-white'
+                    ? 'bg-evangile-600 text-white'
                     : 'glass-card text-muted hover:text-cream'
                 }`}
               >
@@ -617,7 +617,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                   ? 'bg-green-500/15 text-green-400'
                   : report.status === 'reviewed'
                     ? 'bg-sky-500/15 text-sky-400'
-                    : 'bg-gold-500/15 text-gold-300';
+                    : 'bg-evangile-600/15 text-evangile-400';
 
                 const statusLabel = report.status === 'submitted'
                   ? 'Soumis'
@@ -649,7 +649,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                           <p className="text-muted text-[10px]">Contactées</p>
                         </div>
                         <div className="text-center">
-                          <p className="font-bold text-gold-400">{fmt(report.decisions_count)}</p>
+                          <p className="font-bold text-evangile-500">{fmt(report.decisions_count)}</p>
                           <p className="text-muted text-[10px]">Décisions</p>
                         </div>
                         <div className="text-center">
@@ -697,7 +697,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
         <section className="space-y-8">
           <Reveal className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <DollarSign className="h-6 w-6 text-gold-400" />
+              <DollarSign className="h-6 w-6 text-evangile-500" />
               <h2 className="font-playfair text-headline-md text-cream">Suivi Financier des Missions</h2>
             </div>
             <div className="flex items-center gap-3">
@@ -707,7 +707,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                     key={p}
                     onClick={() => setFinancePeriod(p)}
                     className={`rounded-full px-3 py-1.5 text-[11px] font-semibold transition-all duration-200 ${
-                      financePeriod === p ? 'bg-gold-500 text-white' : 'text-muted hover:text-cream'
+                      financePeriod === p ? 'bg-evangile-600 text-white' : 'text-muted hover:text-cream'
                     }`}
                   >
                     {PERIOD_LABELS[p]}
@@ -821,7 +821,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
               <div className="rounded-xl bg-bg/60 border border-line p-4 grid grid-cols-3 gap-4 text-center">
                 <div>
                   <p className="text-[10px] font-semibold text-muted uppercase">Dépenses totales</p>
-                  <p className="mt-1 text-lg font-bold text-gold-400">
+                  <p className="mt-1 text-lg font-bold text-evangile-500">
                     {fmtCurrency(financeForm.transport_costs + financeForm.material_costs, financeForm.currency)}
                   </p>
                 </div>
@@ -885,7 +885,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                           {f.notes && <p className="text-[10px] text-muted mt-0.5">{f.notes}</p>}
                         </td>
                         <td className="py-4 pr-4 text-right text-muted">{fmtCurrency(f.budget_allocated, cur)}</td>
-                        <td className="py-4 pr-4 text-right text-gold-400">{fmtCurrency(f.total_expenses, cur)}</td>
+                        <td className="py-4 pr-4 text-right text-evangile-500">{fmtCurrency(f.total_expenses, cur)}</td>
                         <td className="py-4 pr-4 text-right text-cream">{fmtCurrency(f.special_offering, cur)}</td>
                         <td className={`py-4 text-right font-bold ${f.balance >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                           {fmtCurrency(f.balance, cur)}
@@ -905,7 +905,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
         <section className="space-y-8">
           <Reveal>
             <div className="flex items-center gap-3">
-              <BarChart3 className="h-6 w-6 text-gold-400" />
+              <BarChart3 className="h-6 w-6 text-evangile-500" />
               <h2 className="font-playfair text-headline-md text-cream">Graphiques</h2>
             </div>
           </Reveal>
@@ -923,7 +923,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
                     <span className="w-10 text-xs font-semibold text-muted text-right">{m.label}</span>
                     <div className="flex-1 h-8 rounded-lg bg-bg-card/60 overflow-hidden relative">
                       <div
-                        className="absolute inset-y-0 left-0 rounded-lg bg-gradient-to-r from-gold-600 to-gold-400 transition-all duration-700 ease-out flex items-center justify-end pr-2"
+                        className="absolute inset-y-0 left-0 rounded-lg bg-gradient-to-r from-evangile-700 to-evangile-600 transition-all duration-700 ease-out flex items-center justify-end pr-2"
                         style={{ width: `${Math.max(m.pct, m.value > 0 ? 8 : 0)}%` }}
                       >
                         {m.value > 0 && (
@@ -989,7 +989,7 @@ function StatPill({ label, value }: { label: string; value: number }) {
 function DetailBlock({ title, text }: { title: string; text: string }) {
   return (
     <div className="space-y-1">
-      <h5 className="text-xs font-semibold text-gold-400 uppercase tracking-wider">{title}</h5>
+      <h5 className="text-xs font-semibold text-evangile-500 uppercase tracking-wider">{title}</h5>
       <p className="text-sm text-muted leading-relaxed whitespace-pre-line">{text}</p>
     </div>
   );

@@ -6,7 +6,7 @@ interface ThemeToggleProps { theme: Theme; onToggle: () => void; className?: str
 export function ThemeToggle({ theme, onToggle, className = '' }: ThemeToggleProps) {
   return (
     <button onClick={onToggle} aria-label={theme === 'dark' ? 'Mode clair' : 'Mode sombre'}
-      className={`flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-300 hover:border-gold-400/40 hover:text-gold-400 ${className}`}>
+      className={`flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-300 hover:border-evangile-600/40 hover:text-evangile-500 ${className}`}>
       {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>
   );

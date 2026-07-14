@@ -371,7 +371,7 @@ export function ContentsTab() {
             <button
               type="button"
               onClick={() => setAddModal(null)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
             >
               <X size={16} />
             </button>
@@ -479,8 +479,8 @@ export function ContentsTab() {
             onClick={() => setActivePage(p.key)}
             className={`px-4 py-2 text-sm font-medium rounded-xl border transition ${
               activePage === p.key
-                ? 'border-gold-400/60 bg-gold-400/10 text-gold-400'
-                : 'border-line text-muted hover:border-gold-400/30 hover:text-gold-400'
+                ? 'border-evangile-600/60 bg-evangile-600/10 text-evangile-500'
+                : 'border-line text-muted hover:border-evangile-600/30 hover:text-evangile-500'
             }`}
           >
             {p.label}
@@ -532,7 +532,7 @@ export function ContentsTab() {
                       setNewFieldLabel('');
                       setNewFieldType('text');
                     }}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
                     title="Ajouter un champ"
                   >
                     <Plus size={16} />
@@ -567,7 +567,7 @@ export function ContentsTab() {
                       className={`p-4 rounded-xl border transition ${
                         (draftValues[item.id] ?? item.value) !== item.value ||
                         (draftActive[item.id] ?? item.is_active) !== item.is_active
-                          ? 'border-gold-400/30 bg-gold-400/5'
+                          ? 'border-evangile-600/30 bg-evangile-600/5'
                           : 'border-line/50'
                       }`}
                     >
@@ -576,7 +576,7 @@ export function ContentsTab() {
                           <label className="text-xs font-medium text-muted truncate">
                             {item.label}
                           </label>
-                          <span className="rounded-full bg-gold-400/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400 shrink-0">
+                          <span className="rounded-full bg-evangile-600/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500 shrink-0">
                             {item.type}
                           </span>
                         </div>
@@ -588,7 +588,7 @@ export function ContentsTab() {
                               onChange={(e) =>
                                 handleActiveToggle(item.id, e.target.checked)
                               }
-                              className="h-3.5 w-3.5 rounded border-line accent-gold-400"
+                              className="h-3.5 w-3.5 rounded border-line accent-evangile-600"
                             />
                             <span className="text-[10px] text-muted">Actif</span>
                           </label>
@@ -624,7 +624,7 @@ export function ContentsTab() {
                       </div>
 
                       <div className="text-xs text-muted mb-1.5">
-                        field_key: <code className="text-gold-400/70">{item.field_key}</code>
+                        field_key: <code className="text-evangile-500/70">{item.field_key}</code>
                       </div>
 
                       {renderInput(item)}

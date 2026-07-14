@@ -203,7 +203,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
+      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
         <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
           <RevealSection>
             <p className="section-label justify-center">Contact</p>
@@ -229,7 +229,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                 <div className="flex flex-col gap-4">
                   {/* Address */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold-400/20 text-gold-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <MapPin className="h-4 w-4" />
                     </div>
                     <div>
@@ -242,7 +242,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                   {/* Phone */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold-400/20 text-gold-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <Phone className="h-4 w-4" />
                     </div>
                     <div>
@@ -250,7 +250,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       {phone ? (
                         <a
                           href={`tel:${phone}`}
-                          className="mt-1 block text-sm text-cream hover:text-gold-400 transition-colors"
+                          className="mt-1 block text-sm text-cream hover:text-evangile-500 transition-colors"
                         >
                           {phone}
                         </a>
@@ -262,7 +262,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                   {/* Email */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gold-400/20 text-gold-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <Mail className="h-4 w-4" />
                     </div>
                     <div>
@@ -270,7 +270,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       {email ? (
                         <a
                           href={`mailto:${email}`}
-                          className="mt-1 block text-sm text-cream hover:text-gold-400 transition-colors"
+                          className="mt-1 block text-sm text-cream hover:text-evangile-500 transition-colors"
                         >
                           {email}
                         </a>
@@ -297,7 +297,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-xs font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400"
+                            className="flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-xs font-medium text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-500"
                           >
                             <IconComponent className="h-3.5 w-3.5" />
                             {label}
@@ -319,7 +319,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                 {sent ? (
                   <div className="py-12 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-gold-400/20 text-gold-400">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-evangile-600/20 text-evangile-500">
                       <Send className="h-7 w-7" />
                     </div>
                     <h3 className="font-serif text-2xl font-semibold text-cream">
@@ -340,7 +340,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {/* Type de visiteur */}
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Vous êtes <span className="text-gold-400">*</span>
+                        Vous êtes <span className="text-evangile-500">*</span>
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
@@ -355,7 +355,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                             onClick={() => setForm(f => ({ ...f, visitorType: opt.val }))}
                             className={`rounded-xl px-3 py-2.5 text-xs font-medium border transition-all ${
                               form.visitorType === opt.val
-                                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                                ? 'border-evangile-600/50 bg-evangile-600/10 text-evangile-500'
                                 : 'border-line text-muted hover:text-cream hover:border-white/20'
                             }`}
                           >
@@ -368,7 +368,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
-                          Nom complet <span className="text-gold-400">*</span>
+                          Nom complet <span className="text-evangile-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -381,7 +381,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       </div>
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
-                          Téléphone <span className="text-gold-400">*</span>
+                          Téléphone <span className="text-evangile-500">*</span>
                         </label>
                         <input
                           type="tel"
@@ -408,7 +408,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {/* Sujets suggérés */}
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Sujet <span className="text-gold-400">*</span>
+                        Sujet <span className="text-evangile-500">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2 mb-2">
                         {SUBJECT_SUGGESTIONS.map(s => (
@@ -418,7 +418,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                             onClick={() => setForm(f => ({ ...f, subject: s }))}
                             className={`rounded-lg px-3 py-1.5 text-[11px] font-medium border transition-all ${
                               form.subject === s
-                                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                                ? 'border-evangile-600/50 bg-evangile-600/10 text-evangile-500'
                                 : 'border-line text-muted hover:text-cream hover:border-white/20'
                             }`}
                           >
@@ -445,7 +445,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     </div>
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Message <span className="text-gold-400">*</span>
+                        Message <span className="text-evangile-500">*</span>
                       </label>
                       <textarea
                         required
@@ -477,7 +477,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       </section>
 
       {/* ─── SERVICE TIMES ─── */}
-      <section className="py-24 bg-radial-gold">
+      <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-12 text-center">
             <p className="section-label justify-center">Horaires</p>
@@ -487,10 +487,10 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             {SERVICE_TIMES.map(({ day, service, time, Icon }, i) => (
               <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
                 <div className="glass rounded-3xl p-6 text-center transition-all duration-300 hover:scale-105">
-                  <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-gold-400/20 text-gold-400">
+                  <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-evangile-600/20 text-evangile-500">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <p className="text-xs font-bold uppercase tracking-widest text-gold-400">{day}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-evangile-500">{day}</p>
                   <h3 className="mt-1 font-serif text-lg font-semibold text-cream">{service}</h3>
                   <p className="mt-1 text-sm text-muted">{time}</p>
                 </div>
@@ -521,14 +521,14 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       onClick={() => setSelectedLocation(loc)}
                       className={`glass rounded-2xl p-4 text-left transition-all duration-200 hover:scale-[1.01] ${
                         selectedLocation?.id === loc.id
-                          ? 'border-gold-400/40 bg-gold-400/5'
+                          ? 'border-evangile-600/40 bg-evangile-600/5'
                           : ''
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <MapPin
                           className={`mt-0.5 h-4 w-4 shrink-0 ${
-                            loc.is_main ? 'text-gold-400' : 'text-ember-400'
+                            loc.is_main ? 'text-evangile-500' : 'text-ember-400'
                           }`}
                         />
                         <div>
@@ -562,7 +562,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             <RevealSection className="mt-8">
               <div className="glass rounded-3xl p-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-gold-400/20 text-gold-400">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-evangile-600/20 text-evangile-500">
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
@@ -581,7 +581,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {selectedLocation.phone && (
                       <a
                         href={`tel:${selectedLocation.phone}`}
-                        className="mt-1 flex items-center gap-1.5 text-xs text-muted hover:text-gold-400 transition-colors"
+                        className="mt-1 flex items-center gap-1.5 text-xs text-muted hover:text-evangile-500 transition-colors"
                       >
                         <Phone className="h-3 w-3" />
                         {selectedLocation.phone}

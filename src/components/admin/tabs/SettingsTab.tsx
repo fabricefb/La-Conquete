@@ -197,7 +197,7 @@ export function SettingsTab() {
               type="checkbox"
               checked={checked}
               onChange={(e) => handleCheckboxToggle(setting.key, e.target.checked)}
-              className="h-4 w-4 rounded border-line accent-gold-400"
+              className="h-4 w-4 rounded border-line accent-evangile-600"
             />
             <span className="text-sm text-cream">
               {checked ? 'Activé' : 'Désactivé'}
@@ -243,7 +243,7 @@ export function SettingsTab() {
             Gérez les paramètres globaux de votre site
           </p>
         </div>
-        <span className="rounded-full bg-gold-400/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400">
+        <span className="rounded-full bg-evangile-600/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
           {modifiedKeys.size} modifié{modifiedKeys.size !== 1 ? 's' : ''}
         </span>
       </div>
@@ -289,7 +289,7 @@ export function SettingsTab() {
                       )}
                       {renderInput(setting)}
                       {modifiedKeys.has(setting.key) && (
-                        <span className="mt-1 inline-block text-[10px] text-gold-400">
+                        <span className="mt-1 inline-block text-[10px] text-evangile-500">
                           modifié
                         </span>
                       )}

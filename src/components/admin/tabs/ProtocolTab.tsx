@@ -508,7 +508,7 @@ export function ProtocolTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-gold-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-evangile-500" />
       </div>
     );
   }
@@ -525,7 +525,7 @@ export function ProtocolTab() {
               onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${
                 activeTab === tab.key
-                  ? 'bg-gold-400/20 text-gold-400 border border-gold-400/30'
+                  ? 'bg-evangile-600/20 text-evangile-500 border border-evangile-600/30'
                   : 'bg-white/5 text-muted hover:text-cream border border-transparent hover:border-line'
               }`}
             >
@@ -563,7 +563,7 @@ export function ProtocolTab() {
           {consolidatedGroups.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <FileBarChart className="h-5 w-5 text-gold-400" />
+                <FileBarChart className="h-5 w-5 text-evangile-500" />
                 <h3 className="font-display text-base font-semibold text-cream">Rapports consolidés multi-églises</h3>
                 <span className="text-[10px] font-bold uppercase bg-amber-500/20 text-amber-300 rounded-full px-2 py-0.5">
                   {consolidatedGroups.length} date{consolidatedGroups.length !== 1 ? 's' : ''}
@@ -631,7 +631,7 @@ export function ProtocolTab() {
                           <span className="text-emerald-400 font-bold">
                             Total: {group.totalAttendance}
                           </span>
-                          <span className="text-gold-400 font-semibold">
+                          <span className="text-evangile-500 font-semibold">
                             Nvx: {group.totalNewComers}
                           </span>
                         </div>
@@ -675,8 +675,8 @@ export function ProtocolTab() {
                                   <p className="text-sm font-semibold text-cream">{ext.children}</p>
                                 </div>
                                 <div>
-                                  <p className="text-[10px] text-gold-400">Nvx</p>
-                                  <p className="text-sm font-bold text-gold-400">{ext.newComers}</p>
+                                  <p className="text-[10px] text-evangile-500">Nvx</p>
+                                  <p className="text-sm font-bold text-evangile-500">{ext.newComers}</p>
                                 </div>
                               </div>
                               <div className="text-center pt-1 border-t border-line/50">
@@ -694,7 +694,7 @@ export function ProtocolTab() {
                             <span className="text-cream/70">F <span className="text-cream font-bold">{group.totalWomen}</span></span>
                             <span className="text-cream/70">E <span className="text-cream font-bold">{group.totalChildren}</span></span>
                             <span className="text-emerald-400 font-bold text-base">{group.totalAttendance}</span>
-                            <span className="text-gold-400 font-semibold">+{group.totalNewComers} nvx</span>
+                            <span className="text-evangile-500 font-semibold">+{group.totalNewComers} nvx</span>
                           </div>
                         </div>
                       </div>
@@ -746,7 +746,7 @@ export function ProtocolTab() {
                           <td className="px-4 py-3 text-center text-cream/70">{r.women_count}</td>
                           <td className="px-4 py-3 text-center text-cream/70">{r.children_count}</td>
                           <td className="px-4 py-3 text-center font-semibold text-cream">{r.total_attendance}</td>
-                          <td className="px-4 py-3 text-center text-gold-400 font-semibold">{r.new_comers_count}</td>
+                          <td className="px-4 py-3 text-center text-evangile-500 font-semibold">{r.new_comers_count}</td>
                           <td className="px-4 py-3">
                             <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${sc.cls}`}>{sc.label}</span>
                           </td>
@@ -838,7 +838,7 @@ export function ProtocolTab() {
                         {team.description && <p className="text-xs text-muted mt-0.5">{team.description}</p>}
                       </div>
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => { setEditingTeamId(team.id); setTeamForm({ name: team.name, description: team.description || '', color: team.color }); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-gold-400 hover:border-gold-400/30 transition">
+                        <button onClick={() => { setEditingTeamId(team.id); setTeamForm({ name: team.name, description: team.description || '', color: team.color }); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-evangile-500 hover:border-evangile-600/30 transition">
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
                         <button onClick={() => deleteTeam(team.id)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-red-400 hover:border-red-400/30 transition">
@@ -855,7 +855,7 @@ export function ProtocolTab() {
                             {members.map(m => (
                               <div key={m.id} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
                                 <div className="flex items-center gap-3">
-                                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 text-[10px] font-bold">
+                                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 text-[10px] font-bold">
                                     {m.full_name.charAt(0).toUpperCase()}
                                   </div>
                                   <div>
@@ -950,7 +950,7 @@ export function ProtocolTab() {
                           return (
                             <td key={day} className="px-4 py-3 text-center">
                               {isAssigned ? (
-                                <button onClick={() => clearSchedule(sch.id)} className="rounded-lg bg-gold-400/20 text-gold-400 px-3 py-1.5 text-xs font-semibold hover:bg-gold-400/30 transition" title="Cliquer pour retirer">
+                                <button onClick={() => clearSchedule(sch.id)} className="rounded-lg bg-evangile-600/20 text-evangile-500 px-3 py-1.5 text-xs font-semibold hover:bg-evangile-600/30 transition" title="Cliquer pour retirer">
                                   ✦ Assigné
                                 </button>
                               ) : (
@@ -1265,7 +1265,7 @@ export function ProtocolTab() {
                 <button
                   key={t.id}
                   onClick={() => assignTeam(t.id, assignModal.cult_day)}
-                  className="w-full flex items-center gap-3 rounded-xl p-3 bg-white/5 border border-line hover:border-gold-400/30 hover:bg-white/[0.04] transition text-left"
+                  className="w-full flex items-center gap-3 rounded-xl p-3 bg-white/5 border border-line hover:border-evangile-600/30 hover:bg-white/[0.04] transition text-left"
                 >
                   <div className="h-4 w-4 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
                   <span className="text-sm text-cream">{t.name}</span>

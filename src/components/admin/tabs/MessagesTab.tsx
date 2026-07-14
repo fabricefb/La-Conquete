@@ -30,7 +30,7 @@ const VISITOR_LABELS: Record<string, string> = {
 const VISITOR_COLORS: Record<string, string> = {
   nouveau: 'bg-emerald-500/15 text-emerald-400',
   visiteur: 'bg-sky-500/15 text-sky-400',
-  membre: 'bg-gold-400/15 text-gold-400',
+  membre: 'bg-evangile-600/15 text-evangile-500',
   autre: 'bg-white/5 text-muted',
 };
 
@@ -103,14 +103,14 @@ function MessageRow({
   };
 
   return (
-    <div className={`glass rounded-2xl transition ${!message.is_read ? 'ring-1 ring-gold-400/20' : ''}`}>
+    <div className={`glass rounded-2xl transition ${!message.is_read ? 'ring-1 ring-evangile-600/20' : ''}`}>
       {/* Row header */}
       <button
         onClick={onToggle}
         className="flex w-full items-center gap-3 p-5 text-left"
       >
         {/* Unread dot */}
-        <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${message.is_read ? 'bg-surface-2' : 'bg-gold-400'}`} />
+        <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${message.is_read ? 'bg-surface-2' : 'bg-evangile-600'}`} />
 
         {/* Visitor type badge */}
         {visitorCfg && (
@@ -154,7 +154,7 @@ function MessageRow({
               {message.phone ? (
                 <a
                   href={`tel:${message.phone}`}
-                  className="inline-flex items-center gap-1.5 text-sm text-gold-400 hover:text-gold-300 transition"
+                  className="inline-flex items-center gap-1.5 text-sm text-evangile-500 hover:text-evangile-400 transition"
                 >
                   <Phone className="h-3.5 w-3.5" />
                   {message.phone}
@@ -168,7 +168,7 @@ function MessageRow({
               {message.email ? (
                 <a
                   href={`mailto:${message.email}`}
-                  className="inline-flex items-center gap-1.5 text-sm text-gold-400 hover:text-gold-300 transition"
+                  className="inline-flex items-center gap-1.5 text-sm text-evangile-500 hover:text-evangile-400 transition"
                 >
                   <Mail className="h-3.5 w-3.5" />
                   {message.email}
@@ -392,7 +392,7 @@ export function MessagesTab() {
         <h2 className="font-serif text-2xl font-semibold text-cream">Messages de Contact</h2>
         <div className="flex items-center gap-2">
           {unreadCount > 0 && (
-            <span className="rounded-full bg-gold-400/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold-400">
+            <span className="rounded-full bg-evangile-600/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
               {unreadCount} non lu{unreadCount > 1 ? 's' : ''}
             </span>
           )}
@@ -423,7 +423,7 @@ export function MessagesTab() {
             onClick={() => setFilterStatus(f.key)}
             className={`rounded-lg px-3 py-1.5 text-xs font-medium border transition-all ${
               filterStatus === f.key
-                ? 'border-gold-400/50 bg-gold-400/10 text-gold-400'
+                ? 'border-evangile-600/50 bg-evangile-600/10 text-evangile-500'
                 : 'border-line text-muted hover:text-cream hover:border-white/20'
             }`}
           >

@@ -145,12 +145,12 @@ export default function ImageUpload({
                 onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !uploading) { e.preventDefault(); inputRef.current?.click(); } }}
                 onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
                 className={`relative flex flex-col items-center justify-center gap-3 w-full min-h-[140px] cursor-pointer rounded-2xl border border-dashed border-line transition ${
-                  dragActive ? 'border-gold-400 bg-gold-400/5' : 'hover:border-gold-400/40'
+                  dragActive ? 'border-evangile-600 bg-evangile-600/5' : 'hover:border-evangile-600/40'
                 }`}>
                 <input ref={inputRef} type="file" accept={accept.join(',')} onChange={handleInputChange} className="hidden" aria-label={label} />
                 {uploading ? (
                   <>
-                    <div className="h-10 w-10 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+                    <div className="h-10 w-10 animate-spin rounded-full border-2 border-evangile-600 border-t-transparent" />
                     <p className="text-muted text-sm">Envoi en cours...</p>
                   </>
                 ) : (
@@ -160,7 +160,7 @@ export default function ImageUpload({
                     </div>
                     <div className="flex flex-col items-center gap-1 text-center">
                       <p className="text-muted text-sm">
-                        Glissez-déposez ou <span className="text-gold-400 font-medium">parcourir</span>
+                        Glissez-déposez ou <span className="text-evangile-500 font-medium">parcourir</span>
                       </p>
                       <p className="text-muted/60 text-xs">
                         {accept.map(m => m.split('/')[1].toUpperCase()).join(', ')} — max {maxSizeMB} Mo
@@ -179,7 +179,7 @@ export default function ImageUpload({
 
               {/* URL mode toggle */}
               <button type="button" onClick={() => setUrlMode(true)}
-                className="flex items-center justify-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-muted hover:border-gold-400/40 hover:text-gold-400 transition-colors">
+                className="flex items-center justify-center gap-2 rounded-xl border border-line px-4 py-3 text-sm text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition-colors">
                 <Link size={16} />
                 Coller un lien URL d'image
               </button>
@@ -196,7 +196,7 @@ export default function ImageUpload({
                     onChange={(e) => setUrlInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') handleApplyUrl(); }}
                     placeholder="https://exemple.com/image.jpg"
-                    className="w-full rounded-xl border border-line bg-bg pl-10 pr-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:border-gold-400/50 focus:outline-none transition-colors"
+                    className="w-full rounded-xl border border-line bg-bg pl-10 pr-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:border-evangile-600/50 focus:outline-none transition-colors"
                   />
                 </div>
                 <button type="button" onClick={handleApplyUrl}

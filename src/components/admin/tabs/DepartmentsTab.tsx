@@ -115,13 +115,13 @@ function accentLabel(color: string): string {
 
 function accentClasses(color: string): string {
   if (color === 'gold') {
-    return 'bg-gold-400/20 text-gold-400 border-gold-400/30';
+    return 'bg-evangile-600/20 text-evangile-500 border-evangile-600/30';
   }
   return 'bg-orange-500/20 text-orange-400 border-orange-400/30';
 }
 
 function accentDotClasses(color: string): string {
-  return color === 'gold' ? 'bg-gold-400' : 'bg-orange-400';
+  return color === 'gold' ? 'bg-evangile-600' : 'bg-orange-400';
 }
 
 function roleBadgeClasses(role: DeptMemberRole): string {
@@ -743,7 +743,7 @@ export function DepartmentsTab() {
             onClick={() => setSubTab(tab.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
               subTab === tab.key
-                ? 'bg-gold-400/20 text-gold-400'
+                ? 'bg-evangile-600/20 text-evangile-500'
                 : 'text-muted hover:text-cream'
             }`}
           >
@@ -775,12 +775,12 @@ export function DepartmentsTab() {
 
           {/* Form panel */}
           {deptFormOpen && (
-            <div className="glass rounded-2xl p-6 space-y-5 border border-gold-400/20">
+            <div className="glass rounded-2xl p-6 space-y-5 border border-evangile-600/20">
               <div className="flex items-center justify-between">
                 <h3 className="font-serif text-lg font-semibold text-cream">
                   {editingDeptId ? 'Modifier le département' : 'Nouveau département'}
                 </h3>
-                <button onClick={closeDeptForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
+                <button onClick={closeDeptForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -959,7 +959,7 @@ export function DepartmentsTab() {
                       <button
                         key={color}
                         onClick={() => handleDeptField('accent_color', color)}
-                        className={`${baseClasses} border-line text-muted hover:border-gold-400/40 hover:text-cream`}
+                        className={`${baseClasses} border-line text-muted hover:border-evangile-600/40 hover:text-cream`}
                       >
                         <span className={`h-2.5 w-2.5 rounded-full ${accentDotClasses(color)} opacity-40`} />
                         {accentLabel(color)}
@@ -975,7 +975,7 @@ export function DepartmentsTab() {
                   type="checkbox"
                   checked={deptForm.is_active}
                   onChange={(e) => handleDeptField('is_active', e.target.checked)}
-                  className="h-4 w-4 rounded border-line accent-gold-400"
+                  className="h-4 w-4 rounded border-line accent-evangile-600"
                 />
                 <span className="text-sm text-cream/80">Département actif</span>
               </label>
@@ -1054,14 +1054,14 @@ export function DepartmentsTab() {
                       <button
                         onClick={() => toggleDeptActive(dept)}
                         title={dept.is_active ? 'Désactiver' : 'Activer'}
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
                       >
-                        <Star className={`h-4 w-4 ${dept.is_active ? 'fill-gold-400 text-gold-400' : ''}`} />
+                        <Star className={`h-4 w-4 ${dept.is_active ? 'fill-evangile-500 text-evangile-500' : ''}`} />
                       </button>
                       <button
                         onClick={() => openDeptEdit(dept)}
                         title="Modifier"
-                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"
+                        className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
                       >
                         <Edit3 className="h-4 w-4" />
                       </button>
@@ -1195,7 +1195,7 @@ export function DepartmentsTab() {
 
                   {/* Add / Edit position form (inline) */}
                   {(addingPos || editingPosId) && (
-                    <div className="glass rounded-2xl p-5 space-y-4 border border-gold-400/20">
+                    <div className="glass rounded-2xl p-5 space-y-4 border border-evangile-600/20">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-cream">
                           {editingPosId ? 'Modifier le poste' : 'Nouveau poste'}
@@ -1252,7 +1252,7 @@ export function DepartmentsTab() {
                             type="checkbox"
                             checked={posForm.is_active}
                             onChange={(e) => handlePosField('is_active', e.target.checked)}
-                            className="h-4 w-4 rounded border-line accent-gold-400"
+                            className="h-4 w-4 rounded border-line accent-evangile-600"
                           />
                           <span className="text-sm text-cream/80">Actif</span>
                         </label>
@@ -1316,7 +1316,7 @@ export function DepartmentsTab() {
                             <button
                               onClick={() => startEditPosition(pos)}
                               title="Modifier"
-                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
                             >
                               <Edit3 className="h-3.5 w-3.5" />
                             </button>
@@ -1445,7 +1445,7 @@ export function DepartmentsTab() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">Demandes d'assignation</h3>
-            <button onClick={fetchDeptRequests} className="text-xs text-muted hover:text-gold-400 transition flex items-center gap-1">
+            <button onClick={fetchDeptRequests} className="text-xs text-muted hover:text-evangile-500 transition flex items-center gap-1">
               <RefreshCw className="h-3 w-3" /> Actualiser
             </button>
           </div>
@@ -1472,7 +1472,7 @@ export function DepartmentsTab() {
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-cream">{req.user_profiles?.full_name || 'Inconnu'}</p>
                         <p className="text-xs text-muted">{req.user_profiles?.email}</p>
-                        <p className="text-xs text-gold-400/80 mt-0.5">
+                        <p className="text-xs text-evangile-500/80 mt-0.5">
                           Département : <span className="font-medium">{req.departments?.name || '—'}</span>
                         </p>
                       </div>

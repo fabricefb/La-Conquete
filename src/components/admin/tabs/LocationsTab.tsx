@@ -126,8 +126,8 @@ export function LocationsTab() {
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Pasteur</label><input type="text" value={form.pastor_name} onChange={f('pastor_name')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Ordre</label><input type="number" value={form.sort_order} onChange={f('sort_order')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div className="flex items-center gap-6 sm:col-span-2 pt-2">
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-cream"><input type="checkbox" checked={form.is_main} onChange={(e) => setForm(p => ({ ...p, is_main: e.target.checked }))} className="h-4 w-4 rounded accent-gold-400" /> Siège principal</label>
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-cream"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm(p => ({ ...p, is_active: e.target.checked }))} className="h-4 w-4 rounded accent-gold-400" /> Actif</label>
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-cream"><input type="checkbox" checked={form.is_main} onChange={(e) => setForm(p => ({ ...p, is_main: e.target.checked }))} className="h-4 w-4 rounded accent-evangile-600" /> Siège principal</label>
+              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-cream"><input type="checkbox" checked={form.is_active} onChange={(e) => setForm(p => ({ ...p, is_active: e.target.checked }))} className="h-4 w-4 rounded accent-evangile-600" /> Actif</label>
             </div>
             <div className="flex items-center gap-3 sm:col-span-2 pt-2">
               <button type="submit" disabled={saving} className="btn-gold">{saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
@@ -146,11 +146,11 @@ export function LocationsTab() {
           {locations.map((loc) => (
             <div key={loc.id} className="glass rounded-2xl p-4 flex items-start justify-between gap-4 transition hover:scale-[1.005]">
               <div className="flex items-start gap-3">
-                <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-gold-400' : 'text-ember-400'}`} />
+                <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-evangile-500' : 'text-ember-400'}`} />
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-cream">{loc.name}</p>
-                    {loc.is_main && <span className="rounded-full bg-gold-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-gold-400">Principal</span>}
+                    {loc.is_main && <span className="rounded-full bg-evangile-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-evangile-500">Principal</span>}
                     {!loc.is_active && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted">Inactif</span>}
                   </div>
                   <p className="text-sm text-muted">{loc.address}, {loc.city}</p>
@@ -158,7 +158,7 @@ export function LocationsTab() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition"><Edit3 className="h-4 w-4" /></button>
+                <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"><Edit3 className="h-4 w-4" /></button>
                 <button onClick={() => handleDelete(loc.id, loc.name)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-ember-500/40 hover:text-ember-400 transition"><Trash2 className="h-4 w-4" /></button>
               </div>
             </div>

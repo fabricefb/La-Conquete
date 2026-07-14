@@ -34,7 +34,7 @@ function getIcon(iconName: string): LucideIcon {
   return ICON_MAP[iconName] ?? Users;
 }
 
-const CARD_ACCENT_CLASSES = ['bg-radial-gold', 'bg-radial-ember'] as const;
+const CARD_ACCENT_CLASSES = ['bg-radial-primary', 'bg-radial-ember'] as const;
 
 /* ─── Programme de la Semaine ─────────────────────────────────── */
 const LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
@@ -81,14 +81,14 @@ function WeeklySchedule() {
   return (
     <section className="relative overflow-hidden px-4 py-16 md:py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-bg via-ink-950/50 to-bg" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold-400/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-gold-600/5 rounded-full blur-[100px]" style={{ animationDelay: '3s' }} />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-evangile-600/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-evangile-700/5 rounded-full blur-[100px]" style={{ animationDelay: '3s' }} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="reveal flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
           <div className="flex items-center gap-4">
             <img src={LOGO} alt="Logo" className="w-14 h-14 md:w-18 md:h-18 rounded-full object-cover opacity-90" />
             <h2 className="font-serif text-3xl md:text-5xl font-black text-cream leading-tight">
-              Programme <span className="text-gold-400">de la Semaine</span>
+              Programme <span className="text-evangile-500">de la Semaine</span>
             </h2>
           </div>
           <div className="text-right">
@@ -102,12 +102,12 @@ function WeeklySchedule() {
           {slots.map((slot) =>
             slot.fullWidth ? (
               <article key={slot.day} className="reveal snap-center min-w-[320px] md:min-w-[700px] lg:min-w-full glass rounded-3xl p-6 md:p-10 relative overflow-hidden group flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/90 to-gold-400/10" />
-                <div className="absolute -right-10 -top-10 w-48 h-48 bg-gold-400/10 rounded-full blur-[80px] group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/90 to-evangile-600/10" />
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-evangile-600/10 rounded-full blur-[80px] group-hover:scale-110 transition-transform duration-700" />
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                   <div className="text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                      <span className="bg-gold-400 text-ink-950 px-4 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase">{slot.day}</span>
+                      <span className="bg-evangile-600 text-ink-950 px-4 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase">{slot.day}</span>
                       <span className="font-serif text-4xl md:text-5xl font-black text-gold/30">{slot.date}</span>
                     </div>
                     <h3 className="font-serif text-3xl md:text-5xl font-black uppercase tracking-tight text-cream leading-none">{slot.title}</h3>
@@ -115,7 +115,7 @@ function WeeklySchedule() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
                     <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
                       <p className="text-[10px] font-bold text-gold/60 uppercase mb-2 tracking-widest">1<sup>er</sup> Culte (FR)</p>
-                      <p className="text-2xl md:text-3xl font-serif font-black text-gold-400">08:00</p>
+                      <p className="text-2xl md:text-3xl font-serif font-black text-evangile-500">08:00</p>
                       <p className="text-xs text-muted/50 mt-1">Fin à 10:00</p>
                     </div>
                     <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
@@ -233,7 +233,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
         <MobileNav active="activities" onNavigate={onNavigate} />
 
         {/* Hero skeleton */}
-        <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
+        <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
           <div className="mx-auto max-w-4xl px-4 text-center">
             <div className="mb-4 h-6 w-32 animate-pulse rounded-full bg-white/10" />
             <div className="mb-4 h-10 w-64 animate-pulse rounded-xl bg-white/10 mx-auto" />
@@ -272,7 +272,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
       <MobileNav active="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
 
       {/* ── Hero ── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
+      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
         <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
           <span className="reveal mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
             {heroBadge}

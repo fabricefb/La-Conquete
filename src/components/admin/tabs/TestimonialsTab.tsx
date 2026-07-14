@@ -281,7 +281,7 @@ export function TestimonialsTab() {
           <h2 className="font-serif text-2xl font-semibold text-cream">
             {editingId ? 'Modifier le témoignage' : 'Ajouter un témoignage'}
           </h2>
-          <button onClick={() => { setIsFormOpen(false); setEditingId(null); }} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition">
+          <button onClick={() => { setIsFormOpen(false); setEditingId(null); }} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
             <X className="h-4 w-4" />
           </button>
         </div>
@@ -305,7 +305,7 @@ export function TestimonialsTab() {
                 <button
                   key={c.value}
                   onClick={() => updateForm('category', c.value)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${form.category === c.value ? 'bg-gold-400/20 text-gold-400 border border-gold-400/40' : 'bg-white/5 text-muted hover:text-cream'}`}
+                  className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${form.category === c.value ? 'bg-evangile-600/20 text-evangile-500 border border-evangile-600/40' : 'bg-white/5 text-muted hover:text-cream'}`}
                 >
                   {c.label}
                 </button>
@@ -336,13 +336,13 @@ export function TestimonialsTab() {
             </div>
             <div className="flex items-end pb-2.5">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={form.is_anonymous} onChange={e => updateForm('is_anonymous', e.target.checked)} className="h-4 w-4 rounded border-line text-gold-400 focus:ring-gold-400/30" />
+                <input type="checkbox" checked={form.is_anonymous} onChange={e => updateForm('is_anonymous', e.target.checked)} className="h-4 w-4 rounded border-line text-evangile-500 focus:ring-evangile-600/30" />
                 <span className="text-sm text-cream">Anonyme</span>
               </label>
             </div>
             <div className="flex items-end pb-2.5">
               <label className="flex items-center gap-3 cursor-pointer">
-                <input type="checkbox" checked={form.is_active} onChange={e => updateForm('is_active', e.target.checked)} className="h-4 w-4 rounded border-line text-gold-400 focus:ring-gold-400/30" />
+                <input type="checkbox" checked={form.is_active} onChange={e => updateForm('is_active', e.target.checked)} className="h-4 w-4 rounded border-line text-evangile-500 focus:ring-evangile-600/30" />
                 <span className="text-sm text-cream">Actif</span>
               </label>
             </div>
@@ -388,7 +388,7 @@ export function TestimonialsTab() {
 
       {/* Status filter */}
       <div className="flex gap-2 flex-wrap">
-        <button onClick={() => setFilterStatus('all')} className={`rounded-lg px-3 py-2 text-xs font-medium transition ${filterStatus === 'all' ? 'bg-gold-400/20 text-gold-400' : 'bg-white/5 text-muted hover:text-cream'}`}>Tous ({items.length})</button>
+        <button onClick={() => setFilterStatus('all')} className={`rounded-lg px-3 py-2 text-xs font-medium transition ${filterStatus === 'all' ? 'bg-evangile-600/20 text-evangile-500' : 'bg-white/5 text-muted hover:text-cream'}`}>Tous ({items.length})</button>
         {Object.entries(STATUS_CONFIG).map(([key, cfg]) => {
           const count = items.filter(t => t.status === key).length;
           if (count === 0) return null;
@@ -401,7 +401,7 @@ export function TestimonialsTab() {
       </div>
 
       {loading ? (
-        <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-gold-400" /></div>
+        <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" /></div>
       ) : filtered.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
           <MessageSquare className="mx-auto h-10 w-10 text-muted/30 mb-4" />
@@ -420,7 +420,7 @@ export function TestimonialsTab() {
                     {item.photo_url && !item.is_anonymous ? (
                       <img src={item.photo_url} alt={item.author_name} className="h-12 w-12 rounded-full object-cover" />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gold-400/20 text-gold-400 font-serif text-lg font-semibold">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 font-serif text-lg font-semibold">
                         {item.is_anonymous ? '?' : item.author_name.charAt(0).toUpperCase()}
                       </div>
                     )}
@@ -457,12 +457,12 @@ export function TestimonialsTab() {
                             </button>
                           </>
                         )}
-                        <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-gold-400/40 hover:text-gold-400 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
+                        <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
                         <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
 
-                    <div className="mt-3 relative pl-4 border-l-2 border-gold-400/30">
+                    <div className="mt-3 relative pl-4 border-l-2 border-evangile-600/30">
                       <p className="text-sm leading-relaxed text-cream/80 line-clamp-3">{item.content}</p>
                     </div>
 
@@ -495,7 +495,7 @@ export function TestimonialsTab() {
               </div>
             </div>
 
-            <div className="rounded-xl bg-white/5 p-3 border-l-2 border-gold-400/30">
+            <div className="rounded-xl bg-white/5 p-3 border-l-2 border-evangile-600/30">
               <p className="text-sm text-cream/70 line-clamp-4">{reviewModal.item.content}</p>
             </div>
 
@@ -512,7 +512,7 @@ export function TestimonialsTab() {
               />
               {(reviewModal.item as any)._source === 'member' && reviewModal.action === 'approve' && (
                 <div className="mt-3">
-                  <label className="mb-1.5 block text-xs font-medium text-gold-400">Note pastorale (visible sur le site)</label>
+                  <label className="mb-1.5 block text-xs font-medium text-evangile-500">Note pastorale (visible sur le site)</label>
                   <textarea
                     value={adminComment}
                     onChange={e => setAdminComment(e.target.value)}

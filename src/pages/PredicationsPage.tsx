@@ -222,8 +222,8 @@ function VideoPlayerPlaceholder({ title, large = false }: { title: string; large
   return (
     <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-navy-800 via-navy-900 to-black">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)]" />
-      <div className={`relative flex ${size} items-center justify-center rounded-full border-2 border-gold-400/40 bg-gold-400/10 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-gold-400/60 hover:bg-gold-400/20`}>
-        <Play className={`ml-${large ? '1' : '0.5'} ${iconSize} text-gold-400`} />
+      <div className={`relative flex ${size} items-center justify-center rounded-full border-2 border-evangile-600/40 bg-evangile-600/10 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-evangile-600/60 hover:bg-evangile-600/20`}>
+        <Play className={`ml-${large ? '1' : '0.5'} ${iconSize} text-evangile-500`} />
       </div>
       <p className="absolute bottom-4 left-4 text-xs text-muted/60">{title}</p>
     </div>
@@ -258,7 +258,7 @@ function SermonCard({ sermon }: { sermon: Sermon }) {
       {/* Info */}
       <div className="flex flex-col gap-2 p-5 flex-1">
         {sermon.series && (
-          <span className="self-start rounded-full border border-gold-400/20 bg-gold-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400">
+          <span className="self-start rounded-full border border-evangile-600/20 bg-evangile-600/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
             {sermon.series}
           </span>
         )}
@@ -266,11 +266,11 @@ function SermonCard({ sermon }: { sermon: Sermon }) {
         <p className="text-sm text-muted line-clamp-2 flex-1">{sermon.description}</p>
         <div className="mt-2 flex items-center justify-between text-sm text-muted">
           <span className="flex items-center gap-1.5">
-            <Mic className="h-3.5 w-3.5 text-gold-400" />
+            <Mic className="h-3.5 w-3.5 text-evangile-500" />
             {sermon.preacher}
           </span>
           <span className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-gold-400" />
+            <Calendar className="h-3.5 w-3.5 text-evangile-500" />
             {new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
           </span>
         </div>
@@ -290,12 +290,12 @@ function SeriesCard({ series, onSelect }: { series: SermonSeries; onSelect: (s: 
         {series.coverUrl ? (
           <img src={series.coverUrl} alt={series.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-gold-400/10 via-navy-800 to-black">
-            <BookOpen className="h-10 w-10 text-gold-400/30" />
+          <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-evangile-600/10 via-navy-800 to-black">
+            <BookOpen className="h-10 w-10 text-evangile-500/30" />
           </div>
         )}
         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-gold-400">{series.count} prédications</span>
+          <span className="text-[10px] font-semibold uppercase tracking-widest text-evangile-500">{series.count} prédications</span>
         </div>
       </div>
       {/* Info */}
@@ -369,12 +369,12 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
       <SiteHeader onNavigate={onNavigate} activePage="predications" theme={colorMode} onToggleTheme={toggleColorMode} />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-gold">
+      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
         <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
           <RevealSection>
             <div className="mb-4 flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-400/20 bg-gold-400/10">
-                <BookOpen className="h-7 w-7 text-gold-400" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
+                <BookOpen className="h-7 w-7 text-evangile-500" />
               </div>
             </div>
             <p className="section-label justify-center">Enseignements</p>
@@ -436,29 +436,29 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
               <div className="grid lg:grid-cols-2">
                 <VideoPlayerPlaceholder title={featured.title} large />
                 <div className="flex flex-col justify-center p-8 lg:p-12">
-                  <span className="mb-4 self-start rounded-full border border-gold-400/20 bg-gold-400/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-gold-400">
+                  <span className="mb-4 self-start rounded-full border border-evangile-600/20 bg-evangile-600/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
                     Prédication à la une
                   </span>
                   <h2 className="font-serif text-3xl font-semibold text-cream lg:text-4xl">{featured.title}</h2>
                   <p className="mt-4 text-muted leading-relaxed">{featured.description}</p>
                   <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted">
                     <span className="flex items-center gap-1.5">
-                      <Mic className="h-4 w-4 text-gold-400" />
+                      <Mic className="h-4 w-4 text-evangile-500" />
                       {featured.preacher}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-gold-400" />
+                      <Calendar className="h-4 w-4 text-evangile-500" />
                       {new Date(featured.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                     {featured.duration && (
                       <span className="flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-gold-400" />
+                        <Clock className="h-4 w-4 text-evangile-500" />
                         {featured.duration}
                       </span>
                     )}
                   </div>
                   {featured.series && (
-                    <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/10 px-3 py-1 text-xs font-medium text-gold-400">
+                    <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-evangile-600/20 bg-evangile-600/10 px-3 py-1 text-xs font-medium text-evangile-500">
                       <BookOpen className="h-3.5 w-3.5" />
                       Série : {featured.series}
                     </span>
@@ -511,7 +511,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
         <RevealSection>
           <div className="flex items-center justify-between mb-8">
             <h2 className="font-serif text-3xl font-semibold text-cream">Écouter les plus récentes</h2>
-            <button onClick={() => onNavigate('media')} className="flex items-center gap-2 text-sm font-medium text-gold-400 transition-colors hover:text-gold-300">
+            <button onClick={() => onNavigate('media')} className="flex items-center gap-2 text-sm font-medium text-evangile-500 transition-colors hover:text-evangile-400">
               Voir tous les médias
               <ArrowRight className="h-4 w-4" />
             </button>
@@ -522,8 +522,8 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
             <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
               <div className="glass rounded-2xl flex items-center gap-4 p-4 transition-all duration-200 hover:bg-white/[0.03] group cursor-pointer">
                 {/* Play button */}
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-gold-400/20 bg-gold-400/10 transition-all group-hover:border-gold-400/40 group-hover:bg-gold-400/20">
-                  <Headphones className="h-5 w-5 text-gold-400" />
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-evangile-600/20 bg-evangile-600/10 transition-all group-hover:border-evangile-600/40 group-hover:bg-evangile-600/20">
+                  <Headphones className="h-5 w-5 text-evangile-500" />
                 </div>
                 {/* Info */}
                 <div className="flex-1 min-w-0">

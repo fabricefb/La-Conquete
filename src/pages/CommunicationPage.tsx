@@ -261,7 +261,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
                 type="text" value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Titre de la requête"
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
             <div>
@@ -269,7 +269,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
               <select
                 value={form.visibility}
                 onChange={e => setForm(f => ({ ...f, visibility: e.target.value as PrayerRequestVisibility }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 <option value="public">Publique</option>
                 <option value="intercesseurs">Intercesseurs</option>
@@ -285,14 +285,14 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
               placeholder="Décrivez votre besoin de prière…"
               rows={4}
-              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40 resize-none"
+              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40 resize-none"
             />
           </div>
           <div className="flex items-center gap-3">
             <button
               type="button" role="switch" aria-checked={form.is_anonymous}
               onClick={() => setForm(f => ({ ...f, is_anonymous: !f.is_anonymous }))}
-              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${form.is_anonymous ? 'bg-gold-500' : 'bg-white/10'}`}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${form.is_anonymous ? 'bg-evangile-600' : 'bg-white/10'}`}
             >
               <span className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${form.is_anonymous ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
@@ -315,14 +315,14 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
           type="text" value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Rechercher une requête…"
-          className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+          className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
         />
       </div>
 
       {/* Prayer requests list */}
       {loading ? (
         <div className="glass-card flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-evangile-600 border-t-transparent" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
@@ -392,7 +392,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
                       onChange={e => setResponseText(e.target.value)}
                       placeholder="Écrivez votre réponse pastorale…"
                       rows={3}
-                      className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40 resize-none"
+                      className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40 resize-none"
                     />
                     <div className="flex gap-2">
                       <button onClick={() => handleMarkReplied(req.id)} className="btn-gold px-4 py-2 text-xs font-medium">
@@ -579,7 +579,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
                 type="text" value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Titre du message"
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
             <div>
@@ -587,7 +587,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
               <select
                 value={form.channel}
                 onChange={e => setForm(f => ({ ...f, channel: e.target.value as CommunicationMessage['channel'] }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 <option value="sms">SMS</option>
                 <option value="whatsapp">WhatsApp</option>
@@ -600,7 +600,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
               <select
                 value={form.target_type}
                 onChange={e => setForm(f => ({ ...f, target_type: e.target.value as CommunicationMessage['target_type'], target_label: TARGET_TYPES.find(t => t.value === e.target.value)?.label || '' }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 {TARGET_TYPES.map(t => (
                   <option key={t.value} value={t.value}>{t.label}</option>
@@ -614,7 +614,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
                   type="text" value={form.target_label}
                   onChange={e => setForm(f => ({ ...f, target_label: e.target.value }))}
                   placeholder="Rechercher et sélectionner…"
-                  className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                  className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
                 />
               </div>
             )}
@@ -623,7 +623,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
               <input
                 type="datetime-local" value={form.scheduled_at}
                 onChange={e => setForm(f => ({ ...f, scheduled_at: e.target.value }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
           </div>
@@ -635,7 +635,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
               placeholder="Rédigez votre message…"
               rows={5}
-              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40 resize-none"
+              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40 resize-none"
             />
           </div>
 
@@ -678,14 +678,14 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
           type="text" value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           placeholder="Rechercher un message…"
-          className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+          className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
         />
       </div>
 
       {/* Messages list */}
       {loading ? (
         <div className="glass-card flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-evangile-600 border-t-transparent" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
@@ -830,7 +830,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
                 type="text" value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Titre du média"
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
             <div>
@@ -838,7 +838,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
               <select
                 value={form.category}
                 onChange={e => setForm(f => ({ ...f, category: e.target.value as MediaLibraryItem['category'] }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 {MEDIA_CATEGORIES.map(c => (
                   <option key={c.value} value={c.value}>{c.label}</option>
@@ -850,7 +850,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
               <select
                 value={form.access_role}
                 onChange={e => setForm(f => ({ ...f, access_role: e.target.value as MediaLibraryItem['access_role'] }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 <option value="public">Public</option>
                 <option value="membre">Membres</option>
@@ -866,7 +866,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
               placeholder="Description du média…"
               rows={3}
-              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40 resize-none"
+              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40 resize-none"
             />
           </div>
           <div>
@@ -876,7 +876,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
                 type="text" value={form.file_url}
                 onChange={e => setForm(f => ({ ...f, file_url: e.target.value }))}
                 placeholder="Collez une URL ou cliquez pour sélectionner un fichier"
-                className="input-surface flex-1 rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface flex-1 rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
               <label className="btn-ghost flex items-center gap-2 px-4 py-2.5 text-sm font-medium cursor-pointer">
                 <Upload className="h-4 w-4" />
@@ -903,7 +903,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
             type="text" value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Rechercher un média…"
-            className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+            className="input-surface w-full rounded-lg pl-10 pr-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -911,7 +911,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
           <select
             value={categoryFilter}
             onChange={e => setCategoryFilter(e.target.value)}
-            className="input-surface rounded-lg px-3 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+            className="input-surface rounded-lg px-3 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
           >
             <option value="all">Toutes catégories</option>
             {MEDIA_CATEGORIES.map(c => (
@@ -924,7 +924,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
       {/* Media grid */}
       {loading ? (
         <div className="glass-card flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-evangile-600 border-t-transparent" />
         </div>
       ) : filtered.length === 0 ? (
         <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
@@ -968,7 +968,7 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
                     </span>
                     <button
                       onClick={() => handleDownload(item)}
-                      className="flex items-center gap-1 text-xs font-medium text-gold-400 hover:text-gold-300 transition-colors"
+                      className="flex items-center gap-1 text-xs font-medium text-evangile-500 hover:text-evangile-400 transition-colors"
                     >
                       <Download className="h-3.5 w-3.5" />
                       Télécharger
@@ -1088,7 +1088,7 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
                 type="text" value={form.title}
                 onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
                 placeholder="Titre de la newsletter"
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
             <div>
@@ -1096,7 +1096,7 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
               <select
                 value={form.audience}
                 onChange={e => setForm(f => ({ ...f, audience: e.target.value as NewsletterFormData['audience'] }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               >
                 <option value="all">Tous les contacts</option>
                 <option value="members">Membres uniquement</option>
@@ -1109,7 +1109,7 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
               <input
                 type="datetime-local" value={form.scheduled_at}
                 onChange={e => setForm(f => ({ ...f, scheduled_at: e.target.value }))}
-                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-gold-400/40"
+                className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
               />
             </div>
           </div>
@@ -1121,7 +1121,7 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
               onChange={e => setForm(f => ({ ...f, content: e.target.value }))}
               placeholder="Rédigez le contenu de votre newsletter…"
               rows={8}
-              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-gold-400/40 resize-none"
+              className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40 resize-none"
             />
           </div>
 
@@ -1138,7 +1138,7 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
       {/* Newsletter history */}
       {loading ? (
         <div className="glass-card flex items-center justify-center py-16">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-gold-400 border-t-transparent" />
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-evangile-600 border-t-transparent" />
         </div>
       ) : newsletters.length === 0 ? (
         <div className="glass-card flex flex-col items-center justify-center py-16 text-center">
@@ -1153,8 +1153,8 @@ function NewsletterTab({ profile, addToast }: { profile: any; addToast: (msg: st
               <div key={nl.id} className="glass-card p-4 sm:p-5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3 min-w-0">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold-400/10">
-                      <Radio className="h-5 w-5 text-gold-400" />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evangile-600/10">
+                      <Radio className="h-5 w-5 text-evangile-500" />
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -1203,8 +1203,8 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
         <SiteHeader onNavigate={onNavigate} activePage="communication" theme={colorMode} onToggleTheme={toggleColorMode} />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold-400/10">
-              <Bell className="h-10 w-10 text-gold-400" />
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-evangile-600/10">
+              <Bell className="h-10 w-10 text-evangile-500" />
             </div>
             <h2 className="text-headline-lg font-display gold-text mb-3">Centre de Communication</h2>
             <p className="text-body-lg text-muted mb-8">
@@ -1227,7 +1227,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
 
       <main className="pt-16">
         <div className="relative overflow-hidden">
-          <div className="absolute inset-0 bg-radial-gold opacity-30 pointer-events-none" />
+          <div className="absolute inset-0 bg-radial-primary opacity-30 pointer-events-none" />
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-sky-100/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative mx-auto max-w-8xl px-margin-mobile md:px-margin-desktop py-xl">
@@ -1255,7 +1255,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
                       onClick={() => setActiveTab(tab.key)}
                       className={`flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all duration-200 ${
                         isActive
-                          ? 'bg-gold-400/10 text-gold-300 border border-gold-400/20'
+                          ? 'bg-evangile-600/10 text-evangile-400 border border-evangile-600/20'
                           : 'text-muted hover:text-cream hover:bg-white/5 border border-transparent'
                       }`}
                     >
