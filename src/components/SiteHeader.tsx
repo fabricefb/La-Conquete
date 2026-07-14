@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import {
-  X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield,
+  X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, MapPin, HandHeart, Mic, ArrowLeft,
+  Calendar, MapPin, HandHeart, Mic, ArrowLeft, Building2,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
@@ -39,76 +39,80 @@ interface NavItem {
   };
 }
 
-const VIE_EGLISE_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
-const MEDIA_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
+const VISION_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
+const LEADERSHIP_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
 
 const NAV_ITEMS: NavItem[] = [
-  { label: 'Accueil', page: 'home' },
-  { label: 'À propos', page: 'about' },
+  /* 1. Direct — Live streaming */
+  { label: 'Direct', page: 'media' },
+
+  /* 2. Vision — Méga menu avec toute la vie de l'église */
   {
-    label: 'Vie de l\'Église',
+    label: 'Vision',
     mega: {
       columns: [
         {
-          title: 'Culte & Spiritualité',
+          title: 'Notre Identité',
           items: [
-            { label: 'Culte', page: 'activities', icon: Church },
-            { label: 'Activités spirituelles', page: 'activities', icon: BookOpen },
-            { label: 'Vie communautaire', page: 'about', icon: Users },
+            { label: 'À propos', page: 'about', icon: Church },
+            { label: 'Notre vision', page: 'about', icon: Eye },
+            { label: 'Déclaration de foi', page: 'about', icon: BookOpen },
           ],
         },
         {
-          title: 'Ministères & Services',
+          title: 'Vie de l\'Église',
           items: [
-            { label: 'Témoignages', icon: Heart, tag: 'Bientôt' },
+            { label: 'Culte & Activités', page: 'activities', icon: Calendar },
             { label: 'Départements', page: 'departments', icon: Users },
-            { label: 'Ministères', page: 'departments', icon: Shield },
+            { label: 'Extensions', page: 'extensions', icon: MapPin },
+            { label: 'Enseignements', page: 'predications', icon: Mic },
           ],
         },
         {
-          title: 'Groupes & Agenda',
+          title: 'Ressources',
           items: [
-            { label: 'Jeunesse', icon: Users, tag: 'Bientôt' },
-            { label: 'Femmes', icon: Heart, tag: 'Bientôt' },
-            { label: 'Hommes', icon: Shield, tag: 'Bientôt' },
-            { label: 'Service social', icon: HandHeart, tag: 'Bientôt' },
-            { label: 'Agenda', page: 'events', icon: Calendar },
+            { label: 'Prédications', page: 'predications', icon: Radio },
+            { label: 'Émissions', page: 'emissions', icon: Video },
+            { label: 'Blog', icon: Newspaper, tag: 'Bientôt' },
+            { label: 'Jeunesse', icon: Heart, tag: 'Bientôt' },
           ],
         },
       ],
-      image: { src: VIE_EGLISE_IMAGE, alt: 'Vie de l\'église La Conquête' },
+      image: { src: VISION_IMAGE, alt: 'Vision de l\'église La Conquête' },
     },
   },
+
+  /* 3. Événements */
+  { label: 'Événements', page: 'events' },
+
+  /* 4. Leadership — Équipe pastorale */
   {
-    label: 'Média',
+    label: 'Leadership',
     mega: {
       columns: [
         {
-          title: 'Contenus multimédias',
+          title: 'Équipe Pastorale',
           items: [
-            { label: 'Vidéos', page: 'media', icon: Video },
-            { label: 'Audios', page: 'predications', icon: Music },
-            { label: 'Photos', page: 'media', icon: Image },
+            { label: 'Pasteurs', page: 'about', icon: Shield },
+            { label: 'Anciens', icon: Users, tag: 'Bientôt' },
+            { label: 'Diacres', icon: Heart, tag: 'Bientôt' },
           ],
         },
         {
-          title: 'Émissions & Enseignements',
+          title: 'Ministères',
           items: [
-            { label: 'Émissions', page: 'emissions', icon: Radio },
-            { label: 'Prédications', page: 'predications', icon: Mic },
-            { label: 'Galerie photos', page: 'media', icon: Image },
+            { label: 'Tous les départements', page: 'departments', icon: Building2 },
+            { label: 'Service social', icon: HandHeart, tag: 'Bientôt' },
           ],
         },
-        {
-          title: '',
-          items: [],
-        },
+        { title: '', items: [] },
       ],
-      image: { src: MEDIA_IMAGE, alt: 'Médias de La Conquête' },
+      image: { src: LEADERSHIP_IMAGE, alt: 'Leadership La Conquête' },
     },
   },
+
+  /* 5. Contact */
   { label: 'Contact', page: 'contact' },
-  { label: 'Don', page: 'dons' },
 ];
 
 const ADMIN_ITEMS: NavItem[] = [
@@ -233,7 +237,7 @@ function MegaMenu({
       <button
         className={`nav-item-zoom flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
           isActive
-            ? 'text-gold-300 bg-gold-400/10'
+            ? 'text-evangile-500 bg-evangile-600/10'
             : 'text-muted hover:text-cream hover:bg-white/5'
         }`}
       >
@@ -257,7 +261,7 @@ function MegaMenu({
               {item.mega.columns.map((col, ci) => (
                 <div key={ci} className="px-3 py-2">
                   {col.title && (
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-gold-500/70 mb-2 px-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/70 mb-2 px-1">
                       {col.title}
                     </p>
                   )}
@@ -274,16 +278,16 @@ function MegaMenu({
                             disabled
                               ? 'opacity-40 cursor-default'
                               : activePage === sub.page
-                                ? 'text-gold-300 bg-gold-400/10'
+                                ? 'text-evangile-500 bg-evangile-600/10'
                                 : 'text-cream/70 hover:text-cream hover:bg-white/[0.06] cursor-pointer'
                           }`}
                         >
                           {Icon && (
-                            <Icon className="w-4 h-4 shrink-0 text-muted group-hover:text-gold-400 transition-colors" />
+                            <Icon className="w-4 h-4 shrink-0 text-muted group-hover:text-evangile-600 transition-colors" />
                           )}
                           <span className="text-[13px] font-medium leading-tight">{sub.label}</span>
                           {sub.tag && (
-                            <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gold-500/10 text-gold-400">
+                            <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-evangile-600/10 text-evangile-500">
                               {sub.tag}
                             </span>
                           )}
@@ -340,7 +344,7 @@ function MobileMegaAccordion({
       <button
         onClick={() => setOpen(!open)}
         className={`flex w-full items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
-          isActive || open ? 'text-gold-300 bg-gold-400/10' : 'text-cream hover:bg-white/5'
+          isActive || open ? 'text-evangile-500 bg-evangile-600/10' : 'text-cream hover:bg-white/5'
         }`}
       >
         {item.label}
@@ -352,7 +356,7 @@ function MobileMegaAccordion({
           {item.mega.columns.filter(c => c.items.length > 0).map((col, ci) => (
             <div key={ci}>
               {col.title && (
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-gold-500/60 px-4 mb-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/60 px-4 mb-1.5">
                   {col.title}
                 </p>
               )}
@@ -369,14 +373,14 @@ function MobileMegaAccordion({
                         disabled
                           ? 'opacity-30 cursor-default'
                           : activePage === sub.page
-                            ? 'text-gold-300 bg-gold-400/10'
+                            ? 'text-evangile-500 bg-evangile-600/10'
                             : 'text-muted hover:text-cream hover:bg-white/5'
                       }`}
                     >
                       {Icon && <Icon className="w-4 h-4 shrink-0" />}
                       <span>{sub.label}</span>
                       {sub.tag && (
-                        <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-gold-500/10 text-gold-400">
+                        <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-evangile-600/10 text-evangile-500">
                           {sub.tag}
                         </span>
                       )}
@@ -397,7 +401,7 @@ function UserAvatar({ name, size = 'sm' }: { name?: string | null; size?: 'sm' |
   const s = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-14 w-14 text-lg' }[size];
   const initials = name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
   return (
-    <div className={`${s} rounded-full bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center font-bold text-ink-950 shrink-0`}>
+    <div className={`${s} rounded-full bg-gradient-to-br from-evangile-500 to-evangile-700 flex items-center justify-center font-bold text-white shrink-0`}>
       {initials}
     </div>
   );
@@ -433,7 +437,7 @@ function DesktopUserMenu({
 
   return (
     <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-      <button className="flex items-center gap-2.5 rounded-full border border-line pl-1 pr-3 py-1 transition-all duration-200 hover:border-gold-400/40 hover:bg-white/5">
+      <button className="flex items-center gap-2.5 rounded-full border border-line pl-1 pr-3 py-1 transition-all duration-200 hover:border-evangile-600/40 hover:bg-white/5">
         <UserAvatar name={displayName} />
         <div className="hidden lg:flex flex-col items-start leading-tight">
           <span className="text-xs font-medium text-cream truncate max-w-[100px]">{displayName}</span>
@@ -462,7 +466,7 @@ function DesktopUserMenu({
           {profile?.is_admin && (
             <button onClick={() => { onNavigate('admin'); setOpen(false); }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
-              <Shield className="h-4 w-4 text-gold-400" /> Administration
+              <Shield className="h-4 w-4 text-evangile-600" /> Administration
             </button>
           )}
           <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
@@ -545,7 +549,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
         onClick={() => handleNav(item.page!)}
         className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
           activePage === item.page
-            ? 'text-gold-300 bg-gold-400/10'
+            ? 'text-evangile-500 bg-evangile-600/10'
             : 'text-muted hover:text-cream hover:bg-white/5'
         }`}
       >
@@ -572,7 +576,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
         onClick={() => handleNav(item.page!)}
         className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
           activePage === item.page
-            ? 'text-gold-300 bg-gold-400/10'
+            ? 'text-evangile-500 bg-evangile-600/10'
             : 'text-cream hover:bg-white/5'
         }`}
       >
@@ -629,7 +633,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             ) : (
               <button
                 onClick={() => handleNav('connexion')}
-                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 lg:flex"
+                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 lg:flex"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden xl:inline">Connexion</span>
@@ -638,7 +642,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Ouvrir le menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 xl:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -663,7 +667,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               <button
                 onClick={() => setDrawerOpen(false)}
                 aria-label="Fermer le menu"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -726,7 +730,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
                     onClick={() => handleNav('admin')}
                     className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
                   >
-                    <Shield className="h-4 w-4 text-gold-400" /> Administration du site
+                    <Shield className="h-4 w-4 text-evangile-600" /> Administration du site
                   </button>
                 )}
               </>
@@ -753,7 +757,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
             {!user ? (
               <button
                 onClick={() => handleNav('connexion')}
-                className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-gold-400/40 hover:text-gold-400 flex-1"
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 flex-1"
               >
                 <LogIn className="h-4 w-4" />
                 Connexion

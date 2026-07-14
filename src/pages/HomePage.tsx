@@ -317,14 +317,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <div className="h-16 md:h-[104px] shrink-0" />
 
       {/* ═══════ SECTION 1: HERO (fullscreen) ═══════ */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Parallax background */}
-        <div
-          ref={parallaxRef}
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat will-change-transform"
-          style={{ backgroundImage: `url(${heroImg})` }}
-        />
-
+      <section
+        ref={parallaxRef}
+        className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden"
+      >
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
 
@@ -338,71 +334,60 @@ export function HomePage({ onNavigate }: HomePageProps) {
           }}
         />
 
-        {/* Radial gold glow */}
-        <div className="absolute inset-0 bg-radial-gold pointer-events-none" />
+        {/* Radial red glow */}
+        <div className="absolute inset-0 bg-radial-primary pointer-events-none" />
+
+        {/* Floating light particles */}
+        <div className="particle" style={{ width: 4, height: 4, left: '15%', bottom: -10, animationDuration: '18s', animationDelay: '0s' }} />
+        <div className="particle" style={{ width: 3, height: 3, left: '28%', bottom: -10, animationDuration: '14s', animationDelay: '2s' }} />
+        <div className="particle" style={{ width: 5, height: 5, left: '42%', bottom: -10, animationDuration: '22s', animationDelay: '5s' }} />
+        <div className="particle" style={{ width: 2, height: 2, left: '55%', bottom: -10, animationDuration: '12s', animationDelay: '1s' }} />
+        <div className="particle" style={{ width: 6, height: 6, left: '68%', bottom: -10, animationDuration: '25s', animationDelay: '7s' }} />
+        <div className="particle" style={{ width: 3, height: 3, left: '80%', bottom: -10, animationDuration: '16s', animationDelay: '3s' }} />
+        <div className="particle" style={{ width: 4, height: 4, left: '90%', bottom: -10, animationDuration: '20s', animationDelay: '6s' }} />
+        <div className="particle" style={{ width: 2, height: 2, left: '10%', bottom: -10, animationDuration: '10s', animationDelay: '4s' }} />
+        <div className="particle" style={{ width: 5, height: 5, left: '35%', bottom: -10, animationDuration: '19s', animationDelay: '8s' }} />
+        <div className="particle" style={{ width: 3, height: 3, left: '72%', bottom: -10, animationDuration: '15s', animationDelay: '0.5s' }} />
+        <div className="particle" style={{ width: 4, height: 4, left: '50%', bottom: -10, animationDuration: '21s', animationDelay: '3.5s' }} />
+        <div className="particle" style={{ width: 2, height: 2, left: '85%', bottom: -10, animationDuration: '13s', animationDelay: '1.5s' }} />
 
         {/* Hero content */}
-        <div className="relative z-10 mx-auto max-w-5xl px-4 pt-28 pb-20 text-center">
-          {/* Badge */}
-          <div className="animate-fade-up mb-8 inline-flex items-center gap-2 rounded-full border border-gold-400/30 bg-gold-400/10 px-5 py-2 text-xs font-semibold uppercase tracking-widest text-gold-400">
-            <Sparkles className="h-3.5 w-3.5" />
-            Église Évangélique La Conquête
-          </div>
-
-          {/* Typing hero text */}
-          <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-            <h1 className="font-serif font-bold leading-tight">
-              <TypingText
-                words={['Bâtir', 'Transformer', 'Conquérir', 'Adorer', 'Servir', 'Évangéliser']}
-                className="text-4xl md:text-6xl lg:text-7xl text-cream typing-cursor"
-              />
+        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-28 pb-20 text-center">
+          {/* Main heading */}
+          <div className="animate-fade-up">
+            <h1 className="font-headline font-bold leading-tight">
+              <span className="brand-text text-5xl md:text-7xl lg:text-8xl block">La Conquête</span>
+              <span className="text-cream text-5xl md:text-7xl lg:text-8xl block mt-2">des Âmes</span>
             </h1>
           </div>
 
-          {/* Subtitle with gold line dividers */}
-          <div
-            className="animate-fade-up mt-8 flex items-center justify-center gap-4"
-            style={{ animationDelay: '0.2s' }}
-          >
-            <div className="hidden sm:block h-px w-12 bg-gradient-to-r from-transparent to-gold-400/60" />
-            <p className="text-lg md:text-xl text-cream/80 max-w-xl">
-              {heroSubtitle}
+          {/* Subtitle */}
+          <div className="animate-fade-up mt-6" style={{ animationDelay: '0.1s' }}>
+            <p className="text-sm md:text-base uppercase tracking-widest text-muted font-medium">
+              Église Évangélique La Conquête — Kinshasa, RDC
             </p>
-            <div className="hidden sm:block h-px w-12 bg-gradient-to-l from-transparent to-gold-400/60" />
+          </div>
+
+          {/* Typing text — Bible verse */}
+          <div className="animate-fade-up mt-8" style={{ animationDelay: '0.2s' }}>
+            <TypingText
+              words={['Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"']}
+              className="text-base md:text-lg text-cream/70 italic typing-cursor"
+            />
           </div>
 
           {/* CTA buttons */}
           <div
-            className="animate-fade-up mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            className="animate-fade-up mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
             style={{ animationDelay: '0.3s' }}
           >
-            <button onClick={() => onNavigate('about')} className="btn-gold">
-              Découvrir
+            <button onClick={() => onNavigate('activities')} className="btn-primary">
+              Rejoindre le culte
               <ArrowRight className="h-4 w-4" />
             </button>
-            <button onClick={() => onNavigate('contact')} className="btn-ghost">
-              Nous contacter
+            <button onClick={() => onNavigate('about')} className="btn-ghost">
+              Notre vision
             </button>
-          </div>
-
-          {/* Animated stats row */}
-          <div
-            className="animate-fade-up mt-16 grid grid-cols-2 gap-8 sm:gap-12 md:flex md:justify-center md:gap-16"
-            style={{ animationDelay: '0.5s' }}
-          >
-            {[
-              { end: 500, suffix: '+', label: 'Membres' },
-              { end: 8, suffix: '', label: 'Départements' },
-              { end: 50, suffix: '+', label: 'Prédications' },
-              { end: 3, suffix: '', label: 'Extensions' },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-cream">
-                  <AnimatedCounter end={stat.end} suffix={stat.suffix} duration={2500} />
-                </div>
-                <p className="mt-1 text-xs uppercase tracking-widest text-muted">{stat.label}</p>
-              </div>
-            ))}
           </div>
         </div>
 

@@ -26,6 +26,8 @@ export {
   Type, ImagePlus, Settings2, Layers, LayoutGrid, Paintbrush,
   Eye as EyeIcon, Blocks, GalleryVerticalEnd, SquareMousePointer,
   Facebook,
+  Youtube,
+  Instagram,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string }>;
