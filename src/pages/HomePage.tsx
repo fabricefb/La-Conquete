@@ -421,7 +421,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     <p className="text-xs sm:text-sm leading-relaxed text-cream/80 italic">
                       &ldquo;{verse.text}&rdquo;
                     </p>
-                    <p className="mt-3 text-[10px] font-semibold uppercase tracking-wider text-gold-400">
+                    <p className="mt-3 text-[10px] font-semibold uppercase tracking-wider text-evangile-500">
                       {verse.ref}
                     </p>
                   </div>
@@ -433,7 +433,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ SECTION 3: THREE PILLARS ═══════ */}
-      <section className="py-24 bg-radial-gold">
+      <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Nos Fondements</p>
@@ -444,12 +444,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc, accent: 'text-gold-400' },
+              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc, accent: 'text-evangile-500' },
               { num: '02', Icon: Flame, title: pillar2Title, desc: pillar2Desc, accent: 'text-red-400' },
-              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-gold-400' },
+              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-evangile-500' },
             ].map(({ num, Icon, title, desc, accent }, i) => (
               <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-gold-400/60 hover:shadow-lg hover:shadow-gold-400/5">
+                <div className="glass-card group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-evangile-600/60 hover:shadow-lg hover:shadow-evangile-600/5">
                   {/* Background number */}
                   <span className="absolute top-4 right-6 text-5xl font-bold text-cream opacity-[0.07] select-none font-serif">
                     {num}
@@ -467,7 +467,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <p className="text-sm leading-relaxed text-muted">{desc}</p>
 
                   {/* Hover gradient border effect */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-gold-400 to-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-evangile-600 to-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                 </div>
               </RevealSection>
             ))}
@@ -491,7 +491,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   />
                 </div>
                 {/* Floating Cross decoration */}
-                <div className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-gold-400/20 text-gold-400 shadow-xl shadow-black/20">
+                <div className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-evangile-600/20 text-evangile-500 shadow-xl shadow-black/20">
                   <Cross className="h-7 w-7" />
                 </div>
               </div>
@@ -507,9 +507,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <p className="mt-4 leading-relaxed text-muted">{aboutText2}</p>
 
               {/* Signed quote */}
-              <blockquote className="mt-8 border-l-4 border-gold-400/50 pl-5">
+              <blockquote className="mt-8 border-l-4 border-evangile-600/50 pl-5">
                 <p className="text-sm italic text-cream/70">&laquo; {aboutQuote} &raquo;</p>
-                <p className="mt-1 text-xs font-semibold text-gold-400">&mdash; Psaumes 2:8</p>
+                <p className="mt-1 text-xs font-semibold text-evangile-500">&mdash; Psaumes 2:8</p>
               </blockquote>
 
               <button
@@ -525,7 +525,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ SECTION 5: EXPLORER ═══════ */}
-      <section className="py-24 bg-radial-gold">
+      <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Explorer</p>
@@ -588,11 +588,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
                   {/* Bottom content */}
                   <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-gold-400/20 text-gold-400">
+                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/20 text-evangile-500">
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="font-serif text-lg font-semibold text-white">{title}</h3>
-                    <div className="mt-2 flex items-center gap-2 text-sm text-gold-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+                    <div className="mt-2 flex items-center gap-2 text-sm text-evangile-400 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
                       <span>Découvrir</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </div>
@@ -613,23 +613,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <RevealSection>
             {/* Gold divider above */}
             <div className="mx-auto mb-8 flex items-center justify-center gap-4">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-gold-400/50" />
-              <Quote className="h-8 w-8 text-gold-400/60 rotate-180" />
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-gold-400/50" />
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
+              <Quote className="h-8 w-8 text-evangile-500/60 rotate-180" />
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
 
             <p className="font-serif text-2xl italic leading-relaxed text-cream sm:text-3xl">
               &laquo; {quoteText} &raquo;
             </p>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-gold-400">
+            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-evangile-500">
               &mdash; {quoteRef}
             </p>
 
             {/* Gold divider below */}
             <div className="mt-8 mx-auto flex items-center justify-center gap-4">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-gold-400/50" />
-              <Quote className="h-8 w-8 text-gold-400/60" />
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-gold-400/50" />
+              <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
+              <Quote className="h-8 w-8 text-evangile-500/60" />
+              <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
           </RevealSection>
         </div>
@@ -655,7 +655,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION 8: TESTIMONIALS ═══════ */}
       {testimonials.length > 0 && (
-        <section className="py-24 bg-radial-gold">
+        <section className="py-24 bg-radial-primary">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center">Témoignages</p>
@@ -687,7 +687,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {sampleArticles.map((article, i) => (
               <RevealSection key={i} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-gold-400/20">
+                <div className="glass-card group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-evangile-600/20">
                   {/* Image */}
                   <div className="overflow-hidden h-48">
                     <img
@@ -701,12 +701,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   {/* Content */}
                   <div className="p-5">
                     {/* Category badge */}
-                    <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-gold-400/20 bg-gold-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-gold-400">
+                    <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-evangile-600/20 bg-evangile-600/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
                       <Megaphone className="h-3 w-3" />
                       {article.category}
                     </span>
 
-                    <h3 className="font-serif text-base font-semibold leading-snug text-cream line-clamp-2 group-hover:text-gold-400 transition-colors duration-200">
+                    <h3 className="font-serif text-base font-semibold leading-snug text-cream line-clamp-2 group-hover:text-evangile-500 transition-colors duration-200">
                       {article.title}
                     </h3>
 
@@ -721,7 +721,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
                     <button
                       onClick={() => onNavigate('annonces')}
-                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-gold-400 hover:text-gold-300 transition-colors duration-200"
+                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-evangile-500 hover:text-evangile-400 transition-colors duration-200"
                     >
                       Lire l&apos;article
                       <ArrowRight className="h-3.5 w-3.5" />
@@ -744,15 +744,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
         {/* 90% dark overlay */}
         <div className="absolute inset-0 bg-black/90" />
         {/* Radial glow */}
-        <div className="absolute inset-0 bg-radial-gold pointer-events-none opacity-50" />
+        <div className="absolute inset-0 bg-radial-primary pointer-events-none opacity-50" />
 
         <div className="relative z-10 mx-auto max-w-2xl px-4 text-center">
           <RevealSection>
             {/* Heart with ping */}
             <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-gold-400/20" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-gold-400/15 border border-gold-400/30">
-                <Heart className="h-7 w-7 text-gold-400" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-evangile-600/20" />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-evangile-600/15 border border-evangile-600/30">
+                <Heart className="h-7 w-7 text-evangile-500" />
               </div>
             </div>
 
@@ -806,7 +806,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     href={href}
                     className="glass-card group block rounded-2xl p-7 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]"
                   >
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-400/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-gold-400 group-hover:border-gold-400/40 group-hover:bg-gold-400/10">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-evangile-500 group-hover:border-evangile-600/40 group-hover:bg-evangile-600/10">
                       <Icon className="h-6 w-6" />
                     </div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">
@@ -816,7 +816,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   </a>
                 ) : (
                   <div className="glass-card group rounded-2xl p-7 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold-400/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-gold-400 group-hover:border-gold-400/40 group-hover:bg-gold-400/10">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-evangile-500 group-hover:border-evangile-600/40 group-hover:bg-evangile-600/10">
                       <Icon className="h-6 w-6" />
                     </div>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">
