@@ -280,7 +280,9 @@ export type AdminTab =
   | 'onboarding'
   | 'users'
   | 'creneaux'
-  | 'protocol';
+  | 'protocol'
+  | 'homepage_builder'
+  | 'page_builder';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';

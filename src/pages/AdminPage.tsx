@@ -23,6 +23,8 @@ import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
 import { UsersTab } from '../components/admin/tabs/UsersTab';
 import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
 import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
+import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab';
+import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
 import { RefreshCw, ShieldOff, Eye } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
@@ -168,6 +170,8 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'users': return <UsersTab />;
       case 'theme': return <ThemeTab />;
       case 'protocol': return <ProtocolTab />;
+      case 'homepage_builder': return <HomepageBuilderTab />;
+      case 'page_builder': return <PageBuilderTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

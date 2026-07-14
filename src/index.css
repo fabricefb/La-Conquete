@@ -262,4 +262,33 @@ html[style*="--custom-theme-active"] .live-dot::before {
   /* Hide scrollbar for horizontal carousels */
   .scrollbar-hide::-webkit-scrollbar { display: none; }
   .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ─── Homepage Redesign Animations ─────────────────────── */
+  .typing-cursor::after { content: '|'; animation: cursorBlink 0.8s step-end infinite; color: rgb(var(--radial-gold-rgb)); margin-left: 2px; font-weight: 300; }
+  @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .shimmer-line { background: linear-gradient(90deg, transparent, rgba(227,34,31,0.3), transparent); background-size: 200% 100%; animation: shimmer 2.5s infinite; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .animate-float { animation: float 6s ease-in-out infinite; }
+  .animate-float-delayed { animation: float 7s ease-in-out 2s infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  .animate-scale-in { animation: scaleIn 0.6s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .animate-slide-left { animation: slideLeft 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+  .animate-slide-right { animation: slideRight 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+  @keyframes scaleIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  @keyframes slideLeft { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+  @keyframes slideRight { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+  .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 85%, 90% 100%, 0 100%); }
+  .pastor-overlay { background: linear-gradient(to top, rgba(8,13,26,0.95) 0%, rgba(8,13,26,0.4) 50%, transparent 100%); }
+  .verse-enter { animation: verseEnter 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
+  @keyframes verseEnter { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+  .glow-accent { box-shadow: 0 0 40px rgba(var(--radial-gold-rgb), 0.25), 0 0 80px rgba(var(--radial-gold-rgb), 0.1); }
+  .parallax-layer-1 { will-change: transform; }
+  .parallax-layer-2 { will-change: transform; }
+  .blog-img-zoom { transition: transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+  .blog-img-zoom:hover { transform: scale(1.08); }
+  .animate-marquee { animation: marquee 30s linear infinite; }
+  @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+  .stat-number { font-variant-numeric: tabular-nums; }
+  .topbar-pill { @apply inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); }
+  .light .topbar-pill { background: rgba(15,33,71,0.06); border-color: rgba(15,33,71,0.1); }
 }

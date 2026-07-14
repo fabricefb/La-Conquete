@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck,
+  UserCheck, Blocks,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -30,6 +30,8 @@ const tabGroups: TabGroup[] = [
       { id: 'contents', label: 'Contenus', Icon: FileText },
       { id: 'media', label: 'Médias', Icon: Image },
       { id: 'theme', label: 'Thème', Icon: Palette },
+      { id: 'homepage_builder', label: "Page d'accueil", Icon: LayoutDashboard },
+      { id: 'page_builder', label: 'Constructeur', Icon: Blocks },
       { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
       { id: 'messages', label: 'Messages', Icon: MessageSquare },
     ],
