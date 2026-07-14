@@ -308,19 +308,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
      ════════════════════════════════════════════════════════════════ */
   return (
     <>
-      <SiteHeader onNavigate={onNavigate} topOffset="md:top-10" />
+      <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="home" />
 
-      {/* ═══════ SECTION 0: TOP BAR (fixed, spacer below) ═══════ */}
-      <TopBar />
-      {/* Spacer for combined fixed header height: 64px (header) + 40px (topbar) on md+ */}
-      <div className="h-16 md:h-[104px] shrink-0" />
-
-      {/* ═══════ SECTION 1: HERO (fullscreen) ═══════ */}
+      {/* ═══════ HERO (fullscreen) ═══════ */}
+      <div className="h-16 shrink-0" />
       <section
         ref={parallaxRef}
         className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden"
       >
+        {/* Background image layer */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroImg})` }}
+        />
         {/* Dark overlay */}
         <div className="absolute inset-0 bg-black/60" />
 
@@ -396,6 +397,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <ChevronDown className="h-6 w-6 text-cream/50" />
         </div>
       </section>
+
+      {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
+      <TopBar onNavigate={onNavigate} />
 
       {/* ═══════ SECTION 2: BIBLE VERSES ═══════ */}
       <section className="py-24">

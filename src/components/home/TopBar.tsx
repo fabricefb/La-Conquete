@@ -1,30 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Youtube, Facebook, Instagram, Phone, Mail, Heart } from '../../lib/icons';
+import { useEffect, useState, useCallback } from 'react';
+import { supabase } from '../../lib/supabase';
+import { useToast } from '../../contexts/ToastContext';
+import { Heart, Phone, Mail } from '../../lib/icons';
 
 /* ═══════════════════════════════════════════════════════════════════
-   SOCIAL LINKS — Configurables depuis l'admin
+   TOPBAR — Bande passante après le Hero
+   - Marquee alimenté par les communiqués (Supabase)
+   - Compte à rebours vers le prochain live (admin-programmable)
+   - Visible sur mobile ET desktop
+   - Plus fixe en haut — coule naturellement après le Hero
    ═══════════════════════════════════════════════════════════════════ */
-const SOCIALS = [
-  { icon: Youtube,  href: 'https://youtube.com/@laconquete',  label: 'YouTube',  color: 'hover:text-red-500' },
-  { icon: Facebook,  href: 'https://facebook.com/laconquete',  label: 'Facebook', color: 'hover:text-blue-500' },
-  { icon: Instagram, href: 'https://instagram.com/laconquete', label: 'Instagram', color: 'hover:text-pink-500' },
-  /* TikTok n'est pas dans lucide, on utilise un lien textuel ou SVG inline */
-];
 
 /* ------------------------------------------------------------------ */
-/*  Hardcoded church announcements                                     */
-/* ------------------------------------------------------------------ */
-const ANNOUNCEMENTS = [
-  'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
-  'Réunion de prière tous les mercredis à 18h00',
-  'École biblique du dimanche à 09h30 — Tous les âges bienvenus',
-  'Concert de louange le 15 août à 19h00 — Entrée libre',
-  'Camp de jeunes du 20 au 24 juillet — Inscriptions ouvertes',
-  'Collecte spéciale pour les missions le dernier dimanche du mois',
-];
-
-/* ------------------------------------------------------------------ */
-/*  TikTok SVG Icon (lucide n'a pas TikTok)                          */
+/*  TikTok SVG Icon                                                    */
 /* ------------------------------------------------------------------ */
 function TikTokIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
   return (
@@ -46,131 +34,201 @@ function WhatsAppIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
 }
 
 /* ------------------------------------------------------------------ */
+/*  Countdown helper                                                   */
+/* ------------------------------------------------------------------ */
+function useCountdown(targetDate: string | null) {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
+
+  useEffect(() => {
+    if (!targetDate) return;
+    const target = new Date(targetDate).getTime();
+
+    function tick() {
+      const now = Date.now();
+      const diff = target - now;
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
+        return;
+      }
+      setTimeLeft({
+        days: Math.floor(diff / 86400000),
+        hours: Math.floor((diff % 86400000) / 3600000),
+        mins: Math.floor((diff % 3600000) / 60000),
+        secs: Math.floor((diff % 60000) / 1000),
+        expired: false,
+      });
+    }
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+
+  return timeLeft;
+}
+
+/* ------------------------------------------------------------------ */
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
-export function TopBar({ onNavigate }: { onNavigate?: (page: string) => void }) {
-  const [now, setNow] = useState<Date | null>(null);
+interface TopBarProps {
+  onNavigate?: (page: string) => void;
+}
 
-  /* Live clock ---------------------------------------------------- */
+export function TopBar({ onNavigate }: TopBarProps) {
+  const [announcements, setAnnouncements] = useState<string[]>([
+    'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
+    'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
+    'Réunion de prière tous les mercredis à 18h00',
+  ]);
+  const [liveTargetDate, setLiveTargetDate] = useState<string | null>(null);
+  const [liveLabel, setLiveLabel] = useState('Prochain direct');
+  const countdown = useCountdown(liveTargetDate);
+
+  /* ── Fetch communiqués & live countdown from Supabase ── */
   useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    async function load() {
+      try {
+        // Fetch published communiqués for the marquee
+        const { data: commData } = await supabase
+          .from('contents')
+          .select('title')
+          .eq('type', 'communique')
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (commData && commData.length > 0) {
+          setAnnouncements(commData.map((c: any) => c.title));
+        }
+
+        // Fetch next live event date from site_settings
+        const { data: setting } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'next_live_datetime')
+          .single();
+
+        if (setting?.value) {
+          setLiveTargetDate(setting.value);
+        }
+
+        // Fetch live label
+        const { data: labelSetting } = await supabase
+          .from('site_settings')
+          .select('value')
+          .eq('key', 'next_live_label')
+          .single();
+
+        if (labelSetting?.value) {
+          setLiveLabel(labelSetting.value);
+        }
+      } catch {
+        // Keep defaults
+      }
+    }
+    void load();
   }, []);
 
-  /* ---------------------------------------------------------------- */
-  /*  Render                                                          */
-  /* ---------------------------------------------------------------- */
+  /* ── Build marquee items (duplicate for seamless loop) ── */
+  const marqueeItems = announcements.length > 0
+    ? [...announcements, ...announcements]
+    : ['Bienvenue à l\'Église Évangélique La Conquête', 'Bienvenue à l\'Église Évangélique La Conquête'];
+
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-[41] w-full hidden md:flex items-center justify-between px-4 lg:px-6 h-10 text-xs select-none"
-      style={{ backgroundColor: 'rgb(var(--bg-elevated-rgb))' }}
+      className="relative w-full bg-evangile-600/90 backdrop-blur-sm overflow-hidden"
       role="banner"
-      aria-label="Barre d'informations"
+      aria-label="Bande d'informations"
     >
-      {/* ---- Left: Social Icons + Clock ------------------------- */}
-      <div className="flex items-center gap-3">
-        {/* Social icons */}
-        <div className="flex items-center gap-2 text-muted">
-          {SOCIALS.map(({ icon: Icon, href, label, color }) => (
-            <a
-              key={label}
-              href={href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={label}
-              className={`transition-colors duration-300 ${color} hover:scale-110`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-            </a>
-          ))}
-          {/* TikTok */}
-          <a href="https://tiktok.com/@laconquete" target="_blank" rel="noopener noreferrer"
-            aria-label="TikTok" className="text-muted hover:text-white transition-colors duration-300 hover:scale-110">
-            <TikTokIcon />
-          </a>
-          {/* WhatsApp */}
-          <a href="https://wa.me/243000000000" target="_blank" rel="noopener noreferrer"
-            aria-label="WhatsApp" className="text-muted hover:text-green-500 transition-colors duration-300 hover:scale-110">
-            <WhatsAppIcon />
-          </a>
-        </div>
-
-        {/* Separator */}
-        <span className="text-muted/30">|</span>
-
-        {/* Clock */}
-        {now && (
-          <time dateTime={now.toISOString()} className="font-mono tracking-wide text-muted">
-            {now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}
-          </time>
-        )}
-        {now && (
-          <span className="text-muted/60 whitespace-nowrap">
-            {now.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })}
-          </span>
-        )}
-      </div>
-
-      {/* ---- Center: Scrolling Marquee --------------------------- */}
-      <div
-        className="flex-1 mx-6 overflow-hidden scrollbar-hide"
-        aria-live="polite"
-        aria-label="Annonces de l'église"
-      >
-        <div className="animate-marquee flex whitespace-nowrap">
-          {ANNOUNCEMENTS.map((text, i) => (
-            <span key={`a-${i}`} className="mx-8 text-cream/70 text-[11px]">
-              {text}
-            </span>
-          ))}
-          {ANNOUNCEMENTS.map((text, i) => (
-            <span key={`b-${i}`} className="mx-8 text-cream/70 text-[11px]">
-              {text}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ---- Right: Live + Phone + Email + Don ------------------ */}
-      <div className="flex items-center gap-2.5 shrink-0">
-        {/* LIVE indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-evangile-600/10 border border-evangile-600/30 cursor-pointer hover:bg-evangile-600/20 transition-colors">
+      {/* ---- Main content row ---- */}
+      <div className="flex items-center justify-between px-3 md:px-6 py-2.5">
+        {/* ---- Left: Countdown to next live ---- */}
+        <div className="flex items-center gap-2 shrink-0">
           <span className="live-dot" aria-hidden="true" />
-          <span className="font-bold tracking-widest uppercase text-evangile-600 text-[10px]">
-            EN DIRECT
-          </span>
+          {!countdown.expired ? (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white hidden sm:inline">
+                {liveLabel}
+              </span>
+              <div className="flex items-center gap-0.5 font-mono text-[10px] md:text-xs font-bold text-white">
+                {countdown.days > 0 && (
+                  <span className="bg-white/20 rounded px-1 py-0.5">{countdown.days}j</span>
+                )}
+                <span className="bg-white/20 rounded px-1 py-0.5">
+                  {String(countdown.hours).padStart(2, '0')}h
+                </span>
+                <span className="bg-white/20 rounded px-1 py-0.5">
+                  {String(countdown.mins).padStart(2, '0')}m
+                </span>
+                <span className="bg-white/20 rounded px-1 py-0.5">
+                  {String(countdown.secs).padStart(2, '0')}s
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white animate-pulse">
+                EN DIRECT
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Phone */}
-        <a
-          href="tel:+243000000000"
-          className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-muted hover:text-cream transition-colors"
+        {/* ---- Center: Scrolling Marquee (hidden on very small, shown on sm+) ---- */}
+        <div
+          className="hidden sm:flex flex-1 mx-4 md:mx-8 overflow-hidden scrollbar-hide"
+          aria-live="polite"
+          aria-label="Communiqués de l'église"
         >
-          <Phone size={11} aria-hidden="true" />
-          <span className="whitespace-nowrap text-[11px]">+243 00 000 0000</span>
-        </a>
+          <div className="animate-marquee flex whitespace-nowrap">
+            {marqueeItems.map((text, i) => (
+              <span key={i} className="mx-6 md:mx-8 text-white/90 text-[11px] md:text-xs font-medium">
+                {text}
+              </span>
+            ))}
+          </div>
+        </div>
 
-        {/* Email */}
-        <a
-          href="mailto:contact@laconquete.cd"
-          className="hidden lg:flex items-center gap-1.5 px-2 py-0.5 rounded-full text-muted hover:text-cream transition-colors"
-        >
-          <Mail size={11} aria-hidden="true" />
-          <span className="whitespace-nowrap text-[11px]">contact@laconquete.cd</span>
-        </a>
+        {/* ---- Right: Phone + Email + Don ---- */}
+        <div className="flex items-center gap-2 md:gap-3 shrink-0">
+          <a
+            href="tel:+243000000000"
+            className="hidden md:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
+          >
+            <Phone size={11} aria-hidden="true" />
+            <span className="whitespace-nowrap">+243 00 000 0000</span>
+          </a>
 
-        {/* Don button */}
-        <button
-          onClick={() => onNavigate?.('dons')}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-evangile-600 text-white text-[11px] font-semibold hover:bg-evangile-700 hover:shadow-glow-red transition-all duration-300 hover:scale-[1.02] active:scale-95"
-        >
-          <Heart size={11} aria-hidden="true" />
-          <span>Don</span>
-        </button>
+          <a
+            href="mailto:contact@laconquete.cd"
+            className="hidden lg:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
+          >
+            <Mail size={11} aria-hidden="true" />
+            <span className="whitespace-nowrap">contact@laconquete.cd</span>
+          </a>
+
+          <button
+            onClick={() => onNavigate?.('dons')}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-evangile-700 text-[11px] font-bold hover:bg-white/90 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+          >
+            <Heart size={11} aria-hidden="true" />
+            <span>Don</span>
+          </button>
+        </div>
       </div>
 
-      {/* ---- Bottom shimmer line --------------------------------- */}
+      {/* ---- Mobile-only: Show announcements as a single line below ---- */}
+      <div className="sm:hidden overflow-hidden border-t border-white/20">
+        <div className="animate-marquee flex whitespace-nowrap py-1.5">
+          {marqueeItems.map((text, i) => (
+            <span key={i} className="mx-6 text-white/80 text-[10px] font-medium">
+              {text}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ---- Bottom shimmer line ---- */}
       <div className="shimmer-line absolute bottom-0 left-0 h-px w-full" aria-hidden="true" />
     </div>
   );

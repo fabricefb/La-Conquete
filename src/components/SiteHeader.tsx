@@ -40,74 +40,108 @@ interface NavItem {
 }
 
 const VISION_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
-const LEADERSHIP_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
+const MEDIA_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
 
 const NAV_ITEMS: NavItem[] = [
-  /* 1. Direct — Live streaming */
-  { label: 'Direct', page: 'media' },
+  /* 1. Accueil */
+  { label: 'Accueil', page: 'home' },
 
-  /* 2. Vision — Méga menu avec toute la vie de l'église */
+  /* 2. À Propos */
   {
-    label: 'Vision',
+    label: 'À Propos',
     mega: {
       columns: [
         {
-          title: 'Notre Identité',
+          title: 'Qui sommes-nous',
           items: [
-            { label: 'À propos', page: 'about', icon: Church },
-            { label: 'Notre vision', page: 'about', icon: Eye },
-            { label: 'Déclaration de foi', page: 'about', icon: BookOpen },
+            { label: 'Notre histoire', page: 'about', icon: Church },
+            { label: 'Notre vision', page: 'vision', icon: Eye },
+            { label: 'Notre foi', page: 'about', icon: BookOpen },
+            { label: 'Équipe pastorale', page: 'pasteurs', icon: Shield },
           ],
         },
         {
-          title: 'Vie de l\'Église',
+          title: 'Communauté',
           items: [
-            { label: 'Culte & Activités', page: 'activities', icon: Calendar },
-            { label: 'Départements', page: 'departments', icon: Users },
             { label: 'Extensions', page: 'extensions', icon: MapPin },
-            { label: 'Enseignements', page: 'predications', icon: Mic },
+            { label: 'Nos valeurs', page: 'vision', icon: Heart },
+            { label: 'Partenariats', icon: HandHeart, tag: 'Bientôt' },
           ],
         },
         {
-          title: 'Ressources',
+          title: 'Vie spirituelle',
           items: [
-            { label: 'Prédications', page: 'predications', icon: Radio },
-            { label: 'Émissions', page: 'emissions', icon: Video },
-            { label: 'Blog', icon: Newspaper, tag: 'Bientôt' },
-            { label: 'Jeunesse', icon: Heart, tag: 'Bientôt' },
+            { label: 'Enseignements', page: 'enseignements', icon: BookOpen },
+            { label: 'Prédications', page: 'predications', icon: Mic },
+            { label: 'Blog', page: 'blog', icon: Newspaper },
           ],
         },
       ],
-      image: { src: VISION_IMAGE, alt: 'Vision de l\'église La Conquête' },
+      image: { src: VISION_IMAGE, alt: 'À propos de La Conquête' },
     },
   },
 
-  /* 3. Événements */
-  { label: 'Événements', page: 'events' },
-
-  /* 4. Leadership — Équipe pastorale */
+  /* 3. Vie de l'Église */
   {
-    label: 'Leadership',
+    label: 'Vie de l\'Église',
     mega: {
       columns: [
         {
-          title: 'Équipe Pastorale',
+          title: 'Culte & Rassemblements',
           items: [
-            { label: 'Pasteurs', page: 'about', icon: Shield },
-            { label: 'Anciens', icon: Users, tag: 'Bientôt' },
-            { label: 'Diacres', icon: Heart, tag: 'Bientôt' },
+            { label: 'Horaires de culte', page: 'culte', icon: Calendar },
+            { label: 'Événements', page: 'events', icon: Calendar },
+            { label: 'Jeunesse', page: 'jeunesse', icon: Heart },
           ],
         },
         {
           title: 'Ministères',
           items: [
-            { label: 'Tous les départements', page: 'departments', icon: Building2 },
-            { label: 'Service social', icon: HandHeart, tag: 'Bientôt' },
+            { label: 'Tous les ministères', page: 'ministeres', icon: Building2 },
+            { label: 'Louange & Adoration', page: 'ministeres', icon: Music },
+            { label: 'Évangélisation', page: 'ministeres', icon: Radio },
+            { label: 'Diaconie', page: 'ministeres', icon: HandHeart },
+          ],
+        },
+        {
+          title: 'Groupes',
+          items: [
+            { label: 'Hommes', page: 'ministeres', icon: Users },
+            { label: 'Femmes', page: 'ministeres', icon: Heart },
+            { label: 'Enfants', page: 'ministeres', icon: Users },
+            { label: 'Couples & Familles', page: 'ministeres', icon: Heart },
+          ],
+        },
+      ],
+      image: { src: VISION_IMAGE, alt: 'Vie de l\'église La Conquête' },
+    },
+  },
+
+  /* 4. Média */
+  {
+    label: 'Média',
+    mega: {
+      columns: [
+        {
+          title: 'Contenus',
+          items: [
+            { label: 'Toutes les vidéos', page: 'media', icon: Video },
+            { label: 'Émissions', page: 'emissions', icon: Radio },
+            { label: 'En direct', page: 'media', icon: MonitorPlay },
+            { label: 'Photos', page: 'media', icon: Image, tag: 'Bientôt' },
+          ],
+        },
+        {
+          title: 'Ressources',
+          items: [
+            { label: 'Enseignements', page: 'enseignements', icon: BookOpen },
+            { label: 'Blog', page: 'blog', icon: Newspaper },
+            { label: 'Téléchargements', icon: BookOpen, tag: 'Bientôt' },
           ],
         },
         { title: '', items: [] },
       ],
-      image: { src: LEADERSHIP_IMAGE, alt: 'Leadership La Conquête' },
+      image: { src: MEDIA_IMAGE, alt: 'Médias La Conquête' },
     },
   },
 
@@ -252,7 +286,7 @@ function MegaMenu({
             ? 'pointer-events-auto translate-y-0 opacity-100'
             : 'pointer-events-none -translate-y-3 opacity-0'
         }`}
-        style={{ width: 'min(720px, 90vw)' }}
+        style={{ width: 'min(900px, 92vw)' }}
       >
         <div className="glass rounded-2xl shadow-2xl shadow-black/40 overflow-hidden">
           <div className="flex">
@@ -591,42 +625,14 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
       <header className={`fixed left-0 right-0 ${topOffset || 'top-0'} z-40 transition-all duration-300 ${
         scrolled ? 'glass border-b border-line shadow-lg' : 'bg-bg/80 border-b border-transparent'
       }`}>
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-3 transition-opacity duration-200 hover:opacity-80">
-            <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover" />
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="gold-text text-sm font-bold tracking-wide">Église Évangélique</span>
-              <span className="gold-text text-base font-bold tracking-wider">La Conquête</span>
-            </div>
-          </button>
-
-          {/* Live indicators */}
-          <div className="hidden xl:flex items-center">
-            <LiveIndicators />
-          </div>
-
-          {/* Desktop Navigation */}
+        <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Left: Desktop Navigation */}
           <nav className="hidden items-center gap-0.5 xl:flex">
-            {user && profile ? (
-              /* ── Simplified nav for logged-in users ── */
-              activePage !== 'home' ? (
-                <button
-                  onClick={() => handleNav('home')}
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Retour au site
-                </button>
-              ) : null
-            ) : (
-              /* ── Normal nav with mega menus (visitors only) ── */
-              NAV_ITEMS.map(renderDesktopItem)
-            )}
+            {NAV_ITEMS.map(renderDesktopItem)}
           </nav>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-2">
+          {/* Right: Actions + Logo */}
+          <div className="flex items-center gap-3">
             <ThemeToggle theme={theme} onToggle={onToggleTheme} className="hidden sm:flex" />
             {user && profile ? (
               <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} onOpenAuth={() => handleNav('connexion')} />
@@ -639,6 +645,15 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
                 <span className="hidden xl:inline">Connexion</span>
               </button>
             )}
+
+            {/* Logo RIGHT side */}
+            <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-2.5 transition-opacity duration-200 hover:opacity-80 ml-1">
+              <div className="hidden sm:flex flex-col leading-tight">
+                <span className="brand-text text-xs font-bold tracking-wide">Église Évangélique</span>
+                <span className="brand-text text-sm font-bold tracking-wider">La Conquête</span>
+              </div>
+              <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover ring-2 ring-evangile-600/30" />
+            </button>
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Ouvrir le menu"
@@ -655,23 +670,20 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
         <div className="fixed inset-0 z-50 flex flex-col bg-bg xl:hidden">
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
-            <button onClick={() => handleNav('home')} className="flex items-center gap-3">
-              <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover" />
+            <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
               <div className="flex flex-col leading-tight">
-                <span className="gold-text text-sm font-bold tracking-wide">Église Évangélique</span>
-                <span className="gold-text text-base font-bold tracking-wider">La Conquête</span>
+                <span className="brand-text text-xs font-bold tracking-wide">Église Évangélique</span>
+                <span className="brand-text text-sm font-bold tracking-wider">La Conquête</span>
               </div>
+              <img src={LOGO} alt="La Conquête" className="h-10 w-10 rounded-full object-cover ring-2 ring-evangile-600/30" />
             </button>
-            <div className="flex items-center gap-2">
-              <LiveIndicators />
-              <button
-                onClick={() => setDrawerOpen(false)}
-                aria-label="Fermer le menu"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <button
+              onClick={() => setDrawerOpen(false)}
+              aria-label="Fermer le menu"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {/* Drawer nav */}
@@ -702,51 +714,27 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
               </>
             )}
 
-            {user && profile ? (
-              /* ── Simplified mobile nav for logged-in users ── */
+            {/* Main nav items */}
+            {NAV_ITEMS.map(renderMobileItem)}
+
+            {/* User section for logged-in users */}
+            {user && profile && (
               <>
-                <button
-                  onClick={() => handleNav('home')}
-                  className="flex items-center gap-3 rounded-xl px-4 py-4 text-base font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                  Retour au site
-                </button>
-                <div className="mx-4 my-2 h-px bg-line" />
-                <button
-                  onClick={() => handleNav('dashboard')}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
-                >
-                  <User className="h-4 w-4 text-muted" /> Mon profil
-                </button>
-                <button
-                  onClick={() => handleNav('dashboard')}
-                  className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
-                >
-                  <Bell className="h-4 w-4 text-muted" /> Notifications
-                </button>
+                <div className="mx-4 my-4 h-px bg-line" />
                 {profile?.is_admin && (
                   <button
                     onClick={() => handleNav('admin')}
                     className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
                   >
-                    <Shield className="h-4 w-4 text-evangile-600" /> Administration du site
+                    <Shield className="h-4 w-4 text-evangile-600" /> Administration
                   </button>
                 )}
-              </>
-            ) : (
-              /* ── Normal mobile nav for visitors ── */
-              <>
-                {isAdminPage && (
-                  <button
-                    onClick={() => handleNav('home')}
-                    className="flex items-center gap-3 rounded-xl px-4 py-4 text-base font-medium text-muted hover:text-cream hover:bg-white/5 transition-all duration-200"
-                  >
-                    <ArrowLeft className="h-5 w-5" />
-                    Retour au site
-                  </button>
-                )}
-                {NAV_ITEMS.map(renderMobileItem)}
+                <button
+                  onClick={signOut}
+                  className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                >
+                  <LogOut className="h-4 w-4" /> Déconnexion
+                </button>
               </>
             )}
           </nav>
