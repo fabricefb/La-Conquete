@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, MapPin, HandHeart, Mic, ArrowLeft, Building2,
+  Calendar, MapPin, HandHeart, Mic, ArrowLeft, Building2, MonitorPlay,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useLiveStatus } from '../lib/hooks/useLiveStatus';
