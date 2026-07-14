@@ -1,5 +1,3 @@
-'use client';
-
 import { Facebook, MonitorPlay, Mail } from '../../lib/icons';
 
 interface Pastor {
