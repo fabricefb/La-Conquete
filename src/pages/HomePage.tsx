@@ -308,11 +308,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
      ════════════════════════════════════════════════════════════════ */
   return (
     <>
-      <SiteHeader onNavigate={onNavigate} />
+      <SiteHeader onNavigate={onNavigate} topOffset="md:top-10" />
       <MobileNav onNavigate={onNavigate} active="home" />
 
-      {/* ═══════ SECTION 0: TOP BAR ═══════ */}
+      {/* ═══════ SECTION 0: TOP BAR (fixed, spacer below) ═══════ */}
       <TopBar />
+      {/* Spacer for combined fixed header height: 64px (header) + 40px (topbar) on md+ */}
+      <div className="h-16 md:h-[104px] shrink-0" />
 
       {/* ═══════ SECTION 1: HERO (fullscreen) ═══════ */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">

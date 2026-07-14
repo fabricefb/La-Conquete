@@ -36,7 +36,7 @@ export function TopBar() {
   /* ---------------------------------------------------------------- */
   return (
     <div
-      className="relative w-full hidden md:flex items-center justify-between px-4 h-10 text-xs select-none"
+      className="fixed top-0 left-0 right-0 z-[41] w-full hidden md:flex items-center justify-between px-4 h-10 text-xs select-none"
       style={{ backgroundColor: 'rgb(var(--bg-elevated-rgb))' }}
       role="banner"
       aria-label="Barre d'informations"

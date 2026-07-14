@@ -486,12 +486,13 @@ function DesktopUserMenu({
 
 interface SiteHeaderProps {
   onNavigate: (page: Page) => void;
-  activePage: Page;
+  activePage?: Page;
   theme?: Theme;
   onToggleTheme?: () => void;
+  topOffset?: string;
 }
 
-export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp }: SiteHeaderProps) {
+export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleTheme: toggleProp, topOffset }: SiteHeaderProps) {
   const { user, profile, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -583,7 +584,7 @@ export function SiteHeader({ onNavigate, activePage, theme: themeProp, onToggleT
   return (
     <>
       {/* ═════════════ Desktop / Tablet Header ═════════════ */}
-      <header className={`fixed left-0 right-0 top-0 z-40 transition-all duration-300 ${
+      <header className={`fixed left-0 right-0 ${topOffset || 'top-0'} z-40 transition-all duration-300 ${
         scrolled ? 'glass border-b border-line shadow-lg' : 'bg-bg/80 border-b border-transparent'
       }`}>
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
