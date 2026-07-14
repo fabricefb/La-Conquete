@@ -21,7 +21,7 @@ export {
   // Protocol module
   UserCheck, Shirt, UsersRound, FileBarChart, AlertCircle, Info, Timer, CalendarClock,
   // Homepage redesign
-  Clock3, MapPinned, Cross, Bible, Volume2, MonitorPlay, Newspaper, Megaphone,
+  Clock3, MapPinned, Cross, Volume2, MonitorPlay, Newspaper, Megaphone,
   GripVertical, Palette as PaletteIcon, SlidersHorizontal, ToggleLeft, ToggleRight,
   Type, ImagePlus, Settings2, Layers, LayoutGrid, Paintbrush,
   Eye as EyeIcon, Blocks, GalleryVerticalEnd, SquareMousePointer,
