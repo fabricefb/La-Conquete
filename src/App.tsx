@@ -12,6 +12,9 @@ import { ToastProvider } from './contexts/ToastContext';
 import { DynamicThemeProvider } from './contexts/DynamicTheme';
 import { OnboardingFlow } from './components/onboarding/OnboardingFlow';
 import { AuthModal } from './components/auth/AuthModal';
+import { AudioPlayer } from './components/AudioPlayer';
+import { BibleReader } from './components/BibleReader';
+import { NotificationCenter } from './components/NotificationCenter';
 import type { Page } from './lib/navigation';
 
 /* ─── Lazy-loaded pages (code splitting) ─── */
@@ -26,8 +29,15 @@ const ExtensionsPage = lazy(() => import('./pages/ExtensionsPage').then(m => ({ 
 const CommuniquesPage = lazy(() => import('./pages/CommuniquesPage').then(m => ({ default: m.CommuniquesPage })));
 const AnnoncesPage = lazy(() => import('./pages/AnnoncesPage').then(m => ({ default: m.AnnoncesPage })));
 const DonsPage = lazy(() => import('./pages/DonsPage').then(m => ({ default: m.DonsPage })));
+const CultePage = lazy(() => import('./pages/CultePage').then(m => ({ default: m.CultePage })));
+const PasteursPage = lazy(() => import('./pages/PasteursPage').then(m => ({ default: m.PasteursPage })));
+const MinisteresPage = lazy(() => import('./pages/MinisteresPage').then(m => ({ default: m.MinisteresPage })));
+const VisionPage = lazy(() => import('./pages/VisionPage').then(m => ({ default: m.VisionPage })));
+const JeunessePage = lazy(() => import('./pages/JeunessePage').then(m => ({ default: m.JeunessePage })));
+const EnseignementsPage = lazy(() => import('./pages/EnseignementsPage').then(m => ({ default: m.EnseignementsPage })));
+const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog'];
 function getPage(): Page {
   const h = window.location.hash.replace('#', '');
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
@@ -59,6 +69,7 @@ function AppRouter() {
   const [page, setPage] = useState<Page>(getPage);
   const { authOpen, authView, openAuth, closeAuth } = useAuthModal();
   const { user, isAdmin, loading: authLoading } = useAuth();
+  const [bibleOpen, setBibleOpen] = useState(false);
 
   // ── Redirect admin/pastor to #admin after login ──
   useEffect(() => {
@@ -120,11 +131,22 @@ function AppRouter() {
             case 'communiques': return <CommuniquesPage {...nav} />;
             case 'annonces': return <AnnoncesPage {...nav} />;
             case 'dons': return <DonsPage {...nav} />;
+            case 'culte': return <CultePage {...nav} />;
+            case 'pasteurs': return <PasteursPage {...nav} />;
+            case 'ministeres': return <MinisteresPage {...nav} />;
+            case 'vision': return <VisionPage {...nav} />;
+            case 'jeunesse': return <JeunessePage {...nav} />;
+            case 'enseignements': return <EnseignementsPage {...nav} />;
+            case 'blog': return <BlogPage {...nav} />;
             default: return <HomePage {...nav} />;
           }
         })()}
       </Suspense>
       <AuthModal isOpen={authOpen} onClose={() => { closeAuth(); sessionStorage.removeItem('lc_admin_redirected'); }} initialView={authView} />
+      {/* ── Global Innovation Components ── */}
+      <AudioPlayer />
+      <BibleReader isOpen={bibleOpen} onClose={() => setBibleOpen(false)} />
+      {page !== 'admin' && page !== 'dashboard' && <NotificationCenter />}
     </>
   );
 }

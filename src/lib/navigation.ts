@@ -18,4 +18,11 @@ export type Page =
   | 'pastoral'
   | 'extensions'
   | 'annonces'
-  | 'communiques';
+  | 'communiques'
+  | 'culte'
+  | 'pasteurs'
+  | 'ministeres'
+  | 'vision'
+  | 'jeunesse'
+  | 'enseignements'
+  | 'blog';

@@ -25,6 +25,7 @@ import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
 import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
 import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab';
 import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
+import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
 import { RefreshCw, ShieldOff, Eye } from '../lib/icons';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
@@ -172,6 +173,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'protocol': return <ProtocolTab />;
       case 'homepage_builder': return <HomepageBuilderTab />;
       case 'page_builder': return <PageBuilderTab />;
+      case 'animations': return <AnimationsTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

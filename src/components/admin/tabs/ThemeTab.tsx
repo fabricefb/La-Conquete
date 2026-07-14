@@ -7,28 +7,28 @@ import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../
 // ─── Defaults ───────────────────────────────────────────────────
 const DEFAULT_THEME: ThemeSettings = {
   id: 1,
-  primary_color: '#d4a843',
-  secondary_color: '#d8e3fb',
-  accent_color: '#e8c468',
-  button_style: 'pill',
+  primary_color: '#E3221F',
+  secondary_color: '#0F2147',
+  accent_color: '#D8E3FB',
+  button_style: 'rounded',
   card_style: 'glass',
-  border_radius: 'medium',
-  title_font: 'Cormorant Garamond',
-  body_font: 'Inter',
+  border_radius: 'large',
+  title_font: 'Playfair Display',
+  body_font: 'Poppins',
   updated_at: new Date().toISOString(),
 };
 
 // ─── Font catalogues ────────────────────────────────────────────
 const TITLE_FONTS = [
-  'Cormorant Garamond',
   'Playfair Display',
   'Lora',
   'Merriweather',
   'DM Serif Display',
+  'Cormorant Garamond',
 ] as const;
 
 const BODY_FONTS = [
-  'Inter',
+  'Poppins',
   'DM Sans',
   'Nunito',
   'Source Sans 3',
@@ -413,11 +413,11 @@ export function ThemeTab() {
           <label className="block text-sm font-medium text-cream/80 mb-2">Palettes rapides</label>
           <div className="flex flex-wrap gap-2">
             {[
+              { label: 'La Conquête', p: '#E3221F', s: '#0F2147', a: '#D8E3FB' },
               { label: 'Bleu lavande', p: '#d4a843', s: '#d8e3fb', a: '#e8c468' },
               { label: 'Royal navy', p: '#d4a843', s: '#1a1a2e', a: '#e8c468' },
               { label: 'For\u00eat profonde', p: '#2d6a4f', s: '#d8f3dc', a: '#95d5b2' },
               { label: 'Terre cuite', p: '#c1666b', s: '#fdf0d5', a: '#e8985e' },
-              { label: 'Minuit dor\u00e9', p: '#f0c040', s: '#1a1a3e', a: '#f0c040' },
             ].map((preset) => (
               <button
                 key={preset.label}

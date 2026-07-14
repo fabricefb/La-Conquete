@@ -5,7 +5,7 @@
 export type ToastType = 'success' | 'error' | 'info';
 
 // ─── Navigation ──────────────────────────────────────────────────
-export type Page = 'home' | 'about' | 'activities' | 'events' | 'media' | 'contact' | 'admin' | 'crm' | 'dashboard' | 'emissions' | 'predications' | 'departments' | 'reports' | 'communication' | 'pastoral';
+export type Page = 'home' | 'about' | 'activities' | 'events' | 'media' | 'contact' | 'admin' | 'crm' | 'dashboard' | 'emissions' | 'predications' | 'departments' | 'reports' | 'communication' | 'pastoral' | 'culte' | 'pasteurs' | 'ministeres' | 'vision' | 'jeunesse' | 'enseignements' | 'blog';
 export type Theme = 'dark' | 'light';
 
 // ─── Role System V2 ──────────────────────────────────────────
@@ -282,7 +282,8 @@ export type AdminTab =
   | 'creneaux'
   | 'protocol'
   | 'homepage_builder'
-  | 'page_builder';
+  | 'page_builder'
+  | 'animations';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';

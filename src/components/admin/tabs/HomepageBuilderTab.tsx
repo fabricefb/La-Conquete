@@ -488,6 +488,28 @@ export function HomepageBuilderTab() {
     addToast('Configuration réinitialisée', 'info');
   }, [addToast]);
 
+  // ── Drag-and-drop reordering ──
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dropIdx, setDropIdx] = useState<number | null>(null);
+
+  const handleDragStart = useCallback((idx: number) => { setDragIdx(idx); }, []);
+  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDropIdx(idx);
+  }, []);
+  const handleDrop = useCallback((dropIndex: number) => {
+    if (dragIdx === null || dragIdx === dropIndex) return;
+    setSections((prev) => {
+      const next = [...prev];
+      const [moved] = next.splice(dragIdx, 1);
+      next.splice(dropIndex, 0, moved);
+      return next.map((s, i) => ({ ...s, order: i }));
+    });
+    setDragIdx(null);
+    setDropIdx(null);
+  }, [dragIdx]);
+  const handleDragEnd = useCallback(() => { setDragIdx(null); setDropIdx(null); }, []);
+
   const activeSectionsCount = sections.filter((s) => s.visible).length;
   const activeSectionData = sections.find((s) => s.id === activeSection);
 
@@ -509,7 +531,7 @@ export function HomepageBuilderTab() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {sections.map((section) => {
+          {sections.map((section, i) => {
             const Icon = SECTION_ICONS[section.id] ?? Sparkles;
             const isActive = activeSection === section.id;
 
@@ -517,12 +539,17 @@ export function HomepageBuilderTab() {
               <button
                 key={section.id}
                 type="button"
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={(e) => handleDragOver(e, i)}
+                onDrop={() => handleDrop(i)}
+                onDragEnd={handleDragEnd}
                 onClick={() => setActiveSection(isActive ? null : section.id)}
                 className={`flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left transition-colors hover:bg-white/5 ${
                   isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
-                }`}
+                } ${dragIdx === i ? 'opacity-30' : ''} ${dropIdx === i ? 'border-t-2 border-t-evangile-500' : ''}`}
               >
-                <GripVertical className="h-4 w-4 flex-shrink-0 text-white/20" />
+                <GripVertical className="h-4 w-4 flex-shrink-0 text-white/40 cursor-grab active:cursor-grabbing" />
                 <Icon className="h-4 w-4 flex-shrink-0 text-white/50" />
                 <span className={`flex-1 truncate text-sm ${section.visible ? 'text-white' : 'text-white/40 line-through'}`}>
                   {section.label}
