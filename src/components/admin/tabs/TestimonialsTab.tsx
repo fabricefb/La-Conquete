@@ -461,8 +461,12 @@ export function TestimonialsTab() {
                             </button>
                           </>
                         )}
-                        {isFullAdmin && <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
-                        {isFullAdmin && <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
+                        {isFullAdmin && (
+                          <>
+                            <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
+                            <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
+                          </>
+                        )}
                       </div>
                     </div>
 
