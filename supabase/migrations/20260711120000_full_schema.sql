@@ -45,24 +45,10 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
-ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "profiles_select_own" ON user_profiles;
-CREATE POLICY "profiles_select_own" ON user_profiles FOR SELECT
-  TO anon, authenticated USING (auth.uid() = id);
-
-DROP POLICY IF EXISTS "profiles_update_own" ON user_profiles;
-CREATE POLICY "profiles_update_own" ON user_profiles FOR UPDATE
-  TO authenticated USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
-
-DROP POLICY IF EXISTS "profiles_admin_select_all" ON user_profiles;
-CREATE POLICY "profiles_admin_select_all" ON user_profiles FOR SELECT
-  TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
-
-DROP POLICY IF EXISTS "profiles_admin_update" ON user_profiles;
-CREATE POLICY "profiles_admin_update" ON user_profiles FOR UPDATE
-  TO authenticated USING (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true))
-  WITH CHECK (EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND is_admin = true));
+-- RLS désactivé sur user_profiles : l'autorisation est gérée dans le code applicatif
+-- Les policies admin causaient une récursion infinie (self-referencing SELECT).
+-- ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+-- Les accès sont contrôlés par AuthContext (isAdmin / isFullAdmin) côté client.
 
 -- ─── 2. site_settings ────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS site_settings (
