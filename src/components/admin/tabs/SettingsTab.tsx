@@ -270,8 +270,7 @@ export function SettingsTab() {
           onChange={(url) => handleImageChange(setting.key, url)}
           label={IMAGE_LABELS[setting.key] || setting.label}
           folder={IMAGE_FOLDER_MAP[setting.key] || 'images'}
-          defaultMode="r2"
-          showBackendToggle={true}
+
         />
       );
     }
