@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
@@ -10,6 +10,7 @@ import { useLiveStatus } from '../lib/hooks/useLiveStatus';
 import { getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
 import type { Page } from '../lib/navigation';
 import { ThemeToggle } from './ThemeToggle';
+import { db, buildSettingsMap } from '../lib/supabase';
 
 // Default logo — overridable via Supabase site_settings (key: site_logo_url)
 const DEFAULT_LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
@@ -30,17 +31,27 @@ interface MegaColumn {
   items: SubMenuItem[];
 }
 
+interface MegaImage {
+  src: string;
+  alt: string;
+  link?: string;
+  settingKey?: string; // site_settings key to override src
+}
+
 interface NavItem {
   label: string;
   page?: Page;
   mega?: {
     columns: MegaColumn[];
-    image: { src: string; alt: string; link?: string };
+    image: MegaImage;
   };
 }
 
-const VISION_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
-const MEDIA_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
+// Default mega menu images — overridable via site_settings keys:
+//   mega_menu_image_about, mega_menu_image_vie_eglise, mega_menu_image_media
+const DEFAULT_VISION_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
+const DEFAULT_MEDIA_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
+const DEFAULT_VIE_EGLISE_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
 
 const NAV_ITEMS: NavItem[] = [
   /* 1. Accueil */
@@ -77,7 +88,7 @@ const NAV_ITEMS: NavItem[] = [
           ],
         },
       ],
-      image: { src: VISION_IMAGE, alt: 'À propos de La Conquête' },
+      image: { src: DEFAULT_VISION_IMAGE, alt: 'À propos de La Conquête', settingKey: 'mega_menu_image_about' },
     },
   },
 
@@ -113,7 +124,7 @@ const NAV_ITEMS: NavItem[] = [
           ],
         },
       ],
-      image: { src: VISION_IMAGE, alt: 'Vie de l\'église La Conquête' },
+      image: { src: DEFAULT_VIE_EGLISE_IMAGE, alt: 'Vie de l\'église La Conquête', settingKey: 'mega_menu_image_vie_eglise' },
     },
   },
 
@@ -141,7 +152,7 @@ const NAV_ITEMS: NavItem[] = [
         },
         { title: '', items: [] },
       ],
-      image: { src: MEDIA_IMAGE, alt: 'Médias La Conquête' },
+      image: { src: DEFAULT_MEDIA_IMAGE, alt: 'Médias La Conquête', settingKey: 'mega_menu_image_media' },
     },
   },
 
@@ -211,11 +222,13 @@ function MegaMenu({
   activePage,
   onNavigate,
   onClose,
+  settingsMap,
 }: {
   item: NavItem & { mega: NonNullable<NavItem['mega']> };
   activePage: Page;
   onNavigate: (page: Page) => void;
   onClose: () => void;
+  settingsMap?: Record<string, string>;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -327,7 +340,9 @@ function MegaMenu({
             {/* Image panel — defines mega menu HEIGHT */}
             <div className="hidden lg:block w-[320px] xl:w-[380px] shrink-0 relative">
               <img
-                src={item.mega.image.src}
+                src={item.mega.image.settingKey && settingsMap?.[item.mega.image.settingKey]
+                  ? settingsMap[item.mega.image.settingKey]
+                  : item.mega.image.src}
                 alt={item.mega.image.alt}
                 className="absolute inset-0 w-full h-full object-cover"
                 loading="lazy"
@@ -525,6 +540,20 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [scrolled, setScrolled] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
+
+  // Fetch site_settings for dynamic mega menu images & logo
+  useEffect(() => {
+    let cancelled = false;
+    db.getSettings().then((settings) => {
+      if (cancelled) return;
+      setSettingsMap(buildSettingsMap(settings));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Dynamic logo from settings
+  const logoUrl = settingsMap['site_logo_url'] || DEFAULT_LOGO;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -550,6 +579,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
           activePage={activePage}
           onNavigate={handleNav}
           onClose={() => {}}
+          settingsMap={settingsMap}
         />
       );
     }
@@ -604,7 +634,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* LEFT: Logo */}
           <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-3 transition-opacity duration-200 hover:opacity-80">
-            <img src={DEFAULT_LOGO} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
+            <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
             <div className="hidden sm:flex flex-col leading-tight">
               <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
               <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
@@ -649,7 +679,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
-              <img src={DEFAULT_LOGO} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
+              <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
               <div className="flex flex-col leading-tight">
                 <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
                 <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>

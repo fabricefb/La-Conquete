@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
-import { Save, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import { Save, ChevronDown, ChevronRight, Loader2, ImageIcon, Cloud } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
-type SettingType = 'text' | 'url' | 'json' | 'boolean' | 'number';
+type SettingType = 'text' | 'url' | 'json' | 'boolean' | 'number' | 'image';
 
 interface SiteSetting {
   id: string;
@@ -20,13 +21,50 @@ interface SiteSetting {
 }
 
 const CATEGORY_META: Record<string, { label: string; icon: string }> = {
+  images: { label: 'Images & Médias', icon: '🖼️' },
   general: { label: 'Général', icon: '⚙️' },
   contact: { label: 'Contact', icon: '📍' },
   social: { label: 'Réseaux sociaux', icon: '🔗' },
   seo: { label: 'SEO', icon: '🔍' },
 };
 
-const CATEGORY_ORDER = ['general', 'contact', 'social', 'seo'];
+const CATEGORY_ORDER = ['images', 'general', 'contact', 'social', 'seo'];
+
+/** Image-related setting keys that should use the ImageUpload component */
+const IMAGE_SETTINGS = new Set([
+  'mega_menu_image_about',
+  'mega_menu_image_vie_eglise',
+  'mega_menu_image_media',
+  'hero_image_url',
+  'hero_bg_images',
+  'site_logo_url',
+  'logo_footer_url',
+  'favicon_url',
+]);
+
+/** Mapping of image setting key → folder for upload */
+const IMAGE_FOLDER_MAP: Record<string, string> = {
+  mega_menu_image_about: 'mega-menu',
+  mega_menu_image_vie_eglise: 'mega-menu',
+  mega_menu_image_media: 'mega-menu',
+  hero_image_url: 'hero',
+  hero_bg_images: 'hero',
+  site_logo_url: 'logo',
+  logo_footer_url: 'logo',
+  favicon_url: 'logo',
+};
+
+/** Mapping of image setting key → user-friendly label override */
+const IMAGE_LABELS: Record<string, string> = {
+  mega_menu_image_about: 'Image Méga Menu — À Propos',
+  mega_menu_image_vie_eglise: 'Image Méga Menu — Vie de l\'Église',
+  mega_menu_image_media: 'Image Méga Menu — Média',
+  hero_image_url: 'Image Hero — Diapositive principale',
+  hero_bg_images: 'Images Hero — Diapositives multiples (URLs séparées par des virgules)',
+  site_logo_url: 'Logo du site (header)',
+  logo_footer_url: 'Logo du pied de page',
+  favicon_url: 'Favicon',
+};
 
 // ─── Component ──────────────────────────────────────────────────────
 
@@ -37,7 +75,7 @@ export function SettingsTab() {
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set(CATEGORY_ORDER));
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set(['images', ...CATEGORY_ORDER.slice(1)]));
 
   // ── Fetch ──
 
@@ -82,6 +120,11 @@ export function SettingsTab() {
     setFormValues((prev) => ({ ...prev, [key]: checked ? 'true' : 'false' }));
   }, []);
 
+  // ── Image change handler (from ImageUpload component) ──
+  const handleImageChange = useCallback((key: string, url: string) => {
+    setFormValues((prev) => ({ ...prev, [key]: url }));
+  }, []);
+
   // ── Modified keys ──
 
   const modifiedKeys = new Set<string>(
@@ -97,6 +140,59 @@ export function SettingsTab() {
     list.push(setting);
     grouped.set(cat, list);
   }
+
+  // ── Upsert helper: ensure image settings exist in DB ──
+  const ensureImageSettings = useCallback(async () => {
+    const imageSettingsDefs = [
+      { key: 'mega_menu_image_about', label: 'Image Méga Menu — À Propos', category: 'images', type: 'url' as const, sort_order: 100 },
+      { key: 'mega_menu_image_vie_eglise', label: 'Image Méga Menu — Vie de l\'Église', category: 'images', type: 'url' as const, sort_order: 101 },
+      { key: 'mega_menu_image_media', label: 'Image Méga Menu — Média', category: 'images', type: 'url' as const, sort_order: 102 },
+      { key: 'hero_image_url', label: 'Image Hero — Principale', category: 'images', type: 'url' as const, sort_order: 110 },
+      { key: 'hero_bg_images', label: 'Images Hero — Diapositives (URLs séparées par virgules)', category: 'images', type: 'url' as const, sort_order: 111, description: 'Plusieurs URLs séparées par des virgules pour le carrousel du hero' },
+      { key: 'site_logo_url', label: 'Logo du site (header)', category: 'images', type: 'url' as const, sort_order: 120 },
+      { key: 'logo_footer_url', label: 'Logo du pied de page', category: 'images', type: 'url' as const, sort_order: 121 },
+    ];
+
+    const existingKeys = new Set(settings.map(s => s.key));
+    const toInsert = imageSettingsDefs.filter(d => !existingKeys.has(d.key));
+
+    if (toInsert.length === 0) return;
+
+    const { error } = await supabase
+      .from('site_settings')
+      .upsert(toInsert.map(d => ({
+        key: d.key,
+        value: '',
+        label: d.label,
+        description: (d as any).description ?? 'URL de l\'image (R2, Supabase Storage, ou toute URL publique)',
+        type: d.type,
+        category: d.category,
+        sort_order: d.sort_order,
+      })), { onConflict: 'key' });
+
+    if (!error) {
+      // Re-fetch to include new settings
+      const { data } = await supabase.from('site_settings').select('*').order('sort_order');
+      if (data) {
+        setSettings(data);
+        const orig: Record<string, string> = {};
+        const form: Record<string, string> = {};
+        for (const s of data) {
+          orig[s.key] = s.value;
+          form[s.key] = s.value;
+        }
+        setOriginalValues(orig);
+        setFormValues(form);
+      }
+    }
+  }, [settings]);
+
+  // Run once after load
+  useEffect(() => {
+    if (!loading) {
+      ensureImageSettings();
+    }
+  }, [loading, ensureImageSettings]);
 
   // ── Save ──
 
@@ -164,6 +260,21 @@ export function SettingsTab() {
 
   const renderInput = (setting: SiteSetting) => {
     const val = formValues[setting.key] ?? '';
+    const isImage = IMAGE_SETTINGS.has(setting.key);
+
+    // Image settings get the full ImageUpload component
+    if (isImage) {
+      return (
+        <ImageUpload
+          value={val}
+          onChange={(url) => handleImageChange(setting.key, url)}
+          label={IMAGE_LABELS[setting.key] || setting.label}
+          folder={IMAGE_FOLDER_MAP[setting.key] || 'images'}
+          defaultMode="r2"
+          showBackendToggle={true}
+        />
+      );
+    }
 
     switch (setting.type) {
       case 'text':
@@ -240,7 +351,7 @@ export function SettingsTab() {
             Paramètres du site
           </h2>
           <p className="mt-1 text-xs text-muted">
-            Gérez les paramètres globaux de votre site
+            Gérez les paramètres globaux, images (R2/URL), et configuration du site
           </p>
         </div>
         <span className="rounded-full bg-evangile-600/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
@@ -248,11 +359,26 @@ export function SettingsTab() {
         </span>
       </div>
 
+      {/* ── R2 Info Banner ── */}
+      <div className="flex items-start gap-3 rounded-2xl border border-orange-500/20 bg-orange-500/5 p-4">
+        <Cloud size={20} className="text-orange-400 shrink-0 mt-0.5" />
+        <div className="text-sm text-cream/80 leading-relaxed">
+          <p className="font-medium text-orange-300 mb-1">Stockage d'images — Cloudflare R2</p>
+          <p>
+            Pour utiliser vos propres images, uploadez-les dans votre bucket R2 sur le
+            <strong> Dashboard Cloudflare → R2</strong>, puis copiez le lien public et collez-le
+            dans les champs ci-dessous. Vous pouvez aussi utiliser toute URL d'image publique
+            ou uploader directement via Supabase Storage.
+          </p>
+        </div>
+      </div>
+
       <div className="glass rounded-2xl p-6 space-y-1">
         {CATEGORY_ORDER.filter((cat) => grouped.has(cat)).map((cat) => {
           const items = grouped.get(cat) ?? [];
           const meta = CATEGORY_META[cat] ?? { label: cat, icon: '📁' };
           const isOpen = openCategories.has(cat);
+          const isImagesCategory = cat === 'images';
 
           return (
             <div key={cat} className="border-b border-line last:border-b-0">
@@ -276,12 +402,9 @@ export function SettingsTab() {
               </button>
 
               {isOpen && (
-                <div className="pb-5 space-y-5">
+                <div className={`pb-5 space-y-5 ${isImagesCategory ? 'grid grid-cols-1 md:grid-cols-2 gap-5' : ''}`}>
                   {items.map((setting) => (
-                    <div key={setting.key}>
-                      <label className="mb-1.5 block text-xs font-medium text-muted">
-                        {setting.label}
-                      </label>
+                    <div key={setting.key} className={isImagesCategory ? '' : ''}>
                       {setting.description && (
                         <p className="mb-1.5 text-xs text-muted/60">
                           {setting.description}
