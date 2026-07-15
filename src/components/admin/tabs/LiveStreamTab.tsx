@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import {
   Save, Loader2, Radio, Tv, ExternalLink,
   Clock, Tag, Globe, Info,
@@ -81,6 +82,7 @@ function generateEmbedUrl(platform: 'facebook' | 'youtube', channelUrl: string):
 
 export function LiveStreamTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
   const [config, setConfig] = useState<LiveConfig>(DEFAULT_CONFIG);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -417,6 +419,7 @@ export function LiveStreamTab() {
       </div>
 
       {/* ── Save button ── */}
+      {isFullAdmin && (
       <div className="flex justify-end">
         <button
           type="button"
@@ -432,6 +435,7 @@ export function LiveStreamTab() {
           Enregistrer
         </button>
       </div>
+      )}
     </div>
   );
 }

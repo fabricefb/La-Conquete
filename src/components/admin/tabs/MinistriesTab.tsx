@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -93,6 +94,7 @@ function SkeletonCard() {
 
 export function MinistriesTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
 
   // ---- state ---------------------------------------------------------------
   const [ministries, setMinistries] = useState<Ministry[]>([]);
@@ -246,10 +248,12 @@ export function MinistriesTab() {
         <h2 className="font-serif text-2xl font-semibold text-cream">
           Ministères
         </h2>
+        {isFullAdmin && (
         <button onClick={openCreate} className="btn-gold flex items-center gap-2">
           <Plus className="h-4 w-4" />
           Ajouter un ministère
         </button>
+        )}
       </div>
 
       {/* Form panel */}
@@ -471,6 +475,7 @@ export function MinistriesTab() {
 
                 {/* Actions */}
                 <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {isFullAdmin && (
                   <button
                     onClick={() => toggleActive(ministry)}
                     title={ministry.is_active ? 'Désactiver' : 'Activer'}
@@ -478,6 +483,8 @@ export function MinistriesTab() {
                   >
                     <Star className={`h-4 w-4 ${ministry.is_active ? 'fill-evangile-500 text-evangile-500' : ''}`} />
                   </button>
+                  )}
+                  {isFullAdmin && (
                   <button
                     onClick={() => openEdit(ministry)}
                     title="Modifier"
@@ -485,6 +492,8 @@ export function MinistriesTab() {
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>
+                  )}
+                  {isFullAdmin && (
                   <button
                     onClick={() => handleDelete(ministry.id)}
                     title="Supprimer"
@@ -492,6 +501,7 @@ export function MinistriesTab() {
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
+                  )}
                 </div>
               </div>
 

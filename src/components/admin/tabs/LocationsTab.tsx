@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import type { Location } from '../../../types';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, MapPin } from 'lucide-react';
 
@@ -28,6 +29,7 @@ const emptyForm: LocationForm = {
 };
 
 export function LocationsTab() {
+  const { isFullAdmin } = useAdminAccess();
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -104,7 +106,7 @@ export function LocationsTab() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h2 className="font-serif text-2xl font-semibold text-cream">Lieux de culte ({locations.length})</h2>
-        <button onClick={openAdd} className="btn-gold text-sm"><Plus className="h-4 w-4" /> Ajouter</button>
+        {isFullAdmin && <button onClick={openAdd} className="btn-gold text-sm"><Plus className="h-4 w-4" /> Ajouter</button>}
       </div>
 
       {showForm && (
@@ -158,8 +160,8 @@ export function LocationsTab() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"><Edit3 className="h-4 w-4" /></button>
-                <button onClick={() => handleDelete(loc.id, loc.name)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-ember-500/40 hover:text-ember-400 transition"><Trash2 className="h-4 w-4" /></button>
+                {isFullAdmin && <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"><Edit3 className="h-4 w-4" /></button>}
+                {isFullAdmin && <button onClick={() => handleDelete(loc.id, loc.name)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-ember-500/40 hover:text-ember-400 transition"><Trash2 className="h-4 w-4" /></button>}
               </div>
             </div>
           ))}

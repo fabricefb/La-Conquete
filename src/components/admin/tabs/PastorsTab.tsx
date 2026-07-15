@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, StarOff, Image, ChevronDown, ChevronRight, Video, ExternalLink, Globe, Phone, Mail, Music } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
 import type { PastorSocialLinks } from '../../../types';
@@ -51,6 +52,7 @@ const SOCIAL_FIELDS: { key: keyof PastorSocialLinks; label: string; icon: typeof
 
 export function PastorsTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
   const [pastors, setPastors] = useState<Pastor[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
@@ -315,7 +317,7 @@ export function PastorsTab() {
           <h2 className="font-serif text-2xl font-semibold text-cream">Équipe Pastorale</h2>
           <p className="text-sm text-muted mt-1">{pastors.length} pasteur(s) enregistré(s)</p>
         </div>
-        <button onClick={startNew} className="btn-gold flex items-center gap-2"><Plus className="h-4 w-4" /> Ajouter</button>
+        {isFullAdmin && <button onClick={startNew} className="btn-gold flex items-center gap-2"><Plus className="h-4 w-4" /> Ajouter</button>}
       </div>
 
       {pastors.length === 0 ? (
@@ -374,11 +376,17 @@ export function PastorsTab() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
+                    {isFullAdmin && (
                     <button onClick={(e) => { e.stopPropagation(); toggleMain(p.id, p.is_main); }} className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${p.is_main ? 'text-evangile-500' : 'text-muted hover:text-cream'}`} title={p.is_main ? 'Retirer principal' : 'Définir principal'}>
                       {p.is_main ? <Star className="h-4 w-4" /> : <StarOff className="h-4 w-4" />}
                     </button>
+                    )}
+                    {isFullAdmin && (
                     <button onClick={(e) => { e.stopPropagation(); startEdit(p); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-cream transition"><Edit3 className="h-4 w-4" /></button>
+                    )}
+                    {isFullAdmin && (
                     <button onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }} className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-ember-400 transition"><Trash2 className="h-4 w-4" /></button>
+                    )}
                     {hasDetails && (
                       isExpanded ? <ChevronDown className="h-4 w-4 text-muted ml-1" /> : <ChevronRight className="h-4 w-4 text-muted ml-1" />
                     )}

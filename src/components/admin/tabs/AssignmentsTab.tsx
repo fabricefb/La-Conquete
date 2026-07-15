@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import type { ChurchEvent, EventAssignment, UserProfile } from '../../../types';
 import { Plus, Trash2, Save, X, Loader2, Bell, Check, AlertTriangle } from 'lucide-react';
 
@@ -55,6 +56,7 @@ const ROLE_COLORS: Record<EventAssignment['role'], string> = {
 
 export function AssignmentsTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
 
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
@@ -224,6 +226,7 @@ export function AssignmentsTab() {
         <h2 className="font-serif text-2xl font-semibold text-cream">
           Affectations
         </h2>
+        {isFullAdmin && (
         <button
           onClick={() => setFormOpen((o) => !o)}
           disabled={!selectedEventId}
@@ -232,6 +235,7 @@ export function AssignmentsTab() {
           <Plus className="h-4 w-4" />
           Ajouter
         </button>
+        )}
       </div>
 
       {tableMissing && (
@@ -350,7 +354,7 @@ export function AssignmentsTab() {
       ) : (
         <div className="space-y-4">
           {/* Notify all button */}
-          {assignments.some((a) => a.status === 'pending' && !a.notified) && (
+          {assignments.some((a) => a.status === 'pending' && !a.notified) && isFullAdmin && (
             <div className="flex justify-end">
               <button
                 onClick={handleNotifyAll}
@@ -402,6 +406,7 @@ export function AssignmentsTab() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {isFullAdmin && (
                   <button
                     onClick={() => handleDelete(a.id)}
                     className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition"
@@ -409,6 +414,7 @@ export function AssignmentsTab() {
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
+                  )}
                 </div>
               </div>
             </div>

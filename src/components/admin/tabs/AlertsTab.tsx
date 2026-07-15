@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import type { PastoralAlert, VisitRequest, UserProfile } from '../../../types';
 import { AlertTriangle, CheckCircle, Clock, XCircle, UserCheck, Loader2, Shield, Home } from 'lucide-react';
@@ -108,6 +109,7 @@ function timeAgo(dateStr: string): string {
 export function AlertsTab() {
   const { addToast } = useToast();
   const { profile } = useAuth();
+  const { isFullAdmin } = useAdminAccess();
 
   const [activeSection, setActiveSection] = useState<'alerts' | 'visits'>('alerts');
 
@@ -377,7 +379,7 @@ export function AlertsTab() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {alert.status !== 'en_cours' && alert.status !== 'resolue' && (
+                      {isFullAdmin && alert.status !== 'en_cours' && alert.status !== 'resolue' && (
                         <button
                           onClick={() => { setAssignModal({ type: 'alert', id: alert.id }); }}
                           className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition"
@@ -387,7 +389,7 @@ export function AlertsTab() {
                           Assigner
                         </button>
                       )}
-                      {alert.status !== 'resolue' && (
+                      {isFullAdmin && alert.status !== 'resolue' && (
                         <button
                           onClick={() => { setResolveModal(alert.id); setResolveNotes(''); }}
                           className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-green-400 hover:border-green-400/40 transition"
@@ -461,19 +463,19 @@ export function AlertsTab() {
 
                     {/* Actions */}
                     <div className="flex flex-wrap items-center gap-1.5 flex-shrink-0">
-                      {v.status === 'en_attente' && (
+                      {isFullAdmin && v.status === 'en_attente' && (
                         <>
                           <button onClick={() => handleVisitAction(v.id, 'acceptee')} className="flex items-center gap-1 rounded-lg border border-green-400/40 px-2.5 py-1.5 text-[10px] text-green-400 hover:bg-green-500/10 transition">Accepter</button>
                           <button onClick={() => handleVisitAction(v.id, 'refusee')} className="flex items-center gap-1 rounded-lg border border-red-400/40 px-2.5 py-1.5 text-[10px] text-red-400 hover:bg-red-500/10 transition">Refuser</button>
                         </>
                       )}
-                      {v.status === 'acceptee' && (
+                      {isFullAdmin && v.status === 'acceptee' && (
                         <button onClick={() => handleVisitAction(v.id, 'planifiee')} className="flex items-center gap-1 rounded-lg border border-purple-400/40 px-2.5 py-1.5 text-[10px] text-purple-400 hover:bg-purple-500/10 transition">Planifier</button>
                       )}
-                      {(v.status === 'planifiee' || v.status === 'reprogrammee') && (
+                      {isFullAdmin && (v.status === 'planifiee' || v.status === 'reprogrammee') && (
                         <button onClick={() => handleVisitAction(v.id, 'effectuee')} className="flex items-center gap-1 rounded-lg border border-green-400/40 px-2.5 py-1.5 text-[10px] text-green-400 hover:bg-green-500/10 transition">Terminer</button>
                       )}
-                      {v.status === 'en_attente' && (
+                      {isFullAdmin && v.status === 'en_attente' && (
                         <button
                           onClick={() => { setAssignModal({ type: 'visit', id: v.id }); }}
                           className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[10px] text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition"

@@ -90,8 +90,8 @@ export function canActOnUser(
   // Admin peut tout voir
   if (isAdmin(actor)) return true;
 
-  // Pasteur principal peut voir mais pas agir
-  if (isPastorPrincipal(actor)) return true;
+  // Pasteur principal peut voir mais pas agir → false
+  if (isPastorPrincipal(actor)) return false;
 
   // Pasteur associé : seulement les membres de son extension
   if (isPastorAssoc(actor)) {

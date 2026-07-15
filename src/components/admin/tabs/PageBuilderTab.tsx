@@ -6,6 +6,7 @@ import {
 import type { LucideIcon } from '../../../lib/icons';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import {
   Calendar, Radio, Heart, Users, Mail, BookOpen,
   MessageSquare, Building2, GraduationCap, MonitorPlay,
@@ -344,7 +345,7 @@ function SectionPropsEditor({
    Gallery View
    ═══════════════════════════════════════════════════════════════════ */
 
-function GalleryView({ onSelect }: { onSelect: (template: PageTemplate) => void }) {
+function GalleryView({ onSelect, isFullAdmin }: { onSelect: (template: PageTemplate) => void; isFullAdmin: boolean }) {
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -415,9 +416,11 @@ function GalleryView({ onSelect }: { onSelect: (template: PageTemplate) => void 
 function EditorView({
   page,
   onBack,
+  isFullAdmin,
 }: {
   page: PageTemplate;
   onBack: () => void;
+  isFullAdmin: boolean;
 }) {
   const { addToast } = useToast();
   const [currentPage, setCurrentPage] = useState<PageTemplate>(page);
@@ -750,6 +753,7 @@ function EditorView({
    ═══════════════════════════════════════════════════════════════════ */
 
 export function PageBuilderTab() {
+  const { isFullAdmin } = useAdminAccess();
   const [view, setView] = useState<ViewMode>('gallery');
   const [currentPage, setCurrentPage] = useState<PageTemplate | null>(null);
 
@@ -764,8 +768,8 @@ export function PageBuilderTab() {
   }, []);
 
   if (view === 'gallery' || !currentPage) {
-    return <GalleryView onSelect={handleSelectTemplate} />;
+    return <GalleryView onSelect={handleSelectTemplate} isFullAdmin={isFullAdmin} />;
   }
 
-  return <EditorView page={currentPage} onBack={handleBackToGallery} />;
+  return <EditorView page={currentPage} onBack={handleBackToGallery} isFullAdmin={isFullAdmin} />;
 }

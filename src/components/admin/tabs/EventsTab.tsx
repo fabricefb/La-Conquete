@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, Youtube, Facebook, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -86,6 +87,7 @@ function SkeletonCard() {
 
 export function EventsTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,9 +283,11 @@ export function EventsTab() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="font-serif text-2xl font-semibold text-cream">Événements</h2>
+        {isFullAdmin && (
         <button onClick={openCreate} className="btn-gold flex items-center gap-2">
           <Plus className="h-4 w-4" /> Ajouter un événement
         </button>
+        )}
       </div>
 
       {/* Form panel */}
@@ -423,18 +427,26 @@ export function EventsTab() {
                           <button onClick={() => openComments(event.id)} title="Commentaires" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                             <MessageCircle className="h-4 w-4" />
                           </button>
+                          {isFullAdmin && (
                           <button onClick={() => toggleFeatured(event)} title="Mis en avant" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                             <Star className={`h-4 w-4 ${event.is_featured ? 'fill-evangile-500 text-evangile-500' : ''}`} />
                           </button>
+                          )}
+                          {isFullAdmin && (
                           <button onClick={() => toggleLive(event)} title="En direct" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition">
                             {event.is_live ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                           </button>
+                          )}
+                          {isFullAdmin && (
                           <button onClick={() => openEdit(event)} title="Modifier" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
                             <Edit3 className="h-4 w-4" />
                           </button>
+                          )}
+                          {isFullAdmin && (
                           <button onClick={() => handleDelete(event.id)} title="Supprimer" className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-400/40 hover:text-red-400 transition">
                             <Trash2 className="h-4 w-4" />
                           </button>
+                          )}
                         </div>
                       </div>
 
@@ -472,7 +484,7 @@ export function EventsTab() {
                                 <span className="text-xs font-medium text-cream">{c.author_name}</span>
                                 <div className="flex items-center gap-2">
                                   <span className="text-[10px] text-muted/60">{new Date(c.created_at).toLocaleDateString('fr-FR')}</span>
-                                  <button onClick={() => deleteComment(c.id)} className="text-muted hover:text-red-400 transition"><X className="h-3 w-3" /></button>
+                                  {isFullAdmin && <button onClick={() => deleteComment(c.id)} className="text-muted hover:text-red-400 transition"><X className="h-3 w-3" /></button>}
                                 </div>
                               </div>
                               <p className="text-xs text-cream/70 mt-0.5">{c.content}</p>
@@ -483,6 +495,7 @@ export function EventsTab() {
                     )}
 
                     {/* Add comment */}
+                    {isFullAdmin && (
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -494,6 +507,7 @@ export function EventsTab() {
                       />
                       <button onClick={handleAddComment} className="btn-gold px-3 py-2 text-sm">Envoyer</button>
                     </div>
+                    )}
                   </div>
                 )}
               </div>

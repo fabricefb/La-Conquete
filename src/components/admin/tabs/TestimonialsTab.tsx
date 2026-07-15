@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { useAuth } from '../../../contexts/AuthContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, CheckCircle2, XCircle, Clock, Eye, EyeOff, Filter, MessageSquare, Star } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
@@ -69,6 +70,7 @@ const EMPTY_FORM: Omit<Testimonial, 'id' | 'created_at' | 'updated_at' | 'review
 export function TestimonialsTab() {
   const { addToast } = useToast();
   const { profile } = useAuth();
+  const { isFullAdmin } = useAdminAccess();
   const [items, setItems] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -381,9 +383,11 @@ export function TestimonialsTab() {
             </button>
           )}
         </div>
+        {isFullAdmin && (
         <button onClick={handleCreate} className="btn-gold inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium">
           <Plus className="h-4 w-4" /> Ajouter un témoignage
         </button>
+        )}
       </div>
 
       {/* Status filter */}
@@ -447,7 +451,7 @@ export function TestimonialsTab() {
 
                       {/* Actions */}
                       <div className="flex shrink-0 items-center gap-1.5">
-                        {item.status === 'pending' && (
+                        {item.status === 'pending' && isFullAdmin && (
                           <>
                             <button onClick={() => { setReviewModal({ item, action: 'approve' }); setReviewNotes(''); }} title="Approuver et publier" className="flex h-9 w-9 items-center justify-center rounded-xl border border-green-500/40 text-green-400 hover:bg-green-500/10 transition">
                               <CheckCircle2 className="h-4 w-4" />
@@ -457,8 +461,8 @@ export function TestimonialsTab() {
                             </button>
                           </>
                         )}
-                        <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
-                        <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
+                        {isFullAdmin && <button onClick={() => handleEdit(item)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition" aria-label="Modifier"><Edit3 className="h-4 w-4" /></button>
+                        {isFullAdmin && <button onClick={() => handleDelete(item.id, (item as any)._source)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-red-500/40 hover:text-red-400 transition" aria-label="Supprimer"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </div>
 

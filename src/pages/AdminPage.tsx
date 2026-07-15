@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import AdminLogin from '../components/admin/AdminLogin';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { DashboardTab } from '../components/admin/tabs/DashboardTab';
@@ -27,7 +26,8 @@ import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab'
 import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
 import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
 import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
-import { RefreshCw, ShieldOff, Eye } from '../lib/icons';
+import { ShieldOff, Eye } from '../lib/icons';
+import { AdminAccessProvider } from '../contexts/AdminAccessContext';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
 
@@ -38,53 +38,6 @@ interface AdminPageProps {
 export function AdminPage({ onNavigate }: AdminPageProps) {
   const { user, isAdmin, isFullAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
-  const [fixing, setFixing] = useState(false);
-  const [diagInfo, setDiagInfo] = useState<string | null>(null);
-
-  // Force fix: check admin status directly from DB and update profile
-  const handleForceFix = async () => {
-    if (!user) return;
-    setFixing(true);
-    setDiagInfo(null);
-    try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id, email, is_admin, role_level, role')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        setDiagInfo(`Erreur DB: ${error.message}`);
-      } else if (!data) {
-        setDiagInfo('Aucun profil trouvé en base. Exécutez le SQL de création de profil.');
-      } else {
-        const d = data as any;
-        setDiagInfo(`Profil trouvé: is_admin=${d.is_admin}, role_level=${d.role_level}, role=${d.role}`);
-
-        if (!d.is_admin && d.role_level < 5) {
-          // Auto-fix: update the profile to admin
-          const { error: updateErr } = await supabase
-            .from('user_profiles')
-            .update({ is_admin: true, role_level: 6 })
-            .eq('id', user.id);
-          if (updateErr) {
-            setDiagInfo(prev => `${prev} | Erreur mise à jour: ${updateErr.message}`);
-          } else {
-            setDiagInfo(prev => `${prev} | Correction appliquée ! Rechargement...`);
-            await refreshProfile();
-          }
-        } else {
-          // Profile is admin in DB, refresh to sync
-          await refreshProfile();
-          setDiagInfo(prev => `${prev} | Profil rafraîchi.`);
-        }
-      }
-    } catch (err: any) {
-      setDiagInfo(`Erreur: ${err.message}`);
-    } finally {
-      setFixing(false);
-    }
-  };
 
   // While checking auth session or loading profile after login
   if (loading || profileLoading) {
@@ -125,25 +78,12 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
             )}
           </div>
 
-          {diagInfo && (
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-4 text-xs text-blue-300">
-              {diagInfo}
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <button
-              onClick={handleForceFix}
-              disabled={fixing}
-              className="btn-gold flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              <RefreshCw className={`h-4 w-4 ${fixing ? 'animate-spin' : ''}`} />
-              {fixing ? 'Vérification…' : 'Diagnostiquer & Corriger'}
-            </button>
-            <button onClick={() => onNavigate('home')} className="btn-ghost">
-              Retour au site
-            </button>
-          </div>
+          <p className="text-xs text-muted mb-6">
+            Contactez l'administrateur principal si vous pensez que c'est une erreur.
+          </p>
+          <button onClick={() => onNavigate('home')} className="btn-ghost">
+            Retour au site
+          </button>
         </div>
       </div>
     );
@@ -181,6 +121,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   }
 
   return (
+    <AdminAccessProvider isFullAdmin={isFullAdmin}>
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onNavigate={onNavigate} isFullAdmin={isFullAdmin}>
       {/* Bannière lecture seule pour Pasteur principal */}
       {isAdmin && !isFullAdmin && (
@@ -194,5 +135,6 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       )}
       {renderTab()}
     </AdminLayout>
+    </AdminAccessProvider>
   );
 }

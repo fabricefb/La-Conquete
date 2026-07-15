@@ -6,6 +6,7 @@ import {
 import type { LucideIcon } from '../../../lib/icons';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import {
   Eye, Palette, LayoutDashboard, Clock, Sparkles, Radio, BookOpen,
   Star, Compass, Quote, Users, MessageSquare, Newspaper,
@@ -468,6 +469,7 @@ function SectionConfigEditor({
 
 export function HomepageBuilderTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
   const [activePageId, setActivePageId] = useState('home');
   const [sections, setSections] = useState<SectionConfig[]>(makePageSections('home'));
   const [activeSection, setActiveSection] = useState<string | null>(null);
@@ -713,10 +715,10 @@ export function HomepageBuilderTab() {
             <span>Page d&apos;accueil</span>
           </button>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={handleReset} className="rounded-md px-4 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white">
+            <button type="button" onClick={handleReset} disabled={!isFullAdmin} className="rounded-md px-4 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed">
               Réinitialiser
             </button>
-            <button type="button" onClick={handleSave} disabled={saving} className="btn-gold flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-50">
+            <button type="button" onClick={handleSave} disabled={saving || !isFullAdmin} className="btn-gold flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium text-black transition-opacity hover:opacity-90 disabled:opacity-50">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
               Enregistrer
             </button>

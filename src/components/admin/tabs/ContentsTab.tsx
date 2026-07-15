@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Save, Plus, Trash2, X, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -33,6 +34,7 @@ const PAGES: { key: string; label: string }[] = [
 
 export function ContentsTab() {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
   const [activePage, setActivePage] = useState(PAGES[0].key);
   const [contents, setContents] = useState<PageContent[]>([]);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
@@ -524,6 +526,7 @@ export function ContentsTab() {
                 </button>
 
                 <div className="flex items-center gap-2">
+                  {isFullAdmin && (
                   <button
                     type="button"
                     onClick={() => {
@@ -537,6 +540,8 @@ export function ContentsTab() {
                   >
                     <Plus size={16} />
                   </button>
+                  )}
+                  {isFullAdmin && (
                   <button
                     type="button"
                     onClick={() => void saveSection(sectionKey)}
@@ -555,6 +560,7 @@ export function ContentsTab() {
                       </span>
                     )}
                   </button>
+                  )}
                 </div>
               </div>
 
@@ -593,7 +599,8 @@ export function ContentsTab() {
                             <span className="text-[10px] text-muted">Actif</span>
                           </label>
 
-                          {deleteConfirmId === item.id ? (
+                          {isFullAdmin && (
+                          deleteConfirmId === item.id ? (
                             <div className="flex items-center gap-1">
                               <button
                                 type="button"
@@ -619,6 +626,7 @@ export function ContentsTab() {
                             >
                               <Trash2 size={14} />
                             </button>
+                          )
                           )}
                         </div>
                       </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Trash2, Mail, Eye, Phone, User, CheckCircle, Clock, MessageSquare } from 'lucide-react';
 
 interface ContactMessage {
@@ -79,6 +80,7 @@ function MessageRow({
   onAddNotes,
   deleteConfirm,
   setDeleteConfirm,
+  isFullAdmin,
 }: {
   message: ContactMessage;
   isExpanded: boolean;
@@ -89,6 +91,7 @@ function MessageRow({
   onAddNotes: (notes: string) => void;
   deleteConfirm: boolean;
   setDeleteConfirm: (v: boolean) => void;
+  isFullAdmin: boolean;
 }) {
   const [notes, setNotes] = useState(message.handler_notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
@@ -192,6 +195,7 @@ function MessageRow({
           </div>
 
           {/* Status handling (créneau) */}
+          {isFullAdmin && (
           <div>
             <span className="mb-2 block text-xs font-medium text-muted">Statut du créneau</span>
             <div className="flex flex-wrap gap-2">
@@ -211,8 +215,10 @@ function MessageRow({
               ))}
             </div>
           </div>
+          )}
 
           {/* Handler notes */}
+          {isFullAdmin && (
           <div>
             <span className="mb-1.5 block text-xs font-medium text-muted">Notes de suivi</span>
             <div className="flex gap-2">
@@ -232,7 +238,9 @@ function MessageRow({
               </button>
             </div>
           </div>
+          )}
 
+          {isFullAdmin && (
           <div className="flex items-center gap-2">
             <button
               onClick={onMarkRead}
@@ -267,6 +275,7 @@ function MessageRow({
               </button>
             )}
           </div>
+          )}
         </div>
       )}
     </div>
@@ -276,6 +285,7 @@ function MessageRow({
 export function MessagesTab() {
   const { addToast } = useToast();
   const { profile } = useAuth();
+  const { isFullAdmin } = useAdminAccess();
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -455,6 +465,7 @@ export function MessagesTab() {
               onAddNotes={(n) => handleAddNotes(msg, n)}
               deleteConfirm={deleteConfirmId === msg.id}
               setDeleteConfirm={(v) => setDeleteConfirmId(v ? msg.id : null)}
+              isFullAdmin={isFullAdmin}
             />
           ))}
         </div>
