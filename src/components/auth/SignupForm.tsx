@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    Multi-Step Public Signup Form
-   High-contrast, theme-aware via CSS classes
+   Téléphone obligatoire, email optionnel (auto-généré si absent)
    Église Évangélique La Conquête
    ═══════════════════════════════════════════════════════════════════ */
 import { useState, useEffect } from 'react';
@@ -19,7 +19,7 @@ interface SignupFormProps {
 
 /* ─── Step definitions ──────────────────────────────────────── */
 const STEPS = [
-  { label: 'Compte', icon: Mail },
+  { label: 'Compte', icon: Phone },
   { label: 'Profil', icon: User },
   { label: 'Statut', icon: Users },
 ] as const;
@@ -27,6 +27,13 @@ const STEPS = [
 /* ─── Shared style ──────────────────────────────────────────── */
 const FONT_BODY = { fontFamily: "'Inter', sans-serif" };
 const FONT_DISPLAY = { fontFamily: "'Cormorant Garamond', serif" };
+
+/* ─── Helper: générer un email fictif à partir du téléphone ── */
+function phoneToEmail(phone: string): string {
+  // Supprime tous les caractères non-numériques
+  const digits = phone.replace(/\D/g, '');
+  return `${digits}@lc.app`;
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    Component
@@ -36,15 +43,16 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ── Step 0: Account ─────────────────────────────────────── */
+  /* ── Step 0: Compte (téléphone + mot de passe) ───────────── */
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [showEmail, setShowEmail] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   /* ── Step 1: Profile ─────────────────────────────────────── */
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'homme' | 'femme' | ''>('');
 
   /* ── Step 2: Church status + department ──────────────────── */
@@ -72,8 +80,9 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   /* ── Validation ──────────────────────────────────────────── */
   const validateStep = (): boolean => {
     if (step === 0) {
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-        addToast('Veuillez entrer une adresse email valide.', 'error');
+      const digits = phone.replace(/\D/g, '');
+      if (digits.length < 9) {
+        addToast('Veuillez entrer un numéro de téléphone valide (min. 9 chiffres).', 'error');
         return false;
       }
       if (password.length < 6) {
@@ -107,14 +116,17 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
+      // Déterminer l'email à utiliser
+      const finalEmail = email.trim() || phoneToEmail(phone);
+
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: finalEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}${window.location.pathname}#connexion`,
           data: {
             full_name: fullName.trim(),
-            phone: phone.trim() || undefined,
+            phone: phone.trim(),
             gender: gender || undefined,
             church_status: churchStatus || 'visitor',
           },
@@ -123,7 +135,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
 
       if (error) {
         if (error.message.includes('already registered') || error.message.includes('already been registered')) {
-          addToast('Cette adresse email est déjà utilisée. Connectez-vous plutôt.', 'error');
+          addToast('Ce numéro de téléphone est déjà utilisé. Connectez-vous plutôt.', 'error');
         } else {
           addToast(error.message, 'error');
         }
@@ -131,12 +143,12 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
       }
 
       if (data.user) {
-        // Upsert profile
+        // Upsert profile avec téléphone comme champ principal
         const baseProfileData: Record<string, any> = {
           id: data.user.id,
-          email: email.trim(),
+          email: finalEmail,
           full_name: fullName.trim(),
-          phone: phone.trim() || null,
+          phone: phone.trim(),
           gender: gender || null,
         };
 
@@ -151,7 +163,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             .catch(() => {});
         }
 
-        // If member, join department
+        // Si membre, rejoindre le département
         if (churchStatus === 'member' && selectedDept) {
           await supabase
             .from('department_members')
@@ -165,7 +177,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         if (data.session) {
           addToast('Compte créé avec succès !', 'success');
         } else {
-          addToast('Compte créé ! Vérifiez votre email pour confirmer votre inscription.', 'success');
+          addToast('Compte créé ! Vous pouvez maintenant vous connecter.', 'success');
         }
         onComplete?.();
       }
@@ -217,24 +229,51 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         </div>
       </div>
 
-      {/* ── Step 0: Account ───────────────────────────────── */}
+      {/* ── Step 0: Compte (téléphone obligatoire) ─────────── */}
       {step === 0 && (
         <div className="space-y-4">
           <h3 className="auth-text-heading text-xl font-bold text-center mb-6" style={FONT_DISPLAY}>
             Créez votre compte
           </h3>
+
+          {/* Téléphone — OBLIGATOIRE */}
           <div>
-            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Adresse email</label>
+            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>
+              Numéro de téléphone <span className="text-red-400">*</span>
+            </label>
             <div className="relative">
-              <Mail className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                placeholder="votre@email.com"
+              <Phone className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
+              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
+                placeholder="+243 8XX XXX XXX"
                 className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
                 style={FONT_BODY} />
             </div>
           </div>
+
+          {/* Email — optionnel, caché par défaut */}
+          {!showEmail ? (
+            <button type="button" onClick={() => setShowEmail(true)}
+              className="auth-text-link text-xs font-medium transition-colors cursor-pointer w-full text-left">
+              + Ajouter une adresse email (optionnel)
+            </button>
+          ) : (
+            <div>
+              <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>
+                Adresse email <span className="text-muted text-xs">(optionnel)</span>
+              </label>
+              <div className="relative">
+                <Mail className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                  placeholder="votre@email.com"
+                  className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
+                  style={FONT_BODY} />
+              </div>
+            </div>
+          )}
+
+          {/* Mot de passe */}
           <div>
-            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Mot de passe</label>
+            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Mot de passe <span className="text-red-400">*</span></label>
             <div className="relative">
               <Lock className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
               <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
@@ -247,8 +286,10 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
               </button>
             </div>
           </div>
+
+          {/* Confirmer mot de passe */}
           <div>
-            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Confirmer le mot de passe</label>
+            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Confirmer le mot de passe <span className="text-red-400">*</span></label>
             <div className="relative">
               <Lock className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
               <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
@@ -267,21 +308,11 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             Parlez-nous de vous
           </h3>
           <div>
-            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Nom complet *</label>
+            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Nom complet <span className="text-red-400">*</span></label>
             <div className="relative">
               <User className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
               <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
                 placeholder="Prénom et nom"
-                className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
-                style={FONT_BODY} />
-            </div>
-          </div>
-          <div>
-            <label className="auth-label block text-sm font-medium mb-1.5" style={FONT_BODY}>Téléphone</label>
-            <div className="relative">
-              <Phone className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
-              <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                placeholder="+243 ..."
                 className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
                 style={FONT_BODY} />
             </div>

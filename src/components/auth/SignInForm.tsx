@@ -1,12 +1,12 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Sign In Form — For existing members
-   High-contrast, theme-aware via CSS classes
+   Sign In Form — Accepte téléphone OU email
    Église Évangélique La Conquête
    ═══════════════════════════════════════════════════════════════════ */
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { Mail, Lock, Eye, EyeOff, Loader2, LogIn } from '../../lib/icons';
+import { supabase } from '../../lib/supabase';
+import { Mail, Lock, Eye, EyeOff, Loader2, LogIn, Phone } from '../../lib/icons';
 
 interface SignInFormProps {
   onComplete?: () => void;
@@ -14,29 +14,60 @@ interface SignInFormProps {
   onForgotPassword?: () => void;
 }
 
+/** Détecte si l'entrée ressemble à un numéro de téléphone */
+function looksLikePhone(input: string): boolean {
+  const digits = input.replace(/\D/g, '');
+  return digits.length >= 9 && !input.includes('@');
+}
+
+/** Convertit un numéro de téléphone en email fictif pour la recherche */
+function phoneToEmail(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  return `${digits}@lc.app`;
+}
+
 export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: SignInFormProps) {
   const { signIn } = useAuth();
   const { addToast } = useToast();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
+    if (!identifier.trim() || !password) {
       addToast('Veuillez remplir tous les champs.', 'error');
       return;
     }
     setLoading(true);
     try {
-      await signIn(email, password);
+      let emailToUse = identifier.trim();
+
+      // Si c'est un numéro de téléphone, chercher l'email correspondant dans user_profiles
+      if (looksLikePhone(identifier)) {
+        const phoneDigits = identifier.replace(/\D/g, '');
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('email, phone')
+          .or(`phone.ilike.%${phoneDigits}%,phone.ilike.%${identifier.trim()}%`)
+          .limit(1);
+
+        if (profileData && profileData.length > 0) {
+          emailToUse = profileData[0].email;
+        } else {
+          // Essayer avec l'email auto-généré
+          emailToUse = phoneToEmail(identifier);
+        }
+      }
+
+      await signIn(emailToUse, password);
       addToast('Connexion réussie !', 'success');
       onComplete?.();
     } catch (err: any) {
       const msg = err?.message || 'Erreur de connexion.';
       if (msg.includes('Invalid login') || msg.includes('invalid credentials')) {
-        addToast('Email ou mot de passe incorrect.', 'error');
+        addToast('Téléphone/email ou mot de passe incorrect.', 'error');
       } else if (msg.includes('Email not confirmed')) {
         addToast('Veuillez confirmer votre email avant de vous connecter.', 'error');
       } else {
@@ -47,6 +78,8 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
     }
   };
 
+  const isPhone = looksLikePhone(identifier);
+
   return (
     <div className="w-full max-w-md mx-auto">
       <h3 className="auth-text-heading text-xl font-bold text-center mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
@@ -56,15 +89,26 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="auth-label block text-sm font-medium mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
-            Adresse email
+            Téléphone ou email
           </label>
           <div className="relative">
-            <Mail className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              placeholder="votre@email.com" required
+            {isPhone
+              ? <Phone className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
+              : <Mail className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
+            }
+            <input
+              type="text"
+              value={identifier}
+              onChange={e => setIdentifier(e.target.value)}
+              placeholder="+243 8XX XXX XXX ou email"
+              required
               className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
-              style={{ fontFamily: "'Inter', sans-serif" }} />
+              style={{ fontFamily: "'Inter', sans-serif" }}
+            />
           </div>
+          <p className="auth-text-muted text-xs mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+            Entrez votre numéro de téléphone ou votre adresse email
+          </p>
         </div>
 
         <div>

@@ -82,13 +82,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
           {/* Brand + social */}
           <div className="lg:col-span-1 flex flex-col gap-5">
             <button onClick={() => onNavigate('home')} className="flex items-center gap-3 transition-opacity hover:opacity-80 w-fit">
-              {logoUrl ? (
-                <img src={logoUrl} alt={churchName} className="h-10 w-10 rounded-full object-cover" />
-              ) : (
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 text-sm font-bold">
-                  {churchName.charAt(0)}
-                </div>
-              )}
+              <img src={logoUrl || '/logo-footer.png'} alt={churchName} className="h-10 w-10 rounded-full object-contain bg-white/5 p-0.5" />
               <span className="gold-text text-lg font-bold tracking-wide">La Conquête</span>
             </button>
             <p className="text-sm text-muted leading-relaxed">
@@ -165,11 +159,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-line pt-6 sm:flex-row">
           <p className="text-xs text-muted">&copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.</p>
           <button onClick={() => onNavigate('home')} className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            {logoUrl ? (
-              <img src={logoUrl} alt={churchName} className="h-5 w-5 rounded-full object-cover" />
-            ) : (
-              <span className="gold-text text-sm font-bold">LC</span>
-            )}
+            <img src={logoUrl || '/logo-footer.png'} alt={churchName} className="h-5 w-5 rounded-full object-contain bg-white/5 p-0.5" />
             <span className="gold-text text-sm font-bold tracking-wide">La Conquête</span>
           </button>
         </div>
