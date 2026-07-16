@@ -73,9 +73,11 @@ function useCountdown(targetDate: string | null) {
 interface TopBarProps {
   onNavigate?: (page: string) => void;
   onLiveClick?: () => void;
+  phone?: string;
+  email?: string;
 }
 
-export function TopBar({ onNavigate, onLiveClick }: TopBarProps) {
+export function TopBar({ onNavigate, onLiveClick, phone, email }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
     'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
     'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
@@ -196,19 +198,19 @@ export function TopBar({ onNavigate, onLiveClick }: TopBarProps) {
         {/* ---- Right: Phone + Email + Don ---- */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <a
-            href="tel:+243000000000"
+            href={`tel:${(phone || '+243000000000').replace(/\s/g, '')}`}
             className="hidden md:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
           >
             <Phone size={11} aria-hidden="true" />
-            <span className="whitespace-nowrap">+243 00 000 0000</span>
+            <span className="whitespace-nowrap">{phone || '+243 00 000 0000'}</span>
           </a>
 
           <a
-            href="mailto:contact@laconquete.cd"
+            href={`mailto:${email || 'contact@laconquete.cd'}`}
             className="hidden lg:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
           >
             <Mail size={11} aria-hidden="true" />
-            <span className="whitespace-nowrap">contact@laconquete.cd</span>
+            <span className="whitespace-nowrap">{email || 'contact@laconquete.cd'}</span>
           </a>
 
           <button

@@ -52,9 +52,10 @@ const PAGES: PageDef[] = [
     icon: Home,
     description: 'Hero, Piliers, À propos, Citation',
     sections: [
+      { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email de contact' },
       { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, sous-titre du héro' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
-      { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Textes descriptifs et citation' },
+      { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Textes, image et citation' },
       { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence de la citation' },
     ],
   },
@@ -135,6 +136,110 @@ const PAGES: PageDef[] = [
   },
 ];
 
+// ─── Default seeds: auto-create page_contents rows when page is empty ─
+
+interface SeedField {
+  field_key: string;
+  label: string;
+  type: ContentType;
+  value: string;
+}
+
+const SEEDS: Record<string, Record<string, SeedField[]>> = {
+  home: {
+    topbar: [
+      { field_key: 'phone', label: 'Téléphone', type: 'text', value: '+243 00 000 0000' },
+      { field_key: 'email', label: 'Email', type: 'text', value: 'contact@laconquete.cd' },
+    ],
+    hero: [
+      { field_key: 'bg_image', label: 'Image de fond', type: 'image_url', value: '' },
+      { field_key: 'bg_images', label: 'Images diaporama (séparées par ,)', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: 'Une communauté de foi qui transforme des vies' },
+    ],
+    pillars: [
+      { field_key: 'pillar_1_title', label: 'Pilier 1 — Titre', type: 'text', value: 'Foi' },
+      { field_key: 'pillar_1_desc', label: 'Pilier 1 — Description', type: 'text', value: '' },
+      { field_key: 'pillar_2_title', label: 'Pilier 2 — Titre', type: 'text', value: 'Communauté' },
+      { field_key: 'pillar_2_desc', label: 'Pilier 2 — Description', type: 'text', value: '' },
+      { field_key: 'pillar_3_title', label: 'Pilier 3 — Titre', type: 'text', value: 'Mission' },
+      { field_key: 'pillar_3_desc', label: 'Pilier 3 — Description', type: 'text', value: '' },
+    ],
+    about: [
+      { field_key: 'text_1', label: 'Texte principal', type: 'text', value: '' },
+      { field_key: 'text_2', label: 'Texte secondaire', type: 'text', value: '' },
+      { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
+      { field_key: 'image', label: 'Photo', type: 'image_url', value: '' },
+    ],
+    quote: [
+      { field_key: 'text', label: 'Texte de la citation', type: 'text', value: '' },
+      { field_key: 'reference', label: 'Référence', type: 'text', value: '' },
+    ],
+  },
+};
+
+async function seedPageIfEmpty(pageKey: string) {
+  const pageSeeds = SEEDS[pageKey];
+  if (!pageSeeds) return;
+
+  // Check what sections already exist
+  const { data: existing } = await supabase
+    .from('page_contents')
+    .select('section_key, field_key')
+    .eq('page', pageKey);
+
+  if (!existing || existing.length === 0) {
+    // Page completely empty — seed everything
+    const rows: any[] = [];
+    let order = 0;
+    for (const [sectionKey, fields] of Object.entries(pageSeeds)) {
+      for (const f of fields) {
+        rows.push({
+          page: pageKey,
+          section_key: sectionKey,
+          field_key: f.field_key,
+          label: f.label,
+          value: f.value,
+          type: f.type,
+          is_active: true,
+          sort_order: order++,
+        });
+      }
+    }
+    await supabase.from('page_contents').insert(rows);
+    return;
+  }
+
+  // Page has some fields — seed only missing ones
+  const existingKeys = new Set(existing.map((r: any) => `${r.section_key}.${r.field_key}`));
+  const missing: any[] = [];
+  let maxOrder = 0;
+  for (const row of existing) {
+    // We don't know sort_order from this query, just use existing.length
+  }
+  // Use existing.length as base order to avoid conflicts
+  const baseOrder = existing.length;
+  let order = baseOrder;
+  for (const [sectionKey, fields] of Object.entries(pageSeeds)) {
+    for (const f of fields) {
+      if (!existingKeys.has(`${sectionKey}.${f.field_key}`)) {
+        missing.push({
+          page: pageKey,
+          section_key: sectionKey,
+          field_key: f.field_key,
+          label: f.label,
+          value: f.value,
+          type: f.type,
+          is_active: true,
+          sort_order: order++,
+        });
+      }
+    }
+  }
+  if (missing.length > 0) {
+    await supabase.from('page_contents').insert(missing);
+  }
+}
+
 // ─── Section label resolver ─────────────────────────────────────────
 
 function getSectionLabel(pageKey: string, sectionKey: string): { label: string; icon: LucideIcon; description: string } {
@@ -197,6 +302,9 @@ export function ContentsTab() {
     async function load() {
       setLoading(true);
       setActiveSection(null);
+
+      // Auto-seed missing fields for pages that have seed definitions
+      await seedPageIfEmpty(activePage);
 
       const { data, error } = await supabase
         .from('page_contents')

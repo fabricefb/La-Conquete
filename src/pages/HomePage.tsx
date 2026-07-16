@@ -252,6 +252,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
     return builderConfig[sectionId]?.config?.[key] ?? fallback;
   };
 
+  // Topbar dynamic content
+  const topbarPhone = getContent(cm, 'topbar', 'phone', '');
+  const topbarEmail = getContent(cm, 'topbar', 'email', '');
+
   // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
   const heroImagesStr = getContent(cm, 'hero', 'bg_images', '');
@@ -317,6 +321,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
     'bible_text',
     'Demande-moi, et je te donnerai les nations pour héritage.',
   );
+  const aboutImage = getContent(cm, 'about', 'image', DEFAULT_ABOUT_IMG);
 
   // Quote
   const quoteText = getContent(
@@ -456,7 +461,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} />}
+      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} />}
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (
@@ -513,7 +518,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <div className="relative">
                 <div className="overflow-hidden rounded-3xl">
                   <img
-                    src={DEFAULT_ABOUT_IMG}
+                    src={aboutImage}
                     alt="Église La Conquête"
                     className="cutout-mask h-[480px] w-full object-cover transition-transform duration-700 hover:scale-105"
                     loading="lazy"
