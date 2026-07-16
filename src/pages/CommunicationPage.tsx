@@ -28,6 +28,12 @@ interface CommunicationPageProps {
   onNavigate: (page: Page) => void;
 }
 
+interface UserDeptMembership {
+  department_id: string;
+  departments: { name: string; id: string } | null;
+  role_in_dept?: string;
+}
+
 type TabKey = 'priere' | 'communication' | 'medias' | 'newsletter';
 
 const TABS: { key: TabKey; label: string; icon: React.FC<{ className?: string }> }[] = [
@@ -152,7 +158,7 @@ interface PrayerFormData {
   visibility: PrayerRequestVisibility;
 }
 
-function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void }) {
+function PrayerTab({ profile, addToast, userDepts }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void; userDepts: UserDeptMembership[] }) {
   const [requests, setRequests] = useState<PrayerReqType[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -163,6 +169,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
   const [responseText, setResponseText] = useState('');
 
   const isIntercessor = profile ? (profile.is_admin === true || profile.role_level >= 4) : false;
+  const canPray = profile ? (profile.role_level >= 3 || isIntercessor || userDepts.some(d => d.role_in_dept === 'leader')) : false;
 
   useEffect(() => {
     loadRequests();
@@ -373,7 +380,7 @@ function PrayerTab({ profile, addToast }: { profile: any; addToast: (msg: string
                         Marquer répondu
                       </button>
                     )}
-                    {(req as any).status !== 'en_priere' && (req as any).status !== 'repondu' && (
+                    {canPray && (req as any).status !== 'en_priere' && (req as any).status !== 'repondu' && (
                       <button
                         onClick={() => handlePray(req)}
                         className="btn-gold flex items-center gap-1.5 px-4 py-2 text-xs font-medium"
@@ -430,13 +437,15 @@ const EMPTY_MSG_FORM: MessageFormData = {
   title: '', content: '', channel: 'sms', target_type: 'all', target_label: 'Tous les membres', target_ids: [], scheduled_at: '',
 };
 
-function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void }) {
+function CommunicationTab({ profile, addToast, userDepts }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void; userDepts: UserDeptMembership[] }) {
   const [messages, setMessages] = useState<CommunicationMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState<MessageFormData>(EMPTY_MSG_FORM);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const userDeptIds = userDepts.map(d => d.department_id);
 
   useEffect(() => {
     loadMessages();
@@ -551,7 +560,14 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
 
   const filtered = messages.filter(m =>
     m.title.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  ).filter(m => {
+    // Users see messages sent to "all" OR to a department they belong to
+    if (m.target_type === 'all') return true;
+    if (m.target_type === 'department') {
+      return m.target_ids.some(id => userDeptIds.includes(id));
+    }
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -607,7 +623,31 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
                 ))}
               </select>
             </div>
-            {form.target_type !== 'all' && (
+            {form.target_type === 'department' ? (
+              <div className="sm:col-span-2">
+                <label className="block text-sm text-muted mb-1.5">Département</label>
+                <select
+                  value={form.target_ids[0] || ''}
+                  onChange={e => {
+                    const deptId = e.target.value;
+                    const dept = userDepts.find(d => d.department_id === deptId);
+                    setForm(f => ({
+                      ...f,
+                      target_ids: deptId ? [deptId] : [],
+                      target_label: dept?.departments?.name || '',
+                    }));
+                  }}
+                  className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
+                >
+                  <option value="">Sélectionner un département…</option>
+                  {userDepts.map(d => (
+                    <option key={d.department_id} value={d.department_id}>
+                      {d.departments?.name || d.department_id}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : form.target_type !== 'all' ? (
               <div className="sm:col-span-2">
                 <label className="block text-sm text-muted mb-1.5">Sélection de la cible</label>
                 <input
@@ -617,7 +657,7 @@ function CommunicationTab({ profile, addToast }: { profile: any; addToast: (msg:
                   className="input-surface w-full rounded-lg px-4 py-2.5 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/40"
                 />
               </div>
-            )}
+            ) : null}
             <div>
               <label className="block text-sm text-muted mb-1.5">Programmer l'envoi (optionnel)</label>
               <input
@@ -745,7 +785,7 @@ const EMPTY_MEDIA_FORM: MediaFormData = {
   title: '', description: '', category: 'document', file_url: '', access_role: 'membre',
 };
 
-function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void }) {
+function MediasTab({ profile, addToast, userDepts }: { profile: any; addToast: (msg: string, type: 'success' | 'error' | 'info') => void; userDepts: UserDeptMembership[] }) {
   const [items, setItems] = useState<MediaLibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -753,6 +793,8 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
   const [submitting, setSubmitting] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  const userDeptIds = userDepts.map(d => d.department_id);
 
   useEffect(() => {
     loadItems();
@@ -803,7 +845,14 @@ function MediasTab({ profile, addToast }: { profile: any; addToast: (msg: string
 
   const filtered = items
     .filter(m => categoryFilter === 'all' || m.category === categoryFilter)
-    .filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    .filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(m => {
+      // Media tagged with a department_id only visible to members of that dept
+      // (unless access_role is 'public')
+      if (!m.department_id) return true;
+      if (m.access_role === 'public') return true;
+      return userDeptIds.includes(m.department_id);
+    });
 
   return (
     <div className="space-y-6">
@@ -1195,6 +1244,20 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
 
   const [activeTab, setActiveTab] = useState<TabKey>('priere');
+  const [userDepts, setUserDepts] = useState<UserDeptMembership[]>([]);
+
+  // Load user's department memberships on mount
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data: deptMemberships } = await supabase
+        .from('department_members')
+        .select('department_id, departments(name, id), role_in_dept')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      setUserDepts((deptMemberships as UserDeptMembership[]) || []);
+    })();
+  }, [user]);
 
   // Guard: not logged in
   if (!user) {
@@ -1271,9 +1334,9 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
             {/* Tab content */}
             <EvtReveal delay={2}>
               <div className="min-h-[50vh]">
-                {activeTab === 'priere' && <PrayerTab profile={profile} addToast={addToast} />}
-                {activeTab === 'communication' && <CommunicationTab profile={profile} addToast={addToast} />}
-                {activeTab === 'medias' && <MediasTab profile={profile} addToast={addToast} />}
+                {activeTab === 'priere' && <PrayerTab profile={profile} addToast={addToast} userDepts={userDepts} />}
+                {activeTab === 'communication' && <CommunicationTab profile={profile} addToast={addToast} userDepts={userDepts} />}
+                {activeTab === 'medias' && <MediasTab profile={profile} addToast={addToast} userDepts={userDepts} />}
                 {activeTab === 'newsletter' && <NewsletterTab profile={profile} addToast={addToast} />}
               </div>
             </EvtReveal>

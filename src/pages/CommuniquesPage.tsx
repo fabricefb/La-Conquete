@@ -1,5 +1,8 @@
 import { FileText, ArrowRight } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import { SiteHeader } from '../components/SiteHeader';
+import { SiteFooter } from '../components/SiteFooter';
+import { MobileNav } from '../components/MobileNav';
 
 interface CommuniquesPageProps {
   onNavigate: (page: Page) => void;
@@ -30,8 +33,11 @@ const COMMUNIQUES = [
   },
 ];
 
-export function CommuniquesPage() {
+export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
   return (
+    <>
+      <SiteHeader onNavigate={onNavigate} />
+      <MobileNav onNavigate={onNavigate} active="communiques" />
     <div className="min-h-screen bg-bg pt-16">
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0 bg-radial-primary" />
@@ -69,5 +75,7 @@ export function CommuniquesPage() {
         </div>
       </section>
     </div>
+      <SiteFooter />
+    </>
   );
 }

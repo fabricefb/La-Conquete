@@ -1,5 +1,8 @@
 import { Bell, ArrowRight } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import { SiteHeader } from '../components/SiteHeader';
+import { SiteFooter } from '../components/SiteFooter';
+import { MobileNav } from '../components/MobileNav';
 
 interface AnnoncesPageProps {
   onNavigate: (page: Page) => void;
@@ -37,8 +40,11 @@ const ANNONCES = [
   },
 ];
 
-export function AnnoncesPage() {
+export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
   return (
+    <>
+      <SiteHeader onNavigate={onNavigate} />
+      <MobileNav onNavigate={onNavigate} active="annonces" />
     <div className="min-h-screen bg-bg pt-16">
       <section className="relative overflow-hidden py-20 px-4">
         <div className="absolute inset-0 bg-radial-primary" />
@@ -80,5 +86,7 @@ export function AnnoncesPage() {
         </div>
       </section>
     </div>
+      <SiteFooter />
+    </>
   );
 }

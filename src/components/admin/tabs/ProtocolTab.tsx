@@ -81,7 +81,9 @@ export function ProtocolTab() {
   // ─── Sub-tab 2: Teams ────────────────────────────────────────
   const [teams, setTeams] = useState<ProtocolTeam[]>([]);
   const [teamMembers, setTeamMembers] = useState<Record<string, { id: string; user_id: string; role_in_team: string; full_name: string }[]>>({});
-  const [teamForm, setTeamForm] = useState({ name: '', description: '', color: '#d4a843' });
+  const [teamForm, setTeamForm] = useState({ name: '', description: '', color: '#d4a843', department_id: '' });
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [deptFilter, setDeptFilter] = useState<string>('all');
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null);
   const [teamSaving, setTeamSaving] = useState(false);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
@@ -92,6 +94,7 @@ export function ProtocolTab() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [weekOffset, setWeekOffset] = useState(0);
   const [assignModal, setAssignModal] = useState<{ team_id: string; cult_day: CultDay } | null>(null);
+  const [notifBadge, setNotifBadge] = useState<{ count: number; teamName: string } | null>(null);
 
   // ─── Sub-tab 4: Visitors ─────────────────────────────────────
   const [visitors, setVisitors] = useState<NewVisitor[]>([]);
@@ -214,6 +217,9 @@ export function ProtocolTab() {
       // Fetch all users for add-member form
       const { data: users } = await supabase.from('user_profiles').select('id, full_name').order('full_name');
       if (users) setAllUsers(users as any[]);
+      // Fetch active departments for team form + filter
+      const { data: depts } = await supabase.from('departments').select('id, name').eq('is_active', true);
+      if (depts) setDepartments(depts as { id: string; name: string }[]);
     } catch { /* graceful */ }
   }
 
@@ -221,24 +227,22 @@ export function ProtocolTab() {
     if (!teamForm.name.trim()) return;
     setTeamSaving(true);
     try {
+      const payload = {
+        name: teamForm.name.trim(),
+        description: teamForm.description.trim() || null,
+        color: teamForm.color,
+        department_id: teamForm.department_id || null,
+      };
       if (editingTeamId) {
-        const { error } = await supabase.from('protocol_teams').update({
-          name: teamForm.name.trim(),
-          description: teamForm.description.trim() || null,
-          color: teamForm.color,
-        }).eq('id', editingTeamId);
+        const { error } = await supabase.from('protocol_teams').update(payload).eq('id', editingTeamId);
         if (error) throw error;
         addToast('Équipe mise à jour', 'success');
       } else {
-        const { error } = await supabase.from('protocol_teams').insert({
-          name: teamForm.name.trim(),
-          description: teamForm.description.trim() || null,
-          color: teamForm.color,
-        });
+        const { error } = await supabase.from('protocol_teams').insert(payload);
         if (error) throw error;
         addToast('Équipe créée', 'success');
       }
-      setTeamForm({ name: '', description: '', color: '#d4a843' });
+      setTeamForm({ name: '', description: '', color: '#d4a843', department_id: '' });
       setEditingTeamId(null);
       await fetchTeams();
     } catch {
@@ -249,13 +253,10 @@ export function ProtocolTab() {
 
   async function deleteTeam(id: string) {
     if (!window.confirm('Supprimer cette équipe et ses membres ?')) return;
-    try {
-      await supabase.from('protocol_teams').delete().eq('id', id);
-      addToast('Équipe supprimée', 'success');
-      await fetchTeams();
-    } catch {
-      addToast('Erreur de suppression', 'error');
-    }
+    const { error } = await supabase.from('protocol_teams').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Équipe supprimée', 'success');
+    await fetchTeams();
   }
 
   async function addMember() {
@@ -276,13 +277,10 @@ export function ProtocolTab() {
   }
 
   async function removeMember(id: string) {
-    try {
-      await supabase.from('protocol_team_members').delete().eq('id', id);
-      addToast('Membre retiré', 'success');
-      await fetchTeams();
-    } catch {
-      addToast('Erreur de suppression', 'error');
-    }
+    const { error } = await supabase.from('protocol_team_members').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Membre retiré', 'success');
+    await fetchTeams();
   }
 
   // ─── Schedules ───────────────────────────────────────────────
@@ -334,6 +332,29 @@ export function ProtocolTab() {
       }, { onConflict: 'team_id,cult_day,week_number,year' });
       if (error) throw error;
       addToast('Planning mis à jour', 'success');
+
+      // Send notifications to team members
+      try {
+        const { data: members } = await supabase
+          .from('protocol_team_members')
+          .select('user_id')
+          .eq('team_id', teamId);
+        const teamName = teams.find(t => t.id === teamId)?.name || 'Équipe';
+        const date = CULT_DAY_LABELS[cultDay];
+        if (members && members.length > 0) {
+          const notifs = members.map((m: any) => ({
+            user_id: m.user_id,
+            title: 'Rotation de protocole',
+            message: `Votre équipe "${teamName}" est assignée pour le culte du ${date}.`,
+            type: 'protocol',
+            is_read: false,
+          }));
+          await supabase.from('notifications').insert(notifs);
+          setNotifBadge({ count: members.length, teamName });
+          setTimeout(() => setNotifBadge(null), 5000);
+        }
+      } catch { /* notification failure is non-blocking */ }
+
       setAssignModal(null);
       await fetchSchedules();
     } catch {
@@ -342,11 +363,10 @@ export function ProtocolTab() {
   }
 
   async function clearSchedule(id: string) {
-    try {
-      await supabase.from('protocol_schedules').delete().eq('id', id);
-      addToast('Assignation supprimée', 'success');
-      await fetchSchedules();
-    } catch { /* graceful */ }
+    const { error } = await supabase.from('protocol_schedules').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Assignation supprimée', 'success');
+    await fetchSchedules();
   }
 
   // ─── Visitors ────────────────────────────────────────────────
@@ -786,7 +806,7 @@ export function ProtocolTab() {
             <h3 className="font-display text-lg font-semibold text-cream">
               {editingTeamId ? 'Modifier l\'équipe' : 'Nouvelle équipe'}
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="mb-1.5 block text-xs font-medium text-muted">Nom</label>
                 <input type="text" value={teamForm.name} onChange={e => setTeamForm(p => ({ ...p, name: e.target.value }))} placeholder="Nom de l'équipe" className="input-surface w-full px-4 py-2.5 text-sm" />
@@ -802,6 +822,15 @@ export function ProtocolTab() {
                   <span className="text-xs text-muted">{teamForm.color}</span>
                 </div>
               </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium text-muted">Département</label>
+                <select value={teamForm.department_id} onChange={e => setTeamForm(p => ({ ...p, department_id: e.target.value }))} className="input-surface w-full px-4 py-2.5 text-sm">
+                  <option value="">Aucun département</option>
+                  {departments.map(d => (
+                    <option key={d.id} value={d.id}>{d.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex gap-2">
               <button onClick={saveTeam} disabled={teamSaving || !teamForm.name.trim()} className="btn-gold flex items-center gap-2 text-sm disabled:opacity-50">
@@ -809,20 +838,38 @@ export function ProtocolTab() {
                 {editingTeamId ? 'Mettre à jour' : 'Créer l\'équipe'}
               </button>
               {editingTeamId && (
-                <button onClick={() => { setEditingTeamId(null); setTeamForm({ name: '', description: '', color: '#d4a843' }); }} className="btn-ghost text-sm">Annuler</button>
+                <button onClick={() => { setEditingTeamId(null); setTeamForm({ name: '', description: '', color: '#d4a843', department_id: '' }); }} className="btn-ghost text-sm">Annuler</button>
               )}
             </div>
           </div>
 
-          {/* Teams list */}
-          {teams.length === 0 ? (
-            <div className="glass-card rounded-2xl p-12 text-center">
-              <UsersRound className="mx-auto h-10 w-10 text-muted/30 mb-4" />
-              <p className="text-muted">Aucune équipe configurée.</p>
+          {/* Department filter */}
+          {departments.length > 0 && (
+            <div className="flex items-center gap-3">
+              <label className="text-xs font-medium text-muted">Filtrer par département :</label>
+              <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)} className="input-surface px-3 py-1.5 text-sm">
+                <option value="all">Toutes</option>
+                {departments.map(d => (
+                  <option key={d.id} value={d.id}>{d.name}</option>
+                ))}
+              </select>
             </div>
-          ) : (
+          )}
+
+          {/* Teams list */}
+          {(() => {
+            const filteredTeams = deptFilter === 'all' ? teams : teams.filter(t => (t as any).department_id === deptFilter);
+            if (filteredTeams.length === 0) {
+              return (
+                <div className="glass-card rounded-2xl p-12 text-center">
+                  <UsersRound className="mx-auto h-10 w-10 text-muted/30 mb-4" />
+                  <p className="text-muted">{teams.length === 0 ? 'Aucune équipe configurée.' : 'Aucune équipe dans ce département.'}</p>
+                </div>
+              );
+            }
+            return (
             <div className="space-y-3">
-              {teams.map(team => {
+              {filteredTeams.map(team => {
                 const members = teamMembers[team.id] || [];
                 const isExpanded = expandedTeam === team.id;
                 return (
@@ -838,7 +885,7 @@ export function ProtocolTab() {
                         {team.description && <p className="text-xs text-muted mt-0.5">{team.description}</p>}
                       </div>
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                        <button onClick={() => { setEditingTeamId(team.id); setTeamForm({ name: team.name, description: team.description || '', color: team.color }); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-evangile-500 hover:border-evangile-600/30 transition">
+                        <button onClick={() => { setEditingTeamId(team.id); setTeamForm({ name: team.name, description: team.description || '', color: team.color, department_id: (team as any).department_id || '' }); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-evangile-500 hover:border-evangile-600/30 transition">
                           <Edit3 className="h-3.5 w-3.5" />
                         </button>
                         <button onClick={() => deleteTeam(team.id)} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-red-400 hover:border-red-400/30 transition">
@@ -893,7 +940,8 @@ export function ProtocolTab() {
                 );
               })}
             </div>
-          )}
+            );
+          })()}
         </div>
       )}
 
@@ -903,7 +951,15 @@ export function ProtocolTab() {
       {activeTab === 'schedule' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg font-semibold text-cream">Planning de la semaine</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="font-display text-lg font-semibold text-cream">Planning de la semaine</h3>
+              {notifBadge && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-evangile-600/20 text-evangile-500 border border-evangile-600/30 px-3 py-1 text-xs font-medium">
+                  <Check className="h-3 w-3" />
+                  Notifications envoyées ({notifBadge.count} membre{notifBadge.count !== 1 ? 's' : ''})
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button onClick={() => { setWeekOffset(w => w - 1); }} className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:text-cream transition">
                 <ChevronLeft className="h-4 w-4" />

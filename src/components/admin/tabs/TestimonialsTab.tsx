@@ -228,14 +228,11 @@ export function TestimonialsTab() {
 
   const handleDelete = async (id: string, source?: string) => {
     if (!confirm('Supprimer ce témoignage ?')) return;
-    try {
-      const table = source === 'member' ? 'member_testimonies' : 'testimonials';
-      await supabase.from(table).delete().eq('id', id);
-      addToast('Témoignage supprimé', 'success');
-      fetchItems();
-    } catch {
-      addToast('Erreur de suppression', 'error');
-    }
+    const table = source === 'member' ? 'member_testimonies' : 'testimonials';
+    const { error } = await supabase.from(table).delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Témoignage supprimé', 'success');
+    fetchItems();
   };
 
   // ---- Review workflow (approve/reject) ------------------------------------

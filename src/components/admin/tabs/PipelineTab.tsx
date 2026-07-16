@@ -159,22 +159,21 @@ function ZonesSection({ profiles }: { profiles: UserProfile[] }) {
   const handleSave = async () => {
     if (!form.name.trim()) { addToast('Nom obligatoire', 'error'); return; }
     const coordName = profiles.find((p) => p.id === form.coordinator_id)?.full_name || '';
-    try {
-      await supabase.from('zones_evangelisation').insert({
-        name: form.name,
-        description: form.description || null,
-        coordinator_id: form.coordinator_id || null,
-        coordinator_name: coordName || null,
-        potential_score: form.potential_score,
-        converti_count: 0,
-        is_active: true,
-        created_at: new Date().toISOString(),
-      });
-      addToast('Zone créée', 'success');
-      setFormOpen(false);
-      setForm({ name: '', description: '', coordinator_id: '', potential_score: 5 });
-      fetch();
-    } catch { addToast('Erreur', 'error'); }
+    const { error } = await supabase.from('zones_evangelisation').insert({
+      name: form.name,
+      description: form.description || null,
+      coordinator_id: form.coordinator_id || null,
+      coordinator_name: coordName || null,
+      potential_score: form.potential_score,
+      converti_count: 0,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    });
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Zone créée', 'success');
+    setFormOpen(false);
+    setForm({ name: '', description: '', coordinator_id: '', potential_score: 5 });
+    fetch();
   };
 
   return (

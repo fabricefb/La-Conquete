@@ -137,7 +137,7 @@ export function PastorsTab() {
 
   async function toggleMain(id: string, isMain: boolean) {
     try {
-      if (isMain) await supabase.from('pastors').update({ is_main: false });
+      if (isMain) await supabase.from('pastors').update({ is_main: false }).eq('is_main', true);
       await supabase.from('pastors').update({ is_main: !isMain, updated_at: new Date().toISOString() }).eq('id', id);
       await load();
     } catch { addToast('Erreur', 'error'); }

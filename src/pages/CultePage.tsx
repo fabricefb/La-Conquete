@@ -106,8 +106,8 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           </div>
           <p className="reveal mt-4 text-center text-xs text-muted/60">
             Rejoignez-nous sur{' '}
-            <a href="#" className="text-evangile-500 hover:underline">YouTube</a> et{' '}
-            <a href="#" className="text-evangile-500 hover:underline">Facebook</a> pour le live.
+            <a href="https://www.youtube.com/@LaConquete" target="_blank" rel="noopener noreferrer" className="text-evangile-500 hover:underline">YouTube</a> et{' '}
+            <a href="https://www.facebook.com/LaConqueteEglise" target="_blank" rel="noopener noreferrer" className="text-evangile-500 hover:underline">Facebook</a> pour le live.
           </p>
         </div>
       </section>

@@ -175,6 +175,80 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'reference', label: 'Référence', type: 'text', value: '' },
     ],
   },
+
+  // ── À propos ──────────────────────────────────────────────────────
+  about: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    values: [
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Activités / Culte ─────────────────────────────────────────────
+  activities: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    ministries: [
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    cta: [
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Événements ────────────────────────────────────────────────────
+  events: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Contact ───────────────────────────────────────────────────────
+  contact: {
+    hero: [
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Départements ──────────────────────────────────────────────────
+  departments: {
+    hero: [
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Médias ────────────────────────────────────────────────────────
+  media: {
+    hero: [
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Émissions ─────────────────────────────────────────────────────
+  emissions: {
+    hero: [
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Prédications ──────────────────────────────────────────────────
+  predications: {
+    hero: [
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
 };
 
 async function seedPageIfEmpty(pageKey: string) {
@@ -205,7 +279,8 @@ async function seedPageIfEmpty(pageKey: string) {
         });
       }
     }
-    await supabase.from('page_contents').insert(rows);
+    const { error: seedErr } = await supabase.from('page_contents').insert(rows);
+    if (seedErr) { console.error('Seed error:', seedErr.message); return; }
     return;
   }
 
@@ -236,7 +311,8 @@ async function seedPageIfEmpty(pageKey: string) {
     }
   }
   if (missing.length > 0) {
-    await supabase.from('page_contents').insert(missing);
+    const { error: missingErr } = await supabase.from('page_contents').insert(missing);
+    if (missingErr) console.error('Seed missing error:', missingErr.message);
   }
 }
 

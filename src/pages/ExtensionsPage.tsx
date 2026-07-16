@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { MapPin, Clock, Users, Calendar, ChevronDown, Image, ArrowRight, Church, Building2 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import { SiteHeader } from '../components/SiteHeader';
+import { SiteFooter } from '../components/SiteFooter';
+import { MobileNav } from '../components/MobileNav';
 
 /* ─── Mock data (à remplacer par Supabase) ─────────────────────── */
 
@@ -231,6 +234,9 @@ interface ExtensionsPageProps {
 
 export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
   return (
+    <>
+      <SiteHeader onNavigate={onNavigate} />
+      <MobileNav onNavigate={onNavigate} active="extensions" />
     <div className="min-h-screen bg-bg pt-16">
       {/* Hero */}
       <section className="relative overflow-hidden py-20 px-4">
@@ -256,5 +262,7 @@ export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
         </div>
       </section>
     </div>
+      <SiteFooter />
+    </>
   );
 }

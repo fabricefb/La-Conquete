@@ -116,24 +116,18 @@ export function CreneauxTab() {
 
   const deleteCreneau = async (id: string) => {
     if (!confirm('Supprimer ce créneau ?')) return;
-    try {
-      await supabase.from('creneaux').delete().eq('id', id);
-      addToast('Créneau supprimé', 'success');
-      if (expandedId === id) setExpandedId(null);
-      fetchData();
-    } catch {
-      addToast('Erreur de suppression', 'error');
-    }
+    const { error } = await supabase.from('creneaux').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Créneau supprimé', 'success');
+    if (expandedId === id) setExpandedId(null);
+    fetchData();
   };
 
   const updateCreneauStatus = async (id: string, status: CreneauStatus) => {
-    try {
-      await supabase.from('creneaux').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
-      addToast('Statut mis à jour', 'success');
-      fetchData();
-    } catch {
-      addToast('Erreur de mise à jour', 'error');
-    }
+    const { error } = await supabase.from('creneaux').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Statut mis à jour', 'success');
+    fetchData();
   };
 
   const getResponsesForCreneau = (creneauId: string) =>

@@ -158,6 +158,9 @@ const NAV_ITEMS: NavItem[] = [
 
   /* 5. Contact */
   { label: 'Contact', page: 'contact' },
+
+  /* 6. Don */
+  { label: 'Don', page: 'dons' },
 ];
 
 const ADMIN_PAGES: Page[] = ['admin', 'dashboard', 'pastoral', 'reports', 'communication', 'crm', 'annonces', 'communiques'];
@@ -187,7 +190,7 @@ function LiveIndicators() {
     <div className="flex items-center gap-3">
       {youtube && (
         <a
-          href="https://www.youtube.com"
+          href="https://www.youtube.com/@LaConquete"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-[11px] font-semibold text-red-400 hover:text-red-300 transition-colors"
@@ -199,7 +202,7 @@ function LiveIndicators() {
       )}
       {facebook && (
         <a
-          href="https://www.facebook.com"
+          href="https://www.facebook.com/LaConqueteEglise"
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"

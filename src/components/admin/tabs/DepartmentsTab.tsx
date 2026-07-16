@@ -668,23 +668,25 @@ export function DepartmentsTab() {
         }
 
         // Notify user
-        await supabase.from('notifications').insert({
+        const { error: notifErr } = await supabase.from('notifications').insert({
           user_id: req.user_id,
           type: 'dept_approved',
           title: 'Demande de département acceptée',
           body: `Votre demande pour rejoindre "${deptName}" a été acceptée. Bienvenue !`,
           link: '#dashboard',
         });
+        if (notifErr) console.error('[ADMIN DEPT] notification insert error:', notifErr.message);
 
         addToast(`${userName} ajouté au département.`, 'success');
       } else {
-        await supabase.from('notifications').insert({
+        const { error: rejNotifErr } = await supabase.from('notifications').insert({
           user_id: req.user_id,
           type: 'dept_rejected',
           title: 'Demande de département refusée',
           body: `Votre demande pour rejoindre "${deptName}" n'a pas été acceptée.`,
           link: '#dashboard',
         });
+        if (rejNotifErr) console.error('[ADMIN DEPT] rejection notification error:', rejNotifErr.message);
 
         addToast('Demande refusée.', 'info');
       }
@@ -710,7 +712,8 @@ export function DepartmentsTab() {
             link: '#admin/departments',
           }));
         if (leaderNotifs.length > 0) {
-          await supabase.from('notifications').insert(leaderNotifs);
+          const { error: leaderNotifErr } = await supabase.from('notifications').insert(leaderNotifs);
+          if (leaderNotifErr) console.error('[ADMIN DEPT] leader notification error:', leaderNotifErr.message);
         }
       }
 

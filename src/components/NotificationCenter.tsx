@@ -104,18 +104,16 @@ export function NotificationCenter() {
   const markAsRead = async (id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
     if (!isSupabaseConfigured) return;
-    try {
-      await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    } catch { /* silent */ }
+    const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+    if (error) console.error('markAsRead error:', error.message);
   };
 
   const markAllAsRead = async () => {
     setMarkingAll(true);
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     if (!profile || !isSupabaseConfigured) { setMarkingAll(false); return; }
-    try {
-      await supabase.from('notifications').update({ is_read: true }).eq('user_id', profile.id).eq('is_read', false);
-    } catch { /* silent */ }
+    const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', profile.id).eq('is_read', false);
+    if (error) console.error('markAllAsRead error:', error.message);
     setMarkingAll(false);
   };
 

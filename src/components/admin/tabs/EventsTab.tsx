@@ -173,12 +173,9 @@ export function EventsTab() {
   };
 
   const deleteComment = async (id: string) => {
-    try {
-      await supabase.from('event_comments').delete().eq('id', id);
-      if (commentsEventId) fetchComments(commentsEventId);
-    } catch {
-      // ignore
-    }
+    const { error } = await supabase.from('event_comments').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    if (commentsEventId) fetchComments(commentsEventId);
   };
 
   // ---- form helpers --------------------------------------------------------
@@ -254,31 +251,26 @@ export function EventsTab() {
 
   const handleDelete = async (id: string) => {
     if (!window.confirm('Supprimer cet événement ?')) return;
-    try {
-      await supabase.from('events').delete().eq('id', id);
-      addToast('Événement supprimé', 'success');
-      fetchEvents();
-    } catch {
-      addToast('Erreur de suppression', 'error');
-    }
+    const { error } = await supabase.from('events').delete().eq('id', id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast('Événement supprimé', 'success');
+    fetchEvents();
   };
 
   // ---- toggles -------------------------------------------------------------
 
   const toggleLive = async (event: Event) => {
-    try {
-      await supabase.from('events').update({ is_live: !event.is_live }).eq('id', event.id);
-      addToast(event.is_live ? 'En direct désactivé' : 'En direct activé', 'success');
-      fetchEvents();
-    } catch { /* ignore */ }
+    const { error } = await supabase.from('events').update({ is_live: !event.is_live }).eq('id', event.id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast(event.is_live ? 'En direct désactivé' : 'En direct activé', 'success');
+    fetchEvents();
   };
 
   const toggleFeatured = async (event: Event) => {
-    try {
-      await supabase.from('events').update({ is_featured: !event.is_featured }).eq('id', event.id);
-      addToast(event.is_featured ? 'Retiré des mis en avant' : 'Ajouté aux mis en avant', 'success');
-      fetchEvents();
-    } catch { /* ignore */ }
+    const { error } = await supabase.from('events').update({ is_featured: !event.is_featured }).eq('id', event.id);
+    if (error) { addToast('Erreur: ' + error.message, 'error'); return; }
+    addToast(event.is_featured ? 'Retiré des mis en avant' : 'Ajouté aux mis en avant', 'success');
+    fetchEvents();
   };
 
   // ---- render --------------------------------------------------------------
