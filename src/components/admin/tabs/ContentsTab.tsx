@@ -371,7 +371,7 @@ export function ContentsTab() {
       contents.map((item) => {
         const newVal = draftValues[item.id] ?? item.value;
         const newActive = draftActive[item.id] ?? item.is_active;
-        if (newVal === item.value && newActive === item.is_active) return Promise.resolve();
+        if (newVal === item.value && newActive === item.is_active) return Promise.resolve(null);
         return supabase
           .from('page_contents')
           .update({ value: newVal, is_active: newActive, updated_at: now })
@@ -379,9 +379,17 @@ export function ContentsTab() {
       }),
     );
 
-    const failed = results.filter((r) => r.status === 'rejected').length;
+    // Supabase never rejects — errors come as { data, error } in fulfilled
+    const errors: string[] = [];
+    for (const r of results) {
+      if (r.status === 'rejected') {
+        errors.push(r.reason?.message || 'Erreur inconnue');
+      } else if (r.value?.error) {
+        errors.push(r.value.error.message || JSON.stringify(r.value.error));
+      }
+    }
 
-    if (failed === 0) {
+    if (errors.length === 0) {
       addToast('Tous les contenus sauvegardés', 'success');
       // Refresh
       const { data } = await supabase
@@ -402,7 +410,8 @@ export function ContentsTab() {
         setDraftActive(acts);
       }
     } else {
-      addToast(`${failed} champ(s) non sauvegardés`, 'error');
+      addToast(`Erreur : ${errors[0]}`, 'error');
+      console.error('ContentsTab save errors:', errors);
     }
 
     setSaving(false);

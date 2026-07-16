@@ -351,13 +351,15 @@ function HeroImageManager() {
       .eq('field_key', fieldKey)
       .single();
 
+    let result;
     if (existing) {
-      await supabase.from('page_contents').update({ value, updated_at: new Date().toISOString() }).eq('id', existing.id);
+      result = await supabase.from('page_contents').update({ value, updated_at: new Date().toISOString() }).eq('id', existing.id);
     } else {
-      await supabase.from('page_contents').insert({
-        page: 'home', section_key: sectionKey, field_key: fieldKey, value,
+      result = await supabase.from('page_contents').insert({
+        page: 'home', section_key: sectionKey, field_key: fieldKey, value, type: 'text', is_active: true, label: fieldKey, sort_order: 0,
       });
     }
+    if (result.error) throw new Error(result.error.message);
   };
 
   const handleMainChange = async (url: string) => {
