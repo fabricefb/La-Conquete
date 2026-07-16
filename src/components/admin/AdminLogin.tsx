@@ -157,6 +157,12 @@ export default function AdminLogin() {
           </p>
         </div>
 
+        {/* Diagnostic Supabase */}
+        <div className="mb-4 p-3 rounded-xl bg-white/5 border border-white/10 text-xs text-cream/50">
+          <p>URL Supabase : <code className="text-cream/70">{import.meta.env.VITE_SUPABASE_URL ? (import.meta.env.VITE_SUPABASE_URL as string).substring(0, 45) + '...' : '<span className="text-red-400">NON DEFINIE</span>'}</code></p>
+          <p className="mt-1">Clé Anon : <code className="text-cream/70">{import.meta.env.VITE_SUPABASE_ANON_KEY ? '***' + (import.meta.env.VITE_SUPABASE_ANON_KEY as string).slice(-8) : '<span className="text-red-400">NON DEFINIE</span>'}</code></p>
+        </div>
+
         {/* Supabase non configuré */}
         {!isSupabaseConfigured && (
           <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
