@@ -141,13 +141,10 @@ export async function uploadToR2(
 // ─── R2 Bucket Configuration ────────────────────────────────────
 
 /**
- * Suggested R2 bucket settings for the church website.
- * 
- * 1. Go to Cloudflare Dashboard → R2 → Create bucket
- * 2. Bucket name: "la-conquete-images" (or any name you prefer)
- * 3. Enable public access (R2.dev subdomain or custom domain)
- * 4. Optionally set up a custom domain like "images.laconquete.cd"
- * 
+ * Public R2 bucket URL for Église Évangélique La Conquête.
+ * All images should be uploaded to this R2 bucket via the Cloudflare Dashboard.
+ * Paste the full public URL (e.g. https://pub-...r2.dev/hero/slide1.jpg) in the admin.
+ *
  * Recommended folder structure:
  *   hero/           - Homepage hero slideshow images
  *   mega-menu/      - Mega menu panel images
@@ -160,6 +157,16 @@ export async function uploadToR2(
  *   blog/           - Blog post images
  *   logo/           - Logo files
  */
+
+/** The public R2 bucket base URL */
+export const R2_PUBLIC_BASE = 'https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev';
+
+/** Helper: build a full R2 URL from a path (e.g. 'hero/slide1.jpg') */
+export function r2Url(path: string): string {
+  const clean = path.startsWith('/') ? path.slice(1) : path;
+  return `${R2_PUBLIC_BASE}/${clean}`;
+}
+
 export const R2_FOLDERS = {
   hero: 'hero',
   megaMenu: 'mega-menu',

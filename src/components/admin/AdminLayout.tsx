@@ -25,14 +25,19 @@ const tabGroups: TabGroup[] = [
     ],
   },
   {
+    title: 'Pages',
+    tabs: [
+      { id: 'homepage_builder', label: "Page d'accueil", Icon: LayoutDashboard },
+      { id: 'page_builder', label: 'Autres pages', Icon: Blocks },
+    ],
+  },
+  {
     title: 'Contenu',
     tabs: [
       { id: 'contents', label: 'Contenus', Icon: FileText },
       { id: 'media', label: 'Médias', Icon: Image },
       { id: 'theme', label: 'Thème', Icon: Palette },
       { id: 'animations', label: 'Animations', Icon: Zap },
-      { id: 'homepage_builder', label: "Page d'accueil", Icon: LayoutDashboard },
-      { id: 'page_builder', label: 'Constructeur', Icon: Blocks },
       { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
       { id: 'messages', label: 'Messages', Icon: MessageSquare },
     ],

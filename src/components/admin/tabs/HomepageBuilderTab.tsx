@@ -11,7 +11,7 @@ import {
   Eye, Palette, LayoutDashboard, Clock, Sparkles, Radio, BookOpen,
   Star, Compass, Quote, Users, MessageSquare, Newspaper,
   Heart, Mail, Flame, FileText, Image, Video, Calendar, ChevronLeft,
-  Plus, Trash2, ImageIcon,
+  Plus, Trash2, ImageIcon, Monitor,
 } from 'lucide-react';
 import { saveSectionColors, loadSectionColors } from '../../../lib/hooks/useSectionColors';
 import ImageUpload from '../ImageUpload';
@@ -476,6 +476,104 @@ function HeroImageManager() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   Header Images Manager — logo + mega menu images
+   Stored in site_settings (category: 'images')
+   ═══════════════════════════════════════════════════════════════════ */
+
+const HEADER_IMAGE_SETTINGS = [
+  { key: 'site_logo_url', label: 'Logo du site (en-tête)', folder: 'logo' },
+  { key: 'logo_footer_url', label: 'Logo du pied de page', folder: 'logo' },
+  { key: 'mega_menu_image_about', label: 'Méga menu — À Propos', folder: 'mega-menu' },
+  { key: 'mega_menu_image_vie_eglise', label: 'Méga menu — Vie de l\'Église', folder: 'mega-menu' },
+  { key: 'mega_menu_image_media', label: 'Méga menu — Média', folder: 'mega-menu' },
+] as const;
+
+function HeaderImagesManager() {
+  const { addToast } = useToast();
+  const [values, setValues] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from('site_settings')
+        .select('key, value')
+        .in('key', HEADER_IMAGE_SETTINGS.map(s => s.key));
+
+      if (cancelled || !data) { setLoading(false); return; }
+
+      const map: Record<string, string> = {};
+      for (const row of data) map[row.key] = row.value;
+      setValues(map);
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleSave = async (key: string, url: string) => {
+    setValues(prev => ({ ...prev, [key]: url }));
+    const settingDef = HEADER_IMAGE_SETTINGS.find(s => s.key === key);
+
+    // Try update first
+    const { data: existing } = await supabase
+      .from('site_settings')
+      .select('id')
+      .eq('key', key)
+      .single();
+
+    if (existing) {
+      const { error } = await supabase
+        .from('site_settings')
+        .update({ value: url, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+      if (error) { addToast("Erreur lors de la sauvegarde", 'error'); return; }
+    } else {
+      const { error } = await supabase
+        .from('site_settings')
+        .insert({
+          key,
+          value: url,
+          type: 'url',
+          category: 'images',
+          label: settingDef?.label ?? key,
+          description: 'URL de l\'image (R2 ou toute URL publique)',
+          sort_order: 100 + HEADER_IMAGE_SETTINGS.findIndex(s => s.key === key),
+        });
+      if (error) { addToast("Erreur lors de la sauvegarde", 'error'); return; }
+    }
+
+    addToast(`${settingDef?.label ?? key} mis à jour`, 'success');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-white/40 text-sm">
+        <Loader2 className="h-4 w-4 animate-spin" /> Chargement...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {HEADER_IMAGE_SETTINGS.map((setting) => (
+        <div key={setting.key}>
+          <ImageUpload
+            value={values[setting.key] ?? ''}
+            onChange={(url) => handleSave(setting.key, url)}
+            label={setting.label}
+            folder={setting.folder}
+            accept={['image/jpeg', 'image/png', 'image/webp']}
+            maxSizeMB={10}
+          />
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Section Config Renderer (homepage-specific configs)
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -741,7 +839,15 @@ export function HomepageBuilderTab() {
       await supabase
         .from('site_settings')
         .upsert(
-          { key: `builder_config_${activePageId}`, value: JSON.stringify(configToSave), updated_at: new Date().toISOString() },
+          {
+            key: `builder_config_${activePageId}`,
+            value: JSON.stringify(configToSave),
+            type: 'json',
+            category: 'general',
+            label: `Configuration constructeur — ${ALL_PAGES.find(p => p.id === activePageId)?.label ?? activePageId}`,
+            sort_order: 500,
+            updated_at: new Date().toISOString(),
+          },
           { onConflict: 'key' },
         );
 
@@ -839,6 +945,23 @@ export function HomepageBuilderTab() {
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          {/* ── Header images shortcut (home page only) ── */}
+          {activePageId === 'home' && (
+            <button
+              type="button"
+              onClick={() => setActiveSection('__header__')}
+              className={`flex w-full items-center gap-2 border-b border-white/10 px-3 py-3 text-left transition-colors hover:bg-white/5 ${
+                activeSection === '__header__' ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
+              }`}
+            >
+              <Monitor className="h-4 w-4 flex-shrink-0 text-amber-400" />
+              <span className={`flex-1 truncate text-sm font-medium ${activeSection === '__header__' ? 'text-amber-400' : 'text-white'}`}>
+                En-tête & Navigation
+              </span>
+              <span className="text-[10px] text-white/30">Logo + Méga menu</span>
+            </button>
+          )}
+
           {sections.map((section, i) => {
             const Icon = SECTION_ICONS[section.id] ?? Sparkles;
             const isActive = activeSection === section.id;
@@ -912,7 +1035,19 @@ export function HomepageBuilderTab() {
         </div>
 
         <div className="flex-1 p-6">
-          {!activeSection || !activeSectionData ? (
+          {activeSection === '__header__' ? (
+            <div className="mx-auto max-w-xl space-y-3">
+              <h3 className="mb-4 text-lg font-semibold text-white">
+                Images de l'en-tête et navigation
+              </h3>
+              <p className="text-xs text-white/50 mb-4">
+                Gérez le logo du site, le logo du pied de page, et les images du méga menu.
+                Collez vos liens R2 (ex: https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev/logo/logo.png)
+                ou uploadez directement.
+              </p>
+              <HeaderImagesManager />
+            </div>
+          ) : !activeSection || !activeSectionData ? (
             <div className="flex h-full items-center justify-center">
               <div className="text-center">
                 <LayoutDashboard className="mx-auto mb-3 h-10 w-10 text-white/10" />

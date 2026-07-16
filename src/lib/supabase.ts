@@ -110,7 +110,10 @@ export const db = {
   async upsertSetting(key: string, value: string): Promise<void> {
     const { error } = await supabase
       .from('site_settings')
-      .upsert({ key, value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      .upsert(
+        { key, value, type: 'text', category: 'general', label: key, sort_order: 999, updated_at: new Date().toISOString() },
+        { onConflict: 'key' },
+      );
     if (error) throw new Error(error.message);
   },
 

@@ -243,6 +243,10 @@ export function AnimationsTab() {
         {
           key: 'animation_settings',
           value: JSON.stringify(settings),
+          type: 'json',
+          category: 'general',
+          label: 'Paramètres d\'animation',
+          sort_order: 700,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'key' },

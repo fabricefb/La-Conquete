@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, type DragEvent, type ChangeEvent } from 'react';
 import { Upload, X, Cloud, HardDrive, FolderOpen } from 'lucide-react';
 import { validateFile, uploadFile } from '../../lib/storage';
-import { isR2Url } from '../../lib/r2';
+import { isR2Url, R2_PUBLIC_BASE } from '../../lib/r2';
 import { useToast } from '../../contexts/ToastContext';
 
 interface ImageUploadProps {
@@ -216,8 +216,11 @@ export default function ImageUpload({
             ) : (
               <>
                 <Upload size={20} className="text-muted/60" />
-                <p className="text-muted/60 text-xs">
+                  <p className="text-muted/60 text-xs">
                   ou glissez-déposez une image ici — {accept.map(m => m.split('/')[1].toUpperCase()).join(', ')} — max {maxSizeMB} Mo
+                </p>
+                <p className="text-[10px] text-muted/40 mt-0.5">
+                  R2 : {R2_PUBLIC_BASE}/votre-dossier/image.jpg
                 </p>
               </>
             )}

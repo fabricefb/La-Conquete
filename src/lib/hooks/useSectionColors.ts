@@ -104,6 +104,10 @@ export async function saveSectionColors(
       {
         key: `section_colors_${pageId}`,
         value: JSON.stringify(colorMap),
+        type: 'json',
+        category: 'general',
+        label: `Couleurs de sections — ${pageId}`,
+        sort_order: 600,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'key' },

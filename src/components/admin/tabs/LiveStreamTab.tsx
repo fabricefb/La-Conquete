@@ -151,11 +151,11 @@ export function LiveStreamTab() {
     setSaving(true);
     try {
       const rows = [
-        { key: 'next_live_datetime', value: config.next_live_datetime },
-        { key: 'next_live_label', value: config.next_live_label },
-        { key: 'live_platform', value: config.live_platform },
-        { key: 'live_channel_url', value: config.live_channel_url },
-        { key: 'live_embed_url', value: config.live_embed_url },
+        { key: 'next_live_datetime', value: config.next_live_datetime, type: 'text', category: 'general', label: 'Prochain live — Date', sort_order: 800 },
+        { key: 'next_live_label', value: config.next_live_label, type: 'text', category: 'general', label: 'Prochain live — Titre', sort_order: 801 },
+        { key: 'live_platform', value: config.live_platform, type: 'text', category: 'general', label: 'Plateforme live', sort_order: 802 },
+        { key: 'live_channel_url', value: config.live_channel_url, type: 'url', category: 'general', label: 'URL du canal live', sort_order: 803 },
+        { key: 'live_embed_url', value: config.live_embed_url, type: 'url', category: 'general', label: 'URL d\'embed live', sort_order: 804 },
       ];
 
       await Promise.all(

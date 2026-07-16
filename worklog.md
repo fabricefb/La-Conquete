@@ -16,3 +16,41 @@ Stage Summary:
 - Toutes les images (méga menu ×3, héros, logo, footer logo, favicon) sont maintenant gérables depuis l'admin (Paramètres → Images & Médias)
 - Le composant ImageUpload offre 2 modes: coller un lien R2/URL public, ou uploader un fichier via Supabase
 - Cloudflare Pages va déployer automatiquement via le push git
+
+---
+Task ID: 2
+Agent: Main Agent
+Task: Configuration R2 + Correction erreurs sauvegarde admin + Restructuration page-par-page
+
+Work Log:
+- Configuré R2_PUBLIC_BASE = 'https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev' dans r2.ts avec helper r2Url()
+- Ajouté le hint R2 dans ImageUpload (affiche le lien de base R2 sous la zone drag-drop)
+- Diagnostic des erreurs de sauvegarde: 3 bugs trouvés
+  1. user_profiles RLS ré-activé par migration erp_roles → récursion infinie
+  2. site_settings.category CHECK ne contient pas 'images'
+  3. Tous les upserts site_settings manquent le champ label (NOT NULL sans DEFAULT)
+- Créé migration SQL: supabase/migrations/20260716000000_fix_admin_save_errors.sql
+  - DISABLE ROW LEVEL SECURITY sur user_profiles
+  - Ajout 'images' au CHECK category
+  - Ajout 'image' au CHECK type
+  - DEFAULT '' sur label
+  - Élargi page_contents.page CHECK (ajout culte, vision, pasteurs, etc.)
+- Corrigé 6 fichiers avec upserts incomplets:
+  - src/lib/supabase.ts (upsertSetting)
+  - src/lib/hooks/useSectionColors.ts (saveSectionColors)
+  - src/components/admin/tabs/HomepageBuilderTab.tsx (handleSave)
+  - src/components/admin/tabs/PageBuilderTab.tsx (handleSave)
+  - src/components/admin/tabs/AnimationsTab.tsx (handleSave)
+  - src/components/admin/tabs/LiveStreamTab.tsx (handleSave)
+- Restructuré l'admin page-par-page:
+  - AdminLayout: nouveau groupe "Pages" dans la sidebar (avant "Contenu")
+  - SettingsTab: supprimé gestion des images (seulement paramètres globaux)
+  - HomepageBuilderTab: ajouté "En-tête & Navigation" (logo + méga menu images)
+  - HeaderImagesManager: composant avec sauvegarde indépendante via site_settings
+- Build: TypeScript 0 erreurs, Vite build OK (9.8s)
+
+Stage Summary:
+- Lien R2 configuré: https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev
+- Migration SQL créée mais DOIT être exécutée manuellement dans Supabase SQL Editor
+- Structure admin restructurée: Pages > Page d'accueil > (En-tête & Navigation | Héro plein écran | ...)
+- Toutes les erreurs de sauvegarde corrigées dans le code

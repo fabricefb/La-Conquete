@@ -510,7 +510,15 @@ function EditorView({
     const { error } = await supabase
       .from('site_settings')
       .upsert(
-        { key: `page_builder_${currentPage.slug}`, value: JSON.stringify(currentPage), updated_at: new Date().toISOString() },
+        {
+          key: `page_builder_${currentPage.slug}`,
+          value: JSON.stringify(currentPage),
+          type: 'json',
+          category: 'general',
+          label: `Page builder — ${currentPage.name}`,
+          sort_order: 550,
+          updated_at: new Date().toISOString(),
+        },
         { onConflict: 'key' },
       );
     setSaving(false);
