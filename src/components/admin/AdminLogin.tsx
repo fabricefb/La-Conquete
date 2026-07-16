@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import { Lock, Mail, Landmark, Eye, EyeOff, Loader2, UserPlus } from '../../lib/icons';
+import { Lock, Mail, Landmark, Eye, EyeOff, Loader2, UserPlus, AlertTriangle } from '../../lib/icons';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 
 type Mode = 'login' | 'signup';
 
@@ -156,6 +156,25 @@ export default function AdminLogin() {
               : 'Créez votre compte administrateur'}
           </p>
         </div>
+
+        {/* Supabase non configuré */}
+        {!isSupabaseConfigured && (
+          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <div>
+                <p className="text-red-300 text-sm font-semibold">Connexion impossible</p>
+                <p className="text-red-300/70 text-xs mt-1">
+                  Les variables <code className="bg-red-500/20 px-1 rounded">VITE_SUPABASE_URL</code> et{' '}
+                  <code className="bg-red-500/20 px-1 rounded">VITE_SUPABASE_ANON_KEY</code> ne sont pas configurées.
+                </p>
+                <p className="text-red-300/70 text-xs mt-1">
+                  Ajoutez-les dans <strong>Cloudflare Pages → Settings → Environment variables</strong> puis redéployez.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={mode === 'login' ? handleLogin : handleSignup} noValidate className="space-y-5">

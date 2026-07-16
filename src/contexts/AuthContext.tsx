@@ -66,11 +66,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const fetchProfile = useCallback(async (userId: string) => {
     setProfileLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
+      // Timeout de 8s pour éviter le blocage par RLS
+      const { data, error } = await Promise.race([
+        supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('id', userId)
+          .single(),
+        new Promise<{ data: null; error: { message: string; code: 'TIMEOUT' } }>((resolve) =>
+          setTimeout(() => resolve({ data: null, error: { message: 'Requête trop longue (RLS ?)', code: 'TIMEOUT' } }), 8000)
+        ),
+      ]);
 
       if (!error && data) {
         const p = data as any;
@@ -98,6 +104,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           updated_at: p.updated_at,
         }));
         console.log('Profile loaded:', { id: p.id, is_admin: p.is_admin, role_level: p.role_level });
+      } else if (error?.code === 'TIMEOUT') {
+        console.error('Profile fetch timed out — possible RLS issue:', error.message);
+        // Fallback: créer un profil minimal depuis la session auth
+        const { data: userData } = await supabase.auth.getUser(userId);
+        const u = userData?.user;
+        if (u) {
+          setProfile(defaultProfile({
+            id: u.id,
+            email: u.email || '',
+            full_name: u.user_metadata?.full_name || u.user_metadata?.name || u.email?.split('@')[0] || null,
+          }));
+        }
       } else {
         console.log('No profile found, auto-creating...');
         await autoCreateProfile(userId);
@@ -192,6 +210,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchProfile]);
 
   const signIn = useCallback(async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase n\'est pas configuré. Vérifiez les variables d\'environnement VITE_SUPABASE_URL et VITE_SUPABASE_ANON_KEY dans Cloudflare Pages.');
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
   }, []);
