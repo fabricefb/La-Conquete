@@ -10,7 +10,7 @@ import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import {
   Eye, Palette, LayoutDashboard, Clock, Sparkles, Radio, BookOpen,
   Star, Compass, Quote, Users, MessageSquare, Newspaper,
-  Heart, Mail, Flame, FileText, Image, Video, Calendar, ChevronLeft,
+  Heart, Mail, Flame, FileText, Image, Video, Calendar, MapPin, ChevronLeft,
   Plus, Trash2, ImageIcon, Monitor,
 } from 'lucide-react';
 import { saveSectionColors, loadSectionColors } from '../../../lib/hooks/useSectionColors';
@@ -54,7 +54,7 @@ const HOMEPAGE_SECTIONS: SectionConfig[] = [
   { id: 'testimonials', label: 'Témoignages', visible: true, order: 8, config: { auto_play: true, interval: 5 } },
   { id: 'blog', label: 'Blog / Actualités', visible: true, order: 9, config: { columns: 3, max_posts: 3 } },
   { id: 'cta', label: 'Appel à action', visible: true, order: 10, config: { overlay_opacity: 85, show_heart: true } },
-  { id: 'contact_strip', label: 'Bandeau contact', visible: true, order: 11, config: { columns: 3 } },
+  { id: 'map', label: 'Carte de localisation', visible: true, order: 11, config: { embed_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000', height: 400 } },
 ];
 
 function makePageSections(pageId: string): SectionConfig[] {
@@ -145,8 +145,8 @@ const ALL_PAGES: PageDefinition[] = [
 const SECTION_ICONS: Record<string, LucideIcon> = {
   topbar: Clock, hero: Sparkles, verses: BookOpen, pillars: Flame,
   unique: Star, explore: Compass, quote: Quote, pastors: Users,
-  testimonials: MessageSquare, blog: Newspaper, cta: Heart, contact_strip: Mail,
-  horaires: Calendar, live: Radio, map: Compass, pratiques: Star,
+  testimonials: MessageSquare, blog: Newspaper, cta: Heart, map: MapPin,
+  horaires: Calendar, live: Radio, pratiques: Star,
   vision_text: Eye, mission: Compass, valeurs: Heart, psaume: BookOpen,
   histoire: Clock, principal: Users, anciens: Users, diacres: Users,
   equipe: Users, grid: LayoutDashboard, about: FileText, activites: Sparkles,
@@ -734,10 +734,25 @@ function SectionConfigEditor({
     );
   }
 
-  if (section.id === 'contact_strip') {
+  if (section.id === 'map') {
     return (
       <>
-        <Slider label="Colonnes" value={Number(c.columns ?? 3)} onChange={(v) => update('columns', v)} min={1} max={3} />
+        <TextArea
+          label="URL d'intégration Google Maps"
+          value={(c.embed_url as string) || ''}
+          onChange={(v) => update('embed_url', v)}
+          placeholder="Collez ici l'URL d'intégration Google Maps..."
+        />
+        <Slider
+          label="Hauteur (px)"
+          value={Number(c.height ?? 400)}
+          onChange={(v) => update('height', v)}
+          min={200}
+          max={800}
+        />
+        <p className="text-xs text-white/40 mt-1">
+          Pour obtenir l'URL : allez sur Google Maps, recherchez votre lieu, cliquez sur &quot;Partager&quot; → &quot;Intégrer une carte&quot;, et copiez le lien src de l'iframe.
+        </p>
         <SectionColorControls section={section} onColorChange={onColorChange} />
       </>
     );

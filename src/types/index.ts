@@ -283,6 +283,7 @@ export type AdminTab =
   | 'protocol'
   | 'homepage_builder'
   | 'page_builder'
+  | 'guide'
   | 'animations'
   | 'live_stream';
 

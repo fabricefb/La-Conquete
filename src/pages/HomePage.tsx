@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
+import { supabase, db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
 import { useReveal, useParallax } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -7,28 +7,19 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { TopBar } from '../components/home/TopBar';
 import { LiveStreamModal } from '../components/LiveStreamModal';
-import { TypingText, AnimatedCounter } from '../components/home/TypingHero';
-import { VerseRotator } from '../components/home/VerseRotator';
+import { TypingText } from '../components/home/TypingHero';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
 import {
-  Sparkles,
   Crown,
   Flame,
   Compass,
-  BookOpen,
   Quote,
-  MapPin,
-  Phone,
-  Mail,
+  Cross,
   Heart,
   ArrowRight,
-  Newspaper,
-  Cross,
-  Clock3,
   Radio,
   MonitorPlay,
-  Megaphone,
   Users,
   Calendar,
   Eye,
@@ -190,6 +181,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [pastors, setPastors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveModalOpen, setLiveModalOpen] = useState(false);
+  const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
@@ -197,15 +189,30 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, testimonialData, pastorData] = await Promise.all([
+        const [contents, settings, testimonialData, pastorData, builderData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
           db.getActiveTestimonials(),
           db.getActivePastors(),
+          supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
         setSettingsMap(buildSettingsMap(settings));
+
+        // Parse builder config to determine section visibility
+        if (builderData?.value) {
+          try {
+            const parsed = JSON.parse(builderData.value) as any[];
+            if (Array.isArray(parsed)) {
+              const cfg: Record<string, { visible: boolean; config: Record<string, unknown> }> = {};
+              for (const s of parsed) {
+                cfg[s.id] = { visible: !!s.visible, config: s.config || {} };
+              }
+              setBuilderConfig(cfg);
+            }
+          } catch { /* keep empty — all sections visible by default */ }
+        }
         setTestimonials(
           (testimonialData || [])
             .filter((t: any) => t.status === 'published' && t.is_active)
@@ -230,6 +237,18 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   /* ── Derived content ─────────────────────────────────────────── */
   const cm = contentMap;
+
+  // Helper: check if a section is visible via builder config (default: visible)
+  const isSectionVisible = (sectionId: string): boolean => {
+    const cfg = builderConfig[sectionId];
+    if (!cfg) return true; // no config = visible by default
+    return cfg.visible;
+  };
+
+  // Helper: get a config value from builder
+  const getBuilderConfig = (sectionId: string, key: string, fallback: unknown = ''): unknown => {
+    return builderConfig[sectionId]?.config?.[key] ?? fallback;
+  };
 
   // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
@@ -305,16 +324,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
     'Car nous sommes son ouvrage, ayant été créés en Jésus-Christ pour de bonnes \u0153uvres, que Dieu a préparées d\u2019avance, afin que nous les pratiquions.',
   );
   const quoteRef = getContent(cm, 'quote', 'reference', 'Éphésiens 2:10');
-
-  // Contact
-  const contactAddress = getContent(
-    cm,
-    'contact',
-    'address',
-    'Kinshasa, République Démocratique du Congo',
-  );
-  const contactPhone = getContent(cm, 'contact', 'phone', '+243 00 000 0000');
-  const contactEmail = getContent(cm, 'contact', 'email', 'contact@laconquete.cd');
 
   /* ── Loading ─────────────────────────────────────────────────── */
   if (loading) return <SkeletonPage />;
@@ -445,9 +454,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} />
+      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} />}
 
-      {/* ═══════ SECTION 2: THREE PILLARS ═══════ */}
+      {/* ═══════ SECTION: THREE PILLARS ═══════ */}
+      {isSectionVisible('pillars') && (
       <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
@@ -489,8 +499,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </section>
+      )}
 
-      {/* ═══════ SECTION 3: WE ARE UNIQUE ═══════ */}
+      {/* ═══════ SECTION: WE ARE UNIQUE ═══════ */}
+      {isSectionVisible('unique') && (
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -538,8 +550,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </section>
+      )}
 
-      {/* ═══════ SECTION 5: EXPLORER ═══════ */}
+      {/* ═══════ SECTION: EXPLORER ═══════ */}
+      {isSectionVisible('explore') && (
       <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
@@ -618,8 +632,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </div>
         </div>
       </section>
+      )}
 
-      {/* ═══════ SECTION 4: BIBLICAL QUOTE (full-width dark) ═══════ */}
+      {/* ═══════ SECTION: BIBLICAL QUOTE (full-width dark) ═══════ */}
+      {isSectionVisible('quote') && (
       <section
         className="py-28"
         style={{ backgroundColor: 'rgb(var(--bg-rgb))' }}
@@ -649,9 +665,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </RevealSection>
         </div>
       </section>
+      )}
 
-      {/* ═══════ SECTION 5: PASTORAL TEAM ═══════ */}
-      {pastors.length > 0 && (
+      {/* ═══════ SECTION: PASTORAL TEAM ═══════ */}
+      {isSectionVisible('pastors') && pastors.length > 0 && (
         <section className="py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
@@ -668,8 +685,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </section>
       )}
 
-      {/* ═══════ SECTION 6: TESTIMONIALS ═══════ */}
-      {testimonials.length > 0 && (
+      {/* ═══════ SECTION: TESTIMONIALS ═══════ */}
+      {isSectionVisible('testimonials') && testimonials.length > 0 && (
         <section className="py-24 bg-radial-primary">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
@@ -686,7 +703,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </section>
       )}
 
-      {/* ═══════ SECTION 6: CTA FINAL ═══════ */}
+      {/* ═══════ SECTION: CTA FINAL ═══════ */}
+      {isSectionVisible('cta') && (
       <section className="relative py-28 overflow-hidden">
         {/* Background image */}
         <div
@@ -727,22 +745,26 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </RevealSection>
         </div>
       </section>
+      )}
 
-      {/* ═══════       {/* ═══════ SECTION 7: MAP ═══════ */}
+      {/* ═══════ SECTION: MAP ═══════ */}
+      {isSectionVisible('map') && (
       <section className="py-0">
         <iframe
-          title="Localisation de l\'Église Évangélique La Conquête"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000"
+          title="Localisation de l'Église Évangélique La Conquête"
+          src={getBuilderConfig('map', 'embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000') as string}
           width="100%"
-          height="400"
-          style={ border: 0 }
+          height={getBuilderConfig('map', 'height', 400) as number}
+          style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
           className="w-full"
         />
       </section>
-{/* ═══════ FOOTER ═══════ */}
+      )}
+
+      {/* ═══════ FOOTER ═══════ */}
       <SiteFooter
         onNavigate={onNavigate}
         theme={colorMode}

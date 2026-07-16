@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, Blocks, Zap, Radio,
+  UserCheck, Blocks, BookOpen, Zap, Radio,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -29,6 +29,7 @@ const tabGroups: TabGroup[] = [
     tabs: [
       { id: 'homepage_builder', label: "Page d'accueil", Icon: LayoutDashboard },
       { id: 'page_builder', label: 'Autres pages', Icon: Blocks },
+      { id: 'guide', label: 'Guide', Icon: BookOpen },
     ],
   },
   {
