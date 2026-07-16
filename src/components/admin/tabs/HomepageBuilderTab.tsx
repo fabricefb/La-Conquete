@@ -11,8 +11,10 @@ import {
   Eye, Palette, LayoutDashboard, Clock, Sparkles, Radio, BookOpen,
   Star, Compass, Quote, Users, MessageSquare, Newspaper,
   Heart, Mail, Flame, FileText, Image, Video, Calendar, ChevronLeft,
+  Plus, Trash2, ImageIcon,
 } from 'lucide-react';
 import { saveSectionColors, loadSectionColors } from '../../../lib/hooks/useSectionColors';
+import ImageUpload from '../ImageUpload';
 import type { SectionColorMap } from '../../../lib/hooks/useSectionColors';
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -297,6 +299,183 @@ function SectionColorControls({
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   Hero Image Manager — upload/manage hero slideshow images
+   Stores images in page_contents table (hero/bg_image, hero/bg_images)
+   ═══════════════════════════════════════════════════════════════════ */
+
+function HeroImageManager() {
+  const { addToast } = useToast();
+  const [mainImage, setMainImage] = useState('');
+  const [slideshowImages, setSlideshowImages] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Load hero images from page_contents
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      setLoading(true);
+      const { data } = await supabase
+        .from('page_contents')
+        .select('section_key, field_key, value')
+        .eq('page', 'home')
+        .in('section_key', ['hero']);
+
+      if (cancelled || !data) { setLoading(false); return; }
+
+      let main = '';
+      const slides: string[] = [];
+
+      for (const row of data) {
+        if (row.field_key === 'bg_image' && row.value) main = row.value;
+        if (row.field_key === 'bg_images' && row.value) {
+          slides.push(...row.value.split(',').map((u: string) => u.trim()).filter(Boolean));
+        }
+      }
+
+      setMainImage(main);
+      setSlideshowImages(slides);
+      setLoading(false);
+    }
+    load();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Save a single content row
+  const saveContent = async (sectionKey: string, fieldKey: string, value: string) => {
+    const { data: existing } = await supabase
+      .from('page_contents')
+      .select('id')
+      .eq('page', 'home')
+      .eq('section_key', sectionKey)
+      .eq('field_key', fieldKey)
+      .single();
+
+    if (existing) {
+      await supabase.from('page_contents').update({ value, updated_at: new Date().toISOString() }).eq('id', existing.id);
+    } else {
+      await supabase.from('page_contents').insert({
+        page: 'home', section_key: sectionKey, field_key: fieldKey, value,
+      });
+    }
+  };
+
+  const handleMainChange = async (url: string) => {
+    setMainImage(url);
+    setSaving(true);
+    try {
+      await saveContent('hero', 'bg_image', url);
+      addToast('Image principale du hero mise à jour', 'success');
+    } catch {
+      addToast("Erreur lors de la sauvegarde de l'image", 'error');
+    }
+    setSaving(false);
+  };
+
+  const handleAddSlide = async (url: string) => {
+    if (!url) return;
+    const updated = [...slideshowImages, url];
+    setSlideshowImages(updated);
+    setSaving(true);
+    try {
+      await saveContent('hero', 'bg_images', updated.join(', '));
+      addToast('Diapositive ajoutée', 'success');
+    } catch {
+      addToast("Erreur lors de l'ajout", 'error');
+    }
+    setSaving(false);
+  };
+
+  const handleRemoveSlide = async (index: number) => {
+    const updated = slideshowImages.filter((_, i) => i !== index);
+    setSlideshowImages(updated);
+    setSaving(true);
+    try {
+      await saveContent('hero', 'bg_images', updated.join(', '));
+      addToast('Diapositive supprimée', 'success');
+    } catch {
+      addToast("Erreur lors de la suppression", 'error');
+    }
+    setSaving(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 py-4 text-white/40 text-sm">
+        <Loader2 className="h-4 w-4 animate-spin" /> Chargement des images...
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Main image */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <ImageIcon size={14} className="text-amber-400" />
+          <span className="text-sm font-medium text-white">Image principale du héros</span>
+        </div>
+        <ImageUpload
+          value={mainImage}
+          onChange={handleMainChange}
+          folder="hero"
+          accept={['image/jpeg', 'image/png', 'image/webp']}
+          maxSizeMB={10}
+        />
+      </div>
+
+      {/* Slideshow images */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-2">
+            <Image size={14} className="text-amber-400" />
+            <span className="text-sm font-medium text-white">Diapositives du carrousel</span>
+          </div>
+          <span className="text-xs text-white/40">{slideshowImages.length} image{slideshowImages.length !== 1 ? 's' : ''}</span>
+        </div>
+
+        {/* Existing slides */}
+        {slideshowImages.length > 0 && (
+          <div className="grid grid-cols-2 gap-2 mb-3">
+            {slideshowImages.map((url, i) => (
+              <div key={i} className="relative group rounded-lg overflow-hidden border border-white/10">
+                <img src={url} alt={`Diapositive ${i + 1}`} className="w-full h-24 object-cover" />
+                <div className="absolute bottom-0 left-0 right-0 bg-black/60 px-2 py-0.5">
+                  <span className="text-[10px] text-white/70">#{i + 1}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleRemoveSlide(i)}
+                  className="absolute top-1 right-1 p-1 rounded-full bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add new slide */}
+        <ImageUpload
+          value=""
+          onChange={handleAddSlide}
+          label="Ajouter une diapositive"
+          folder="hero"
+          accept={['image/jpeg', 'image/png', 'image/webp']}
+          maxSizeMB={10}
+        />
+      </div>
+
+      {saving && (
+        <div className="flex items-center gap-2 text-xs text-amber-400">
+          <Loader2 className="h-3 w-3 animate-spin" /> Sauvegarde en cours...
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Section Config Renderer (homepage-specific configs)
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -333,6 +512,13 @@ function SectionConfigEditor({
   if (section.id === 'hero') {
     return (
       <>
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-3">
+            <ImageIcon size={14} className="text-amber-400" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-white/50">Images du héros</span>
+          </div>
+          <HeroImageManager />
+        </div>
         <Slider label="Opacité de l'overlay" value={Number(c.overlay_opacity ?? 75)} onChange={(v) => update('overlay_opacity', v)} min={0} max={100} />
         <Slider label="Vitesse d'animation" value={Number(c.animation_speed ?? 70)} onChange={(v) => update('animation_speed', v)} min={10} max={100} />
         <ControlRow label="Indicateur de défilement">

@@ -35,11 +35,8 @@ const IMAGE_SETTINGS = new Set([
   'mega_menu_image_about',
   'mega_menu_image_vie_eglise',
   'mega_menu_image_media',
-  'hero_image_url',
-  'hero_bg_images',
   'site_logo_url',
   'logo_footer_url',
-  'favicon_url',
 ]);
 
 /** Mapping of image setting key → folder for upload */
@@ -47,11 +44,8 @@ const IMAGE_FOLDER_MAP: Record<string, string> = {
   mega_menu_image_about: 'mega-menu',
   mega_menu_image_vie_eglise: 'mega-menu',
   mega_menu_image_media: 'mega-menu',
-  hero_image_url: 'hero',
-  hero_bg_images: 'hero',
   site_logo_url: 'logo',
   logo_footer_url: 'logo',
-  favicon_url: 'logo',
 };
 
 /** Mapping of image setting key → user-friendly label override */
@@ -59,11 +53,8 @@ const IMAGE_LABELS: Record<string, string> = {
   mega_menu_image_about: 'Image Méga Menu — À Propos',
   mega_menu_image_vie_eglise: 'Image Méga Menu — Vie de l\'Église',
   mega_menu_image_media: 'Image Méga Menu — Média',
-  hero_image_url: 'Image Hero — Diapositive principale',
-  hero_bg_images: 'Images Hero — Diapositives multiples (URLs séparées par des virgules)',
   site_logo_url: 'Logo du site (header)',
   logo_footer_url: 'Logo du pied de page',
-  favicon_url: 'Favicon',
 };
 
 // ─── Component ──────────────────────────────────────────────────────
@@ -144,13 +135,11 @@ export function SettingsTab() {
   // ── Upsert helper: ensure image settings exist in DB ──
   const ensureImageSettings = useCallback(async () => {
     const imageSettingsDefs = [
-      { key: 'mega_menu_image_about', label: 'Image Méga Menu — À Propos', category: 'images', type: 'url' as const, sort_order: 100 },
-      { key: 'mega_menu_image_vie_eglise', label: 'Image Méga Menu — Vie de l\'Église', category: 'images', type: 'url' as const, sort_order: 101 },
-      { key: 'mega_menu_image_media', label: 'Image Méga Menu — Média', category: 'images', type: 'url' as const, sort_order: 102 },
-      { key: 'hero_image_url', label: 'Image Hero — Principale', category: 'images', type: 'url' as const, sort_order: 110 },
-      { key: 'hero_bg_images', label: 'Images Hero — Diapositives (URLs séparées par virgules)', category: 'images', type: 'url' as const, sort_order: 111, description: 'Plusieurs URLs séparées par des virgules pour le carrousel du hero' },
-      { key: 'site_logo_url', label: 'Logo du site (header)', category: 'images', type: 'url' as const, sort_order: 120 },
-      { key: 'logo_footer_url', label: 'Logo du pied de page', category: 'images', type: 'url' as const, sort_order: 121 },
+      { key: 'mega_menu_image_about', label: 'Image Méga Menu — À Propos', category: 'images', type: 'url' as const, sort_order: 100, description: 'Image du panneau droit dans le méga menu À Propos' },
+      { key: 'mega_menu_image_vie_eglise', label: 'Image Méga Menu — Vie de l\'Église', category: 'images', type: 'url' as const, sort_order: 101, description: 'Image du panneau droit dans le méga menu Vie de l\'Église' },
+      { key: 'mega_menu_image_media', label: 'Image Méga Menu — Média', category: 'images', type: 'url' as const, sort_order: 102, description: 'Image du panneau droit dans le méga menu Média' },
+      { key: 'site_logo_url', label: 'Logo du site (header)', category: 'images', type: 'url' as const, sort_order: 120, description: 'Logo affiché dans l\'en-tête du site' },
+      { key: 'logo_footer_url', label: 'Logo du pied de page', category: 'images', type: 'url' as const, sort_order: 121, description: 'Logo affiché dans le pied de page' },
     ];
 
     const existingKeys = new Set(settings.map(s => s.key));
@@ -164,26 +153,29 @@ export function SettingsTab() {
         key: d.key,
         value: '',
         label: d.label,
-        description: (d as any).description ?? 'URL de l\'image (R2, Supabase Storage, ou toute URL publique)',
+        description: d.description || 'URL de l\'image (R2, ou toute URL publique)',
         type: d.type,
         category: d.category,
         sort_order: d.sort_order,
       })), { onConflict: 'key' });
 
-    if (!error) {
-      // Re-fetch to include new settings
-      const { data } = await supabase.from('site_settings').select('*').order('sort_order');
-      if (data) {
-        setSettings(data);
-        const orig: Record<string, string> = {};
-        const form: Record<string, string> = {};
-        for (const s of data) {
-          orig[s.key] = s.value;
-          form[s.key] = s.value;
-        }
-        setOriginalValues(orig);
-        setFormValues(form);
+    if (error) {
+      console.warn('[SettingsTab] Erreur upsert image settings:', error.message);
+      return;
+    }
+
+    // Re-fetch to include new settings
+    const { data } = await supabase.from('site_settings').select('*').order('sort_order');
+    if (data) {
+      setSettings(data);
+      const orig: Record<string, string> = {};
+      const form: Record<string, string> = {};
+      for (const s of data) {
+        orig[s.key] = s.value;
+        form[s.key] = s.value;
       }
+      setOriginalValues(orig);
+      setFormValues(form);
     }
   }, [settings]);
 
