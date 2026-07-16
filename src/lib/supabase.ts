@@ -773,7 +773,8 @@ export function buildContentMap(contents: PageContent[]): Record<string, string>
 
 // ─── Content helper: get a value with fallback ───────────────────
 export function getContent(map: Record<string, string>, section: string, field: string, fallback: string): string {
-  return map[`${section}.${field}`] || fallback;
+  const key = `${section}.${field}`;
+  return key in map ? map[key] : fallback;
 }
 
 // ─── Settings helper: build a map from settings rows ─────────────
