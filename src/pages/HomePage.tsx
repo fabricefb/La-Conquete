@@ -201,9 +201,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
         setSettingsMap(buildSettingsMap(settings));
 
         // Parse builder config to determine section visibility
-        if (builderData?.value) {
+        if (builderData?.data?.value) {
           try {
-            const parsed = JSON.parse(builderData.value) as any[];
+            const parsed = typeof builderData.data.value === 'string'
+              ? JSON.parse(builderData.data.value) as any[]
+              : builderData.data.value as any[];
             if (Array.isArray(parsed)) {
               const cfg: Record<string, { visible: boolean; config: Record<string, unknown> }> = {};
               for (const s of parsed) {
