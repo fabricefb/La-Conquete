@@ -4,7 +4,7 @@
    Église Évangélique La Conquête
    ═══════════════════════════════════════════════════════════════════ */
 import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import {
   Mail, Lock, User, Phone, ArrowRight, ChevronLeft,
@@ -116,6 +116,10 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
+      if (!isSupabaseConfigured) {
+        addToast('Le service d\'inscription n\'est pas disponible actuellement.', 'error');
+        return;
+      }
       // Déterminer l'email à utiliser
       const finalEmail = email.trim() || phoneToEmail(phone);
 

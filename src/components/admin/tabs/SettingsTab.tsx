@@ -119,7 +119,11 @@ export function SettingsTab() {
     );
 
     const failed = results
-      .map((r, i) => (r.status === 'rejected' ? keys[i] : null))
+      .map((r, i) => {
+        if (r.status === 'rejected') return keys[i];
+        if (r.status === 'fulfilled' && r.value.error) return keys[i];
+        return null;
+      })
       .filter((k): k is string => k !== null);
 
     if (failed.length === 0) {

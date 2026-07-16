@@ -1,5 +1,3 @@
-'use client';
-
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Bell, Check, CheckCheck, Info, Calendar, FileText, AlertTriangle,
@@ -49,7 +47,7 @@ function timeAgo(dateStr: string): string {
 export function NotificationCenter() {
   const { user, profile, unreadCount } = useAuth();
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(DEMO_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [markingAll, setMarkingAll] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -69,7 +67,7 @@ export function NotificationCenter() {
         setNotifications(data as NotificationItem[]);
       }
     } catch {
-      /* keep demo data */
+      /* empty — no notifications yet */
     } finally {
       setLoading(false);
     }

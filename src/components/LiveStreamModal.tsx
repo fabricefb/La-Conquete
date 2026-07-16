@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { X } from '../lib/icons';
 import { Maximize2 } from 'lucide-react';
@@ -36,7 +36,7 @@ export function LiveStreamModal({ open, onClose }: LiveStreamModalProps) {
   const [channelUrl, setChannelUrl] = useState('');
   const [label, setLabel] = useState('En direct');
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const modalRef = useState<HTMLDivElement | null>(null)[0];
+  const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) return;

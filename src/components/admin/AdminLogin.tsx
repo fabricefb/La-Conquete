@@ -153,7 +153,7 @@ export default function AdminLogin() {
           <p className="mt-2 text-sm text-cream/60 text-center">
             {mode === 'login'
               ? 'Connectez-vous pour accéder au back-office'
-              : 'Créez votre compte administrateur'}
+              : 'Créez votre compte'}
           </p>
         </div>
 
@@ -278,7 +278,7 @@ export default function AdminLogin() {
                 <span>{mode === 'login' ? 'Connexion en cours…' : 'Création en cours…'}</span>
               </>
             ) : (
-              <span>{mode === 'login' ? 'Se connecter' : 'Créer le compte admin'}</span>
+              <span>{mode === 'login' ? 'Se connecter' : 'Créer le compte'}</span>
             )}
           </button>
         </form>
@@ -294,7 +294,7 @@ export default function AdminLogin() {
             className="text-sm text-evangile-500 hover:text-evangile-400 transition-colors"
           >
             {mode === 'login'
-              ? "Première fois ? Créer un compte admin"
+              ? "Première fois ? Créer un compte"
               : 'Déjà un compte ? Se connecter'}
           </button>
         </div>

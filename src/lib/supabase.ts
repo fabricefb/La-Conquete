@@ -50,6 +50,14 @@ export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
 
 export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
+if (!isSupabaseConfigured) {
+  console.warn(
+    '[supabase] VITE_SUPABASE_URL et/ou VITE_SUPABASE_ANON_KEY ne sont pas definis. ' +
+    'Toutes les requetes Supabase echoueront. ' +
+    "Verifiez les variables d'environnement dans Cloudflare Pages > Settings > Environment variables."
+  );
+}
+
 // ─── Re-export all types from a single import point ──────────────
 export type {
   Location,
@@ -288,13 +296,16 @@ export const db = {
     console.warn('completeOnboarding erreur, débloqué via localStorage:', err1.message);
   },
   async updateProfile(updates: Partial<{ full_name: string; phone: string; address: string; gender: string; birth_date: string }>): Promise<void> {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('Vous devez être connecté pour modifier votre profil.');
     const { error } = await supabase
       .from('user_profiles').update({ ...updates, updated_at: new Date().toISOString() })
-      .eq('id', (await supabase.auth.getUser()).data.user.id);
+      .eq('id', user.id);
     if (error) throw new Error(error.message);
   },
   async requestRoleUpgrade(requestedRole: string, departmentId?: string, positionId?: string, motivation?: string): Promise<void> {
     const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('Vous devez être connecté.');
     const { error } = await supabase
       .from('role_requests').insert({
         user_id: user.id,
@@ -307,6 +318,7 @@ export const db = {
   },
   async joinDepartment(departmentId: string, positionId?: string): Promise<void> {
     const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('Vous devez être connecté.');
     const { error } = await supabase
       .from('department_members').upsert({
         user_id: user.id,
@@ -319,10 +331,14 @@ export const db = {
   // ── ERP: Prayer Requests ──────────────────────────────────────
   async submitPrayerRequest(content: string, isAnonymous: boolean, isConfidential: boolean): Promise<void> {
     const user = (await supabase.auth.getUser()).data.user;
+    if (!user && !isAnonymous) throw new Error('Vous devez être connecté pour soumettre une demande de prière.');
+    const authorName = isAnonymous
+      ? 'Anonyme'
+      : (user!.user_metadata?.full_name || user!.email || 'Anonyme');
     const { error } = await supabase
       .from('prayer_requests').insert({
-        user_id: isAnonymous ? null : user.id,
-        author_name: user.user_metadata?.full_name || user.email || 'Anonyme',
+        user_id: isAnonymous ? null : user!.id,
+        author_name: authorName,
         content,
         is_anonymous: isAnonymous,
         is_confidential: isConfidential,
@@ -671,7 +687,7 @@ export const db = {
   },
 
   createNotification(userId: string, title: string, body: string, type: string, link?: string, refTable?: string, refId?: string) {
-    return supabase.from('notifications').insert({ user_id: userId, title, body, type, is_read: false, link, ref_table: refTable, ref_id: refId, created_at: new Date().toISOString() });
+    return supabase.from('notifications').insert({ user_id: userId, title, message: body, type, is_read: false, link: link ?? null, ref_table: refTable, ref_id: refId, created_at: new Date().toISOString() });
   },
 
   // ═══════════════════════════════════════════════
