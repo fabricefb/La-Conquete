@@ -447,42 +447,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
       <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} />
 
-      {/* ═══════ SECTION 2: BIBLE VERSES ═══════ */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-14 text-center">
-            <p className="section-label justify-center">La Parole de Dieu</p>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
-              Ancrez votre vie dans les promesses divines
-            </h2>
-          </RevealSection>
-
-          <div className="grid gap-8 md:grid-cols-5 items-start">
-            {/* Left: VerseRotator */}
-            <RevealSection className="md:col-span-3">
-              <VerseRotator />
-            </RevealSection>
-
-            {/* Right: 2x2 verse cards */}
-            <div className="md:col-span-2 grid grid-cols-2 gap-4">
-              {smallVerses.map((verse, i) => (
-                <RevealSection key={i} className={`reveal-delay-${i + 1}`}>
-                  <div className="glass-card h-full rounded-xl p-4 flex flex-col justify-between">
-                    <p className="text-xs sm:text-sm leading-relaxed text-cream/80 italic">
-                      &ldquo;{verse.text}&rdquo;
-                    </p>
-                    <p className="mt-3 text-[10px] font-semibold uppercase tracking-wider text-evangile-500">
-                      {verse.ref}
-                    </p>
-                  </div>
-                </RevealSection>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ SECTION 3: THREE PILLARS ═══════ */}
+      {/* ═══════ SECTION 2: THREE PILLARS ═══════ */}
       <section className="py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
@@ -525,7 +490,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* ═══════ SECTION 4: WE ARE UNIQUE ═══════ */}
+      {/* ═══════ SECTION 3: WE ARE UNIQUE ═══════ */}
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
@@ -654,7 +619,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* ═══════ SECTION 6: BIBLICAL QUOTE (full-width dark) ═══════ */}
+      {/* ═══════ SECTION 4: BIBLICAL QUOTE (full-width dark) ═══════ */}
       <section
         className="py-28"
         style={{ backgroundColor: 'rgb(var(--bg-rgb))' }}
@@ -685,7 +650,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* ═══════ SECTION 7: PASTORAL TEAM ═══════ */}
+      {/* ═══════ SECTION 5: PASTORAL TEAM ═══════ */}
       {pastors.length > 0 && (
         <section className="py-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -703,7 +668,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </section>
       )}
 
-      {/* ═══════ SECTION 8: TESTIMONIALS ═══════ */}
+      {/* ═══════ SECTION 6: TESTIMONIALS ═══════ */}
       {testimonials.length > 0 && (
         <section className="py-24 bg-radial-primary">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
@@ -721,70 +686,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </section>
       )}
 
-      {/* ═══════ SECTION 9: BLOG / ACTUALITÉS ═══════ */}
-      <section className="py-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-14 text-center">
-            <p className="section-label justify-center">
-              <Newspaper className="h-3.5 w-3.5 mr-1.5" />
-              Actualités
-            </p>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
-              Dernières nouvelles
-            </h2>
-          </RevealSection>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {sampleArticles.map((article, i) => (
-              <RevealSection key={i} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group overflow-hidden rounded-2xl transition-all duration-300 hover:-translate-y-1 hover:border-evangile-600/20">
-                  {/* Image */}
-                  <div className="overflow-hidden h-48">
-                    <img
-                      src={article.img}
-                      alt={article.title}
-                      className="blog-img-zoom h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                      loading="lazy"
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-5">
-                    {/* Category badge */}
-                    <span className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-evangile-600/20 bg-evangile-600/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
-                      <Megaphone className="h-3 w-3" />
-                      {article.category}
-                    </span>
-
-                    <h3 className="font-serif text-base font-semibold leading-snug text-cream line-clamp-2 group-hover:text-evangile-500 transition-colors duration-200">
-                      {article.title}
-                    </h3>
-
-                    <div className="mt-2 flex items-center gap-2 text-xs text-muted">
-                      <Clock3 className="h-3 w-3" />
-                      {article.date}
-                    </div>
-
-                    <p className="mt-3 text-sm leading-relaxed text-muted line-clamp-2">
-                      {article.excerpt}
-                    </p>
-
-                    <button
-                      onClick={() => onNavigate('annonces')}
-                      className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-evangile-500 hover:text-evangile-400 transition-colors duration-200"
-                    >
-                      Lire l&apos;article
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ SECTION 10: CTA FINAL ═══════ */}
+      {/* ═══════ SECTION 6: CTA FINAL ═══════ */}
       <section className="relative py-28 overflow-hidden">
         {/* Background image */}
         <div
@@ -826,62 +728,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </div>
       </section>
 
-      {/* ═══════ SECTION 11: CONTACT STRIP ═══════ */}
-      <section className="py-20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid gap-6 sm:grid-cols-3">
-            {[
-              {
-                Icon: MapPin,
-                label: 'Adresse',
-                value: contactAddress,
-                href: undefined,
-              },
-              {
-                Icon: Phone,
-                label: 'Téléphone',
-                value: contactPhone,
-                href: `tel:${contactPhone.replace(/\s/g, '')}`,
-              },
-              {
-                Icon: Mail,
-                label: 'Email',
-                value: contactEmail,
-                href: `mailto:${contactEmail}`,
-              },
-            ].map(({ Icon, label, value, href }, i) => (
-              <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
-                {href ? (
-                  <a
-                    href={href}
-                    className="glass-card group block rounded-2xl p-7 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]"
-                  >
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-evangile-500 group-hover:border-evangile-600/40 group-hover:bg-evangile-600/10">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">
-                      {label}
-                    </p>
-                    <p className="text-sm font-medium text-cream">{value}</p>
-                  </a>
-                ) : (
-                  <div className="glass-card group rounded-2xl p-7 text-center transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02]">
-                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 text-muted transition-all duration-300 group-hover:scale-110 group-hover:text-evangile-500 group-hover:border-evangile-600/40 group-hover:bg-evangile-600/10">
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">
-                      {label}
-                    </p>
-                    <p className="text-sm font-medium text-cream">{value}</p>
-                  </div>
-                )}
-              </RevealSection>
-            ))}
-          </div>
-        </div>
+      {/* ═══════       {/* ═══════ SECTION 7: MAP ═══════ */}
+      <section className="py-0">
+        <iframe
+          title="Localisation de l\'Église Évangélique La Conquête"
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000"
+          width="100%"
+          height="400"
+          style={ border: 0 }
+          allowFullScreen
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          className="w-full"
+        />
       </section>
-
-      {/* ═══════ FOOTER ═══════ */}
+{/* ═══════ FOOTER ═══════ */}
       <SiteFooter
         onNavigate={onNavigate}
         theme={colorMode}
