@@ -760,4 +760,4 @@ export function buildSettingsMap(settings: SiteSetting[]): Record<string, string
     map[s.key] = s.value;
   }
   return map;
-}
+}// Build: 20260716113052
