@@ -851,7 +851,7 @@ export function HomepageBuilderTab() {
       // Save section config (without color fields)
       const configToSave = sections.map(({ text_color: _tc, bg_color: _bc, ...rest }) => rest);
 
-      await supabase
+      const { error: configError } = await supabase
         .from('site_settings')
         .upsert(
           {
@@ -866,6 +866,13 @@ export function HomepageBuilderTab() {
           { onConflict: 'key' },
         );
 
+      if (configError) {
+        console.error('Builder config save error:', configError);
+        addToast(`Erreur sauvegarde config : ${configError.message}`, 'error');
+        setSaving(false);
+        return;
+      }
+
       // Save section colors
       const colorMap: SectionColorMap = {};
       for (const s of sections) {
@@ -876,11 +883,20 @@ export function HomepageBuilderTab() {
           };
         }
       }
-      await saveSectionColors(activePageId, colorMap);
+      try {
+        await saveSectionColors(activePageId, colorMap);
+      } catch (colorErr: any) {
+        console.error('Section colors save error:', colorErr);
+        // Colors are non-critical — warn but don't block
+        addToast('Config sauvegardée (couleurs non enregistrées)', 'info');
+        setSaving(false);
+        return;
+      }
 
       addToast(`Configuration de "${ALL_PAGES.find(p => p.id === activePageId)?.label}" enregistrée`, 'success');
-    } catch {
-      addToast("Erreur lors de l'enregistrement", 'error');
+    } catch (err: any) {
+      console.error('Save error:', err);
+      addToast(`Erreur : ${err?.message || 'inconnue'}`, 'error');
     } finally {
       setSaving(false);
     }
