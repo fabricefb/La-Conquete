@@ -2,7 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
-import { Save, Plus, Trash2, X, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
+import {
+  Save, Plus, Trash2, X, ChevronDown, ChevronRight,
+  Loader2, Home, Info, Flame, Compass, Quote, Users,
+  MessageSquare, Calendar, Radio, Video, Building2,
+  Megaphone, Heart, MapPin, BookOpen,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -21,27 +28,157 @@ interface PageContent {
   updated_at: string;
 }
 
-const PAGES: { key: string; label: string }[] = [
-  { key: 'home', label: 'Accueil' },
-  { key: 'about', label: 'À propos' },
-  { key: 'activities', label: 'Activités' },
-  { key: 'events', label: 'Événements' },
-  { key: 'media', label: 'Médias' },
-  { key: 'contact', label: 'Contact' },
+// ─── Page definitions with icons & section labels ──────────────────
+
+interface SectionDef {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  description: string;
+}
+
+interface PageDef {
+  key: string;
+  label: string;
+  icon: LucideIcon;
+  description: string;
+  sections: SectionDef[];
+}
+
+const PAGES: PageDef[] = [
+  {
+    key: 'home',
+    label: 'Page d\'accueil',
+    icon: Home,
+    description: 'Hero, Piliers, À propos, Citation',
+    sections: [
+      { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, sous-titre du héro' },
+      { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
+      { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Textes descriptifs et citation' },
+      { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence de la citation' },
+    ],
+  },
+  {
+    key: 'about',
+    label: 'À propos',
+    icon: Info,
+    description: 'Héro, Valeurs',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'values', label: 'Valeurs', icon: Heart, description: 'Titre, sous-titre des valeurs' },
+    ],
+  },
+  {
+    key: 'activities',
+    label: 'Activités / Culte',
+    icon: Calendar,
+    description: 'Héro, Ministères, CTA',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'ministries', label: 'Ministères', icon: Users, description: 'Titre et sous-titre' },
+      { key: 'cta', label: 'Appel à action', icon: Compass, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'events',
+    label: 'Événements',
+    icon: Calendar,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'contact',
+    label: 'Contact',
+    icon: MapPin,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+    ],
+  },
+  {
+    key: 'departments',
+    label: 'Départements',
+    icon: Building2,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+    ],
+  },
+  {
+    key: 'media',
+    label: 'Médias',
+    icon: Video,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+    ],
+  },
+  {
+    key: 'emissions',
+    label: 'Émissions',
+    icon: Radio,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+    ],
+  },
+  {
+    key: 'predications',
+    label: 'Prédications',
+    icon: BookOpen,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+    ],
+  },
 ];
+
+// ─── Section label resolver ─────────────────────────────────────────
+
+function getSectionLabel(pageKey: string, sectionKey: string): { label: string; icon: LucideIcon; description: string } {
+  const page = PAGES.find((p) => p.key === pageKey);
+  if (!page) return { label: sectionKey, icon: FileText, description: '' };
+  const sec = page.sections.find((s) => s.key === sectionKey);
+  if (sec) return { label: sec.label, icon: sec.icon, description: sec.description };
+
+  // Dynamic sections (e.g., value_1, value_2 on about page)
+  if (sectionKey.startsWith('value_')) {
+    const num = sectionKey.replace('value_', '');
+    return {
+      label: `Valeur ${num}`,
+      icon: Heart,
+      description: 'Icône, titre et description',
+    };
+  }
+  return { label: sectionKey, icon: FileText, description: '' };
+}
+
+function FileText_({ size = 16, className = '' }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />
+    </svg>
+  );
+}
+const FileText = FileText_;
 
 // ─── Component ──────────────────────────────────────────────────────
 
 export function ContentsTab() {
   const { addToast } = useToast();
   const { isFullAdmin } = useAdminAccess();
+
   const [activePage, setActivePage] = useState(PAGES[0].key);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
   const [contents, setContents] = useState<PageContent[]>([]);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
   const [draftActive, setDraftActive] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(false);
-  const [savingSections, setSavingSections] = useState<Set<string>>(new Set());
-  const [openSections, setOpenSections] = useState<Set<string>>(new Set());
+  const [saving, setSaving] = useState(false);
 
   // ── Add-field modal state ──
   const [addModal, setAddModal] = useState<{ sectionKey: string } | null>(null);
@@ -55,49 +192,56 @@ export function ContentsTab() {
   // ── Fetch contents ──
 
   useEffect(() => {
-    const fetchContents = async () => {
+    let cancelled = false;
+
+    async function load() {
       setLoading(true);
+      setActiveSection(null);
+
       const { data, error } = await supabase
         .from('page_contents')
         .select('*')
         .eq('page', activePage)
+        .order('section_key')
         .order('sort_order');
 
+      if (cancelled) return;
+
       if (error) {
-        addToast('Erreur lors du chargement du contenu', 'error');
-        setLoading(false);
-        return;
-      }
+        addToast('Erreur lors du chargement', 'error');
+      } else {
+        const rows: PageContent[] = (data ?? []) as PageContent[];
+        setContents(rows);
+        const vals: Record<string, string> = {};
+        const acts: Record<string, boolean> = {};
+        for (const r of rows) {
+          vals[r.id] = r.value;
+          acts[r.id] = r.is_active;
+        }
+        setDraftValues(vals);
+        setDraftActive(acts);
 
-      const rows: PageContent[] = data ?? [];
-      setContents(rows);
-
-      const vals: Record<string, string> = {};
-      const acts: Record<string, boolean> = {};
-      const sections = new Set<string>();
-      for (const r of rows) {
-        vals[r.id] = r.value;
-        acts[r.id] = r.is_active;
-        sections.add(r.section_key);
+        // Auto-open first section
+        if (rows.length > 0) {
+          setActiveSection(rows[0].section_key);
+        }
       }
-      setDraftValues(vals);
-      setDraftActive(acts);
-      setOpenSections(sections);
       setLoading(false);
-    };
+    }
 
-    void fetchContents();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activePage]);
+    load();
+    return () => { cancelled = true; };
+  }, [activePage, addToast]);
 
   // ── Grouped by section ──
 
-  const sections = new Map<string, PageContent[]>();
+  const sectionMap = new Map<string, PageContent[]>();
   for (const c of contents) {
-    const list = sections.get(c.section_key) ?? [];
+    const list = sectionMap.get(c.section_key) ?? [];
     list.push(c);
-    sections.set(c.section_key, list);
+    sectionMap.set(c.section_key, list);
   }
+  const sectionKeys = Array.from(sectionMap.keys());
 
   // ── Handlers ──
 
@@ -109,72 +253,52 @@ export function ContentsTab() {
     setDraftActive((prev) => ({ ...prev, [id]: checked }));
   }, []);
 
-  const toggleSection = useCallback((key: string) => {
-    setOpenSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key);
-      else next.add(key);
-      return next;
-    });
-  }, []);
+  // ── Save all changes for the active page ──
 
-  // ── Save section ──
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+    const now = new Date().toISOString();
 
-  const saveSection = useCallback(
-    async (sectionKey: string) => {
-      const items = sections.get(sectionKey) ?? [];
-      if (items.length === 0) return;
-
-      setSavingSections((prev) => new Set(prev).add(sectionKey));
-      const now = new Date().toISOString();
-
-      const results = await Promise.allSettled(
-        items.map((item) => {
-          const newValue = draftValues[item.id] ?? item.value;
-          const newActive = draftActive[item.id] ?? item.is_active;
-          return supabase
-            .from('page_contents')
-            .update({ value: newValue, is_active: newActive, updated_at: now })
-            .eq('id', item.id);
-        }),
-      );
-
-      const failed = results.filter((r) => r.status === 'rejected').length;
-
-      if (failed === 0) {
-        addToast(`Section "${sectionKey}" sauvegardée`, 'success');
-        // Refresh data
-        const { data } = await supabase
+    const results = await Promise.allSettled(
+      contents.map((item) => {
+        const newVal = draftValues[item.id] ?? item.value;
+        const newActive = draftActive[item.id] ?? item.is_active;
+        if (newVal === item.value && newActive === item.is_active) return Promise.resolve();
+        return supabase
           .from('page_contents')
-          .select('*')
-          .eq('page', activePage)
-          .order('sort_order');
-        if (data) {
-          setContents(data as PageContent[]);
-          const vals: Record<string, string> = {};
-          const acts: Record<string, boolean> = {};
-          for (const r of data) {
-            vals[r.id] = r.value;
-            acts[r.id] = r.is_active;
-          }
-          setDraftValues(vals);
-          setDraftActive(acts);
-        }
-      } else {
-        addToast(
-          `${failed} champ(s) n'ont pas pu être sauvegardés`,
-          'error',
-        );
-      }
+          .update({ value: newVal, is_active: newActive, updated_at: now })
+          .eq('id', item.id);
+      }),
+    );
 
-      setSavingSections((prev) => {
-        const next = new Set(prev);
-        next.delete(sectionKey);
-        return next;
-      });
-    },
-    [sections, draftValues, draftActive, activePage, addToast],
-  );
+    const failed = results.filter((r) => r.status === 'rejected').length;
+
+    if (failed === 0) {
+      addToast('Tous les contenus sauvegardés', 'success');
+      // Refresh
+      const { data } = await supabase
+        .from('page_contents')
+        .select('*')
+        .eq('page', activePage)
+        .order('section_key')
+        .order('sort_order');
+      if (data) {
+        setContents(data as PageContent[]);
+        const vals: Record<string, string> = {};
+        const acts: Record<string, boolean> = {};
+        for (const r of data) {
+          vals[r.id] = r.value;
+          acts[r.id] = r.is_active;
+        }
+        setDraftValues(vals);
+        setDraftActive(acts);
+      }
+    } else {
+      addToast(`${failed} champ(s) non sauvegardés`, 'error');
+    }
+
+    setSaving(false);
+  }, [contents, draftValues, draftActive, activePage, addToast]);
 
   // ── Add field ──
 
@@ -185,12 +309,11 @@ export function ContentsTab() {
     const label = newFieldLabel.trim();
 
     if (!key || !label) {
-      addToast('Veuillez remplir la clé et le libellé', 'error');
+      addToast('Remplissez la clé et le libellé', 'error');
       return;
     }
 
-    // Determine sort_order
-    const existing = sections.get(sectionKey) ?? [];
+    const existing = sectionMap.get(sectionKey) ?? [];
     const maxSort = existing.reduce((max, c) => Math.max(max, c.sort_order), 0);
 
     const { error } = await supabase.from('page_contents').insert({
@@ -205,7 +328,7 @@ export function ContentsTab() {
     });
 
     if (error) {
-      addToast("Erreur lors de l'ajout du champ", 'error');
+      addToast("Erreur lors de l'ajout", 'error');
       return;
     }
 
@@ -220,68 +343,50 @@ export function ContentsTab() {
       .from('page_contents')
       .select('*')
       .eq('page', activePage)
+      .order('section_key')
       .order('sort_order');
     if (data) {
-      setContents(data as PageContent[]);
+      const rows = data as PageContent[];
+      setContents(rows);
       const vals: Record<string, string> = {};
       const acts: Record<string, boolean> = {};
-      for (const r of data) {
+      for (const r of rows) {
         vals[r.id] = r.value;
         acts[r.id] = r.is_active;
       }
       setDraftValues(vals);
       setDraftActive(acts);
     }
-  }, [addModal, newFieldKey, newFieldLabel, newFieldType, activePage, sections, addToast]);
+  }, [addModal, newFieldKey, newFieldLabel, newFieldType, activePage, sectionMap, addToast]);
 
   // ── Delete field ──
 
-  const handleDeleteField = useCallback(
-    async (id: string) => {
-      const { error } = await supabase
-        .from('page_contents')
-        .delete()
-        .eq('id', id);
+  const handleDeleteField = useCallback(async (id: string) => {
+    const { error } = await supabase.from('page_contents').delete().eq('id', id);
+    if (error) {
+      addToast('Erreur lors de la suppression', 'error');
+      return;
+    }
+    addToast('Champ supprimé', 'success');
+    setDeleteConfirmId(null);
+    setContents((prev) => prev.filter((c) => c.id !== id));
+    setDraftValues((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    setDraftActive((prev) => { const n = { ...prev }; delete n[id]; return n; });
+  }, [addToast]);
 
-      if (error) {
-        addToast('Erreur lors de la suppression', 'error');
-        return;
-      }
+  // ── Dirty check ──
 
-      addToast('Champ supprimé', 'success');
-      setDeleteConfirmId(null);
+  const hasChanges = contents.some((item) => {
+    return (draftValues[item.id] ?? '') !== item.value || (draftActive[item.id] ?? item.is_active) !== item.is_active;
+  });
 
-      setContents((prev) => prev.filter((c) => c.id !== id));
-      setDraftValues((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-      setDraftActive((prev) => {
-        const next = { ...prev };
-        delete next[id];
-        return next;
-      });
-    },
-    [addToast],
-  );
+  // ── Current page def ──
 
-  // ── Section dirty check ──
+  const currentPage = PAGES.find((p) => p.key === activePage);
+  const activeSectionItems = activeSection ? (sectionMap.get(activeSection) ?? []) : [];
+  const activeSectionInfo = activeSection ? getSectionLabel(activePage, activeSection) : null;
 
-  const isSectionDirty = useCallback(
-    (sectionKey: string) => {
-      const items = sections.get(sectionKey) ?? [];
-      return items.some((item) => {
-        return (
-          draftValues[item.id] !== item.value ||
-          draftActive[item.id] !== item.is_active
-        );
-      });
-    },
-    [sections, draftValues, draftActive],
-  );
-
-  // ── Render input ──
+  // ── Render input by type ──
 
   const renderInput = (item: PageContent) => {
     const val = draftValues[item.id] ?? '';
@@ -293,47 +398,28 @@ export function ContentsTab() {
             value={val}
             onChange={(e) => handleValueChange(item.id, e.target.value)}
             rows={3}
-            className="input-surface w-full px-4 py-2.5 text-sm"
+            className="input-surface w-full px-4 py-2.5 text-sm resize-y"
             placeholder={item.label}
           />
         );
-
       case 'html':
         return (
           <textarea
             value={val}
             onChange={(e) => handleValueChange(item.id, e.target.value)}
             rows={6}
-            className="input-surface w-full px-4 py-2.5 text-sm font-mono"
-            placeholder={item.label}
+            className="input-surface w-full px-4 py-2.5 text-sm font-mono resize-y"
+            placeholder="HTML autorisé"
           />
         );
-
       case 'image_url':
         return (
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={val}
-              onChange={(e) => handleValueChange(item.id, e.target.value)}
-              className="input-surface w-full px-4 py-2.5 text-sm"
-              placeholder="https://..."
-            />
-            {val && (
-              <div className="relative inline-block">
-                <img
-                  src={val}
-                  alt={item.label}
-                  className="h-20 w-20 rounded-lg border border-line object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-          </div>
+          <ImageUpload
+            value={val}
+            onChange={(v) => handleValueChange(item.id, v)}
+            folder={`${activePage}/${item.section_key}`}
+          />
         );
-
       case 'url':
         return (
           <input
@@ -344,7 +430,6 @@ export function ContentsTab() {
             placeholder="https://..."
           />
         );
-
       default:
         return (
           <input
@@ -358,108 +443,12 @@ export function ContentsTab() {
     }
   };
 
-  // ── Add field modal ──
-
-  const renderAddModal = () => {
-    if (!addModal) return null;
-
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="glass rounded-2xl p-6 w-full max-w-md mx-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-serif text-lg font-semibold text-cream">
-              Ajouter un champ
-            </h3>
-            <button
-              type="button"
-              onClick={() => setAddModal(null)}
-              className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted">
-              Clé du champ
-            </label>
-            <input
-              type="text"
-              value={newFieldKey}
-              onChange={(e) => setNewFieldKey(e.target.value)}
-              className="input-surface w-full px-4 py-2.5 text-sm"
-              placeholder="ex: hero_subtitle"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted">
-              Libellé
-            </label>
-            <input
-              type="text"
-              value={newFieldLabel}
-              onChange={(e) => setNewFieldLabel(e.target.value)}
-              className="input-surface w-full px-4 py-2.5 text-sm"
-              placeholder="ex: Sous-titre du héros"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted">
-              Type
-            </label>
-            <select
-              value={newFieldType}
-              onChange={(e) => setNewFieldType(e.target.value as ContentType)}
-              className="input-surface w-full px-4 py-2.5 text-sm"
-            >
-              <option value="text">Texte</option>
-              <option value="html">HTML</option>
-              <option value="image_url">URL d'image</option>
-              <option value="url">URL</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={() => setAddModal(null)}
-              className="btn-ghost px-4 py-2 text-sm rounded-xl transition"
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleAddField()}
-              className="btn-gold px-4 py-2 text-sm font-medium rounded-xl transition"
-            >
-              Ajouter
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ── Loading skeleton ──
+  // ── Loading ──
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="h-10 w-64 rounded-lg bg-white/5 animate-pulse" />
-        <div className="glass rounded-2xl p-6 space-y-6">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="space-y-3 animate-pulse">
-              <div className="h-6 w-40 rounded-lg bg-white/5" />
-              <div className="ml-4 space-y-2">
-                {Array.from({ length: 2 }).map((_, j) => (
-                  <div key={j} className="h-20 rounded-lg bg-white/5" />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className="flex h-64 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-amber-400" />
       </div>
     );
   }
@@ -467,186 +456,337 @@ export function ContentsTab() {
   // ── Render ──
 
   return (
-    <div className="space-y-6">
-      <h2 className="font-serif text-2xl font-semibold text-cream">
-        Contenus des pages
-      </h2>
-
-      {/* Page selector */}
-      <div className="flex flex-wrap gap-2">
-        {PAGES.map((p) => (
-          <button
-            key={p.key}
-            type="button"
-            onClick={() => setActivePage(p.key)}
-            className={`px-4 py-2 text-sm font-medium rounded-xl border transition ${
-              activePage === p.key
-                ? 'border-evangile-600/60 bg-evangile-600/10 text-evangile-500'
-                : 'border-line text-muted hover:border-evangile-600/30 hover:text-evangile-500'
-            }`}
-          >
-            {p.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Sections */}
-      {contents.length === 0 && !loading && (
-        <div className="glass rounded-2xl p-10 text-center">
-          <p className="text-muted">Aucun contenu pour cette page.</p>
+    <div className="flex h-full">
+      {/* ─── Left Panel: Pages ─── */}
+      <aside className="flex w-72 flex-shrink-0 flex-col border-r border-white/10 bg-black/20">
+        <div className="border-b border-white/10 p-3">
+          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-white/40">Pages</p>
         </div>
-      )}
 
-      <div className="space-y-4">
-        {Array.from(sections.entries()).map(([sectionKey, items]) => {
-          const isOpen = openSections.has(sectionKey);
-          const isSaving = savingSections.has(sectionKey);
-          const dirty = isSectionDirty(sectionKey);
+        <div className="flex-1 overflow-y-auto">
+          {PAGES.map((pg) => {
+            const PgIcon = pg.icon;
+            const isActive = activePage === pg.key;
+            const fieldCount = contents.filter((c) => c.page === pg.key).length;
 
-          return (
-            <div key={sectionKey} className="glass rounded-2xl p-6">
-              {/* Section header */}
-              <div className="flex items-center gap-3">
+            return (
+              <button
+                key={pg.key}
+                type="button"
+                onClick={() => setActivePage(pg.key)}
+                className={`flex w-full items-center gap-2.5 border-b border-white/5 px-4 py-3 text-left transition-colors hover:bg-white/5 ${
+                  isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
+                }`}
+              >
+                <PgIcon className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-white/40'}`} />
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm font-medium truncate ${isActive ? 'text-amber-400' : 'text-white/80'}`}>
+                    {pg.label}
+                  </p>
+                  <p className="text-[10px] text-white/30 truncate">{pg.description}</p>
+                </div>
+                {isActive && fieldCount > 0 && (
+                  <span className="text-[10px] text-white/30">{fieldCount}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Save button */}
+        <div className="border-t border-white/10 p-3">
+          <button
+            type="button"
+            onClick={() => void handleSave()}
+            disabled={saving || !isFullAdmin || !hasChanges}
+            className="btn-gold w-full flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Enregistrer
+            {hasChanges && <span className="rounded-full bg-black/20 px-2 py-0.5 text-[10px]">modifié</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* ─── Right Panel: Sections & Fields ─── */}
+      <main className="flex flex-1 flex-col overflow-y-auto">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 border-b border-white/10 px-6 py-3">
+          <span className="text-sm text-white/40">{currentPage?.label ?? activePage}</span>
+          {activeSectionInfo && (
+            <>
+              <ChevronRight className="h-3.5 w-3.5 text-white/20" />
+              <span className="text-sm text-white">{activeSectionInfo.label}</span>
+            </>
+          )}
+        </div>
+
+        {contents.length === 0 ? (
+          <div className="flex flex-1 items-center justify-center">
+            <div className="text-center">
+              <FileText className="mx-auto mb-3 h-10 w-10 text-white/10" />
+              <p className="text-sm text-white/40">Aucun contenu pour cette page.</p>
+              <p className="mt-1 text-xs text-white/20">Ajoutez des sections et champs ci-dessous.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-1">
+            {/* Sections list */}
+            <div className="w-56 flex-shrink-0 border-r border-white/5 py-2">
+              {sectionKeys.map((sk) => {
+                const info = getSectionLabel(activePage, sk);
+                const SecIcon = info.icon;
+                const isActive = activeSection === sk;
+                const count = (sectionMap.get(sk) ?? []).length;
+
+                return (
+                  <button
+                    key={sk}
+                    type="button"
+                    onClick={() => setActiveSection(sk)}
+                    className={`flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-white/5 ${
+                      isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
+                    }`}
+                  >
+                    <SecIcon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-amber-400' : 'text-white/30'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-xs font-medium truncate ${isActive ? 'text-amber-400' : 'text-white/70'}`}>
+                        {info.label}
+                      </p>
+                    </div>
+                    <span className="text-[10px] text-white/20">{count}</span>
+                  </button>
+                );
+              })}
+
+              {/* Add section button */}
+              {isFullAdmin && (
                 <button
                   type="button"
-                  onClick={() => toggleSection(sectionKey)}
-                  className="flex items-center gap-2 flex-1 text-left transition hover:opacity-80"
+                  onClick={() => {
+                    // Create a new section by adding a field to a new section
+                    const newKey = `section_${Date.now()}`;
+                    setAddModal({ sectionKey: newKey });
+                    setNewFieldKey('');
+                    setNewFieldLabel('');
+                    setNewFieldType('text');
+                  }}
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
                 >
-                  {isOpen ? (
-                    <ChevronDown size={16} className="text-muted" />
-                  ) : (
-                    <ChevronRight size={16} className="text-muted" />
-                  )}
-                  <span className="font-serif text-lg font-semibold text-cream">
-                    {sectionKey}
-                  </span>
-                  <span className="text-xs text-muted">
-                    {items.length} champ{items.length !== 1 ? 's' : ''}
-                  </span>
+                  <Plus className="h-3.5 w-3.5" />
+                  <span className="text-xs">Nouvelle section</span>
                 </button>
+              )}
+            </div>
 
-                <div className="flex items-center gap-2">
-                  {isFullAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAddModal({ sectionKey });
-                      setNewFieldKey('');
-                      setNewFieldLabel('');
-                      setNewFieldType('text');
-                    }}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
-                    title="Ajouter un champ"
-                  >
-                    <Plus size={16} />
-                  </button>
-                  )}
-                  {isFullAdmin && (
-                  <button
-                    type="button"
-                    onClick={() => void saveSection(sectionKey)}
-                    disabled={isSaving}
-                    className="btn-gold inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition"
-                  >
-                    {isSaving ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <Save size={14} />
+            {/* Fields editor */}
+            <div className="flex-1 p-6">
+              {activeSection && activeSectionInfo ? (
+                <div className="space-y-5">
+                  {/* Section header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">{activeSectionInfo.label}</h3>
+                      {activeSectionInfo.description && (
+                        <p className="mt-0.5 text-xs text-white/40">{activeSectionInfo.description}</p>
+                      )}
+                    </div>
+                    {isFullAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAddModal({ sectionKey: activeSection });
+                          setNewFieldKey('');
+                          setNewFieldLabel('');
+                          setNewFieldType('text');
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/50 hover:border-amber-500/30 hover:text-amber-400 transition"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Champ
+                      </button>
                     )}
-                    Sauvegarder cette section
-                    {dirty && (
-                      <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px]">
-                        modifié
-                      </span>
-                    )}
-                  </button>
+                  </div>
+
+                  {/* Fields */}
+                  {activeSectionItems.map((item) => {
+                    const isModified = (draftValues[item.id] ?? item.value) !== item.value
+                      || (draftActive[item.id] ?? item.is_active) !== item.is_active;
+
+                    return (
+                      <div
+                        key={item.id}
+                        className={`rounded-xl border p-4 transition ${
+                          isModified
+                            ? 'border-amber-500/30 bg-amber-500/5'
+                            : 'border-white/5 bg-white/[0.02]'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="min-w-0 flex-1">
+                            <label className="text-sm font-medium text-white/90">{item.label}</label>
+                            <div className="mt-0.5 flex items-center gap-2">
+                              <code className="text-[10px] text-white/30 font-mono">{item.field_key}</code>
+                              <span className="rounded-full bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/30">
+                                {item.type}
+                              </span>
+                              {isModified && (
+                                <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[9px] text-amber-400">modifié</span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                checked={draftActive[item.id] ?? item.is_active}
+                                onChange={(e) => handleActiveToggle(item.id, e.target.checked)}
+                                className="h-3.5 w-3.5 rounded border-white/20 accent-amber-500"
+                              />
+                              <span className="text-[10px] text-white/40">Actif</span>
+                            </label>
+                            {isFullAdmin && (
+                              deleteConfirmId === item.id ? (
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleDeleteField(item.id)}
+                                    className="text-[10px] text-red-400 hover:text-red-300 px-1.5 py-0.5 rounded"
+                                  >
+                                    Oui, supprimer
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeleteConfirmId(null)}
+                                    className="text-[10px] text-white/40 hover:text-white/60 px-1.5 py-0.5 rounded"
+                                  >
+                                    Non
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setDeleteConfirmId(item.id)}
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </div>
+
+                        {renderInput(item)}
+                      </div>
+                    );
+                  })}
+
+                  {activeSectionItems.length === 0 && (
+                    <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
+                      <p className="text-xs text-white/30">Aucun champ dans cette section.</p>
+                      {isFullAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAddModal({ sectionKey: activeSection });
+                            setNewFieldKey('');
+                            setNewFieldLabel('');
+                            setNewFieldType('text');
+                          }}
+                          className="mt-3 text-xs text-amber-400 hover:text-amber-300 transition"
+                        >
+                          + Ajouter un champ
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
-
-              {/* Fields */}
-              {isOpen && (
-                <div className="mt-5 space-y-5">
-                  {items.map((item) => (
-                    <div
-                      key={item.id}
-                      className={`p-4 rounded-xl border transition ${
-                        (draftValues[item.id] ?? item.value) !== item.value ||
-                        (draftActive[item.id] ?? item.is_active) !== item.is_active
-                          ? 'border-evangile-600/30 bg-evangile-600/5'
-                          : 'border-line/50'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <label className="text-xs font-medium text-muted truncate">
-                            {item.label}
-                          </label>
-                          <span className="rounded-full bg-evangile-600/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500 shrink-0">
-                            {item.type}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              checked={draftActive[item.id] ?? item.is_active}
-                              onChange={(e) =>
-                                handleActiveToggle(item.id, e.target.checked)
-                              }
-                              className="h-3.5 w-3.5 rounded border-line accent-evangile-600"
-                            />
-                            <span className="text-[10px] text-muted">Actif</span>
-                          </label>
-
-                          {isFullAdmin && (
-                          deleteConfirmId === item.id ? (
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => void handleDeleteField(item.id)}
-                                className="text-xs text-red-400 hover:text-red-300 transition px-2 py-1"
-                              >
-                                Confirmer
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDeleteConfirmId(null)}
-                                className="text-xs text-muted hover:text-cream transition px-2 py-1"
-                              >
-                                Annuler
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => setDeleteConfirmId(item.id)}
-                              className="flex h-7 w-7 items-center justify-center rounded-lg text-muted hover:text-red-400 hover:bg-red-400/10 transition"
-                              title="Supprimer ce champ"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-muted mb-1.5">
-                        field_key: <code className="text-evangile-500/70">{item.field_key}</code>
-                      </div>
-
-                      {renderInput(item)}
-                    </div>
-                  ))}
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-sm text-white/30">Sélectionnez une section</p>
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        )}
+      </main>
 
-      {/* Add field modal */}
-      {renderAddModal()}
+      {/* ─── Add Field Modal ─── */}
+      {addModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="glass rounded-2xl p-6 w-full max-w-md mx-4 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif text-lg font-semibold text-cream">
+                Ajouter un champ
+              </h3>
+              <button
+                type="button"
+                onClick={() => setAddModal(null)}
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/50 hover:text-white transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/50">
+                Clé du champ <span className="text-white/30">(identifiant unique, sans espaces)</span>
+              </label>
+              <input
+                type="text"
+                value={newFieldKey}
+                onChange={(e) => setNewFieldKey(e.target.value)}
+                className="input-surface w-full px-4 py-2.5 text-sm"
+                placeholder="ex: hero_subtitle"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/50">
+                Libellé <span className="text-white/30">(nom affiché dans le formulaire)</span>
+              </label>
+              <input
+                type="text"
+                value={newFieldLabel}
+                onChange={(e) => setNewFieldLabel(e.target.value)}
+                className="input-surface w-full px-4 py-2.5 text-sm"
+                placeholder="ex: Sous-titre du héro"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-medium text-white/50">Type de contenu</label>
+              <select
+                value={newFieldType}
+                onChange={(e) => setNewFieldType(e.target.value as ContentType)}
+                className="input-surface w-full px-4 py-2.5 text-sm"
+              >
+                <option value="text">Texte</option>
+                <option value="html">HTML</option>
+                <option value="image_url">Image (upload + URL R2)</option>
+                <option value="url">URL / Lien</option>
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setAddModal(null)}
+                className="px-4 py-2 text-sm text-white/50 hover:text-white rounded-xl border border-white/10 transition"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleAddField()}
+                className="btn-gold px-5 py-2 text-sm font-medium rounded-xl transition"
+              >
+                Ajouter
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

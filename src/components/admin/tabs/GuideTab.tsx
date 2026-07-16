@@ -292,29 +292,59 @@ https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev/hero/mon-image.jpg`}</CodeBl
       {/* ─── Section 7: Modifier les textes ─── */}
       <AccordionItem title="Modifier les textes (contenus)" icon={BookOpen} accent="text-orange-400">
         <p>
-          Les <strong className="text-white">textes</strong> de la page d'accueil ne se modifient PAS dans le constructeur de page.
-          Ils se gerent dans l'onglet separe <strong className="text-white">"Contenus"</strong>.
+          Les <strong className="text-white">textes et images</strong> se gerent dans l'onglet
+          <strong className="text-white"> "Contenus"</strong> (categorie "Contenu" du menu).
+          L&apos;interface est organisee en 3 colonnes : <strong>Pages</strong> {'>'} <strong>Sections</strong> {'>'} <strong>Champs</strong>.
         </p>
         <div className="mt-3">
-          <Step num={1}>Allez dans l'onglet <strong>"Contenus"</strong> (dans la categorie "Contenu" du menu)</Step>
-          <Step num={2}>Selectionnez la page <strong>"home"</strong> dans le selecteur</Step>
-          <Step num={3}>Trouvez la section desiree et modifiez ses champs :</Step>
+          <Step num={1}>
+            <p className="text-white/80">Cliquez sur la <strong>page</strong> desiree dans le panneau de gauche</p>
+            <p className="text-white/40 text-xs mt-0.5">Ex : "Page d'accueil", "A propos", "Activites", etc.</p>
+          </Step>
+          <Step num={2}>
+            <p className="text-white/80">Cliquez sur la <strong>section</strong> dans le deuxieme panneau</p>
+            <p className="text-white/40 text-xs mt-0.5">Ex : "Hero plein ecran", "Trois Piliers", "Qui sommes-nous"</p>
+          </Step>
+          <Step num={3}>
+            <p className="text-white/80">Modifiez les <strong>champs</strong> dans la zone de droite</p>
+            <p className="text-white/40 text-xs mt-0.5">Les champs modifies sont surlignes en jaune. Cliquez "Enregistrer" en bas a gauche.</p>
+          </Step>
         </div>
-        <div className="mt-2 rounded-lg bg-black/30 border border-white/5 p-3 text-xs space-y-1.5">
-          <p className="text-white/50 font-mono">pillars → pillar_1_title : "Foi"</p>
-          <p className="text-white/50 font-mono">pillars → pillar_1_desc : Description du pilier 1</p>
-          <p className="text-white/50 font-mono">pillars → pillar_2_title : "Communaute"</p>
-          <p className="text-white/50 font-mono">about → text_1 : Premier texte "Qui sommes-nous"</p>
-          <p className="text-white/50 font-mono">about → text_2 : Deuxieme texte</p>
-          <p className="text-white/50 font-mono">about → bible_text : Citation biblique</p>
-          <p className="text-white/50 font-mono">quote → text : Texte de la citation</p>
-          <p className="text-white/50 font-mono">quote → reference : Reference de la citation</p>
-          <p className="text-white/50 font-mono">hero → subtitle : Sous-titre du hero</p>
+        <div className="mt-3">
+          <p className="text-white font-medium text-xs mb-1.5">Pages disponibles :</p>
+          <div className="grid grid-cols-2 gap-1.5 text-xs">
+            {[
+              "Page d'accueil — Hero, Piliers, A propos, Citation",
+              'A propos — Hero, Valeurs',
+              'Activites — Hero, Ministeres, CTA',
+              'Evenements — Hero',
+              'Contact — Hero',
+              'Departements — Hero',
+              'Medias — Hero',
+              'Emissions — Hero',
+              'Predications — Hero',
+            ].map((p) => (
+              <div key={p} className="rounded-lg bg-white/[0.03] border border-white/5 px-2 py-1.5 text-white/60 truncate">
+                {p}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-3">
+          <p className="text-white font-medium text-xs mb-1.5">Exemples de champs (Page d'accueil) :</p>
+          <div className="rounded-lg bg-black/30 border border-white/5 p-3 text-xs space-y-1">
+            <p className="text-white/50"><span className="text-amber-400/70">Hero</span> → bg_image, bg_images, subtitle</p>
+            <p className="text-white/50"><span className="text-amber-400/70">Trois Piliers</span> → pillar_1_title, pillar_1_desc, ...</p>
+            <p className="text-white/50"><span className="text-amber-400/70">Qui sommes-nous</span> → text_1, text_2, bible_text</p>
+            <p className="text-white/50"><span className="text-amber-400/70">Citation biblique</span> → text, reference</p>
+          </div>
         </div>
         <TipBox>
-          <strong>Constructeur de page</strong> = l'ordre, la visibilite et les parametres techniques des sections.
+          <strong>Constructeur de page</strong> = l'ordre, la visibilite et les parametres techniques.
           <br />
           <strong>Contenus</strong> = les textes et images affiches dans chaque section.
+          <br />
+          Pour les images, le champ de type "Image" offre un upload direct vers R2 + collage d'URL.
         </TipBox>
       </AccordionItem>
 
