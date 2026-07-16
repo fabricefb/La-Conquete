@@ -1616,7 +1616,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Numéro de téléphone / WhatsApp</label>
-                          <input type="tel" value={visitForm.phone} onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="+225 XX XX XX XX" />
+                          <input type="tel" value={visitForm.phone} onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="+243 XX XX XX XX" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Adresse complète / Lieu de la visite *</label>

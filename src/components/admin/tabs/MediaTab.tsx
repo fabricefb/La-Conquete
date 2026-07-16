@@ -174,6 +174,8 @@ export function MediaTab() {
         addToast('Erreur lors de la mise à jour', 'error');
       } else {
         addToast('Média mis à jour avec succès', 'success');
+        setIsFormOpen(false);
+        setEditingId(null);
       }
     } else {
       const { error } = await supabase
@@ -184,12 +186,12 @@ export function MediaTab() {
         addToast('Erreur lors de la création', 'error');
       } else {
         addToast('Média ajouté avec succès', 'success');
+        setIsFormOpen(false);
+        setEditingId(null);
       }
     }
 
     setSaving(false);
-    setIsFormOpen(false);
-    setEditingId(null);
     fetchItems();
   };
 

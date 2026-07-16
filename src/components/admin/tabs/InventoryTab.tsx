@@ -3,6 +3,7 @@ import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import type { InventoryItem, InventoryReservation, ChurchEvent, UserProfile } from '../../../types';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Search, Package } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -355,8 +356,7 @@ export function InventoryTab() {
               <textarea rows={2} value={form.description || ''} onChange={(e) => handleField('description', e.target.value)} className="input-surface w-full px-4 py-2.5 text-sm resize-none" />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted">URL de l'image</label>
-              <input type="text" value={form.image_url || ''} onChange={(e) => handleField('image_url', e.target.value)} className="input-surface w-full px-4 py-2.5 text-sm" placeholder="https://..." />
+              <ImageUpload value={form.image_url || ''} onChange={(url: string) => handleField('image_url', url)} folder="inventory" />
             </div>
           </div>
 

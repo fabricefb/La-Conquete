@@ -437,13 +437,17 @@ export const db = {
     return fetchTable<InventoryItem>(q);
   },
 
-  upsertInventoryItem(data: Partial<InventoryItem>) {
-    if (data.id) return supabase.from('inventory_items').update(data).eq('id', data.id).select().single();
-    return supabase.from('inventory_items').insert(data).select().single();
+  async upsertInventoryItem(data: Partial<InventoryItem>) {
+    const res = data.id
+      ? await supabase.from('inventory_items').update(data).eq('id', data.id).select().single()
+      : await supabase.from('inventory_items').insert(data).select().single();
+    if (res.error) throw new Error(res.error.message);
+    return res.data as InventoryItem;
   },
 
-  deleteInventoryItem(id: string) {
-    return supabase.from('inventory_items').delete().eq('id', id);
+  async deleteInventoryItem(id: string) {
+    const { error } = await supabase.from('inventory_items').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   getInventoryReservations(itemId?: string) {
@@ -452,9 +456,12 @@ export const db = {
     return fetchTable<InventoryReservation>(q);
   },
 
-  upsertInventoryReservation(data: Partial<InventoryReservation>) {
-    if (data.id) return supabase.from('inventory_reservations').update(data).eq('id', data.id).select().single();
-    return supabase.from('inventory_reservations').insert(data).select().single();
+  async upsertInventoryReservation(data: Partial<InventoryReservation>) {
+    const res = data.id
+      ? await supabase.from('inventory_reservations').update(data).eq('id', data.id).select().single()
+      : await supabase.from('inventory_reservations').insert(data).select().single();
+    if (res.error) throw new Error(res.error.message);
+    return res.data as InventoryReservation;
   },
 
   // ═══════════════════════════════════════════════

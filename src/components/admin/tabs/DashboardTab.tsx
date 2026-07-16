@@ -181,7 +181,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         supabase
           .from('events')
           .select('id', { count: 'exact', head: true })
-          .gte('date', new Date().toISOString()),
+          .gte('event_date', new Date().toISOString()),
         // Role breakdown (role_level and count)
         supabase
           .from('user_profiles')

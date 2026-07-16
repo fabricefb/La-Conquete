@@ -408,7 +408,7 @@ export function MessagesTab() {
           )}
           {nouveauCount > 0 && (
             <span className="rounded-full bg-amber-500/15 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-amber-400">
-              {nouveauCount} nouveau{x}
+              {nouveauCount} nouveau{nouveauCount > 1 ? 'x' : ''}
             </span>
           )}
           {enCoursCount > 0 && (

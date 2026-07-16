@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, Youtube, Facebook, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -47,7 +48,11 @@ const EMPTY_FORM: EventFormData = {
   facebook_url: '',
 };
 
-const CATEGORIES = ['Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'];
+const CATEGORIES = ['Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'] as const;
+// NOTE: The DB CHECK constraint on events.category may need updating to match.
+// Run: ALTER TABLE events DROP CONSTRAINT events_category_check;
+//       ALTER TABLE events ADD CONSTRAINT events_category_check
+//         CHECK (category IN ('Cultes','Missions','Jeunesse','Communion','Formation','Évangélisation','Spécial','Autre'));
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -337,8 +342,7 @@ export function EventsTab() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-1.5 block text-xs font-medium text-muted">URL de l'image</label>
-              <input type="text" value={form.image_url} onChange={(e) => handleField('image_url', e.target.value)} placeholder="https://..." className="input-surface w-full px-4 py-2.5 text-sm" />
+              <ImageUpload value={form.image_url || ''} onChange={(url: string) => handleField('image_url', url)} folder="events" />
             </div>
             <div className="md:col-span-2">
               <label className="mb-1.5 block text-xs font-medium text-muted">Description <span className="text-red-400">*</span></label>
