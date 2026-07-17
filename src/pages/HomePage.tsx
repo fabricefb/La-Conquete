@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase, db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
+import { loadSectionColors, type SectionColorMap } from '../lib/hooks/useSectionColors';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -167,6 +168,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [loading, setLoading] = useState(true);
   const [liveModalOpen, setLiveModalOpen] = useState(false);
   const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
+  const [sectionColors, setSectionColors] = useState<SectionColorMap>({});
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
@@ -174,12 +176,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, testimonialData, pastorData, builderData] = await Promise.all([
+        const [contents, settings, testimonialData, pastorData, builderData, colorsData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
           db.getActiveTestimonials(),
           db.getActivePastors(),
           supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
+          supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
@@ -200,6 +203,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
             }
           } catch { /* keep empty — all sections visible by default */ }
         }
+
+        // Parse section colors
+        if (colorsData?.data?.value) {
+          try {
+            const parsed = typeof colorsData.data.value === 'string'
+              ? JSON.parse(colorsData.data.value)
+              : colorsData.data.value;
+            if (parsed && typeof parsed === 'object') {
+              setSectionColors(parsed as SectionColorMap);
+            }
+          } catch { /* keep empty */ }
+        }
+
         setTestimonials(
           (testimonialData || [])
             .filter((t: any) => t.status === 'published' && t.is_active)
@@ -240,7 +256,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
   // Topbar dynamic content
   const topbarPhone = getContent(cm, 'topbar', 'phone', '');
   const topbarEmail = getContent(cm, 'topbar', 'email', '');
-  const topbarMarquee = getContent(cm, 'topbar', 'marquee_text', '');
+  // Priority: page_contents > builder_config > empty
+  const topbarMarquee =
+    getContent(cm, 'topbar', 'marquee_text', '') ||
+    (getBuilderConfig('topbar', 'marquee_text', '') as string) ||
+    '';
+
+  // Topbar section colors (from section_colors_home)
+  const topbarTextColor = sectionColors['topbar']?.text || '';
+  const topbarBgColor = sectionColors['topbar']?.bg || '';
 
   // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
@@ -452,7 +476,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} />}
+      {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} textColor={topbarTextColor} bgColor={topbarBgColor} />}
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (

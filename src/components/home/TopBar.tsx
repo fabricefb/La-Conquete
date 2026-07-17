@@ -76,9 +76,11 @@ interface TopBarProps {
   phone?: string;
   email?: string;
   marqueeOverride?: string;
+  textColor?: string;
+  bgColor?: string;
 }
 
-export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride }: TopBarProps) {
+export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride, textColor, bgColor }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
     'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
     'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
@@ -146,7 +148,11 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride 
 
   return (
     <div
-      className="relative w-full bg-evangile-600/90 backdrop-blur-sm overflow-hidden"
+      className="relative w-full overflow-hidden"
+      style={{
+        backgroundColor: bgColor || undefined,
+        color: textColor || undefined,
+      }}
       role="banner"
       aria-label="Bande d'informations"
     >
