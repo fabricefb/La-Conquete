@@ -155,7 +155,12 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     hero: [
       { field_key: 'bg_image', label: 'Image de fond', type: 'image_url', value: '' },
       { field_key: 'bg_images', label: 'Images diaporama (séparées par ,)', type: 'text', value: '' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: 'Une communauté de foi qui transforme des vies' },
+      { field_key: 'title_line1', label: 'Titre ligne 1', type: 'text', value: 'La Conquête' },
+      { field_key: 'title_line2', label: 'Titre ligne 2', type: 'text', value: 'des Âmes' },
+      { field_key: 'subtitle', label: 'Sous-titre (sous le titre)', type: 'text', value: 'Église Évangélique La Conquête — Kinshasa, RDC' },
+      { field_key: 'bible_verse', label: 'Verset biblique (typing)', type: 'text', value: 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"' },
+      { field_key: 'cta_primary', label: 'Bouton CTA principal', type: 'text', value: 'Rejoindre le culte' },
+      { field_key: 'cta_secondary', label: 'Bouton CTA secondaire', type: 'text', value: 'Notre vision' },
     ],
     pillars: [
       { field_key: 'pillar_1_title', label: 'Pilier 1 — Titre', type: 'text', value: 'Foi' },

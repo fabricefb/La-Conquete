@@ -272,12 +272,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
     }, 30000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
-  const heroSubtitle = getContent(
-    cm,
-    'hero',
-    'subtitle',
-    'Une communauté de foi qui transforme des vies',
-  );
+  // Hero texts
+  const heroTitle1 = getContent(cm, 'hero', 'title_line1', 'La Conquête');
+  const heroTitle2 = getContent(cm, 'hero', 'title_line2', 'des Âmes');
+  const heroSubtitle = getContent(cm, 'hero', 'subtitle', 'Église Évangélique La Conquête — Kinshasa, RDC');
+  const heroBibleVerse = getContent(cm, 'hero', 'bible_verse', 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"');
+  const heroCtaPrimary = getContent(cm, 'hero', 'cta_primary', 'Rejoindre le culte');
+  const heroCtaSecondary = getContent(cm, 'hero', 'cta_secondary', 'Notre vision');
 
   // Pillars
   const pillar1Title = getContent(cm, 'pillars', 'pillar_1_title', 'Foi');
@@ -419,22 +420,22 @@ export function HomePage({ onNavigate }: HomePageProps) {
           {/* Main heading */}
           <div className="animate-fade-up">
             <h1 className="font-headline font-bold leading-tight">
-              <span className="brand-text text-5xl md:text-7xl lg:text-8xl block">La Conquête</span>
-              <span className="text-cream text-5xl md:text-7xl lg:text-8xl block mt-2">des Âmes</span>
+              <span className="brand-text text-5xl md:text-7xl lg:text-8xl block">{heroTitle1}</span>
+              <span className="text-cream text-5xl md:text-7xl lg:text-8xl block mt-2">{heroTitle2}</span>
             </h1>
           </div>
 
           {/* Subtitle */}
           <div className="animate-fade-up mt-6" style={{ animationDelay: '0.1s' }}>
             <p className="text-sm md:text-base uppercase tracking-widest text-muted font-medium">
-              Église Évangélique La Conquête — Kinshasa, RDC
+              {heroSubtitle}
             </p>
           </div>
 
           {/* Typing text — Bible verse */}
           <div className="animate-fade-up mt-8" style={{ animationDelay: '0.2s' }}>
             <TypingText
-              words={['Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"']}
+              words={[heroBibleVerse]}
               className="text-base md:text-lg text-cream/70 italic typing-cursor"
             />
           </div>
@@ -445,11 +446,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
             style={{ animationDelay: '0.3s' }}
           >
             <button onClick={() => onNavigate('activities')} className="btn-primary">
-              Rejoindre le culte
+              {heroCtaPrimary}
               <ArrowRight className="h-4 w-4" />
             </button>
             <button onClick={() => onNavigate('about')} className="btn-ghost">
-              Notre vision
+              {heroCtaSecondary}
             </button>
           </div>
         </div>
