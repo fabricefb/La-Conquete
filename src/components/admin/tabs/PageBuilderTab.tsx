@@ -363,72 +363,42 @@ export function PageBuilderTab() {
       }));
 
       // Upsert sections config
-      const updateResult = await supabase
+      const upsertResult = await supabase
         .from('site_settings')
-        .update({
+        .upsert({
+          key: sectionsStorageKey(currentPage.key),
           value: JSON.stringify(sectionConfig),
+          type: 'json',
+          category: 'general',
+          label: `Builder config — ${currentPage.label}`,
+          sort_order: 500,
           updated_at: new Date().toISOString(),
-        })
-        .eq('key', sectionsStorageKey(currentPage.key));
+        }, { onConflict: 'key' });
 
-      if (updateResult.error) {
-        addToast(`Erreur sauvegarde sections : ${updateResult.error.message}`, 'error');
+      if (upsertResult.error) {
+        addToast(`Erreur sauvegarde sections : ${upsertResult.error.message}`, 'error');
         setSaving(false);
         return;
       }
 
-      if (updateResult.count === 0) {
-        const insertResult = await supabase
-          .from('site_settings')
-          .insert({
-            key: sectionsStorageKey(currentPage.key),
-            value: JSON.stringify(sectionConfig),
-            type: 'json',
-            category: 'general',
-            label: `Builder config — ${currentPage.label}`,
-            sort_order: 500,
-            updated_at: new Date().toISOString(),
-          });
-        if (insertResult.error) {
-          addToast(`Erreur insertion sections : ${insertResult.error.message}`, 'error');
-          setSaving(false);
-          return;
-        }
-      }
-
       // Upsert elements config (only if there are elements for this page)
       if (elementConfig.length > 0) {
-        const elUpdateResult = await supabase
+        const elUpsertResult = await supabase
           .from('site_settings')
-          .update({
+          .upsert({
+            key: elementsStorageKey(currentPage.key),
             value: JSON.stringify(elementConfig),
+            type: 'json',
+            category: 'general',
+            label: `Builder éléments — ${currentPage.label}`,
+            sort_order: 501,
             updated_at: new Date().toISOString(),
-          })
-          .eq('key', elementsStorageKey(currentPage.key));
+          }, { onConflict: 'key' });
 
-        if (elUpdateResult.error) {
-          addToast(`Erreur sauvegarde éléments : ${elUpdateResult.error.message}`, 'error');
+        if (elUpsertResult.error) {
+          addToast(`Erreur sauvegarde éléments : ${elUpsertResult.error.message}`, 'error');
           setSaving(false);
           return;
-        }
-
-        if (elUpdateResult.count === 0) {
-          const elInsertResult = await supabase
-            .from('site_settings')
-            .insert({
-              key: elementsStorageKey(currentPage.key),
-              value: JSON.stringify(elementConfig),
-              type: 'json',
-              category: 'general',
-              label: `Builder éléments — ${currentPage.label}`,
-              sort_order: 501,
-              updated_at: new Date().toISOString(),
-            });
-          if (elInsertResult.error) {
-            addToast(`Erreur insertion éléments : ${elInsertResult.error.message}`, 'error');
-            setSaving(false);
-            return;
-          }
         }
       }
 

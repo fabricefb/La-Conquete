@@ -223,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAdmin = profile?.is_admin === true;
-  const isFullAdmin = profile?.is_admin === true && !profile?.is_principal_pastor;
+  const isFullAdmin = profile?.is_admin === true;
 
   // Check if user is blocked
   useEffect(() => {

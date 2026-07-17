@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase, db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
-import { useReveal, useParallax } from '../lib/hooks';
+import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -173,7 +173,22 @@ interface HomePageProps {
 
 export function HomePage({ onNavigate }: HomePageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const parallaxRef = useParallax<HTMLDivElement>(0.25);
+  const bgRef = useRef<HTMLDivElement>(null);
+
+  // Parallax: translate the background layer on scroll
+  useEffect(() => {
+    const el = bgRef.current;
+    if (!el) return;
+    let raf = 0;
+    const fn = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        el.style.transform = `translateY(${window.pageYOffset * 0.25}px) scale(1.15)`;
+      });
+    };
+    window.addEventListener('scroll', fn, { passive: true });
+    return () => { window.removeEventListener('scroll', fn); cancelAnimationFrame(raf); };
+  }, []);
 
   /* ── Data state ──────────────────────────────────────────────── */
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
@@ -347,28 +362,32 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ HERO (fullscreen) ═══════ */}
       <div className="h-16 shrink-0" />
-      <section
-        ref={parallaxRef}
-        className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden"
-      >
-        {/* Background slideshow layer */}
-        {heroImages.length > 1 ? (
-          heroImages.map((img: string, i: number) => (
+      <section className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden">
+        {/* Parallax background wrapper */}
+        <div
+          ref={bgRef}
+          className="absolute inset-[-15%] will-change-transform"
+          style={{ transition: 'transform 0.1s linear' }}
+        >
+          {/* Background slideshow layer */}
+          {heroImages.length > 1 ? (
+            heroImages.map((img: string, i: number) => (
+              <div
+                key={i}
+                className="absolute inset-[15%] bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+                style={{
+                  backgroundImage: `url(${img})`,
+                  opacity: i === heroIndex ? 1 : 0,
+                }}
+              />
+            ))
+          ) : (
             <div
-              key={i}
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
-              style={{
-                backgroundImage: `url(${img})`,
-                opacity: i === heroIndex ? 1 : 0,
-              }}
+              className="absolute inset-[15%] bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: `url(${heroImg})` }}
             />
-          ))
-        ) : (
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${heroImg})` }}
-          />
-        )}
+          )}
+        </div>
         {/* Slideshow dots (only if multiple images) */}
         {heroImages.length > 1 && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">

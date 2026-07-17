@@ -54,3 +54,19 @@ Stage Summary:
 - Migration SQL créée mais DOIT être exécutée manuellement dans Supabase SQL Editor
 - Structure admin restructurée: Pages > Page d'accueil > (En-tête & Navigation | Héro plein écran | ...)
 - Toutes les erreurs de sauvegarde corrigées dans le code
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix 5 critical bugs where admin changes don't reflect on live pages
+
+Work Log:
+- Analyzed all 5 bugs and identified root causes
+- BUG 1 & 5 (IconBox/Animations): PageBuilderTab used .update().eq().count === 0 but Supabase returns count:null not 0. INSERT never ran. Fixed with .upsert({onConflict:key})
+- BUG 2 (Audio): AudioTab used {isAdmin} but hook returns {isFullAdmin}. Also isFullAdmin excluded pastor principal. Fixed both.
+- BUG 3 (Parallax): useParallax on section with overflow:hidden. Moved to background wrapper.
+- BUG 4 (TypingText): No reset when words prop changed after async load. Added useEffect reset.
+- Build: 0 TS errors, successful in 6.93s
+
+Stage Summary:
+- Files changed: PageBuilderTab.tsx, AudioTab.tsx, AuthContext.tsx, TypingHero.tsx, HomePage.tsx
+- SQL migration 20260717000000_fix_builder_save.sql MUST be executed on Supabase

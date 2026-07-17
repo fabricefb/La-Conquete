@@ -158,7 +158,7 @@ function SkeletonRows() {
 // ─── Main Component ─────────────────────────────────────────────────
 export function AudioTab() {
   const { addToast } = useToast();
-  const { isAdmin } = useAdminAccess();
+  const { isFullAdmin } = useAdminAccess();
 
   // Data
   const [tracks, setTracks] = useState<AudioTrack[]>([]);
@@ -455,7 +455,7 @@ export function AudioTab() {
   };
 
   // ─── Render ────────────────────────────────────────────────────
-  if (!isAdmin) {
+  if (!isFullAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-white/40">
         <Music className="mb-4 h-12 w-12" />

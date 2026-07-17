@@ -34,6 +34,14 @@ export function TypingText({
   const [isDeleting, setIsDeleting] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Reset animation when words change (e.g. after async content load)
+  useEffect(() => {
+    setCurrentText('');
+    setWordIndex(0);
+    setIsDeleting(false);
+    if (intervalRef.current) clearTimeout(intervalRef.current);
+  }, [words]);
+
   const tick = useCallback(() => {
     const fullWord = words[wordIndex];
 
