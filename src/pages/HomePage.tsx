@@ -735,15 +735,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ SECTION: CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
       <section className="relative py-28 overflow-hidden">
-        {/* Background image */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${DEFAULT_CTA_IMG})` }}
-        />
-        {/* 90% dark overlay */}
-        <div className="absolute inset-0 bg-black/90" />
-        {/* Radial glow */}
-        <div className="absolute inset-0 bg-radial-primary pointer-events-none opacity-50" />
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-conquete-blue/5 to-conquete-blue/10" />
 
         <div className="relative z-10 mx-auto max-w-2xl px-4 text-center">
           <RevealSection>
@@ -776,14 +769,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
       )}
 
-      {/* ═══════ SECTION: MAP ═══════ */}
-      {isSectionVisible('map') && (
+      {/* ═══════ SECTION: MAP (masquée par défaut) ═══════ */
+      {false && (
       <section className="py-0">
         <iframe
           title="Localisation de l'Église Évangélique La Conquête"
-          src={getBuilderConfig('map', 'embed_url', 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000') as string}
+          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000"
           width="100%"
-          height={getBuilderConfig('map', 'height', 400) as number}
+          height={400}
           style={{ border: 0 }}
           allowFullScreen
           loading="lazy"

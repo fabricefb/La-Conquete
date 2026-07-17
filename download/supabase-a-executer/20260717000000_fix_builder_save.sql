@@ -22,14 +22,17 @@ ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
 -- La sécurité est gérée par l'interface admin (AuthContext + AdminAccess).
 
 DROP POLICY IF EXISTS "settings_admin_write" ON site_settings;
+DROP POLICY IF EXISTS "settings_auth_write" ON site_settings;
 CREATE POLICY "settings_admin_write" ON site_settings FOR INSERT
   TO authenticated WITH CHECK (true);
 
 DROP POLICY IF EXISTS "settings_admin_update" ON site_settings;
+DROP POLICY IF EXISTS "settings_auth_update" ON site_settings;
 CREATE POLICY "settings_admin_update" ON site_settings FOR UPDATE
   TO authenticated USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "settings_admin_delete" ON site_settings;
+DROP POLICY IF EXISTS "settings_auth_delete" ON site_settings;
 CREATE POLICY "settings_admin_delete" ON site_settings FOR DELETE
   TO authenticated USING (true);
 
@@ -47,8 +50,11 @@ ALTER TABLE site_settings ALTER COLUMN label SET DEFAULT '';
 
 -- ─── 5. Simplifier les policies page_contents ────────────────
 DROP POLICY IF EXISTS "contents_admin_write" ON page_contents;
+DROP POLICY IF EXISTS "contents_auth_write" ON page_contents;
 DROP POLICY IF EXISTS "contents_admin_update" ON page_contents;
+DROP POLICY IF EXISTS "contents_auth_update" ON page_contents;
 DROP POLICY IF EXISTS "contents_admin_delete" ON page_contents;
+DROP POLICY IF EXISTS "contents_auth_delete" ON page_contents;
 
 CREATE POLICY "contents_auth_write" ON page_contents FOR INSERT
   TO authenticated WITH CHECK (true);
