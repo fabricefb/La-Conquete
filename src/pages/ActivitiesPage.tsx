@@ -6,6 +6,7 @@ import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import {
   Users, Heart, Crown, BookOpen, Moon, Flame, HandHeart, Sparkles,
@@ -201,15 +202,6 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const heroBadge = getContent(contentMap, 'hero', 'badge', 'Vie communautaire');
-  const heroTitle = getContent(contentMap, 'hero', 'title', 'Nos Activités');
-  const heroSubtitle = getContent(
-    contentMap,
-    'hero',
-    'subtitle',
-    'Découvrez les différents ministères et activités qui font vibrer la vie de notre église.',
-  );
-
   const ministriesTitle = getContent(contentMap, 'ministries', 'title', 'Nos Ministères');
   const ministriesSubtitle = getContent(
     contentMap,
@@ -272,21 +264,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
       <MobileNav active="activities" onNavigate={onNavigate} />
 
       {/* ── Hero ── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
-            {heroBadge}
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            {heroTitle}
-          </h1>
-          {heroSubtitle && (
-            <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl">
-              {heroSubtitle}
-            </p>
-          )}
-        </div>
-      </section>
+      <UniversalHero pageKey="activities" defaultBadge="Vie communautaire" defaultTitle="Nos Activités" defaultSubtitle="Découvrez les différents ministères et activités de notre église." />
 
       {/* ── Programme de la Semaine ── */}
       <WeeklySchedule />

@@ -193,7 +193,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride 
           aria-live="polite"
           aria-label="Communiqués de l'église"
         >
-          <div className="animate-marquee flex whitespace-nowrap">
+          <div key={marqueeOverride || 'communiques'} className="animate-marquee flex whitespace-nowrap">
             {marqueeItems.map((text, i) => (
               <span key={i} className="mx-6 md:mx-8 text-white/90 text-[11px] md:text-xs font-medium">
                 {text}
@@ -232,7 +232,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride 
 
       {/* ---- Mobile-only: Show announcements as a single line below ---- */}
       <div className="sm:hidden overflow-hidden border-t border-white/20">
-        <div className="animate-marquee flex whitespace-nowrap py-1.5">
+        <div key={marqueeOverride || 'communiques'} className="animate-marquee flex whitespace-nowrap py-1.5">
           {marqueeItems.map((text, i) => (
             <span key={i} className="mx-6 text-white/80 text-[10px] font-medium">
               {text}

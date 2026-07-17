@@ -15,6 +15,19 @@ interface SiteFooterProps {
 export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggleProp }: SiteFooterProps) {
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
   const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [isPwaMobile, setIsPwaMobile] = useState(false);
+
+  useEffect(() => {
+    const checkPwa = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || (window.navigator as any).standalone === true;
+      const isMobile = window.innerWidth < 768;
+      setIsPwaMobile(isStandalone && isMobile);
+    };
+    checkPwa();
+    window.addEventListener('resize', checkPwa);
+    return () => window.removeEventListener('resize', checkPwa);
+  }, []);
 
   // Simple fallback for theme
   const [fallbackTheme, setFallbackTheme] = useState<Theme>('dark');
@@ -74,6 +87,8 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     { label: 'Médias', page: 'media' },
     { label: 'Contact', page: 'contact' },
   ];
+
+  if (isPwaMobile) return null;
 
   return (
     <footer className="pwa-footer-hide border-t border-line bg-bg">

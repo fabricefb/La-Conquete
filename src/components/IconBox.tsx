@@ -32,9 +32,13 @@ export function IconBox({
   defaultVisible = true,
   children,
 }: IconBoxProps) {
-  const { isElementVisible } = usePageBuilderConfig(pageKey);
+  const { isElementVisible, elementsConfig } = usePageBuilderConfig(pageKey);
 
-  if (!isElementVisible(elementId, defaultVisible)) {
+  // Use elementsConfig directly (not just the memoized callback) so React
+  // tracks it as a dependency and re-renders when the config changes.
+  const visibilityState = elementId in elementsConfig ? elementsConfig[elementId] : defaultVisible;
+
+  if (!visibilityState) {
     return null;
   }
 

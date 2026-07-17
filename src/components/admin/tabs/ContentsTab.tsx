@@ -69,6 +69,9 @@ const PAGES: PageDef[] = [
       { key: 'mission', label: 'Mission', icon: Flame, description: 'Texte de la mission' },
       { key: 'values', label: 'Nos Valeurs', icon: Heart, description: 'Titre et sous-titre' },
       { key: 'giving', label: 'Dons & Soutien', icon: Heart, description: 'Section dons sur la page À propos' },
+      { key: 'vision_heading', label: 'En-tête Vision', icon: Eye, description: 'Label et titre de la section Vision' },
+      { key: 'mission_heading', label: 'En-tête Mission', icon: Flame, description: 'Label et titre de la section Mission' },
+      { key: 'team', label: 'Équipe Pastorale', icon: Users, description: 'Label, titre et description' },
     ],
   },
   /* ══════════ VIE DE L'ÉGLISE ══════════ */
@@ -88,6 +91,8 @@ const PAGES: PageDef[] = [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
       { key: 'upcoming', label: 'Événements à venir', icon: Calendar, description: 'Titre et description' },
       { key: 'weekly', label: 'Cultes hebdomadaires', icon: Calendar, description: 'Titre et description' },
+      { key: 'weekly_heading', label: 'En-tête Cultes hebdomadaires', icon: Calendar, description: 'Label, titre et description' },
+      { key: 'newsletter', label: 'Newsletter', icon: MessageSquare, description: 'Titre et description' },
     ],
   },
   {
@@ -298,6 +303,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   about: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Notre Identité' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Qui sommes-nous' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -313,16 +319,32 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos Valeurs' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'heading_subtitle', label: 'Sous-titre', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Valeurs' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     giving: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Soutenir l\'œuvre' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'cta_text', label: 'Texte du bouton', type: 'text', value: 'Faire un don' },
     ],
+    vision_heading: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Notre Vision' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+    ],
+    mission_heading: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Notre Mission' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+    ],
+    team: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Équipe Pastorale' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
   },
 
   culte: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Rassemblés pour Lui' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Cultes' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -339,6 +361,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   events: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Calendrier' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Événements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -351,10 +374,20 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Cultes hebdomadaires' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
     ],
+    weekly_heading: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Cultes hebdomadaires' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+    newsletter: [
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Ne Manquez Aucun Moment' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
   },
 
   jeunesse: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Génération Conquête' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Ministère de la Jeunesse' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -371,6 +404,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   ministeres: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Servir ensemble' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Ministères' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -399,6 +433,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   departments: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Départements' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Départements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -411,6 +446,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   pasteurs: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Serviteurs de Dieu' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre Équipe Pastorale' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -439,6 +475,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   enseignements: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Croître dans la foi' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Enseignements & Études Bibliques' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -459,6 +496,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   predications: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'La Parole de Dieu' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Prédications' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -475,6 +513,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   blog: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Restez informé' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Actualités & Enseignements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -491,6 +530,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   media: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Médias' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Médias' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -515,6 +555,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   emissions: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Émissions' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Émissions' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -531,6 +572,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   communiques: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Communiqués' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Communiqués' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -555,6 +597,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   contact: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Contactez-nous' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Contact' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -575,6 +618,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   dons: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: "Soutenir l'œuvre" },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Faire un don' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -587,6 +631,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   vision: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Pourquoi nous existons' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Vision & Mission' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -607,6 +652,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
 
   activities: {
     hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Communauté' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Activités' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
@@ -614,10 +660,13 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     ministries: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Ministères' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Ministères' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     cta: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: '' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Impliquez-vous' },
       { field_key: 'description', label: 'Description', type: 'text', value: '' },
     ],
   },

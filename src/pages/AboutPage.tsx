@@ -5,6 +5,7 @@ import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { IconBox } from '../components/IconBox';
 import { SiteFooter } from '../components/SiteFooter';
+import { UniversalHero } from '../components/UniversalHero';
 import { MobileNav } from '../components/MobileNav';
 import { MapPin, Phone, Mail, Heart, HandHeart, BookOpen } from '../lib/icons';
 import type { Page } from '../lib/navigation';
@@ -76,15 +77,13 @@ export function AboutPage({ onNavigate }: PageProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const heroBadge = getContent(contentMap, 'hero', 'badge', 'À propos de nous');
-  const heroTitle = getContent(contentMap, 'hero', 'title', 'Qui sommes-nous');
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', '');
+  const cm = contentMap;
 
   const visionText = getContent(contentMap, 'vision', 'text', 'La Conquête des âmes, La Conquête des terres habitables et cultivables.');
   const missionText = getContent(contentMap, 'mission', 'text', 'Nous œuvrons au moyen de la Parole de Dieu, à gagner les âmes pour Jésus. Nous les équipons, les instruisons et les envoyons comme agents de transformation dans les nations. Nous motivons et équipons également nos membres pour la conquête des terres.');
 
-  const valuesTitle = getContent(contentMap, 'values', 'title', 'Nos Valeurs');
-  const valuesSubtitle = getContent(contentMap, 'values', 'subtitle', 'Les piliers qui guident notre vie communautaire et notre engagement au service de Dieu.');
+  const valuesTitle = getContent(cm, 'values', 'title', '') || getContent(cm, 'values', 'heading_title', 'Nos Valeurs');
+  const valuesSubtitle = getContent(cm, 'values', 'subtitle', '') || getContent(cm, 'values', 'heading_subtitle', 'Les piliers qui guident notre vie communautaire et notre engagement au service de Dieu.');
 
   const values: ValueItem[] = (() => {
     const dv: ValueItem[] = [];
@@ -103,12 +102,7 @@ export function AboutPage({ onNavigate }: PageProps) {
       <div className="min-h-screen bg-bg text-cream font-sans">
         <SiteHeader activePage="about" onNavigate={onNavigate} />
         <MobileNav active="about" onNavigate={onNavigate} />
-        <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-          <div className="mx-auto max-w-4xl px-4 text-center">
-            <div className="mb-4 h-6 w-28 animate-pulse rounded-full bg-white/10" />
-            <div className="mb-4 h-10 w-72 animate-pulse rounded-xl bg-white/10 mx-auto" />
-          </div>
-        </section>
+        <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" />
         <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       </div>
     );
@@ -120,19 +114,7 @@ export function AboutPage({ onNavigate }: PageProps) {
       <MobileNav active="about" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
-            {heroBadge}
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            {heroTitle}
-          </h1>
-          {heroSubtitle && (
-            <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl">{heroSubtitle}</p>
-          )}
-        </div>
-      </section>
+      <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" />
 
       {/* ═══ VISION & MISSION ═══ */}
       <section className="py-20 px-4">
@@ -145,7 +127,7 @@ export function AboutPage({ onNavigate }: PageProps) {
                   <IconBox pageKey="about" elementId="vision-bookopen-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                     <BookOpen className="h-5 w-5" />
                   </IconBox>
-                  <h2 className="section-label mb-0">Notre Vision</h2>
+                  <h2 className="section-label mb-0">{getContent(cm, 'vision_heading', 'label', 'Notre Vision')}</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
                   {visionText}
@@ -159,7 +141,7 @@ export function AboutPage({ onNavigate }: PageProps) {
                   <IconBox pageKey="about" elementId="mission-heart-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                     <Heart className="h-5 w-5" />
                   </IconBox>
-                  <h2 className="section-label mb-0">Notre Mission</h2>
+                  <h2 className="section-label mb-0">{getContent(cm, 'mission_heading', 'label', 'Notre Mission')}</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
                   {missionText}
@@ -221,7 +203,7 @@ export function AboutPage({ onNavigate }: PageProps) {
         <div className="mx-auto max-w-6xl">
           <RevealSection className="mb-12 text-center">
             <p className="section-label justify-center">Ensemble au service</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Équipe Pastorale</h2>
+            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">{getContent(cm, 'team', 'title', 'Équipe Pastorale')}</h2>
             <p className="mt-4 text-muted max-w-2xl mx-auto">
               Des hommes et des femmes dévoués qui accompagnent le pasteur principal dans la vision et l'œuvre de Dieu au sein de notre église.
             </p>
@@ -316,8 +298,8 @@ export function AboutPage({ onNavigate }: PageProps) {
             <div className="mb-4 flex justify-center">
               <HandHeart className="h-8 w-8 text-accent-400/60" />
             </div>
-            <p className="section-label justify-center">Soutenir l'œuvre</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Dîmes, Offrandes & Dons</h2>
+            <p className="section-label justify-center">{getContent(cm, 'giving', 'heading_label', "Soutenir l'œuvre")}</p>
+            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">{getContent(cm, 'giving', 'heading_title', 'Dîmes, Offrandes & Dons')}</h2>
             <p className="mt-4 text-muted max-w-2xl mx-auto">
               Vos contributions permettent à l'église de poursuivre sa mission d'évangélisation, de soutenir les plus vulnérables et d'équiper les croyants.
             </p>
