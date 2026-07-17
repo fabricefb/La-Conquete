@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -47,20 +48,7 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
       <MobileNav active="culte" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex min-h-[44vh] items-center justify-center overflow-hidden pt-16 spirit-breath">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg z-10" />
-        <div className="relative z-20 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-evangile-600/30 bg-evangile-600/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-evangile-500">
-            Rassemblés pour Lui
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            Nos <span className="brand-text">Cultes</span>
-          </h1>
-          <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl">
-            Rejoignez-nous pour des moments de louange, d'enseignement et de communion fraternelle.
-          </p>
-        </div>
-      </section>
+      <UniversalHero pageKey="culte" defaultBadge="Rassemblés pour Lui" defaultTitle="Nos Cultes" defaultSubtitle="Rejoignez-nous pour des moments de louange, d'enseignement et de communion fraternelle." />
 
       {/* ═══ HORAIRES ═══ */}
       <section className="py-20 lg:py-28 px-4">

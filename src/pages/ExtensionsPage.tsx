@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { MapPin, Clock, Users, Calendar, ChevronDown, Image, ArrowRight, Church, Building2 } from '../lib/icons';
+import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -237,21 +238,9 @@ export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
     <>
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="extensions" />
-    <div className="min-h-screen bg-bg pt-16">
+    <div className="min-h-screen bg-bg">
       {/* Hero */}
-      <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-radial-primary" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          <span className="section-label">Notre rayonnement</span>
-          <h1 className="mt-6 text-4xl font-bold text-cream sm:text-5xl">
-            Nos <span className="gold-text">Extensions</span>
-          </h1>
-          <p className="mt-4 text-muted max-w-2xl mx-auto leading-relaxed">
-            L'Église Évangélique La Conquête s'étend au-delà de son siège principal.
-            Découvrez nos différentes extensions, leurs pasteurs, leurs activités et leurs programmes.
-          </p>
-        </div>
-      </section>
+      <UniversalHero pageKey="extensions" defaultBadge="Notre rayonnement" defaultTitle="Nos Extensions" defaultSubtitle="L'Église Évangélique La Conquête s'étend au-delà de son siège principal. Découvrez nos différentes extensions, leurs pasteurs, leurs activités et leurs programmes." />
 
       {/* Extensions Grid */}
       <section className="mx-auto max-w-5xl px-4 pb-24">

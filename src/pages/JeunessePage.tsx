@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -52,27 +53,8 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       <SiteHeader activePage="jeunesse" onNavigate={onNavigate} />
       <MobileNav active="jeunesse" onNavigate={onNavigate} />
 
-      {/* ═══ HERO — Particles ═══ */}
-      <section className="relative flex min-h-[50vh] items-center justify-center overflow-hidden pt-16 spirit-breath">
-        {/* Floating particles */}
-        <div className="pointer-events-none absolute inset-0">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <div key={i} className="particle" style={{ left: `${(i * 8 + 3) % 100}%`, width: 3 + (i % 3), height: 3 + (i % 3), animationDuration: `${8 + i * 2}s`, animationDelay: `${i * 0.7}s` }} />
-          ))}
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg z-10" />
-        <div className="relative z-20 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full bg-evangile-600 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-white">
-            Génération Conquête
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            Ministère de la <span className="brand-text">Jeunesse</span>
-          </h1>
-          <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl max-w-2xl mx-auto">
-            Une génération enflammée pour Dieu, équipée pour transformer sa communauté et son époque.
-          </p>
-        </div>
-      </section>
+      {/* ═══ HERO ═══ */}
+      <UniversalHero pageKey="jeunesse" defaultBadge="Génération Conquête" defaultTitle="Ministère de la Jeunesse" defaultSubtitle="Une génération enflammée pour Dieu, équipée pour transformer sa communauté et son époque." />
 
       {/* ═══ QUI SOMMES-NOUS ═══ */}
       <section className="py-20 lg:py-28 px-4 bg-radial-primary">

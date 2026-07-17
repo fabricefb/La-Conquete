@@ -5,6 +5,7 @@ import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { UniversalHero } from '../components/UniversalHero';
 import { Heart, CreditCard, Smartphone, MessageCircle, Phone, Mail, Copy, Check, ArrowRight, Shield, Users, BookOpen } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
@@ -117,21 +118,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
       <SiteHeader onNavigate={onNavigate} activePage="dons" />
 
       {/* ── Hero ──────────────────────────────────────────────── */}
-      <section className="relative pt-28 pb-16 px-4 overflow-hidden">
-        <div className="bg-radial-primary absolute inset-0 pointer-events-none" />
-        <div className="mx-auto max-w-3xl text-center relative">
-          <div className={`reveal ${v1 ? 'in' : ''} ${v1 ? 'animate-fade-up' : ''}`}>
-            <span className="section-label mb-4 inline-flex">Soutenir l'œuvre</span>
-            <h1 className="text-headline-lg mt-4 mb-6">
-              <span className="gold-text">Faire un don</span>
-            </h1>
-            <p className="text-body-lg text-muted max-w-xl mx-auto leading-relaxed">
-              Votre générosité permet à l'église de poursuivre sa mission d'enseignement,
-              d'entraide communautaire et d'évangélisation. Chaque don compte.
-            </p>
-          </div>
-        </div>
-      </section>
+      <UniversalHero pageKey="dons" defaultBadge="Soutenir l'œuvre" defaultTitle="Faire un don" defaultSubtitle="Votre générosité permet à l'église de poursuivre sa mission d'enseignement, d'entraide communautaire et d'évangélisation. Chaque don compte." />
 
       {/* ── Scripture ──────────────────────────────────────────── */}
       <section className="py-8 px-4">

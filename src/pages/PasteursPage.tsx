@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -76,19 +77,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
       <MobileNav active="pasteurs" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-evangile-600/30 bg-evangile-600/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-evangile-500">
-            Serviteurs de Dieu
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            Notre <span className="brand-text">Équipe Pastorale</span>
-          </h1>
-          <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl">
-            Des hommes et des femmes appelés et équipés pour servir l'Église et la communauté.
-          </p>
-        </div>
-      </section>
+      <UniversalHero pageKey="pasteurs" defaultBadge="Serviteurs de Dieu" defaultTitle="Notre Équipe Pastorale" defaultSubtitle="Des hommes et des femmes appelés et équipés pour servir l'Église et la communauté." />
 
       {/* ═══ PASTOR CATEGORIES ═══ */}
       {CATEGORIES.map((cat, ci) => {

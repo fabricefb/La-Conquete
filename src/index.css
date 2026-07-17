@@ -533,3 +533,10 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .light .auth-info-box { background: #f9fafb; border-color: #e5e7eb; }
   .light .auth-whatsapp-divider { border-color: #e5e7eb; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   8. PWA — Hide footer on mobile standalone
+   ═══════════════════════════════════════════════════════════════════════ */
+@media (display-mode: standalone) and (max-width: 768px) {
+  .pwa-footer-hide { display: none !important; }
+}

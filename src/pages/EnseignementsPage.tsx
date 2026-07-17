@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -92,16 +93,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
       <MobileNav active="enseignements" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-evangile-600/30 bg-evangile-600/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-evangile-500">
-            Croître dans la foi
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            <span className="brand-text">Enseignements</span> & Études Bibliques
-          </h1>
-        </div>
-      </section>
+      <UniversalHero pageKey="enseignements" defaultBadge="Croître dans la foi" defaultTitle="Enseignements & Études Bibliques" />
 
       {/* ═══ DERNIÈRES PRÉDICATIONS ═══ */}
       <section className="py-20 lg:py-28 px-4">

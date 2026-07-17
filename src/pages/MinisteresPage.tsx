@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -52,20 +53,7 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
       <MobileNav active="ministeres" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 spirit-breath">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg z-10" />
-        <div className="relative z-20 mx-auto max-w-4xl px-4 text-center">
-          <span className="reveal mb-4 inline-block rounded-full border border-evangile-600/30 bg-evangile-600/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-evangile-500">
-            Servir ensemble
-          </span>
-          <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-            Nos <span className="brand-text">Ministères</span>
-          </h1>
-          <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl max-w-2xl mx-auto">
-            Chaque membre est un ministre. Découvrez les différents espaces de service où vous pouvez vous investir.
-          </p>
-        </div>
-      </section>
+      <UniversalHero pageKey="ministeres" defaultBadge="Servir ensemble" defaultTitle="Nos Ministères" defaultSubtitle="Chaque membre est un ministre. Découvrez les différents espaces de service où vous pouvez vous investir." />
 
       {/* ═══ MINISTRIES GRID ═══ */}
       <section className="py-20 lg:py-28 px-4">

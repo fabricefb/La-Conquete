@@ -1,4 +1,5 @@
 import { Bell, ArrowRight } from '../lib/icons';
+import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -45,19 +46,8 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
     <>
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="annonces" />
-    <div className="min-h-screen bg-bg pt-16">
-      <section className="relative overflow-hidden py-20 px-4">
-        <div className="absolute inset-0 bg-radial-primary" />
-        <div className="relative mx-auto max-w-4xl text-center">
-          <span className="section-label">Restez informé</span>
-          <h1 className="mt-6 text-4xl font-bold text-cream sm:text-5xl">
-            <span className="gold-text">Annonces</span>
-          </h1>
-          <p className="mt-4 text-muted max-w-2xl mx-auto leading-relaxed">
-            Les dernières annonces et informations importantes de la vie de l'église.
-          </p>
-        </div>
-      </section>
+    <div className="min-h-screen bg-bg">
+      <UniversalHero pageKey="annonces" defaultBadge="Restez informé" defaultTitle="Annonces" defaultSubtitle="Les dernières annonces et informations importantes de la vie de l'église." />
 
       <section className="mx-auto max-w-3xl px-4 pb-24">
         <div className="space-y-4">

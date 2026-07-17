@@ -6,7 +6,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { Radio, Play, Clock, ArrowRight, Star, Send, Mail, CheckCircle } from '../lib/icons';
 import type { Page } from '../lib/navigation';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { UniversalHero } from '../components/UniversalHero';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -273,22 +273,8 @@ function CountdownDisplay({ targetDate }: { targetDate: string }) {
 export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [emissions, setEmissions] = useState<Emission[]>(SAMPLE_EMISSIONS);
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
-
-  // ── Fetch page contents ─────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const contents = await db.getPageContents('emissions');
-        if (!cancelled) setContentMap(buildContentMap(contents));
-      } catch { /* fallback */ }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
 
   // ── Attempt YouTube fetch on mount ──────────────────────────────
   useEffect(() => {
@@ -307,8 +293,6 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
 
   const featured = emissions.find((e) => e.isFeatured) ?? emissions[0];
   const grid = emissions.filter((e) => !e.isFeatured);
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Retrouvez nos programmes de télévision, radio et web pour vous nourrir de la Parole de Dieu au quotidien.');
-
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
@@ -322,22 +306,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
       <SiteHeader onNavigate={onNavigate} activePage="emissions" />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
-          <RevealSection>
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                <Radio className="h-7 w-7 text-evangile-500" />
-              </div>
-            </div>
-            <p className="section-label justify-center">Diffusion</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold text-cream sm:text-6xl">
-              Nos Émissions
-            </h1>
-            <p className="mt-6 text-lg text-muted">{heroSubtitle}</p>
-          </RevealSection>
-        </div>
-      </section>
+      <UniversalHero pageKey="emissions" defaultBadge="Émissions" defaultTitle="Nos Émissions" defaultSubtitle="Retrouvez nos programmes de télévision, radio et web pour vous nourrir de la Parole de Dieu au quotidien." />
 
       {/* ─── FEATURED EMISSION ─── */}
       {featured && (

@@ -6,7 +6,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { Play, Clock, Search, Calendar, Headphones, Mic, ArrowRight, BookOpen, Filter } from '../lib/icons';
 import type { Page } from '../lib/navigation';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { UniversalHero } from '../components/UniversalHero';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -314,23 +314,9 @@ function SeriesCard({ series, onSelect }: { series: SermonSeries; onSelect: (s: 
 export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [sermons, setSermons] = useState<Sermon[]>(SAMPLE_SERMONS);
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPreacher, setSelectedPreacher] = useState('Tous');
   const [selectedSeries, setSelectedSeries] = useState('Toutes');
-
-  // ── Fetch page contents ─────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const contents = await db.getPageContents('predications');
-        if (!cancelled) setContentMap(buildContentMap(contents));
-      } catch { /* fallback */ }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
 
   // ── Attempt YouTube fetch on mount ──────────────────────────────
   useEffect(() => {
@@ -362,29 +348,12 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
 
   const featured = sermons.find((s) => s.isFeatured) ?? sermons[0];
   const gridSermons = filteredSermons.filter((s) => s.id !== featured?.id);
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Retrouvez les enseignements bibliques, prédications et séries de notre église pour nourrir votre vie spirituelle.');
-
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader onNavigate={onNavigate} activePage="predications" />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
-          <RevealSection>
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                <BookOpen className="h-7 w-7 text-evangile-500" />
-              </div>
-            </div>
-            <p className="section-label justify-center">Enseignements</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold text-cream sm:text-6xl">
-              Prédications & Enseignements
-            </h1>
-            <p className="mt-6 text-lg text-muted">{heroSubtitle}</p>
-          </RevealSection>
-        </div>
-      </section>
+      <UniversalHero pageKey="predications" defaultBadge="Prédications" defaultTitle="Nos Prédications" defaultSubtitle="Retrouvez les enseignements bibliques, prédications et séries de notre église pour nourrir votre vie spirituelle." />
 
       {/* ─── FILTER BAR (sticky) ─── */}
       <section className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">

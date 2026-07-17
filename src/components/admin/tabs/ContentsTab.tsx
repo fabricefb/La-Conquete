@@ -96,7 +96,7 @@ const PAGES: PageDef[] = [
     icon: MapPin,
     description: 'Héro de la page',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
   {
@@ -105,7 +105,7 @@ const PAGES: PageDef[] = [
     icon: Building2,
     description: 'Héro de la page',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
   {
@@ -114,7 +114,7 @@ const PAGES: PageDef[] = [
     icon: Video,
     description: 'Héro de la page',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
   {
@@ -123,7 +123,7 @@ const PAGES: PageDef[] = [
     icon: Radio,
     description: 'Héro de la page',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
   {
@@ -132,7 +132,79 @@ const PAGES: PageDef[] = [
     icon: BookOpen,
     description: 'Héro de la page',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'vision',
+    label: 'Vision & Mission',
+    icon: Eye,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'culte',
+    label: 'Cultes',
+    icon: Calendar,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'jeunesse',
+    label: 'Jeunesse',
+    icon: Users,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'blog',
+    label: 'Blog',
+    icon: MessageSquare,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'pasteurs',
+    label: 'Pasteurs',
+    icon: Users,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'ministeres',
+    label: 'Ministères',
+    icon: Building2,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'enseignements',
+    label: 'Enseignements',
+    icon: BookOpen,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+    ],
+  },
+  {
+    key: 'dons',
+    label: 'Dons',
+    icon: Heart,
+    description: 'Héro de la page',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
 ];
@@ -185,8 +257,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── À propos ──────────────────────────────────────────────────────
   about: {
     hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Notre Identité' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Qui sommes-nous' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     vision: [
@@ -204,8 +276,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Activités / Culte ─────────────────────────────────────────────
   activities: {
     hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Communauté' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Activités' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     ministries: [
@@ -221,8 +293,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Événements ────────────────────────────────────────────────────
   events: {
     hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Calendrier' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Événements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
@@ -230,6 +302,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Contact ───────────────────────────────────────────────────────
   contact: {
     hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Contactez-nous' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Contact' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
@@ -237,6 +311,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Départements ──────────────────────────────────────────────────
   departments: {
     hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Départements' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Départements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
@@ -244,6 +320,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Médias ────────────────────────────────────────────────────────
   media: {
     hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Médias' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Médias' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
@@ -251,6 +329,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Émissions ─────────────────────────────────────────────────────
   emissions: {
     hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Émissions' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Émissions' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
@@ -258,6 +338,80 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
   // ── Prédications ──────────────────────────────────────────────────
   predications: {
     hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Prédications' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Prédications' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Vision ──
+  vision: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Pourquoi nous existons' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Vision & Mission' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Culte ──
+  culte: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Rassemblés pour Lui' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Cultes' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Jeunesse ──
+  jeunesse: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Génération Conquête' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Ministère de la Jeunesse' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Blog ──
+  blog: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Restez informé' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Actualités & Enseignements' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Pasteurs ──
+  pasteurs: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Serviteurs de Dieu' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre Équipe Pastorale' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Ministères ──
+  ministeres: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Servir ensemble' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Ministères' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Enseignements ──
+  enseignements: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Croître dans la foi' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Enseignements & Études Bibliques' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+  },
+
+  // ── Dons ──
+  dons: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: "Soutenir l'œuvre" },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Faire un don' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },

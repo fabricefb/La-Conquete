@@ -76,7 +76,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
   ];
 
   return (
-    <footer className="border-t border-line bg-bg">
+    <footer className="pwa-footer-hide border-t border-line bg-bg">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand + social */}

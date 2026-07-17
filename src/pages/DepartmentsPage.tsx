@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -12,7 +13,7 @@ import {
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { Department, ZoneEvangelisation } from '../types';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { db } from '../lib/supabase';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -365,21 +366,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [departments, setDepartments] = useState<ExtendedDepartment[]>(SAMPLE_DEPARTMENTS);
   const [zones, setZones] = useState<ZoneEvangelisation[]>(SAMPLE_ZONES);
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [selectedDept, setSelectedDept] = useState<ExtendedDepartment | null>(null);
-
-  // ── Fetch page contents ─────────────────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const contents = await db.getPageContents('departments');
-        if (!cancelled) setContentMap(buildContentMap(contents));
-      } catch { /* fallback */ }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, []);
 
   // ── Fetch departments from DB ───────────────────────────────────
   useEffect(() => {
@@ -402,8 +389,6 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
 
   const evangDept = departments.find((d) => d.slug === 'evangelisation') ?? departments.find((d) => d.name.toLowerCase().includes('evang')) ?? departments[0];
   const otherDepts = departments.filter((d) => d.id !== evangDept?.id);
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Servir ensemble pour la gloire de Dieu. Découvrez nos départements et trouvez votre place dans le corps du Christ.');
-
   // Impact stats
   const zonesCouvertes = zones.length;
   const convertisMois = zones.reduce((sum, z) => sum + z.converti_count, 0);
@@ -413,22 +398,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
       <SiteHeader onNavigate={onNavigate} activePage="departments" />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
-          <RevealSection>
-            <div className="mb-4 flex justify-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                <Users className="h-7 w-7 text-evangile-500" />
-              </div>
-            </div>
-            <p className="section-label justify-center">Service</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold text-cream sm:text-6xl">
-              Nos Départements
-            </h1>
-            <p className="mt-6 text-lg text-muted">{heroSubtitle}</p>
-          </RevealSection>
-        </div>
-      </section>
+      <UniversalHero pageKey="departments" defaultBadge="Départements" defaultTitle="Nos Départements" defaultSubtitle="Servir ensemble pour la gloire de Dieu. Découvrez nos départements et trouvez votre place dans le corps du Christ." />
 
       {/* ─── DEPARTMENT GRID ─── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">

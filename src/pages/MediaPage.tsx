@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { db } from '../lib/supabase';
 import type { MediaItem, MediaCategory } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
@@ -205,7 +206,6 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
 
   // Data state
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,27 +215,6 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
 
   // Lightbox state
   const [lightboxItem, setLightboxItem] = useState<MediaItem | null>(null);
-
-  // ── Fetch page contents on mount ───────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadPageContent() {
-      try {
-        const contents = await db.getPageContents('media');
-        if (!cancelled) {
-          setContentMap(buildContentMap(contents));
-        }
-      } catch {
-        // Silently fall back to defaults
-      }
-    }
-
-    loadPageContent();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // ── Fetch media items when category changes ────────────────────
   useEffect(() => {
@@ -267,8 +246,6 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
     };
   }, [selectedCategory]);
 
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Retrouvez nos photos, vidéos et enregistrements audio.');
-
   const closeLightbox = useCallback(() => setLightboxItem(null), []);
 
   return (
@@ -279,17 +256,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
       />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
-          <RevealSection>
-            <p className="section-label justify-center">Galerie</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold text-cream sm:text-6xl">
-              Nos Médias
-            </h1>
-            <p className="mt-6 text-lg text-muted">{heroSubtitle}</p>
-          </RevealSection>
-        </div>
-      </section>
+      <UniversalHero pageKey="media" defaultBadge="Médias" defaultTitle="Nos Médias" defaultSubtitle="Retrouvez nos photos, vidéos et enregistrements audio." />
 
       {/* ─── FILTER BAR (sticky) ─── */}
       <section className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">

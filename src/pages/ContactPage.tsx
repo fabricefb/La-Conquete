@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
+import { db, buildSettingsMap } from '../lib/supabase';
 import type { Location } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -8,6 +8,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
+import { UniversalHero } from '../components/UniversalHero';
 import { MapPin, Phone, Mail, Globe, Clock, Send, Navigation } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
@@ -55,7 +56,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   const { addToast } = useToast();
 
   // ── Data state ─────────────────────────────────────────────────
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -82,27 +82,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     'Demande d\'informations générales',
     'Autre',
   ];
-
-  // ── Fetch page contents on mount ───────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadPageContent() {
-      try {
-        const contents = await db.getPageContents('contact');
-        if (!cancelled) {
-          setContentMap(buildContentMap(contents));
-        }
-      } catch {
-        // Silently fall back to defaults
-      }
-    }
-
-    loadPageContent();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // ── Fetch settings on mount ────────────────────────────────────
   useEffect(() => {
@@ -154,13 +133,6 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   const address = settingsMap['address'] ?? '';
   const city = settingsMap['city'] ?? '';
 
-  const heroSubtitle = getContent(
-    contentMap,
-    'hero',
-    'subtitle',
-    'Que vous ayez une question, un témoignage ou souhaitiez en savoir plus, nous sommes là pour vous.',
-  );
-
   // ── Form submission ────────────────────────────────────────────
   const handleSubmit = useCallback(
     async (e: FormEvent<HTMLFormElement>) => {
@@ -201,17 +173,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       />
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-        <div className="relative z-10 mx-auto max-w-3xl px-4 py-20 text-center">
-          <RevealSection>
-            <p className="section-label justify-center">Contact</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold text-cream sm:text-6xl">
-              Parlons-en
-            </h1>
-            <p className="mt-6 text-lg text-muted">{heroSubtitle}</p>
-          </RevealSection>
-        </div>
-      </section>
+      <UniversalHero pageKey="contact" defaultBadge="Contactez-nous" defaultTitle="Contact" defaultSubtitle="Que vous ayez une question, un témoignage ou souhaitiez en savoir plus, nous sommes là pour vous." />
 
       {/* ─── CONTACT INFO + FORM ─── */}
       <section className="py-24">
