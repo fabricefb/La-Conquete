@@ -26,6 +26,7 @@ import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab'
 import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
 import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
 import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
+import { AudioTab } from '../components/admin/tabs/AudioTab';
 import { GuideTab } from '../components/admin/tabs/GuideTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
@@ -118,6 +119,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'guide': return <GuideTab />;
       case 'animations': return <AnimationsTab />;
       case 'live_stream': return <LiveStreamTab />;
+      case 'audio': return <AudioTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }
