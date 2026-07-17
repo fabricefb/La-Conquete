@@ -7,7 +7,7 @@ import {
   Save, Plus, Trash2, X, ChevronDown, ChevronRight,
   Loader2, Home, Info, Flame, Compass, Quote, Users,
   MessageSquare, Calendar, Radio, Video, Building2,
-  Megaphone, Heart, MapPin, BookOpen,
+  Megaphone, Heart, MapPin, BookOpen, Eye,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -63,9 +63,11 @@ const PAGES: PageDef[] = [
     key: 'about',
     label: 'À propos',
     icon: Info,
-    description: 'Héro, Valeurs',
+    description: 'Héro, Vision, Mission, Valeurs',
     sections: [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'vision', label: 'Vision', icon: Eye, description: 'Texte de la vision' },
+      { key: 'mission', label: 'Mission', icon: Flame, description: 'Texte de la mission' },
       { key: 'values', label: 'Valeurs', icon: Heart, description: 'Titre, sous-titre des valeurs' },
     ],
   },
@@ -182,6 +184,12 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'badge', label: 'Badge', type: 'text', value: '' },
       { field_key: 'title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    vision: [
+      { field_key: 'text', label: 'Texte de la vision', type: 'text', value: '' },
+    ],
+    mission: [
+      { field_key: 'text', label: 'Texte de la mission', type: 'text', value: '' },
     ],
     values: [
       { field_key: 'title', label: 'Titre', type: 'text', value: '' },

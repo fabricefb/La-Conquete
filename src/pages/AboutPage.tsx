@@ -79,6 +79,9 @@ export function AboutPage({ onNavigate }: PageProps) {
   const heroTitle = getContent(contentMap, 'hero', 'title', 'Qui sommes-nous');
   const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', '');
 
+  const visionText = getContent(contentMap, 'vision', 'text', 'La Conquête des âmes, La Conquête des terres habitables et cultivables.');
+  const missionText = getContent(contentMap, 'mission', 'text', 'Nous œuvrons au moyen de la Parole de Dieu, à gagner les âmes pour Jésus. Nous les équipons, les instruisons et les envoyons comme agents de transformation dans les nations. Nous motivons et équipons également nos membres pour la conquête des terres.');
+
   const valuesTitle = getContent(contentMap, 'values', 'title', 'Nos Valeurs');
   const valuesSubtitle = getContent(contentMap, 'values', 'subtitle', 'Les piliers qui guident notre vie communautaire et notre engagement au service de Dieu.');
 
@@ -144,7 +147,7 @@ export function AboutPage({ onNavigate }: PageProps) {
                   <h2 className="section-label mb-0">Notre Vision</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
-                  La Conquête des âmes, La Conquête des terres habitables et cultivables.
+                  {visionText}
                 </p>
               </div>
             </RevealSection>
@@ -158,7 +161,7 @@ export function AboutPage({ onNavigate }: PageProps) {
                   <h2 className="section-label mb-0">Notre Mission</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
-                  Nous œuvrons au moyen de la Parole de Dieu, à gagner les âmes pour Jésus. Nous les équipons, les instruisons et les envoyons comme agents de transformation dans les nations. Nous motivons et équipons également nos membres pour la conquête des terres.
+                  {missionText}
                 </p>
               </div>
             </RevealSection>
