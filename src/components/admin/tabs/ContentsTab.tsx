@@ -23,7 +23,6 @@ interface PageContent {
   label: string;
   value: string;
   type: ContentType;
-  is_active: boolean;
   sort_order: number;
   updated_at: string;
 }
@@ -282,7 +281,6 @@ async function seedPageIfEmpty(pageKey: string) {
           label: f.label,
           value: f.value,
           type: f.type,
-          is_active: true,
           sort_order: order++,
         });
       }
@@ -312,7 +310,6 @@ async function seedPageIfEmpty(pageKey: string) {
           label: f.label,
           value: f.value,
           type: f.type,
-          is_active: true,
           sort_order: order++,
         });
       }
@@ -365,7 +362,7 @@ export function ContentsTab() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [contents, setContents] = useState<PageContent[]>([]);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
-  const [draftActive, setDraftActive] = useState<Record<string, boolean>>({});
+  // is_active removed — column does not exist in DB
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -405,13 +402,10 @@ export function ContentsTab() {
         const rows: PageContent[] = (data ?? []) as PageContent[];
         setContents(rows);
         const vals: Record<string, string> = {};
-        const acts: Record<string, boolean> = {};
         for (const r of rows) {
           vals[r.id] = r.value;
-          acts[r.id] = r.is_active;
         }
         setDraftValues(vals);
-        setDraftActive(acts);
 
         // Auto-open first section
         if (rows.length > 0) {
@@ -441,9 +435,7 @@ export function ContentsTab() {
     setDraftValues((prev) => ({ ...prev, [id]: val }));
   }, []);
 
-  const handleActiveToggle = useCallback((id: string, checked: boolean) => {
-    setDraftActive((prev) => ({ ...prev, [id]: checked }));
-  }, []);
+  // handleActiveToggle removed — is_active column does not exist in DB
 
   // ── Save all changes for the active page ──
 
@@ -454,11 +446,10 @@ export function ContentsTab() {
     const results = await Promise.allSettled(
       contents.map((item) => {
         const newVal = draftValues[item.id] ?? item.value;
-        const newActive = draftActive[item.id] ?? item.is_active;
-        if (newVal === item.value && newActive === item.is_active) return Promise.resolve(null);
+        if (newVal === item.value) return Promise.resolve(null);
         return supabase
           .from('page_contents')
-          .update({ value: newVal, is_active: newActive, updated_at: now })
+          .update({ value: newVal, updated_at: now })
           .eq('id', item.id);
       }),
     );
@@ -485,13 +476,10 @@ export function ContentsTab() {
       if (data) {
         setContents(data as PageContent[]);
         const vals: Record<string, string> = {};
-        const acts: Record<string, boolean> = {};
         for (const r of data) {
           vals[r.id] = r.value;
-          acts[r.id] = r.is_active;
         }
         setDraftValues(vals);
-        setDraftActive(acts);
       }
     } else {
       addToast(`Erreur : ${errors[0]}`, 'error');
@@ -499,7 +487,7 @@ export function ContentsTab() {
     }
 
     setSaving(false);
-  }, [contents, draftValues, draftActive, activePage, addToast]);
+  }, [contents, draftValues, activePage, addToast]);
 
   // ── Add field ──
 
@@ -524,7 +512,6 @@ export function ContentsTab() {
       label,
       value: '',
       type: newFieldType,
-      is_active: true,
       sort_order: maxSort + 1,
     });
 
@@ -550,13 +537,10 @@ export function ContentsTab() {
       const rows = data as PageContent[];
       setContents(rows);
       const vals: Record<string, string> = {};
-      const acts: Record<string, boolean> = {};
       for (const r of rows) {
         vals[r.id] = r.value;
-        acts[r.id] = r.is_active;
       }
       setDraftValues(vals);
-      setDraftActive(acts);
     }
   }, [addModal, newFieldKey, newFieldLabel, newFieldType, activePage, sectionMap, addToast]);
 
@@ -572,7 +556,6 @@ export function ContentsTab() {
     setDeleteConfirmId(null);
     setContents((prev) => prev.filter((c) => c.id !== id));
     setDraftValues((prev) => { const n = { ...prev }; delete n[id]; return n; });
-    setDraftActive((prev) => { const n = { ...prev }; delete n[id]; return n; });
   }, [addToast]);
 
   // ── Dirty check ──
@@ -811,8 +794,7 @@ export function ContentsTab() {
 
                   {/* Fields */}
                   {activeSectionItems.map((item) => {
-                    const isModified = (draftValues[item.id] ?? item.value) !== item.value
-                      || (draftActive[item.id] ?? item.is_active) !== item.is_active;
+                    const isModified = (draftValues[item.id] ?? item.value) !== item.value;
 
                     return (
                       <div
@@ -837,15 +819,6 @@ export function ContentsTab() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                              <input
-                                type="checkbox"
-                                checked={draftActive[item.id] ?? item.is_active}
-                                onChange={(e) => handleActiveToggle(item.id, e.target.checked)}
-                                className="h-3.5 w-3.5 rounded border-white/20 accent-amber-500"
-                              />
-                              <span className="text-[10px] text-white/40">Actif</span>
-                            </label>
                             {isFullAdmin && (
                               deleteConfirmId === item.id ? (
                                 <div className="flex items-center gap-1">

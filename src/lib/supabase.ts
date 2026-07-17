@@ -131,7 +131,6 @@ export const db = {
       .from('page_contents')
       .select('*')
       .eq('page', page)
-      .eq('is_active', true)
       .order('sort_order');
     if (error) throw new Error(error.message);
     return (data ?? []) as PageContent[];
