@@ -75,9 +75,10 @@ interface TopBarProps {
   onLiveClick?: () => void;
   phone?: string;
   email?: string;
+  marqueeOverride?: string;
 }
 
-export function TopBar({ onNavigate, onLiveClick, phone, email }: TopBarProps) {
+export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
     'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
     'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
@@ -133,9 +134,15 @@ export function TopBar({ onNavigate, onLiveClick, phone, email }: TopBarProps) {
   }, []);
 
   /* ── Build marquee items (duplicate for seamless loop) ── */
-  const marqueeItems = announcements.length > 0
-    ? [...announcements, ...announcements]
-    : ['Bienvenue à l\'Église Évangélique La Conquête', 'Bienvenue à l\'Église Évangélique La Conquête'];
+  // If admin set a custom marquee text, use it; otherwise use communiqués
+  const customItems = marqueeOverride
+    ? marqueeOverride.split('|').map(s => s.trim()).filter(Boolean)
+    : [];
+  const marqueeItems = customItems.length > 0
+    ? [...customItems, ...customItems]
+    : announcements.length > 0
+      ? [...announcements, ...announcements]
+      : ['Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC', 'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC'];
 
   return (
     <div

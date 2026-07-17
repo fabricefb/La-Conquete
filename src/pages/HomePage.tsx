@@ -271,6 +271,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   // Topbar dynamic content
   const topbarPhone = getContent(cm, 'topbar', 'phone', '');
   const topbarEmail = getContent(cm, 'topbar', 'email', '');
+  const topbarMarquee = getContent(cm, 'topbar', 'marquee_text', '');
 
   // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
@@ -482,7 +483,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} />}
+      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} />}
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (

@@ -135,26 +135,35 @@ const PAGE_ELEMENTS: Record<string, { id: string; label: string }[]> = {
    ═══════════════════════════════════════════════════════════════════ */
 
 const PAGES: PageDef[] = [
-  { key: 'home', label: 'Accueil', sections: ['hero', 'topbar', 'pillars', 'about', 'quote', 'pastors', 'testimonials'] },
-  { key: 'about', label: 'À propos', sections: ['hero', 'vision', 'mission', 'values', 'pastors'] },
-  { key: 'activities', label: 'Activités', sections: ['hero', 'schedule', 'ministries', 'cta'] },
-  { key: 'events', label: 'Événements', sections: ['hero', 'upcoming', 'past'] },
-  { key: 'contact', label: 'Contact', sections: ['hero', 'form', 'map', 'info'] },
-  { key: 'media', label: 'Médias', sections: ['hero', 'gallery', 'videos'] },
-  { key: 'departments', label: 'Départements', sections: ['hero', 'list'] },
-  { key: 'emissions', label: 'Émissions', sections: ['hero', 'list'] },
-  { key: 'predications', label: 'Prédications', sections: ['hero', 'list'] },
-  { key: 'vision', label: 'Vision', sections: ['hero', 'vision', 'mission', 'values', 'timeline'] },
-  { key: 'culte', label: 'Culte', sections: ['hero', 'schedule'] },
-  { key: 'jeunesse', label: 'Jeunesse', sections: ['hero', 'activities'] },
-  { key: 'blog', label: 'Blog', sections: ['hero', 'list'] },
-  { key: 'pasteurs', label: 'Pasteurs', sections: ['hero', 'grid'] },
-  { key: 'ministeres', label: 'Ministères', sections: ['hero', 'grid'] },
-  { key: 'enseignements', label: 'Enseignements', sections: ['hero', 'list'] },
+  /* ─── Accueil ─── */
+  { key: 'home', label: 'Accueil', sections: ['topbar', 'hero', 'pillars', 'about', 'explore', 'quote', 'pastors', 'testimonials', 'cta', 'map'] },
+  /* ─── À Propos ─── */
+  { key: 'about', label: 'À propos', sections: ['hero', 'about', 'vision', 'mission', 'values', 'pastors', 'giving'] },
+  /* ─── Vie de l'Église ─── */
+  { key: 'culte', label: 'Culte & Rassemblements', sections: ['hero', 'schedule', 'practicals'] },
+  { key: 'events', label: 'Événements', sections: ['hero', 'upcoming', 'weekly', 'past'] },
+  { key: 'jeunesse', label: 'Jeunesse', sections: ['hero', 'activities', 'program', 'gallery', 'testimonials'] },
+  { key: 'ministeres', label: 'Ministères', sections: ['hero', 'louange', 'evangelisation', 'diaconie', 'groupes'] },
+  { key: 'departments', label: 'Tous les départements', sections: ['hero', 'list', 'evangelisation', 'join'] },
+  { key: 'pasteurs', label: 'Équipe pastorale', sections: ['hero', 'principaux', 'equipe'] },
   { key: 'extensions', label: 'Extensions', sections: ['hero', 'list'] },
+  /* ─── Vie spirituelle ─── */
+  { key: 'enseignements', label: 'Enseignements', sections: ['hero', 'list', 'series', 'studies'] },
+  { key: 'predications', label: 'Prédications', sections: ['hero', 'list', 'series'] },
+  { key: 'blog', label: 'Blog', sections: ['hero', 'featured', 'list'] },
+  /* ─── Média ─── */
+  { key: 'media', label: 'Médias — Contenus', sections: ['hero', 'videos', 'emissions', 'live', 'photos'] },
+  { key: 'emissions', label: 'Médias — Émissions', sections: ['hero', 'list', 'featured'] },
+  /* ─── Communication ─── */
   { key: 'communiques', label: 'Communiqués', sections: ['hero', 'list'] },
   { key: 'annonces', label: 'Annonces', sections: ['hero', 'list'] },
-  { key: 'dons', label: 'Dons', sections: ['hero', 'form'] },
+  /* ─── Contact & Dons ─── */
+  { key: 'contact', label: 'Contact', sections: ['hero', 'services', 'form', 'social', 'map', 'info'] },
+  { key: 'dons', label: 'Dons', sections: ['hero', 'methods', 'steps'] },
+  /* ─── Vision ─── */
+  { key: 'vision', label: 'Vision & Mission', sections: ['hero', 'mission', 'values', 'timeline'] },
+  /* ─── Activités (legacy) ─── */
+  { key: 'activities', label: 'Activités / Culte', sections: ['hero', 'schedule', 'ministries', 'cta'] },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════

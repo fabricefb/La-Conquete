@@ -45,166 +45,200 @@ interface PageDef {
 }
 
 const PAGES: PageDef[] = [
+  /* ══════════ ACCUEIL ══════════ */
   {
-    key: 'home',
-    label: 'Page d\'accueil',
-    icon: Home,
-    description: 'Hero, Piliers, À propos, Citation',
+    key: 'home', label: 'Page d\'accueil', icon: Home,
+    description: 'Hero, Piliers, À propos, Citation, CTA',
     sections: [
-      { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email de contact' },
-      { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, sous-titre du héro' },
+      { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email, texte défilant' },
+      { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, diaporama, titre, verset biblique' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
       { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Textes, image et citation' },
-      { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence de la citation' },
+      { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence' },
     ],
   },
+  /* ══════════ À PROPOS ══════════ */
   {
-    key: 'about',
-    label: 'À propos',
-    icon: Info,
-    description: 'Héro, Vision, Mission, Valeurs',
+    key: 'about', label: 'À propos', icon: Info,
+    description: 'Notre identité, Vision, Mission, Valeurs',
     sections: [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Texte principal de présentation' },
       { key: 'vision', label: 'Vision', icon: Eye, description: 'Texte de la vision' },
       { key: 'mission', label: 'Mission', icon: Flame, description: 'Texte de la mission' },
-      { key: 'values', label: 'Valeurs', icon: Heart, description: 'Titre, sous-titre des valeurs' },
+      { key: 'values', label: 'Nos Valeurs', icon: Heart, description: 'Titre et sous-titre' },
+      { key: 'giving', label: 'Dons & Soutien', icon: Heart, description: 'Section dons sur la page À propos' },
+    ],
+  },
+  /* ══════════ VIE DE L'ÉGLISE ══════════ */
+  {
+    key: 'culte', label: 'Culte & Rassemblements', icon: Calendar,
+    description: 'Horaires, Infos pratiques',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'schedule', label: 'Horaires de culte', icon: Calendar, description: 'Titre et description' },
+      { key: 'practicals', label: 'Infos pratiques', icon: Info, description: 'Parking, transport, enfants' },
     ],
   },
   {
-    key: 'activities',
-    label: 'Activités / Culte',
-    icon: Calendar,
+    key: 'events', label: 'Événements', icon: Calendar,
+    description: 'Événements à venir et passés',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'upcoming', label: 'Événements à venir', icon: Calendar, description: 'Titre et description' },
+      { key: 'weekly', label: 'Cultes hebdomadaires', icon: Calendar, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'jeunesse', label: 'Jeunesse', icon: Users,
+    description: 'Activités, Programme, Témoignages',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'activities', label: 'Activités', icon: Users, description: 'Titre et description' },
+      { key: 'program', label: 'Programme', icon: Calendar, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'ministeres', label: 'Ministères', icon: Building2,
+    description: 'Louange, Évangélisation, Diaconie, Groupes',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'louange', label: 'Louange & Adoration', icon: Radio, description: 'Titre et description' },
+      { key: 'evangelisation', label: 'Évangélisation', icon: Compass, description: 'Titre et description' },
+      { key: 'diaconie', label: 'Diaconie & Aide sociale', icon: Heart, description: 'Titre et description' },
+      { key: 'groupes', label: 'Groupes (Hommes, Femmes, Enfants, Couples)', icon: Users, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'departments', label: 'Tous les départements', icon: Building2,
+    description: 'Liste des départements',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des départements', icon: Building2, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'pasteurs', label: 'Équipe pastorale', icon: Users,
+    description: 'Pasteurs principaux et équipe',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'principaux', label: 'Pasteurs principaux', icon: Users, description: 'Titre et description' },
+      { key: 'equipe', label: 'Reste de l\'équipe', icon: Users, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'extensions', label: 'Extensions', icon: MapPin,
+    description: 'Extensions locales',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des extensions', icon: MapPin, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ VIE SPIRITUELLE ══════════ */
+  {
+    key: 'enseignements', label: 'Enseignements', icon: BookOpen,
+    description: 'Enseignements, Séries, Études bibliques',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des enseignements', icon: BookOpen, description: 'Titre et description' },
+      { key: 'series', label: 'Séries', icon: BookOpen, description: 'Titre et description' },
+      { key: 'studies', label: 'Études bibliques', icon: BookOpen, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'predications', label: 'Prédications', icon: BookOpen,
+    description: 'Prédications et séries',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des prédications', icon: BookOpen, description: 'Titre et description' },
+      { key: 'series', label: 'Séries de prédications', icon: BookOpen, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'blog', label: 'Blog', icon: MessageSquare,
+    description: 'Articles et actualités',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'featured', label: 'Article à la une', icon: MessageSquare, description: 'Titre et description' },
+      { key: 'list', label: 'Liste des articles', icon: MessageSquare, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ MÉDIAS ══════════ */
+  {
+    key: 'media', label: 'Médias — Contenus', icon: Video,
+    description: 'Vidéos, Émissions, En direct, Photos',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'videos', label: 'Toutes les vidéos', icon: Video, description: 'Titre et description' },
+      { key: 'emissions', label: 'Émissions', icon: Radio, description: 'Titre et description' },
+      { key: 'live', label: 'En direct', icon: Video, description: 'Titre et description' },
+      { key: 'photos', label: 'Photos', icon: Eye, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'emissions', label: 'Médias — Émissions', icon: Radio,
+    description: 'Émissions programmées',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des émissions', icon: Radio, description: 'Titre et description' },
+      { key: 'featured', label: 'Émission à la une', icon: Radio, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ COMMUNICATION ══════════ */
+  {
+    key: 'communiques', label: 'Communiqués', icon: Megaphone,
+    description: 'Communiqués officiels',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des communiqués', icon: Megaphone, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'annonces', label: 'Annonces', icon: Megaphone,
+    description: 'Annonces importantes',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'list', label: 'Liste des annonces', icon: Megaphone, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ CONTACT & DONS ══════════ */
+  {
+    key: 'contact', label: 'Contact', icon: MapPin,
+    description: 'Coordonnées, Formulaire, Carte',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'services', label: 'Horaires de culte', icon: Calendar, description: 'Titre et description' },
+      { key: 'form', label: 'Formulaire de contact', icon: MessageSquare, description: 'Titre et description' },
+      { key: 'social', label: 'Réseaux sociaux', icon: Radio, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'dons', label: 'Dons', icon: Heart,
+    description: 'Méthodes de don',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'methods', label: 'Méthodes de don', icon: Heart, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ VISION ══════════ */
+  {
+    key: 'vision', label: 'Vision & Mission', icon: Eye,
+    description: 'Mission, Valeurs, Chronologie',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'mission', label: 'Mission', icon: Flame, description: 'Titre et description' },
+      { key: 'values', label: 'Valeurs', icon: Heart, description: 'Titre et description' },
+      { key: 'timeline', label: 'Chronologie', icon: Calendar, description: 'Titre et description' },
+    ],
+  },
+  /* ══════════ ACTIVITÉS (legacy) ══════════ */
+  {
+    key: 'activities', label: 'Activités / Culte', icon: Calendar,
     description: 'Héro, Ministères, CTA',
     sections: [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
       { key: 'ministries', label: 'Ministères', icon: Users, description: 'Titre et sous-titre' },
       { key: 'cta', label: 'Appel à action', icon: Compass, description: 'Titre et description' },
-    ],
-  },
-  {
-    key: 'events',
-    label: 'Événements',
-    icon: Calendar,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'contact',
-    label: 'Contact',
-    icon: MapPin,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'departments',
-    label: 'Départements',
-    icon: Building2,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'media',
-    label: 'Médias',
-    icon: Video,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'emissions',
-    label: 'Émissions',
-    icon: Radio,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'predications',
-    label: 'Prédications',
-    icon: BookOpen,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'vision',
-    label: 'Vision & Mission',
-    icon: Eye,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'culte',
-    label: 'Cultes',
-    icon: Calendar,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'jeunesse',
-    label: 'Jeunesse',
-    icon: Users,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'blog',
-    label: 'Blog',
-    icon: MessageSquare,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'pasteurs',
-    label: 'Pasteurs',
-    icon: Users,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'ministeres',
-    label: 'Ministères',
-    icon: Building2,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'enseignements',
-    label: 'Enseignements',
-    icon: BookOpen,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
-    ],
-  },
-  {
-    key: 'dons',
-    label: 'Dons',
-    icon: Heart,
-    description: 'Héro de la page',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
     ],
   },
 ];
@@ -223,18 +257,21 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     topbar: [
       { field_key: 'phone', label: 'Téléphone', type: 'text', value: '+243 00 000 0000' },
       { field_key: 'email', label: 'Email', type: 'text', value: 'contact@laconquete.cd' },
+      { field_key: 'marquee_text', label: 'Texte défilant personnalisé (vide = communiqués auto)', type: 'text', value: '' },
     ],
     hero: [
       { field_key: 'bg_image', label: 'Image de fond', type: 'image_url', value: '' },
       { field_key: 'bg_images', label: 'Images diaporama (séparées par ,)', type: 'text', value: '' },
       { field_key: 'title_line1', label: 'Titre ligne 1', type: 'text', value: 'La Conquête' },
       { field_key: 'title_line2', label: 'Titre ligne 2', type: 'text', value: 'des Âmes' },
-      { field_key: 'subtitle', label: 'Sous-titre (sous le titre)', type: 'text', value: 'Église Évangélique La Conquête — Kinshasa, RDC' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: 'Église Évangélique La Conquête — Kinshasa, RDC' },
       { field_key: 'bible_verse', label: 'Verset biblique (typing)', type: 'text', value: 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"' },
       { field_key: 'cta_primary', label: 'Bouton CTA principal', type: 'text', value: 'Rejoindre le culte' },
       { field_key: 'cta_secondary', label: 'Bouton CTA secondaire', type: 'text', value: 'Notre vision' },
     ],
     pillars: [
+      { field_key: 'heading_label', label: 'En-tête section (label)', type: 'text', value: 'Nos Fondements' },
+      { field_key: 'heading_title', label: 'En-tête section (titre)', type: 'text', value: 'Trois piliers qui nous guident' },
       { field_key: 'pillar_1_title', label: 'Pilier 1 — Titre', type: 'text', value: 'Foi' },
       { field_key: 'pillar_1_desc', label: 'Pilier 1 — Description', type: 'text', value: '' },
       { field_key: 'pillar_2_title', label: 'Pilier 2 — Titre', type: 'text', value: 'Communauté' },
@@ -243,37 +280,330 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'pillar_3_desc', label: 'Pilier 3 — Description', type: 'text', value: '' },
     ],
     about: [
+      { field_key: 'heading_label', label: 'En-tête section (label)', type: 'text', value: 'Qui sommes-nous' },
+      { field_key: 'heading_title', label: 'En-tête section (titre)', type: 'text', value: 'Une église qui fait la différence' },
       { field_key: 'text_1', label: 'Texte principal', type: 'text', value: '' },
       { field_key: 'text_2', label: 'Texte secondaire', type: 'text', value: '' },
       { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
       { field_key: 'image', label: 'Photo', type: 'image_url', value: '' },
+      { field_key: 'cta_text', label: 'Texte du bouton', type: 'text', value: 'En savoir plus' },
     ],
     quote: [
+      { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: '' },
       { field_key: 'text', label: 'Texte de la citation', type: 'text', value: '' },
       { field_key: 'reference', label: 'Référence', type: 'text', value: '' },
     ],
   },
 
-  // ── À propos ──────────────────────────────────────────────────────
   about: {
     hero: [
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Notre Identité' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Qui sommes-nous' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
-    vision: [
-      { field_key: 'text', label: 'Texte de la vision', type: 'text', value: '' },
+    about: [
+      { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: 'Qui sommes-nous' },
+      { field_key: 'heading_title', label: 'En-tête (titre)', type: 'text', value: '' },
+      { field_key: 'text', label: 'Texte principal', type: 'text', value: '' },
     ],
-    mission: [
-      { field_key: 'text', label: 'Texte de la mission', type: 'text', value: '' },
-    ],
+    vision: [{ field_key: 'text', label: 'Texte de la vision', type: 'text', value: '' }],
+    mission: [{ field_key: 'text', label: 'Texte de la mission', type: 'text', value: '' }],
     values: [
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos Valeurs' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'heading_subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    giving: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Soutenir l\'œuvre' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'cta_text', label: 'Texte du bouton', type: 'text', value: 'Faire un don' },
     ],
   },
 
-  // ── Activités / Culte ─────────────────────────────────────────────
+  culte: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Rassemblés pour Lui' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Cultes' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    schedule: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Horaires de culte' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    practicals: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Infos pratiques' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  events: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Calendrier' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Événements' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    upcoming: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'À venir' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    weekly: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Cultes hebdomadaires' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  jeunesse: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Génération Conquête' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Ministère de la Jeunesse' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    activities: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos Activités' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    program: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Programme' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  ministeres: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Servir ensemble' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Ministères' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    louange: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Louange & Adoration' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+    evangelisation: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Évangélisation' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+    diaconie: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Diaconie & Aide sociale' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+    groupes: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Groupes' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+    ],
+  },
+
+  departments: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Départements' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Départements' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Tous les départements' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  pasteurs: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Serviteurs de Dieu' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre Équipe Pastorale' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    principaux: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Pasteurs principaux' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    equipe: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'L\'équipe' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  extensions: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Nos Extensions' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Extensions' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos localités' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  enseignements: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Croître dans la foi' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Enseignements & Études Bibliques' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Enseignements' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    series: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Séries' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    studies: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Études bibliques' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  predications: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'La Parole de Dieu' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Prédications' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Prédications' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    series: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Séries' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  blog: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Restez informé' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Actualités & Enseignements' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    featured: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'À la une' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Articles' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  media: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Médias' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Médias' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    videos: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Toutes les vidéos' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    emissions: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Émissions' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    live: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'En direct' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    photos: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Photos' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  emissions: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Émissions' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Émissions' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Programme' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    featured: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'À la une' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  communiques: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Communiqués' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Communiqués' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Derniers communiqués' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  annonces: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Annonces' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Annonces' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    list: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Annonces récentes' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  contact: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Contactez-nous' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Contact' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    services: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Horaires de culte' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    form: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nous écrire' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    social: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Réseaux sociaux' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  dons: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: "Soutenir l'œuvre" },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Faire un don' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    methods: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Méthodes de don' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  vision: {
+    hero: [
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Pourquoi nous existons' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Vision & Mission' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    mission: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Notre Mission' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    values: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos Valeurs' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    timeline: [
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Notre Histoire' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
   activities: {
     hero: [
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Communauté' },
@@ -281,138 +611,13 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     ministries: [
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Ministères' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
     ],
     cta: [
-      { field_key: 'title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: '' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'description', label: 'Description', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Événements ────────────────────────────────────────────────────
-  events: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Calendrier' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Événements' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Contact ───────────────────────────────────────────────────────
-  contact: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Contactez-nous' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Contact' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Départements ──────────────────────────────────────────────────
-  departments: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Départements' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Départements' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Médias ────────────────────────────────────────────────────────
-  media: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Médias' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Médias' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Émissions ─────────────────────────────────────────────────────
-  emissions: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Émissions' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Émissions' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Prédications ──────────────────────────────────────────────────
-  predications: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Prédications' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Prédications' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Vision ──
-  vision: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Pourquoi nous existons' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Vision & Mission' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Culte ──
-  culte: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Rassemblés pour Lui' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Cultes' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Jeunesse ──
-  jeunesse: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Génération Conquête' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Ministère de la Jeunesse' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Blog ──
-  blog: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Restez informé' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Actualités & Enseignements' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Pasteurs ──
-  pasteurs: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Serviteurs de Dieu' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre Équipe Pastorale' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Ministères ──
-  ministeres: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Servir ensemble' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Nos Ministères' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Enseignements ──
-  enseignements: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Croître dans la foi' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Enseignements & Études Bibliques' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-  },
-
-  // ── Dons ──
-  dons: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: "Soutenir l'œuvre" },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Faire un don' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
   },
 };
