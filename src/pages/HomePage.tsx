@@ -467,12 +467,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
           <div className="grid gap-6 md:grid-cols-3">
             {[
-              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc, accent: 'text-evangile-500' },
+              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc, accent: 'text-accent-400' },
               { num: '02', Icon: Flame, title: pillar2Title, desc: pillar2Desc, accent: 'text-red-400' },
-              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-evangile-500' },
+              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-accent-400' },
             ].map(({ num, Icon, title, desc, accent }, i) => (
               <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-evangile-600/60 hover:shadow-lg hover:shadow-evangile-600/5">
+                <div className="glass-card group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-accent-500/60 hover:shadow-lg hover:shadow-accent-500/5">
                   {/* Background number */}
                   <span className="absolute top-4 right-6 text-5xl font-bold text-cream opacity-[0.07] select-none font-serif">
                     {num}
@@ -490,7 +490,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <p className="text-sm leading-relaxed text-muted">{desc}</p>
 
                   {/* Hover gradient border effect */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-evangile-600 to-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-600 to-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
                 </div>
               </RevealSection>
             ))}
@@ -516,7 +516,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   />
                 </div>
                 {/* Floating Cross decoration */}
-                <IconBox pageKey="home" elementId="unique-float-cross" className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-evangile-600/20 text-evangile-500 shadow-xl shadow-black/20">
+                <IconBox pageKey="home" elementId="unique-float-cross" className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-accent-400/20 text-accent-400 shadow-xl shadow-black/20">
                   <Cross className="h-7 w-7" />
                 </IconBox>
               </div>
@@ -532,9 +532,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <p className="mt-4 leading-relaxed text-muted">{aboutText2}</p>
 
               {/* Signed quote */}
-              <blockquote className="mt-8 border-l-4 border-evangile-600/50 pl-5">
+              <blockquote className="mt-8 border-l-4 border-accent-400/50 pl-5">
                 <p className="text-sm italic text-cream/70">&laquo; {aboutQuote} &raquo;</p>
-                <p className="mt-1 text-xs font-semibold text-evangile-500">&mdash; Psaumes 2:8</p>
+                <p className="mt-1 text-xs font-semibold text-accent-400">&mdash; Psaumes 2:8</p>
               </blockquote>
 
               <button
@@ -615,11 +615,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
                   {/* Bottom content */}
                   <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/20 text-evangile-500">
+                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/20 text-accent-400">
                       <Icon className="h-5 w-5" />
                     </div>
                     <h3 className="font-serif text-lg font-semibold text-white">{title}</h3>
-                    <div className="mt-2 flex items-center gap-2 text-sm text-evangile-400 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+                    <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
                       <span>Découvrir</span>
                       <ArrowRight className="h-3.5 w-3.5" />
                     </div>
@@ -643,21 +643,21 @@ export function HomePage({ onNavigate }: HomePageProps) {
             {/* Gold divider above */}
             <div className="mx-auto mb-8 flex items-center justify-center gap-4">
               <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
-              <Quote className="h-8 w-8 text-evangile-500/60 rotate-180" />
+              <Quote className="h-8 w-8 text-accent-400/60 rotate-180" />
               <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
 
             <p className="font-serif text-2xl italic leading-relaxed text-cream sm:text-3xl">
               &laquo; {quoteText} &raquo;
             </p>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-evangile-500">
+            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-accent-400">
               &mdash; {quoteRef}
             </p>
 
             {/* Gold divider below */}
             <div className="mt-8 mx-auto flex items-center justify-center gap-4">
               <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
-              <Quote className="h-8 w-8 text-evangile-500/60" />
+              <Quote className="h-8 w-8 text-accent-400/60" />
               <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
           </RevealSection>
@@ -711,9 +711,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <RevealSection>
             {/* Heart with ping */}
             <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-evangile-600/20" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-evangile-600/15 border border-evangile-600/30">
-                <Heart className="h-7 w-7 text-evangile-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400/20" />
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent-400/15 border border-accent-400/30">
+                <Heart className="h-7 w-7 text-accent-400" />
               </div>
             </div>
 

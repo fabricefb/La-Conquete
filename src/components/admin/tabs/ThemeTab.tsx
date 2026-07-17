@@ -198,15 +198,15 @@ function getButtonPreviewClasses(style: ButtonStyle): string {
   const base = 'px-5 py-2 text-sm font-medium transition-all';
   switch (style) {
     case 'pill':
-      return `${base} rounded-full bg-gradient-to-r from-evangile-400 to-evangile-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
+      return `${base} rounded-full bg-gradient-to-r from-evangile-400 to-accent-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
     case 'rounded':
-      return `${base} rounded-xl bg-gradient-to-r from-evangile-400 to-evangile-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
+      return `${base} rounded-xl bg-gradient-to-r from-evangile-400 to-accent-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
     case 'sharp':
-      return `${base} rounded-none bg-gradient-to-r from-evangile-400 to-evangile-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
+      return `${base} rounded-none bg-gradient-to-r from-evangile-400 to-accent-700 text-charcoal-900 hover:from-evangile-300 hover:to-evangile-600`;
     case 'outline':
-      return `${base} rounded-full border-2 border-evangile-600 text-evangile-500 bg-transparent hover:bg-evangile-600/10`;
+      return `${base} rounded-full border-2 border-evangile-600 text-accent-400 bg-transparent hover:bg-accent-400/10`;
     case 'gradient':
-      return `${base} rounded-full bg-gradient-to-r from-evangile-300 via-evangile-600 to-evangile-700 text-charcoal-900 hover:from-evangile-200 hover:via-evangile-500 hover:to-evangile-600`;
+      return `${base} rounded-full bg-gradient-to-r from-evangile-300 via-evangile-600 to-accent-700 text-charcoal-900 hover:from-evangile-200 hover:via-evangile-500 hover:to-evangile-600`;
     default:
       return base;
   }
@@ -220,11 +220,11 @@ function getCardPreviewClasses(style: CardStyle): string {
     case 'flat':
       return 'bg-white/5 rounded-2xl p-4 text-sm';
     case 'bordered':
-      return 'border border-evangile-600/30 rounded-2xl p-4 text-sm';
+      return 'border border-accent-400/30 rounded-2xl p-4 text-sm';
     case 'shadowed':
       return 'bg-white/5 rounded-2xl shadow-lg shadow-black/20 p-4 text-sm';
     case 'glass-bordered':
-      return 'glass border border-evangile-600/30 rounded-2xl p-4 text-sm';
+      return 'glass border border-accent-400/30 rounded-2xl p-4 text-sm';
     default:
       return 'glass p-4 text-sm';
   }
@@ -327,7 +327,7 @@ export function ThemeTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-evangile-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-accent-400" />
         <span className="ml-3 text-muted">Chargement des paramètres de thème…</span>
       </div>
     );
@@ -338,7 +338,7 @@ export function ThemeTab() {
       {/* ─── Section 1: Couleurs ──────────────────────────────── */}
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
-          <Palette className="h-5 w-5 text-evangile-500" />
+          <Palette className="h-5 w-5 text-accent-400" />
           <h2 className="font-serif text-xl font-semibold text-cream">Couleurs</h2>
         </div>
 
@@ -364,7 +364,7 @@ export function ThemeTab() {
                   }}
                   className={`rounded-xl border p-3 text-left transition-all ${
                     isActive
-                      ? 'border-evangile-500 bg-evangile-600/10'
+                      ? 'border-evangile-500 bg-accent-400/10'
                       : 'border-white/5 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]'
                   }`}
                 >
@@ -377,7 +377,7 @@ export function ThemeTab() {
                       />
                     ))}
                   </div>
-                  <p className={`text-[11px] font-medium truncate ${isActive ? 'text-evangile-400' : 'text-cream/60'}`}>
+                  <p className={`text-[11px] font-medium truncate ${isActive ? 'text-accent-300' : 'text-cream/60'}`}>
                     {preset.name}
                   </p>
                 </button>
@@ -525,7 +525,7 @@ export function ThemeTab() {
       {/* ─── Section 2: Style des boutons ────────────────────── */}
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
-          <RectangleHorizontal className="h-5 w-5 text-evangile-500" />
+          <RectangleHorizontal className="h-5 w-5 text-accent-400" />
           <h2 className="font-serif text-xl font-semibold text-cream">Style des boutons</h2>
         </div>
 
@@ -544,8 +544,8 @@ export function ThemeTab() {
                 <div
                   className={`p-1 rounded-xl transition-all duration-200 ${
                     isSelected
-                      ? 'ring-2 ring-evangile-600 ring-offset-2 ring-offset-bg'
-                      : 'hover:ring-1 hover:ring-evangile-600/40'
+                      ? 'ring-2 ring-accent-500 ring-offset-2 ring-offset-bg'
+                      : 'hover:ring-1 hover:ring-accent-500/40'
                   }`}
                 >
                   <span className={getButtonPreviewClasses(value)}>
@@ -554,7 +554,7 @@ export function ThemeTab() {
                 </div>
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    isSelected ? 'text-evangile-500' : 'text-muted'
+                    isSelected ? 'text-accent-400' : 'text-muted'
                   }`}
                 >
                   {label}
@@ -568,7 +568,7 @@ export function ThemeTab() {
       {/* ─── Section 3: Style des cartes ─────────────────────── */}
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
-          <Square className="h-5 w-5 text-evangile-500" />
+          <Square className="h-5 w-5 text-accent-400" />
           <h2 className="font-serif text-xl font-semibold text-cream">Style des cartes</h2>
         </div>
 
@@ -587,12 +587,12 @@ export function ThemeTab() {
                 <div
                   className={`w-full transition-all duration-200 ${
                     isSelected
-                      ? 'ring-2 ring-evangile-600 ring-offset-2 ring-offset-bg rounded-2xl'
+                      ? 'ring-2 ring-accent-500 ring-offset-2 ring-offset-bg rounded-2xl'
                       : ''
                   }`}
                 >
                   <div className={getCardPreviewClasses(value)}>
-                    <div className="h-2 w-10 bg-evangile-600/30 rounded mb-2" />
+                    <div className="h-2 w-10 bg-accent-400/30 rounded mb-2" />
                     <div className="h-1.5 w-full bg-cream/10 rounded mb-1" />
                     <div className="h-1.5 w-3/4 bg-cream/10 rounded mb-1" />
                     <div className="h-1.5 w-1/2 bg-cream/10 rounded" />
@@ -600,7 +600,7 @@ export function ThemeTab() {
                 </div>
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    isSelected ? 'text-evangile-500' : 'text-muted'
+                    isSelected ? 'text-accent-400' : 'text-muted'
                   }`}
                 >
                   {label}
@@ -615,8 +615,8 @@ export function ThemeTab() {
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
           <div className="flex items-center gap-1">
-            <Minus className="h-5 w-5 text-evangile-500" />
-            <Maximize className="h-5 w-5 text-evangile-500" />
+            <Minus className="h-5 w-5 text-accent-400" />
+            <Maximize className="h-5 w-5 text-accent-400" />
           </div>
           <h2 className="font-serif text-xl font-semibold text-cream">Rayon de bordure</h2>
         </div>
@@ -634,16 +634,16 @@ export function ThemeTab() {
                 }`}
               >
                 <div
-                  className={`h-16 w-16 bg-gradient-to-br from-evangile-600/20 to-evangile-700/20 border border-evangile-600/40 transition-all duration-200 ${
+                  className={`h-16 w-16 bg-gradient-to-br from-accent-600/20 to-accent-700/20 border border-accent-400/40 transition-all duration-200 ${
                     isSelected
-                      ? 'ring-2 ring-evangile-600 ring-offset-2 ring-offset-bg'
+                      ? 'ring-2 ring-accent-500 ring-offset-2 ring-offset-bg'
                       : ''
                   }`}
                   style={{ borderRadius: RADIUS_MAP[radius] }}
                 />
                 <span
                   className={`text-xs font-medium transition-colors ${
-                    isSelected ? 'text-evangile-500' : 'text-muted'
+                    isSelected ? 'text-accent-400' : 'text-muted'
                   }`}
                 >
                   {RADIUS_LABELS[radius]}
@@ -660,7 +660,7 @@ export function ThemeTab() {
       {/* ─── Section 5: Polices ───────────────────────────────── */}
       <section className="glass rounded-2xl p-6">
         <div className="flex items-center gap-2 mb-5">
-          <Type className="h-5 w-5 text-evangile-500" />
+          <Type className="h-5 w-5 text-accent-400" />
           <h2 className="font-serif text-xl font-semibold text-cream">Polices</h2>
         </div>
 
@@ -717,7 +717,7 @@ export function ThemeTab() {
                   onClick={() => updateField('title_font', font)}
                   className={`p-3 rounded-xl text-left transition-all duration-200 focus:outline-none ${
                     isSelected
-                      ? 'bg-evangile-600/10 ring-1 ring-evangile-600/40'
+                      ? 'bg-accent-400/10 ring-1 ring-accent-500/40'
                       : 'bg-white/[0.02] hover:bg-white/5'
                   }`}
                 >
@@ -756,7 +756,7 @@ export function ThemeTab() {
                   onClick={() => updateField('body_font', font)}
                   className={`p-3 rounded-xl text-left transition-all duration-200 focus:outline-none ${
                     isSelected
-                      ? 'bg-evangile-600/10 ring-1 ring-evangile-600/40'
+                      ? 'bg-accent-400/10 ring-1 ring-accent-500/40'
                       : 'bg-white/[0.02] hover:bg-white/5'
                   }`}
                 >

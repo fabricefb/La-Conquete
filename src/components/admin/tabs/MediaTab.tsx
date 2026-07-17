@@ -74,7 +74,7 @@ function FileIcon({ type }: { type: MediaItem['file_type'] }) {
 
 function CategoryBadge({ category }: { category: MediaItem['category'] }) {
   const label = CATEGORIES.find(c => c.value === category)?.label ?? category;
-  return <span className="rounded-full bg-evangile-600/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">{label}</span>;
+  return <span className="rounded-full bg-accent-400/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">{label}</span>;
 }
 
 function SkeletonGrid() {
@@ -237,7 +237,7 @@ export function MediaTab() {
           </h2>
           <button
             onClick={() => { setIsFormOpen(false); setEditingId(null); }}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"
             aria-label="Fermer"
           >
             <X className="h-4 w-4" />
@@ -350,7 +350,7 @@ export function MediaTab() {
                   type="checkbox"
                   checked={form.is_active}
                   onChange={e => updateForm('is_active', e.target.checked)}
-                  className="h-4 w-4 rounded border-line text-evangile-500 focus:ring-evangile-600/30"
+                  className="h-4 w-4 rounded border-line text-accent-400 focus:ring-accent-500/30"
                 />
                 <span className="text-sm text-cream">Média actif</span>
               </label>
@@ -424,7 +424,7 @@ export function MediaTab() {
             onClick={() => setActiveFilter(cat.value)}
             className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${
               activeFilter === cat.value
-                ? 'bg-evangile-600/20 text-evangile-500'
+                ? 'bg-accent-400/20 text-accent-400'
                 : 'text-muted hover:text-cream'
             }`}
           >
@@ -470,9 +470,9 @@ export function MediaTab() {
                   onClick={() => handleToggleActive(item)}
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border transition ${
                     item.is_active
-                      ? 'border-evangile-600/40 text-evangile-500'
+                      ? 'border-accent-400/40 text-accent-400'
                       : 'border-line text-muted'
-                  } hover:border-evangile-600/60"
+                  } hover:border-accent-500/60"
                   aria-label={item.is_active ? 'Désactiver' : 'Activer'}
                 >
                   <Check className="h-3.5 w-3.5" />
@@ -484,7 +484,7 @@ export function MediaTab() {
               <div className="mt-3 flex items-center gap-2">
                 <button
                   onClick={() => handleEdit(item)}
-                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
+                  className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"
                   aria-label="Modifier"
                 >
                   <Edit3 className="h-4 w-4" />

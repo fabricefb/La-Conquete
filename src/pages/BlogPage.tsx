@@ -127,7 +127,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
                     <img src={featured.imageUrl} alt={featured.title} className="blog-img-zoom h-full w-full object-cover" />
                   </div>
                   <div className="p-6 sm:p-8 sm:w-1/2 flex flex-col justify-center">
-                    <span className="mb-2 inline-block w-fit rounded-full bg-evangile-600/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-evangile-500">{featured.category}</span>
+                    <span className="mb-2 inline-block w-fit rounded-full bg-accent-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-400">{featured.category}</span>
                     <h2 className="font-serif text-2xl font-bold text-cream sm:text-3xl">{featured.title}</h2>
                     <p className="mt-3 text-sm leading-relaxed text-muted">{featured.excerpt}</p>
                     <div className="mt-4 flex items-center gap-4 text-xs text-muted">
@@ -162,13 +162,13 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="reveal mt-10 flex items-center justify-center gap-2">
-                  <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-evangile-600/40 hover:text-cream disabled:opacity-30">
+                  <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-cream disabled:opacity-30">
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   {Array.from({ length: totalPages }).map((_, i) => (
                     <button key={i} onClick={() => setPage(i + 1)} className={`h-9 w-9 rounded-xl text-sm font-semibold transition-all ${page === i + 1 ? 'bg-evangile-600 text-white' : 'glass text-muted hover:text-cream'}`}>{i + 1}</button>
                   ))}
-                  <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-evangile-600/40 hover:text-cream disabled:opacity-30">
+                  <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-cream disabled:opacity-30">
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>

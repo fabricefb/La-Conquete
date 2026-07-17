@@ -88,7 +88,7 @@ const PIPELINE_STAGES: { key: ConvertiPipelineStage; label: string; color: strin
   { key: 'visite_domicile',  label: 'Visite domicile',  color: 'text-emerald-400' },
   { key: 'cellule',          label: 'En cellule',       color: 'text-amber-400' },
   { key: 'cours_bapteme',    label: 'Cours baptême',    color: 'text-orange-400' },
-  { key: 'membre_actif',     label: 'Membre actif',     color: 'text-evangile-600' },
+  { key: 'membre_actif',     label: 'Membre actif',     color: 'text-accent-500' },
 ];
 
 const ALERT_TYPE_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -439,8 +439,8 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
         <SiteHeader onNavigate={onNavigate} activePage="pastoral" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-evangile-600/10">
-              <Shield className="h-10 w-10 text-evangile-500" />
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-accent-400/10">
+              <Shield className="h-10 w-10 text-accent-400" />
             </div>
             <h2 className="text-headline-lg font-display gold-text mb-3">
               Espace Pastoral
@@ -489,7 +489,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
               <div className="flex items-center gap-2 text-sm text-muted mb-4">
                 <button onClick={() => onNavigate('dashboard')} className="hover:text-cream transition-colors">Tableau de bord</button>
                 <ChevronRight className="h-3.5 w-3.5" />
-                <span className="text-evangile-500">Espace Pastoral</span>
+                <span className="text-accent-400">Espace Pastoral</span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
                 <div>
@@ -513,7 +513,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
           <EvtReveal delay={1}>
             <section>
               <h2 className="text-headline-md font-display text-cream mb-6 flex items-center gap-3">
-                <Star className="h-5 w-5 text-evangile-500" />
+                <Star className="h-5 w-5 text-accent-400" />
                 Vue d'ensemble
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -580,10 +580,10 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
           <EvtReveal delay={2}>
             <section>
               <h2 className="text-headline-md font-display text-cream mb-6 flex items-center gap-3">
-                <Bell className="h-5 w-5 text-evangile-500" />
+                <Bell className="h-5 w-5 text-accent-400" />
                 Alertes Pastorales
                 {sortedAlerts.length > 0 && (
-                  <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-evangile-600/20 px-2 text-xs font-bold text-evangile-500">
+                  <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-400/20 px-2 text-xs font-bold text-accent-400">
                     {sortedAlerts.length}
                   </span>
                 )}
@@ -668,7 +668,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
           <EvtReveal delay={3}>
             <section>
               <h2 className="text-headline-md font-display text-cream mb-6 flex items-center gap-3">
-                <Eye className="h-5 w-5 text-evangile-500" />
+                <Eye className="h-5 w-5 text-accent-400" />
                 Pipeline des Âmes
                 <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-sky-500/20 px-2 text-xs font-bold text-sky-400">
                   {filteredConvertis.length}
@@ -746,9 +746,9 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
                     return (
                       <div
                         key={c.id}
-                        className={`glass-card p-4 cursor-pointer transition-all duration-200 hover:border-evangile-600/30 ${
+                        className={`glass-card p-4 cursor-pointer transition-all duration-200 hover:border-accent-400/30 ${
                           isCasLourd ? 'border-2 border-evangile-600' : ''
-                        } ${isExpanded ? 'ring-1 ring-evangile-600/20' : ''}`}
+                        } ${isExpanded ? 'ring-1 ring-accent-500/20' : ''}`}
                         onClick={() => handleExpandConverti(c.id)}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -824,7 +824,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
                                 <div className="mt-2 space-y-2">
                                   {timeline.slice(0, 5).map((t, i) => (
                                     <div key={i} className="flex gap-3 text-xs">
-                                      <div className="mt-1.5 h-2 w-2 rounded-full bg-evangile-600/50 shrink-0" />
+                                      <div className="mt-1.5 h-2 w-2 rounded-full bg-accent-400/50 shrink-0" />
                                       <div>
                                         <p className="text-cream font-medium">{t.action}</p>
                                         {t.done_by_name && <p className="text-muted">par {t.done_by_name}</p>}
@@ -852,10 +852,10 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
           <EvtReveal delay={4}>
             <section>
               <h2 className="text-headline-md font-display text-cream mb-6 flex items-center gap-3">
-                <Home className="h-5 w-5 text-evangile-500" />
+                <Home className="h-5 w-5 text-accent-400" />
                 Demandes de Visite
                 {visitRequests.length > 0 && (
-                  <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-evangile-600/20 px-2 text-xs font-bold text-evangile-500">
+                  <span className="ml-1 flex h-6 min-w-6 items-center justify-center rounded-full bg-accent-400/20 px-2 text-xs font-bold text-accent-400">
                     {filteredVisitRequests.length}
                   </span>
                 )}
@@ -978,7 +978,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
                           {(vr.status === 'planifiee' || vr.status === 'acceptee') && (
                             <button
                               onClick={() => handleVisitAction(vr.id, 'effectuer', { visited_at: new Date().toISOString() })}
-                              className="flex items-center gap-1.5 rounded-lg border border-evangile-600/30 px-3 py-1.5 text-xs font-medium text-evangile-500 transition-colors hover:bg-evangile-600/10"
+                              className="flex items-center gap-1.5 rounded-lg border border-accent-400/30 px-3 py-1.5 text-xs font-medium text-accent-400 transition-colors hover:bg-accent-400/10"
                             >
                               <CheckCircle className="h-3.5 w-3.5" />
                               Marquer effectuée
@@ -1018,7 +1018,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
             <section>
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <h2 className="text-headline-md font-display text-cream flex items-center gap-3">
-                  <Calendar className="h-5 w-5 text-evangile-500" />
+                  <Calendar className="h-5 w-5 text-accent-400" />
                   Emploi du temps
                 </h2>
                 <div className="flex items-center gap-3">
@@ -1061,13 +1061,13 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
 
                     return (
                       <div key={dateStr} className="glass-card overflow-hidden">
-                        <div className={`px-4 py-3 flex items-center gap-3 ${isToday ? 'bg-evangile-600/10 border-l-2 border-evangile-600' : 'bg-white/[0.02]'}`}>
-                          <Calendar className="h-4 w-4 text-evangile-500 shrink-0" />
-                          <span className={`font-medium capitalize ${isToday ? 'text-evangile-500' : 'text-cream'}`}>
+                        <div className={`px-4 py-3 flex items-center gap-3 ${isToday ? 'bg-accent-400/10 border-l-2 border-evangile-600' : 'bg-white/[0.02]'}`}>
+                          <Calendar className="h-4 w-4 text-accent-400 shrink-0" />
+                          <span className={`font-medium capitalize ${isToday ? 'text-accent-400' : 'text-cream'}`}>
                             {dayLabel}
                           </span>
                           {isToday && (
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-evangile-500 bg-evangile-600/15 px-2 py-0.5 rounded-full">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-accent-400 bg-accent-400/15 px-2 py-0.5 rounded-full">
                               Aujourd'hui
                             </span>
                           )}

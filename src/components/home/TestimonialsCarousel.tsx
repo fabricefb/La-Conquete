@@ -67,16 +67,16 @@ export function TestimonialsCarousel({
     <div className="glass-card relative overflow-hidden rounded-2xl p-8 sm:p-10 md:p-12">
       {/* Decorative corners */}
       <div className="absolute left-0 top-0 h-8 w-8">
-        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-evangile-600/80 to-transparent" />
-        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-evangile-600/80 to-transparent" />
+        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-accent-600/80 to-transparent" />
+        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-accent-600/80 to-transparent" />
       </div>
       <div className="absolute bottom-0 right-0 h-8 w-8">
-        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-evangile-600/80 to-transparent" />
-        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-evangile-600/80 to-transparent" />
+        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-accent-600/80 to-transparent" />
+        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-accent-600/80 to-transparent" />
       </div>
 
       {/* Quote decoration */}
-      <div className="absolute right-6 top-6 text-evangile-500/20">
+      <div className="absolute right-6 top-6 text-accent-400/20">
         <Quote className="h-10 w-10" />
       </div>
 
@@ -90,7 +90,7 @@ export function TestimonialsCarousel({
             &ldquo;{current.content}&rdquo;
           </p>
           <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-evangile-600/15 text-sm font-bold text-evangile-500">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-400/15 text-sm font-bold text-accent-400">
               {current.is_anonymous
                 ? '?'
                 : (current.author_name || 'A').charAt(0).toUpperCase()}
@@ -134,7 +134,7 @@ export function TestimonialsCarousel({
                 onClick={() => handleManualNav(index)}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex
-                    ? 'w-6 bg-gradient-to-r from-evangile-600 to-red-500'
+                    ? 'w-6 bg-gradient-to-r from-accent-600 to-red-500'
                     : 'w-2 hover:scale-125'
                 }`}
                 style={

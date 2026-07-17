@@ -144,8 +144,8 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/15">
-              <BookOpen className="h-5 w-5 text-evangile-600" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/15">
+              <BookOpen className="h-5 w-5 text-accent-500" />
             </div>
             <div>
               <h2 className="font-headline text-lg text-cream">Lecteur Biblique</h2>
@@ -190,7 +190,7 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                         key={b}
                         onClick={() => { setSelectedBook(b); setShowBookDropdown(false); setShowQuickVerses(false); }}
                         className={`text-left rounded-lg px-3 py-1.5 text-xs transition truncate ${
-                          b === selectedBook ? 'bg-evangile-600/20 text-evangile-600 font-medium' : 'text-cream/80 hover:bg-white/5'
+                          b === selectedBook ? 'bg-accent-400/20 text-accent-500 font-medium' : 'text-cream/80 hover:bg-white/5'
                         }`}
                       >
                         {b}
@@ -222,9 +222,9 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             filteredVerses.length > 0 ? filteredVerses.map((v, i) => (
               <div key={i} className="glass-card rounded-2xl p-5 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="font-headline text-sm text-evangile-600">{v.reference}</span>
-                  <button onClick={() => saveBookmark(v.reference)} className="p-1 text-muted hover:text-evangile-600 transition">
-                    {bookmarks.includes(v.reference) ? <BookmarkCheck className="h-4 w-4 text-evangile-600" /> : <Bookmark className="h-4 w-4" />}
+                  <span className="font-headline text-sm text-accent-500">{v.reference}</span>
+                  <button onClick={() => saveBookmark(v.reference)} className="p-1 text-muted hover:text-accent-500 transition">
+                    {bookmarks.includes(v.reference) ? <BookmarkCheck className="h-4 w-4 text-accent-500" /> : <Bookmark className="h-4 w-4" />}
                   </button>
                 </div>
                 <p className="font-body text-sm leading-relaxed text-cream whitespace-pre-line">{v.text}</p>
@@ -242,7 +242,7 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                   onClick={() => { setSelectedBook(v.book); setSelectedChapter(v.chapter); setShowQuickVerses(false); }}
                   className="w-full text-left glass-card rounded-2xl p-4 hover:bg-white/5 transition space-y-1 group"
                 >
-                  <span className="font-headline text-sm text-evangile-600 group-hover:text-evangile-400 transition">{v.reference}</span>
+                  <span className="font-headline text-sm text-accent-500 group-hover:text-accent-300 transition">{v.reference}</span>
                   <p className="font-body text-xs text-muted line-clamp-2">{v.text.split('\n')[0]}</p>
                 </button>
               ))}
@@ -251,9 +251,9 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
             /* Selected verse display */
             <div className="glass-card rounded-2xl p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <span className="font-headline text-headline-sm text-evangile-600">{currentVerse.reference}</span>
-                <button onClick={() => saveBookmark(currentRef)} className="p-1 text-muted hover:text-evangile-600 transition">
-                  {bookmarks.includes(currentRef) ? <BookmarkCheck className="h-5 w-5 text-evangile-600" /> : <Bookmark className="h-5 w-5" />}
+                <span className="font-headline text-headline-sm text-accent-500">{currentVerse.reference}</span>
+                <button onClick={() => saveBookmark(currentRef)} className="p-1 text-muted hover:text-accent-500 transition">
+                  {bookmarks.includes(currentRef) ? <BookmarkCheck className="h-5 w-5 text-accent-500" /> : <Bookmark className="h-5 w-5" />}
                 </button>
               </div>
               <p className="font-body text-body-lg leading-relaxed text-cream whitespace-pre-line">{currentVerse.text}</p>
@@ -274,7 +274,7 @@ export function BibleReader({ isOpen, onClose }: { isOpen: boolean; onClose: () 
                 {bookmarks.map(b => (
                   <span
                     key={b}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-evangile-600/10 px-3 py-1 text-xs text-evangile-600"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-accent-400/10 px-3 py-1 text-xs text-accent-500"
                   >
                     <BookmarkCheck className="h-3 w-3" />
                     {b}

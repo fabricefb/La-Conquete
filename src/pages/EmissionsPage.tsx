@@ -218,8 +218,8 @@ function VideoPlayerPlaceholder({ title }: { title: string }) {
       {/* Radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)]" />
       {/* Play button */}
-      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-evangile-600/40 bg-evangile-600/10 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-evangile-600/60 hover:bg-evangile-600/20">
-        <Play className="ml-1 h-8 w-8 text-evangile-500" />
+      <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-2 border-accent-400/40 bg-accent-400/10 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-accent-500/60 hover:bg-accent-400/20">
+        <Play className="ml-1 h-8 w-8 text-accent-400" />
       </div>
       <p className="absolute bottom-4 left-4 text-xs text-muted/60">{title}</p>
     </div>
@@ -257,7 +257,7 @@ function CountdownDisplay({ targetDate }: { targetDate: string }) {
     <div className="flex items-center gap-3 sm:gap-4">
       {blocks.map((b) => (
         <div key={b.label} className="flex flex-col items-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/5 font-mono text-2xl font-bold text-evangile-500 sm:h-20 sm:w-20 sm:text-3xl">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 font-mono text-2xl font-bold text-accent-400 sm:h-20 sm:w-20 sm:text-3xl">
             {String(b.value).padStart(2, '0')}
           </div>
           <span className="mt-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted">{b.label}</span>
@@ -322,7 +322,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
                   <div className="flex flex-wrap items-center gap-2 mb-4">
                     <PlatformBadge platform={featured.platform} />
                     {featured.isLive && <LiveBadge />}
-                    <span className="inline-flex items-center gap-1 rounded-full border border-evangile-600/20 bg-evangile-600/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
+                    <span className="inline-flex items-center gap-1 rounded-full border border-accent-400/20 bg-accent-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">
                       <Star className="h-3 w-3" />
                       À la une
                     </span>
@@ -330,10 +330,10 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
                   <h2 className="font-serif text-3xl font-semibold text-cream lg:text-4xl">{featured.title}</h2>
                   <p className="mt-4 text-muted leading-relaxed">{featured.description}</p>
                   {featured.host && (
-                    <p className="mt-3 text-sm text-evangile-500 font-medium">Animé par {featured.host}</p>
+                    <p className="mt-3 text-sm text-accent-400 font-medium">Animé par {featured.host}</p>
                   )}
                   <div className="mt-6 flex items-center gap-2 text-sm text-muted">
-                    <Clock className="h-4 w-4 text-evangile-500" />
+                    <Clock className="h-4 w-4 text-accent-400" />
                     <span>{featured.schedule}</span>
                   </div>
                 </div>
@@ -358,8 +358,8 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
                     <img src={emission.thumbnailUrl} alt={emission.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06),transparent_70%)]">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-evangile-600/20 bg-evangile-600/10 transition-transform group-hover:scale-110">
-                        <Play className="ml-0.5 h-5 w-5 text-evangile-500" />
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-accent-400/20 bg-accent-400/10 transition-transform group-hover:scale-110">
+                        <Play className="ml-0.5 h-5 w-5 text-accent-400" />
                       </div>
                     </div>
                   )}
@@ -374,7 +374,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
                   <h3 className="font-serif text-lg font-semibold text-cream leading-snug">{emission.title}</h3>
                   <p className="text-sm text-muted line-clamp-2 flex-1">{emission.description}</p>
                   <div className="mt-2 flex items-center gap-2 text-sm text-muted">
-                    <Clock className="h-4 w-4 text-evangile-500" />
+                    <Clock className="h-4 w-4 text-accent-400" />
                     <span>{emission.schedule}</span>
                   </div>
                 </div>
@@ -414,8 +414,8 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
         <RevealSection>
           <div className="glass rounded-3xl p-8 sm:p-12 text-center">
             <div className="mb-4 flex justify-center">
-              <IconBox pageKey="emissions" elementId="newsletter-mail-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                <Mail className="h-6 w-6 text-evangile-500" />
+              <IconBox pageKey="emissions" elementId="newsletter-mail-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/10">
+                <Mail className="h-6 w-6 text-accent-400" />
               </IconBox>
             </div>
             <h2 className="font-serif text-2xl font-semibold text-cream sm:text-3xl">Ne manquez aucune émission</h2>

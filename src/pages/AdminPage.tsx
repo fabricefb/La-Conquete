@@ -46,7 +46,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-evangile-600/30 border-t-evangile-600" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-500" />
           <p className="text-sm text-muted">Chargement…</p>
         </div>
       </div>

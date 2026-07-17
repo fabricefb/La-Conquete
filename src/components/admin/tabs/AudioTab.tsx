@@ -33,7 +33,7 @@ const CATEGORY_OPTIONS: { value: AudioCategory; label: string }[] = [
 ];
 
 const CATEGORY_STYLES: Record<AudioCategory, string> = {
-  predication: 'bg-evangile-600/20 text-evangile-400',
+  predication: 'bg-accent-400/20 text-accent-300',
   louange: 'bg-amber-600/20 text-amber-400',
   enseignement: 'bg-blue-600/20 text-blue-400',
   temoignage: 'bg-emerald-600/20 text-emerald-400',
@@ -487,7 +487,7 @@ export function AudioTab() {
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
             isFormOpen
               ? 'bg-white/5 text-white/60 hover:text-white/80 border border-white/10'
-              : 'bg-evangile-600 text-white hover:bg-evangile-700 shadow-lg shadow-evangile-600/20'
+              : 'bg-evangile-600 text-white hover:bg-evangile-700 shadow-lg shadow-accent-500/20'
           }`}
         >
           {isFormOpen ? (
@@ -512,7 +512,7 @@ export function AudioTab() {
           {/* Title */}
           <div>
             <label className="mb-1.5 block text-xs font-medium text-white/40">
-              Titre <span className="text-evangile-400">*</span>
+              Titre <span className="text-accent-300">*</span>
             </label>
             <input
               type="text"
@@ -565,8 +565,8 @@ export function AudioTab() {
             </label>
             <div className="flex items-center gap-3">
               <label
-                className={`flex flex-1 cursor-pointer items-center gap-3 rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-4 py-4 text-sm transition hover:border-evangile-600/40 hover:bg-white/[0.04] ${
-                  audioFile ? 'border-evangile-600/40' : ''
+                className={`flex flex-1 cursor-pointer items-center gap-3 rounded-lg border border-dashed border-white/10 bg-white/[0.02] px-4 py-4 text-sm transition hover:border-accent-400/40 hover:bg-white/[0.04] ${
+                  audioFile ? 'border-accent-400/40' : ''
                 }`}
               >
                 <Upload className="h-5 w-5 flex-shrink-0 text-white/30" />
@@ -636,7 +636,7 @@ export function AudioTab() {
             <button
               onClick={handleSubmit}
               disabled={submitting}
-              className="flex items-center gap-2 rounded-xl bg-evangile-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-evangile-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-evangile-600/20"
+              className="flex items-center gap-2 rounded-xl bg-evangile-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-evangile-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent-500/20"
             >
               {submitting ? (
                 <>
@@ -677,7 +677,7 @@ export function AudioTab() {
                 key={track.id}
                 className={`group rounded-xl bg-white/[0.02] border transition-colors ${
                   isEditing
-                    ? 'border-evangile-600/30 bg-evangile-600/[0.03]'
+                    ? 'border-accent-400/30 bg-evangile-600/[0.03]'
                     : isDeletePending
                       ? 'border-red-500/30 bg-red-500/[0.03]'
                       : 'border-white/5 hover:border-white/10'
@@ -743,7 +743,7 @@ export function AudioTab() {
                     disabled={!track.audio_url}
                     className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl transition ${
                       isPlaying
-                        ? 'bg-evangile-600 text-white shadow-lg shadow-evangile-600/30'
+                        ? 'bg-evangile-600 text-white shadow-lg shadow-accent-500/30'
                         : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white/60'
                     } disabled:opacity-30 disabled:cursor-not-allowed`}
                     aria-label={isPlaying ? 'Pause' : 'Lecture'}
@@ -762,7 +762,7 @@ export function AudioTab() {
                       <div className="space-y-2.5">
                         <input
                           type="text"
-                          className="w-full rounded-lg border border-evangile-600/40 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none transition focus:border-evangile-600"
+                          className="w-full rounded-lg border border-accent-400/40 bg-white/5 px-3 py-2 text-sm text-white/90 outline-none transition focus:border-evangile-600"
                           value={editState.title}
                           onChange={(e) =>
                             setEditState((prev) => ({ ...prev, title: e.target.value }))
@@ -846,7 +846,7 @@ export function AudioTab() {
                         <button
                           onClick={saveEdit}
                           disabled={editSaving}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 transition hover:bg-evangile-600/20 hover:text-evangile-400 disabled:opacity-50"
+                          className="flex h-8 w-8 items-center justify-center rounded-lg text-white/40 transition hover:bg-accent-400/20 hover:text-accent-300 disabled:opacity-50"
                           aria-label="Enregistrer"
                         >
                           {editSaving ? (

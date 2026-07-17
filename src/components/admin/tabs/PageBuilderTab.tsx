@@ -614,7 +614,7 @@ export function PageBuilderTab() {
                     }`}
                   >
                     {/* Icon indicator */}
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-evangile-600/20 bg-evangile-600/5 text-evangile-500/60">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-accent-400/20 bg-accent-400/5 text-accent-400/60">
                       <Sparkles className="h-3.5 w-3.5" />
                     </div>
 

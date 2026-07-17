@@ -312,7 +312,7 @@ export function InventoryTab() {
 
       {/* Add/Edit form */}
       {formOpen && (
-        <div className="glass rounded-2xl p-6 space-y-4 border border-evangile-600/20">
+        <div className="glass rounded-2xl p-6 space-y-4 border border-accent-400/20">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">
               {editingId ? 'Modifier l\'article' : 'Nouvel article'}
@@ -373,7 +373,7 @@ export function InventoryTab() {
       {/* Items list */}
       {loading ? (
         <div className="glass rounded-2xl p-12 text-center">
-          <Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" />
+          <Loader2 className="mx-auto h-6 w-6 animate-spin text-accent-400" />
         </div>
       ) : filteredItems.length === 0 ? (
         <div className="glass rounded-2xl p-12 text-center">
@@ -387,7 +387,7 @@ export function InventoryTab() {
               key={item.id}
               onClick={() => setSelectedItemId(selectedItemId === item.id ? null : item.id)}
               className={`glass rounded-2xl p-4 cursor-pointer transition-all group ${
-                selectedItemId === item.id ? 'border border-evangile-600/50 ring-1 ring-evangile-600/20' : 'hover:bg-white/5'
+                selectedItemId === item.id ? 'border border-accent-400/50 ring-1 ring-accent-500/20' : 'hover:bg-white/5'
               }`}
             >
               <div className="flex gap-3">
@@ -418,7 +418,7 @@ export function InventoryTab() {
                     <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={(e) => { e.stopPropagation(); openEdit(item); }}
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"
                         title="Modifier"
                       >
                         <Edit3 className="h-3.5 w-3.5" />
@@ -459,7 +459,7 @@ export function InventoryTab() {
 
       {/* Reservations sub-section */}
       {selectedItemId && selectedItem && (
-        <div className="glass rounded-2xl p-6 space-y-4 border border-evangile-600/20">
+        <div className="glass rounded-2xl p-6 space-y-4 border border-accent-400/20">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <h3 className="font-serif text-lg font-semibold text-cream">
               Réservations — {selectedItem.name}
@@ -506,7 +506,7 @@ export function InventoryTab() {
 
           {/* Reservations list */}
           {resLoading ? (
-            <div className="text-center py-4"><Loader2 className="mx-auto h-5 w-5 animate-spin text-evangile-500" /></div>
+            <div className="text-center py-4"><Loader2 className="mx-auto h-5 w-5 animate-spin text-accent-400" /></div>
           ) : reservations.length === 0 ? (
             <p className="text-sm text-muted text-center py-4">Aucune réservation pour cet article.</p>
           ) : (

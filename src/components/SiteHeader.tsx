@@ -279,7 +279,7 @@ function MegaMenu({
       <button
         className={`nav-item-zoom flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
           isActive
-            ? 'text-evangile-500 bg-evangile-600/10'
+            ? 'text-accent-400 bg-accent-400/10'
             : 'text-muted hover:text-cream hover:bg-white/5'
         }`}
       >
@@ -302,7 +302,7 @@ function MegaMenu({
               {item.mega.columns.map((col, ci) => (
                 <div key={ci} className="px-4 py-3">
                   {col.title && (
-                    <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/70 mb-3 px-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-widest text-accent-500/70 mb-3 px-1">
                       {col.title}
                     </p>
                   )}
@@ -319,16 +319,16 @@ function MegaMenu({
                             disabled
                               ? 'opacity-40 cursor-default'
                               : activePage === sub.page
-                                ? 'text-evangile-500 bg-evangile-600/10'
+                                ? 'text-accent-400 bg-accent-400/10'
                                 : 'text-cream/70 hover:text-cream hover:bg-white/[0.06] cursor-pointer'
                           }`}
                         >
                           {Icon && (
-                            <Icon className="w-4 h-4 shrink-0 text-muted group-hover:text-evangile-600 transition-colors" />
+                            <Icon className="w-4 h-4 shrink-0 text-muted group-hover:text-accent-500 transition-colors" />
                           )}
                           <span className="text-[13px] font-medium leading-tight">{sub.label}</span>
                           {sub.tag && (
-                            <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-evangile-600/10 text-evangile-500">
+                            <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-accent-400/10 text-accent-400">
                               {sub.tag}
                             </span>
                           )}
@@ -390,7 +390,7 @@ function MobileMegaAccordion({
       <button
         onClick={() => setOpen(!open)}
         className={`flex w-full items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
-          isActive || open ? 'text-evangile-500 bg-evangile-600/10' : 'text-cream hover:bg-white/5'
+          isActive || open ? 'text-accent-400 bg-accent-400/10' : 'text-cream hover:bg-white/5'
         }`}
       >
         {item.label}
@@ -402,7 +402,7 @@ function MobileMegaAccordion({
           {item.mega.columns.filter(c => c.items.length > 0).map((col, ci) => (
             <div key={ci}>
               {col.title && (
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-600/60 px-4 mb-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-accent-500/60 px-4 mb-1.5">
                   {col.title}
                 </p>
               )}
@@ -419,14 +419,14 @@ function MobileMegaAccordion({
                         disabled
                           ? 'opacity-30 cursor-default'
                           : activePage === sub.page
-                            ? 'text-evangile-500 bg-evangile-600/10'
+                            ? 'text-accent-400 bg-accent-400/10'
                             : 'text-muted hover:text-cream hover:bg-white/5'
                       }`}
                     >
                       {Icon && <Icon className="w-4 h-4 shrink-0" />}
                       <span>{sub.label}</span>
                       {sub.tag && (
-                        <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-evangile-600/10 text-evangile-500">
+                        <span className="ml-auto text-[9px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-accent-400/10 text-accent-400">
                           {sub.tag}
                         </span>
                       )}
@@ -447,7 +447,7 @@ function UserAvatar({ name, size = 'sm' }: { name?: string | null; size?: 'sm' |
   const s = { sm: 'h-8 w-8 text-xs', md: 'h-10 w-10 text-sm', lg: 'h-14 w-14 text-lg' }[size];
   const initials = name ? name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() : '?';
   return (
-    <div className={`${s} rounded-full bg-gradient-to-br from-evangile-500 to-evangile-700 flex items-center justify-center font-bold text-white shrink-0`}>
+    <div className={`${s} rounded-full bg-gradient-to-br from-accent-500 to-accent-700 flex items-center justify-center font-bold text-white shrink-0`}>
       {initials}
     </div>
   );
@@ -481,7 +481,7 @@ function DesktopUserMenu({
 
   return (
     <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
-      <button className="flex items-center gap-2.5 rounded-full border border-line pl-1 pr-3 py-1 transition-all duration-200 hover:border-evangile-600/40 hover:bg-white/5">
+      <button className="flex items-center gap-2.5 rounded-full border border-line pl-1 pr-3 py-1 transition-all duration-200 hover:border-accent-400/40 hover:bg-white/5">
         <UserAvatar name={displayName} />
         <div className="hidden lg:flex flex-col items-start leading-tight">
           <span className="text-xs font-medium text-cream truncate max-w-[100px]">{displayName}</span>
@@ -510,7 +510,7 @@ function DesktopUserMenu({
           {profile?.is_admin && (
             <button onClick={() => { onNavigate('admin'); setOpen(false); }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
-              <Shield className="h-4 w-4 text-evangile-600" /> Administration
+              <Shield className="h-4 w-4 text-accent-500" /> Administration
             </button>
           )}
           <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
@@ -592,7 +592,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         onClick={() => handleNav(item.page!)}
         className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
           activePage === item.page
-            ? 'text-evangile-500 bg-evangile-600/10'
+            ? 'text-accent-400 bg-accent-400/10'
             : 'text-muted hover:text-cream hover:bg-white/5'
         }`}
       >
@@ -619,7 +619,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         onClick={() => handleNav(item.page!)}
         className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
           activePage === item.page
-            ? 'text-evangile-500 bg-evangile-600/10'
+            ? 'text-accent-400 bg-accent-400/10'
             : 'text-cream hover:bg-white/5'
         }`}
       >
@@ -637,7 +637,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* LEFT: Logo */}
           <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-3 transition-opacity duration-200 hover:opacity-80">
-            <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
+            <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
             <div className="hidden sm:flex flex-col leading-tight">
               <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
               <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
@@ -658,7 +658,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             ) : (
               <button
                 onClick={() => handleNav('connexion')}
-                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 lg:flex"
+                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 lg:flex"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden xl:inline">Connexion</span>
@@ -668,7 +668,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Ouvrir le menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 xl:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 xl:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -682,7 +682,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-evangile-600/30 bg-white/5 p-0.5" />
+              <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
               <div className="flex flex-col leading-tight">
                 <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
                 <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
@@ -691,7 +691,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             <button
               onClick={() => setDrawerOpen(false)}
               aria-label="Fermer le menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500"
             >
               <X className="h-5 w-5" />
             </button>
@@ -737,7 +737,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
                     onClick={() => handleNav('admin')}
                     className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
                   >
-                    <Shield className="h-4 w-4 text-evangile-600" /> Administration
+                    <Shield className="h-4 w-4 text-accent-500" /> Administration
                   </button>
                 )}
                 <button
@@ -756,7 +756,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             {!user ? (
               <button
                 onClick={() => handleNav('connexion')}
-                className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-600 flex-1"
+                className="flex items-center justify-center gap-1.5 rounded-lg border border-line px-4 py-3 text-sm font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 flex-1"
               >
                 <LogIn className="h-4 w-4" />
                 Connexion

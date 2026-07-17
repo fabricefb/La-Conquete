@@ -157,8 +157,8 @@ export function CommunityChat() {
       {/* ─── Header ─────────────────────────────────────────────── */}
       <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-evangile-600/15">
-            <MessageSquare className="h-4.5 w-4.5 text-evangile-600" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent-400/15">
+            <MessageSquare className="h-4.5 w-4.5 text-accent-500" />
           </div>
           <div>
             <h3 className="font-headline text-sm text-cream">Communauté</h3>
@@ -174,7 +174,7 @@ export function CommunityChat() {
             <div
               key={u.id}
               title={u.full_name}
-              className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-conquete-700 bg-evangile-600/30 text-[10px] font-semibold text-cream"
+              className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-conquete-700 bg-accent-400/30 text-[10px] font-semibold text-cream"
             >
               {u.full_name.charAt(0)}
             </div>
@@ -222,11 +222,11 @@ export function CommunityChat() {
                     </div>
                     {/* Bubble */}
                     <div className={`${isOwn
-                      ? 'bg-evangile-600/20 rounded-2xl rounded-br-md'
+                      ? 'bg-accent-400/20 rounded-2xl rounded-br-md'
                       : 'glass-card rounded-2xl rounded-bl-md'
                     } px-3.5 py-2.5`}>
                       {!isOwn && (
-                        <p className="text-[10px] font-semibold text-evangile-600 mb-0.5">{m.user_name}</p>
+                        <p className="text-[10px] font-semibold text-accent-500 mb-0.5">{m.user_name}</p>
                       )}
                       <p className="text-sm text-cream leading-relaxed">{m.content}</p>
                       <p className={`text-[10px] mt-1 ${isOwn ? 'text-muted/60 text-right' : 'text-muted/60'}`}>

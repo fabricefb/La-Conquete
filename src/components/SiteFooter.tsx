@@ -97,7 +97,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-500"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400"
                   >
                     <Globe className="h-4 w-4" />
                   </a>
@@ -109,7 +109,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
 
           {/* Navigation */}
           <div className="lg:col-span-1">
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-evangile-500">Navigation</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-accent-400">Navigation</h3>
             <ul className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <li key={link.page}>
@@ -121,7 +121,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
 
           {/* Ministries */}
           <div className="lg:col-span-1">
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-evangile-500">Ministères</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-accent-400">Ministères</h3>
             <ul className="flex flex-col gap-2">
               {ministries.length > 0 ? (
                 ministries.slice(0, 6).map((m) => (
@@ -137,18 +137,18 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
 
           {/* Contact info */}
           <div className="lg:col-span-2">
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-evangile-500">Nous contacter</h3>
+            <h3 className="mb-4 text-xs font-semibold uppercase tracking-widest text-accent-400">Nous contacter</h3>
             <ul className="flex flex-col gap-3">
               <li className="flex items-start gap-3 text-sm text-muted">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-evangile-500" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
                 <span>{address}{city ? `, ${city}` : ''}</span>
               </li>
               <li className="flex items-center gap-3 text-sm text-muted">
-                <Phone className="h-4 w-4 shrink-0 text-evangile-500" />
+                <Phone className="h-4 w-4 shrink-0 text-accent-400" />
                 <a href={`tel:${phone.replace(/\s/g, '')}`} className="transition-colors duration-200 hover:text-cream">{phone}</a>
               </li>
               <li className="flex items-center gap-3 text-sm text-muted">
-                <Mail className="h-4 w-4 shrink-0 text-evangile-500" />
+                <Mail className="h-4 w-4 shrink-0 text-accent-400" />
                 <a href={`mailto:${email}`} className="transition-colors duration-200 hover:text-cream">{email}</a>
               </li>
             </ul>

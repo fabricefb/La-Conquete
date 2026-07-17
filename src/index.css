@@ -38,10 +38,22 @@
   --glass-border-rgb:   255 255 255;
   --glass-border-a:     0.12;
 
-  /* --- Radials lumineux --- */
-  --radial-primary-rgb: 227 34 31;
+  /* --- Accent Bleu (nuances de bleu — couleur dominante du thème) --- */
+  --accent-50-rgb:   232 238 255;
+  --accent-100-rgb:  216 227 251;
+  --accent-200-rgb:  184 204 247;
+  --accent-300-rgb:  143 176 240;
+  --accent-400-rgb:  106 150 232;
+  --accent-500-rgb:  74 124 221;
+  --accent-600-rgb:  58 100 190;
+  --accent-700-rgb:  45 78 154;
+  --accent-800-rgb:  30 52 112;
+  --accent-900-rgb:  15 33 71;
+
+  /* --- Radials lumineux (bleu par défaut, rouge en CTA) --- */
+  --radial-primary-rgb: 74 124 221;
   --radial-primary-a:   0.10;
-  --radial-accent-rgb:  242 60 46;
+  --radial-accent-rgb:  106 150 232;
   --radial-accent-a:    0.06;
 
   /* --- Boutons --- */
@@ -82,9 +94,9 @@
   --glass-bg-a:         0.75;
   --glass-border-rgb:   180 200 240;
   --glass-border-a:     0.20;
-  --radial-primary-rgb: 227 34 31;
+  --radial-primary-rgb: 45 78 154;
   --radial-primary-a:   0.06;
-  --radial-accent-rgb:  185 23 13;
+  --radial-accent-rgb:  74 124 221;
   --radial-accent-a:    0.04;
   --btn-ghost-border-rgb:  100 120 180;
   --btn-ghost-border-a:    0.20;
@@ -96,6 +108,18 @@
   --input-border-rgb:   180 200 240;
   --input-border-a:     0.30;
   --surface-variant:    #d8e3fb;
+
+  /* --- Accent Bleu — Mode clair (plus profond pour contraste) --- */
+  --accent-50-rgb:   232 238 255;
+  --accent-100-rgb:  200 215 248;
+  --accent-200-rgb:  160 190 240;
+  --accent-300-rgb:  106 150 232;
+  --accent-400-rgb:  74 124 221;
+  --accent-500-rgb:  45 82 181;
+  --accent-600-rgb:  30 60 148;
+  --accent-700-rgb:  20 45 110;
+  --accent-800-rgb:  15 33 71;
+  --accent-900-rgb:  9 19 41;
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -206,27 +230,27 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     border: 1px solid rgb(var(--glass-border-rgb) / var(--glass-border-a));
   }
 
-  /* --- Brand gradient line --- */
+  /* --- Brand gradient line (Bleu → Rouge) --- */
   .brand-line {
-    background: linear-gradient(90deg, transparent, #E3221F, transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--accent-400-rgb)), transparent);
   }
 
-  /* --- Brand gradient text (Rouge Évangile) --- */
+  /* --- Brand gradient text (Bleu clair → Bleu profond → Rouge) --- */
   .brand-text {
-    background: linear-gradient(135deg, #f87171 0%, #E3221F 50%, #c91916 100%);
+    background: linear-gradient(135deg, rgb(var(--accent-300-rgb)) 0%, rgb(var(--accent-500-rgb)) 40%, #E3221F 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }
 
-  /* --- Section label --- */
+  /* --- Section label (Bleu accent) --- */
   .section-label {
-    @apply inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-evangile-600;
+    @apply inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-accent-400;
   }
   .section-label::before {
     content: '';
     @apply h-px w-8;
-    background: rgba(227, 34, 31, 0.5);
+    background: rgb(var(--accent-400-rgb) / 0.5);
   }
 
   /* --- Primary CTA button (Rouge Évangile) --- */
@@ -241,7 +265,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     color: rgb(var(--btn-ghost-text-rgb));
   }
   .btn-ghost:hover {
-    border-color: rgba(227, 34, 31, 0.5);
+    border-color: rgb(var(--accent-400-rgb) / 0.5);
     background: rgb(var(--btn-ghost-hover-rgb) / var(--btn-ghost-hover-a));
   }
 
@@ -250,9 +274,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-evangile-500 to-evangile-700 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95;
   }
 
-  /* --- Legacy aliases (gold → brand) --- */
-  .gold-text { background: linear-gradient(135deg, #f87171 0%, #E3221F 50%, #c91916 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  .gold-line { background: linear-gradient(90deg, transparent, #E3221F, transparent); }
+  /* --- Legacy aliases (gold → brand bleu) --- */
+  .gold-text { background: linear-gradient(135deg, rgb(var(--accent-300-rgb)) 0%, rgb(var(--accent-500-rgb)) 40%, #E3221F 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .gold-line { background: linear-gradient(90deg, transparent, rgb(var(--accent-400-rgb)), transparent); }
   .btn-gold { @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-evangile-600 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95; }
   .btn-ember { @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-evangile-500 to-evangile-700 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95; }
 
@@ -265,9 +289,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     transition: all 0.3s ease;
   }
   .input-surface:focus {
-    border-color: rgba(227, 34, 31, 0.4);
+    border-color: rgb(var(--accent-400-rgb) / 0.4);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(227, 34, 31, 0.1);
+    box-shadow: 0 0 0 3px rgb(var(--accent-400-rgb) / 0.1);
   }
   .input-surface::placeholder { color: rgb(var(--text-muted-rgb)); opacity: 0.5; }
 }
@@ -306,17 +330,17 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   @keyframes slideRight { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes slideUp    { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ─── Pulse (Rouge Évangile) ─── */
+  /* ─── Pulse (Bleu accent) ─── */
   .animate-pulse-primary { animation: pulsePrimary 2s ease-in-out infinite; }
   @keyframes pulsePrimary {
-    0%,100% { box-shadow: 0 0 0 0 rgba(227, 34, 31, 0.4); }
-    50%     { box-shadow: 0 0 0 8px rgba(227, 34, 31, 0); }
+    0%,100% { box-shadow: 0 0 0 0 rgb(var(--accent-400-rgb) / 0.4); }
+    50%     { box-shadow: 0 0 0 8px rgb(var(--accent-400-rgb) / 0); }
   }
   /* Legacy alias */
   .animate-pulse-gold { animation: pulsePrimary 2s ease-in-out infinite; }
-  @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgba(227,34,31,0.4); } 50% { box-shadow: 0 0 0 8px rgba(227,34,31,0); } }
+  @keyframes pulseGold { 0%,100% { box-shadow: 0 0 0 0 rgb(var(--accent-400-rgb) / 0.4); } 50% { box-shadow: 0 0 0 8px rgb(var(--accent-400-rgb) / 0); } }
 
-  /* ─── Live indicator ─── */
+  /* ─── Live indicator (Rouge — signal fort) ─── */
   .live-dot {
     width: 8px; height: 8px; border-radius: 50%;
     background: #E3221F; position: relative;
@@ -389,12 +413,12 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   /* ─── Homepage animations ─── */
   .typing-cursor::after {
     content: '|'; animation: cursorBlink 0.8s step-end infinite;
-    color: #E3221F; margin-left: 2px; font-weight: 300;
+    color: rgb(var(--accent-400-rgb)); margin-left: 2px; font-weight: 300;
   }
   @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
 
   .shimmer-line {
-    background: linear-gradient(90deg, transparent, rgba(227, 34, 31, 0.3), transparent);
+    background: linear-gradient(90deg, transparent, rgb(var(--accent-400-rgb) / 0.3), transparent);
     background-size: 200% 100%;
     animation: shimmer 2.5s infinite;
   }
@@ -407,7 +431,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .verse-enter { animation: verseEnter 0.5s cubic-bezier(0.22,1,0.36,1) forwards; }
   @keyframes verseEnter { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-  .glow-accent { box-shadow: 0 0 40px rgba(227, 34, 31, 0.25), 0 0 80px rgba(227, 34, 31, 0.10); }
+  .glow-accent { box-shadow: 0 0 40px rgb(var(--accent-400-rgb) / 0.25), 0 0 80px rgb(var(--accent-400-rgb) / 0.10); }
 
   .parallax-layer-1 { will-change: transform; }
   .parallax-layer-2 { will-change: transform; }
@@ -446,16 +470,16 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     100% { background-position: 0% 50%; }
   }
 
-  /* ─── Floating light particles ─── */
+  /* ─── Floating light particles (Bleu) ─── */
   .particle {
     position: absolute;
     border-radius: 50%;
-    background: rgba(227, 34, 31, 0.3);
+    background: rgb(var(--accent-300-rgb) / 0.3);
     pointer-events: none;
     animation: particleFloat linear infinite;
   }
   .light .particle {
-    background: rgba(227, 34, 31, 0.15);
+    background: rgb(var(--accent-400-rgb) / 0.15);
   }
   @keyframes particleFloat {
     0%   { transform: translateY(0) translateX(0); opacity: 0; }

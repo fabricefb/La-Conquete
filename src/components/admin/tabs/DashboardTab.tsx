@@ -46,7 +46,7 @@ const ROLE_MAP: Record<number, { label: string; color: string }> = {
   1: { label: 'Membres', color: 'bg-blue-500' },
   2: { label: 'Serviteurs', color: 'bg-emerald-500' },
   3: { label: 'Chefs', color: 'bg-violet-500' },
-  4: { label: 'Pasteurs', color: 'bg-evangile-600' },
+  4: { label: 'Pasteurs', color: 'bg-accent-500' },
   5: { label: 'Super Admins', color: 'bg-rose-500' },
 };
 
@@ -80,7 +80,7 @@ function StatCard({
         <Icon className="h-4 w-4" />
         {label}
       </div>
-      <div className="text-3xl font-bold text-evangile-500 tabular-nums">{value}</div>
+      <div className="text-3xl font-bold text-accent-400 tabular-nums">{value}</div>
       {sub && <p className="text-[11px] text-muted">{sub}</p>}
     </div>
   );
@@ -118,9 +118,9 @@ function QuickAction({
       className="glass rounded-xl p-4 text-left hover:bg-white/5 transition group"
     >
       <div className="flex items-center gap-3 mb-1">
-        <Icon className="h-4 w-4 text-evangile-500" />
+        <Icon className="h-4 w-4 text-accent-400" />
         <span className="text-sm font-medium text-cream">{label}</span>
-        <ChevronRight className="h-3 w-3 text-muted ml-auto group-hover:text-evangile-500 transition" />
+        <ChevronRight className="h-3 w-3 text-muted ml-auto group-hover:text-accent-400 transition" />
       </div>
       <p className="text-xs text-muted">{desc}</p>
     </button>
@@ -263,7 +263,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
   const statusColor = (s: string) => {
     switch (s) {
       case 'received': return 'text-blue-400 bg-blue-400/10';
-      case 'praying': return 'text-evangile-500 bg-evangile-600/10';
+      case 'praying': return 'text-accent-400 bg-accent-400/10';
       case 'answered': return 'text-emerald-400 bg-emerald-400/10';
       default: return 'text-muted bg-white/5';
     }
@@ -314,7 +314,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="font-serif text-2xl font-bold text-cream flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-evangile-500" />
+            <BarChart3 className="h-6 w-6 text-accent-400" />
             Tableau de bord
           </h1>
           <p className="text-sm text-muted mt-1">
@@ -373,7 +373,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         {/* Role distribution */}
         <div className="lg:col-span-2 glass rounded-xl p-5">
           <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-evangile-500" />
+            <TrendingUp className="h-4 w-4 text-accent-400" />
             Distribution par rôle
           </h2>
           {loading ? (
@@ -404,7 +404,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         {/* Quick actions */}
         <div className="glass rounded-xl p-5">
           <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-evangile-500" />
+            <Clock className="h-4 w-4 text-accent-400" />
             Actions rapides
           </h2>
           <div className="flex flex-col gap-2">
@@ -441,7 +441,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         {/* Recent members */}
         <div className="glass rounded-xl p-5">
           <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-evangile-500" />
+            <Shield className="h-4 w-4 text-accent-400" />
             Derniers inscrits
           </h2>
           {loading ? (
@@ -462,7 +462,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
             <div className="space-y-3">
               {recentMembers.map(m => (
                 <div key={m.id} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-evangile-600/10 text-xs font-bold text-evangile-500">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-400/10 text-xs font-bold text-accent-400">
                     {(m.full_name ?? m.email).charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -482,7 +482,7 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         {/* Recent prayer requests */}
         <div className="glass rounded-xl p-5">
           <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-evangile-500" />
+            <Heart className="h-4 w-4 text-accent-400" />
             Dernières demandes de prière
           </h2>
           {loading ? (

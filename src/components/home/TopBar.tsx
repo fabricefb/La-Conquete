@@ -205,11 +205,11 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride 
         {/* ---- Right: Phone + Email + Don ---- */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <a
-            href={`tel:${(phone || '+243000000000').replace(/\s/g, '')}`}
+            href={`tel:${(phone || '+243999071754').replace(/\s/g, '')}`}
             className="hidden md:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
           >
             <Phone size={11} aria-hidden="true" />
-            <span className="whitespace-nowrap">{phone || '+243 00 000 0000'}</span>
+            <span className="whitespace-nowrap">{phone || '+243 999 071 754'}</span>
           </a>
 
           <a

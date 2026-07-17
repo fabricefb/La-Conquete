@@ -78,7 +78,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
           <div className="grid gap-8 sm:grid-cols-3">
             {MISSION.map((m, i) => (
               <div key={m.title} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-8 text-center transition-all duration-300 hover:scale-[1.03]`}>
-                <IconBox pageKey="vision" elementId={`mission-icon-${i}`} className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-500">
+                <IconBox pageKey="vision" elementId={`mission-icon-${i}`} className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
                   <m.Icon className="h-7 w-7" />
                 </IconBox>
                 <h3 className="font-serif text-xl font-bold text-cream">{m.title}</h3>
@@ -97,7 +97,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {VALUES.map((v, i) => (
               <div key={v.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]`}>
-                <IconBox pageKey="vision" elementId={`values-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                <IconBox pageKey="vision" elementId={`values-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                   <v.Icon className="h-5 w-5" />
                 </IconBox>
                 <h3 className="font-serif text-lg font-semibold text-cream">{v.title}</h3>
@@ -111,7 +111,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
       {/* ═══ PSAUME 2:8 ═══ */}
       <section className="py-16 px-4 bg-black">
         <div className="reveal mx-auto max-w-4xl text-center">
-          <p className="font-serif text-2xl font-medium leading-relaxed text-evangile-500 sm:text-3xl italic">
+          <p className="font-serif text-2xl font-medium leading-relaxed text-accent-400 sm:text-3xl italic">
             « Demande-moi, et je te donnerai les nations pour héritage, les extrémités de la terre pour possession. »
           </p>
           <p className="mt-4 text-sm font-semibold uppercase tracking-widest text-cream/40">Psaume 2:8</p>
@@ -123,11 +123,11 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
         <div className="mx-auto max-w-3xl">
           <p className="reveal section-label mb-3 text-center">Notre parcours</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Notre Histoire</h2>
-          <div className="relative border-l-2 border-evangile-600/20 pl-8 space-y-10">
+          <div className="relative border-l-2 border-accent-400/20 pl-8 space-y-10">
             {TIMELINE.map((t, i) => (
               <div key={t.year} className={`reveal reveal-delay-${(i % 4) + 1} relative`}>
                 <div className="absolute -left-[41px] top-1 h-4 w-4 rounded-full border-2 border-evangile-600 bg-bg" />
-                <p className="text-xs font-bold uppercase tracking-widest text-evangile-500">{t.year}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-accent-400">{t.year}</p>
                 <p className="mt-1 text-sm leading-relaxed text-cream/80">{t.event}</p>
               </div>
             ))}

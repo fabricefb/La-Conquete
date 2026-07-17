@@ -127,7 +127,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
             <p className="text-sm text-muted italic leading-relaxed mb-2" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '18px' }}>
               {VERSES[0].text}
             </p>
-            <p className="text-xs font-semibold text-evangile-600 tracking-wider uppercase">
+            <p className="text-xs font-semibold text-accent-500 tracking-wider uppercase">
               — {VERSES[0].ref}
             </p>
           </div>
@@ -152,8 +152,8 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
                   onClick={() => setActiveTab(opt.id)}
                   className={`flex items-center gap-3 px-6 py-4 rounded-2xl border text-left transition-all duration-300 cursor-pointer ${
                     isActive
-                      ? 'border-evangile-600/50 bg-evangile-600/5 shadow-lg shadow-evangile-600/10'
-                      : 'border-line hover:border-evangile-600/20 hover:bg-white/[0.02]'
+                      ? 'border-accent-400/50 bg-accent-400/5 shadow-lg shadow-accent-500/10'
+                      : 'border-line hover:border-accent-400/20 hover:bg-white/[0.02]'
                   }`}
                 >
                   <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${opt.color} flex items-center justify-center shrink-0`}>
@@ -188,7 +188,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
                   <div className="space-y-3 mb-8">
                     {activeOption.instructions.map((step, i) => (
                       <div key={i} className="flex gap-3 items-start">
-                        <span className="w-6 h-6 rounded-full bg-evangile-600/10 text-evangile-500 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                        <span className="w-6 h-6 rounded-full bg-accent-400/10 text-accent-400 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                           {i + 1}
                         </span>
                         <p className="text-sm text-muted leading-relaxed">{step}</p>
@@ -202,7 +202,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
                       <p className="text-lg font-bold text-cream flex-1">{mobileMoneyNumber}</p>
                       <button
                         onClick={() => copyToClipboard(mobileMoneyNumber, 'mm')}
-                        className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition-colors cursor-pointer"
+                        className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-muted hover:text-accent-400 hover:border-accent-400/40 transition-colors cursor-pointer"
                       >
                         {copied === 'mm' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                       </button>
@@ -250,7 +250,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
                         </div>
                         <button
                           onClick={() => copyToClipboard(bankNumber, 'bank')}
-                          className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition-colors cursor-pointer"
+                          className="w-9 h-9 rounded-lg border border-line flex items-center justify-center text-muted hover:text-accent-400 hover:border-accent-400/40 transition-colors cursor-pointer"
                         >
                           {copied === 'bank' ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
                         </button>
@@ -258,9 +258,9 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
                     </div>
                   </div>
 
-                  <div className="mt-6 p-4 rounded-xl bg-evangile-600/5 border border-evangile-600/20">
+                  <div className="mt-6 p-4 rounded-xl bg-accent-400/5 border border-accent-400/20">
                     <p className="text-xs text-muted">
-                      <strong className="text-evangile-500">Important :</strong> Mentionnez "Don La Conquête" dans le libellé du virement afin que nous puissions identifier votre don.
+                      <strong className="text-accent-400">Important :</strong> Mentionnez "Don La Conquête" dans le libellé du virement afin que nous puissions identifier votre don.
                     </p>
                   </div>
                 </div>
@@ -321,8 +321,8 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
               const Icon = item.icon;
               return (
                 <div key={i} className="glass-card rounded-2xl p-6 text-center card-parallax">
-                  <div className="w-12 h-12 rounded-xl bg-evangile-600/10 border border-evangile-600/20 flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-6 h-6 text-evangile-500" />
+                  <div className="w-12 h-12 rounded-xl bg-accent-400/10 border border-accent-400/20 flex items-center justify-center mx-auto mb-4">
+                    <Icon className="w-6 h-6 text-accent-400" />
                   </div>
                   <h3 className="text-base font-bold text-cream mb-2">{item.title}</h3>
                   <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
@@ -341,7 +341,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
               <p className="text-sm text-muted italic leading-relaxed mb-1.5" style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: '16px' }}>
                 {v.text}
               </p>
-              <p className="text-xs font-semibold text-evangile-600 tracking-wider uppercase">— {v.ref}</p>
+              <p className="text-xs font-semibold text-accent-500 tracking-wider uppercase">— {v.ref}</p>
             </div>
           ))}
         </div>

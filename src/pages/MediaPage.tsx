@@ -114,8 +114,8 @@ function MediaCard({
         {/* Audio overlay */}
         {item.file_type === 'audio' && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-evangile-600/60 bg-evangile-600/20 backdrop-blur-sm">
-              <Headphones className="h-6 w-6 text-evangile-500" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-evangile-600/60 bg-accent-400/20 backdrop-blur-sm">
+              <Headphones className="h-6 w-6 text-accent-400" />
             </div>
           </div>
         )}
@@ -123,7 +123,7 @@ function MediaCard({
 
       {/* Info */}
       <div className="flex flex-col gap-2 p-5">
-        <span className="self-start rounded-full border border-evangile-600/20 bg-evangile-600/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
+        <span className="self-start rounded-full border border-accent-400/20 bg-accent-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">
           {CATEGORY_LABELS[item.category]}
         </span>
         <h3 className="font-serif text-lg font-semibold text-cream leading-snug">{item.title}</h3>
@@ -175,7 +175,7 @@ function Lightbox({
       {/* Close button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/80 transition-all hover:border-evangile-600/40 hover:text-evangile-500"
+        className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/50 text-white/80 transition-all hover:border-accent-400/40 hover:text-accent-400"
         aria-label="Fermer"
       >
         <X className="h-5 w-5" />
@@ -269,7 +269,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
                 className={`shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-all duration-200 ${
                   selectedCategory === value
                     ? 'bg-gradient-to-r from-evangile-400 to-evangile-600 text-cream'
-                    : 'border border-line text-muted hover:border-evangile-600/40 hover:text-cream'
+                    : 'border border-line text-muted hover:border-accent-400/40 hover:text-cream'
                 }`}
               >
                 {label}

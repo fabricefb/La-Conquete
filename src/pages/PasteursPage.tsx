@@ -100,13 +100,13 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
                         <div className="pastor-overlay absolute inset-0" />
                       </div>
                       <div className="p-5">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-evangile-500">{p.role}</p>
+                        <p className="text-[10px] font-semibold uppercase tracking-widest text-accent-400">{p.role}</p>
                         <h3 className="mt-1 font-serif text-lg font-semibold text-cream">{p.name}</h3>
                         {p.bio && <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-3">{p.bio}</p>}
                         <div className="mt-4 flex gap-2">
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-evangile-600/40 hover:text-evangile-500"><Globe className="h-4 w-4" /></a>
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-evangile-600/40 hover:text-evangile-500"><Mail className="h-4 w-4" /></a>
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-evangile-600/40 hover:text-evangile-500"><Phone className="h-4 w-4" /></a>
+                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Globe className="h-4 w-4" /></a>
+                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Mail className="h-4 w-4" /></a>
+                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Phone className="h-4 w-4" /></a>
                         </div>
                       </div>
                     </div>

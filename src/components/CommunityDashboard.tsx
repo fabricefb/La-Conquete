@@ -24,10 +24,10 @@ interface Activity {
 }
 
 const DEMO_STATS: StatCard[] = [
-  { label: 'Total membres', value: '347', trend: 12.5, icon: <Users className="h-5 w-5 text-evangile-600" /> },
-  { label: 'Présents ce dimanche', value: '218', trend: 8.3, icon: <Church className="h-5 w-5 text-evangile-600" /> },
-  { label: 'Nouveaux ce mois', value: '14', trend: -3.2, icon: <UserCheck className="h-5 w-5 text-evangile-600" /> },
-  { label: 'Groupes actifs', value: '12', trend: 16.7, icon: <LayoutGrid className="h-5 w-5 text-evangile-600" /> },
+  { label: 'Total membres', value: '347', trend: 12.5, icon: <Users className="h-5 w-5 text-accent-500" /> },
+  { label: 'Présents ce dimanche', value: '218', trend: 8.3, icon: <Church className="h-5 w-5 text-accent-500" /> },
+  { label: 'Nouveaux ce mois', value: '14', trend: -3.2, icon: <UserCheck className="h-5 w-5 text-accent-500" /> },
+  { label: 'Groupes actifs', value: '12', trend: 16.7, icon: <LayoutGrid className="h-5 w-5 text-accent-500" /> },
 ];
 
 const DEMO_ATTENDANCE = [
@@ -119,7 +119,7 @@ export function CommunityDashboard() {
               className="glass-card rounded-2xl p-4 md:p-6 transition hover:scale-[1.02] group"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/10 group-hover:bg-evangile-600/20 transition">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10 group-hover:bg-accent-400/20 transition">
                   {s.icon}
                 </div>
                 <div className={`flex items-center gap-0.5 text-xs font-medium ${s.trend >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
@@ -143,7 +143,7 @@ export function CommunityDashboard() {
             {attendance.map((a, i) => (
               <div key={i} className="flex-1 flex flex-col items-center gap-2">
                 <span className="text-xs font-medium text-cream stat-number">{a.value}%</span>
-                <div className="w-full rounded-t-lg bg-evangile-600/20 relative overflow-hidden" style={{ height: '100%' }}>
+                <div className="w-full rounded-t-lg bg-accent-400/20 relative overflow-hidden" style={{ height: '100%' }}>
                   <div
                     className="absolute bottom-0 left-0 right-0 rounded-t-lg bg-evangile-600 transition-all duration-700"
                     style={{ height: `${(a.value / 100) * 100}%` }}

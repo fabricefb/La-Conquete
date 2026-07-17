@@ -60,13 +60,13 @@ function accentLabel(color: 'gold' | 'ember'): string {
 
 function accentClasses(color: 'gold' | 'ember'): string {
   if (color === 'gold') {
-    return 'bg-evangile-600/20 text-evangile-500 border-evangile-600/30';
+    return 'bg-accent-400/20 text-accent-400 border-accent-400/30';
   }
   return 'bg-orange-500/20 text-orange-400 border-orange-400/30';
 }
 
 function accentDotClasses(color: 'gold' | 'ember'): string {
-  return color === 'gold' ? 'bg-evangile-600' : 'bg-orange-400';
+  return color === 'gold' ? 'bg-accent-500' : 'bg-orange-400';
 }
 
 // ---------------------------------------------------------------------------
@@ -258,12 +258,12 @@ export function MinistriesTab() {
 
       {/* Form panel */}
       {formOpen && (
-        <div className="glass rounded-2xl p-6 space-y-5 border border-evangile-600/20">
+        <div className="glass rounded-2xl p-6 space-y-5 border border-accent-400/20">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">
               {editingId ? 'Modifier le ministère' : 'Nouveau ministère'}
             </h3>
-            <button onClick={closeForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition">
+            <button onClick={closeForm} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -386,7 +386,7 @@ export function MinistriesTab() {
                   <button
                     key={color}
                     onClick={() => handleField('accent_color', color)}
-                    className={`${baseClasses} border-line text-muted hover:border-evangile-600/40 hover:text-cream`}
+                    className={`${baseClasses} border-line text-muted hover:border-accent-400/40 hover:text-cream`}
                   >
                     <span className={`h-2.5 w-2.5 rounded-full ${accentDotClasses(color)} opacity-40`} />
                     {accentLabel(color)}
@@ -479,16 +479,16 @@ export function MinistriesTab() {
                   <button
                     onClick={() => toggleActive(ministry)}
                     title={ministry.is_active ? 'Désactiver' : 'Activer'}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"
                   >
-                    <Star className={`h-4 w-4 ${ministry.is_active ? 'fill-evangile-500 text-evangile-500' : ''}`} />
+                    <Star className={`h-4 w-4 ${ministry.is_active ? 'fill-evangile-500 text-accent-400' : ''}`} />
                   </button>
                   )}
                   {isFullAdmin && (
                   <button
                     onClick={() => openEdit(ministry)}
                     title="Modifier"
-                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"
                   >
                     <Edit3 className="h-4 w-4" />
                   </button>

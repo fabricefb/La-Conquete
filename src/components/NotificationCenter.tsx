@@ -13,7 +13,7 @@ import type { NotificationItem } from '../types';
 const NOTIF_ICONS: Record<string, React.ReactNode> = {
   info: <Info className="h-4 w-4 text-divin-100" />,
   event_reminder: <Calendar className="h-4 w-4 text-amber-400" />,
-  new_content: <FileText className="h-4 w-4 text-evangile-600" />,
+  new_content: <FileText className="h-4 w-4 text-accent-500" />,
   pastoral: <Heart className="h-4 w-4 text-pink-400" />,
   alert: <AlertTriangle className="h-4 w-4 text-orange-400" />,
   prayer: <MessageSquare className="h-4 w-4 text-purple-400" />,
@@ -145,7 +145,7 @@ export function NotificationCenter() {
               <button
                 onClick={markAllAsRead}
                 disabled={markingAll}
-                className="flex items-center gap-1.5 text-xs text-evangile-600 hover:text-evangile-400 transition disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs text-accent-500 hover:text-accent-300 transition disabled:opacity-50"
               >
                 {markingAll ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCheck className="h-3 w-3" />}
                 Tout marquer comme lu
@@ -170,7 +170,7 @@ export function NotificationCenter() {
                   key={n.id}
                   onClick={() => markAsRead(n.id)}
                   className={`w-full text-left px-4 py-3 transition hover:bg-white/5 border-b border-white/5 last:border-0 ${
-                    !n.is_read ? 'border-l-2 border-evangile-600 bg-evangile-600/5' : ''
+                    !n.is_read ? 'border-l-2 border-evangile-600 bg-accent-400/5' : ''
                   }`}
                 >
                   <div className="flex items-start gap-3">

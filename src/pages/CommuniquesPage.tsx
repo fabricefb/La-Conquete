@@ -48,18 +48,18 @@ export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
           {COMMUNIQUES.map(c => (
             <div key={c.id} className="glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer">
               <div className="flex items-start gap-4">
-                <IconBox pageKey="communiques" elementId="filetext-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evangile-600/10">
-                  <FileText className="h-5 w-5 text-evangile-600" />
+                <IconBox pageKey="communiques" elementId="filetext-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-400/10">
+                  <FileText className="h-5 w-5 text-accent-500" />
                 </IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-evangile-600">{c.category}</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-accent-500">{c.category}</span>
                     <span className="text-xs text-muted">{new Date(c.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                   </div>
-                  <h3 className="text-lg font-semibold text-cream group-hover:text-evangile-400 transition-colors">{c.title}</h3>
+                  <h3 className="text-lg font-semibold text-cream group-hover:text-accent-300 transition-colors">{c.title}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{c.excerpt}</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted group-hover:text-evangile-500 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent-400 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
               </div>
             </div>
           ))}

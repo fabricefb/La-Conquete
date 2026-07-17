@@ -177,14 +177,14 @@ export default function ImageUpload({
                 onChange={(e) => setUrlInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleApplyUrl(); }}
                 placeholder="Collez un lien R2 ou URL d'image..."
-                className="w-full rounded-xl border border-line bg-bg pl-10 pr-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:border-evangile-600/50 focus:outline-none transition-colors"
+                className="w-full rounded-xl border border-line bg-bg pl-10 pr-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:border-accent-400/50 focus:outline-none transition-colors"
               />
             </div>
             <button
               type="button"
               onClick={handleBrowseClick}
               disabled={uploading}
-              className="flex items-center gap-2 rounded-xl border border-line bg-white/5 px-4 py-3 text-sm font-medium text-cream hover:border-evangile-600/40 hover:bg-white/10 transition-colors disabled:opacity-40 whitespace-nowrap"
+              className="flex items-center gap-2 rounded-xl border border-line bg-white/5 px-4 py-3 text-sm font-medium text-cream hover:border-accent-400/40 hover:bg-white/10 transition-colors disabled:opacity-40 whitespace-nowrap"
             >
               <FolderOpen size={16} />
               Parcourir
@@ -206,7 +206,7 @@ export default function ImageUpload({
             onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && !uploading) { e.preventDefault(); fileInputRef.current?.click(); } }}
             onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}
             className={`relative flex flex-col items-center justify-center gap-2 w-full py-5 cursor-pointer rounded-2xl border-2 border-dashed border-line transition ${
-              dragActive ? 'border-evangile-600 bg-evangile-600/5' : 'hover:border-evangile-600/40 hover:bg-white/[0.02]'
+              dragActive ? 'border-evangile-600 bg-accent-400/5' : 'hover:border-accent-400/40 hover:bg-white/[0.02]'
             }`}>
             {uploading ? (
               <>
