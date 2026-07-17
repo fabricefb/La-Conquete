@@ -436,6 +436,10 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     background-size: 400% 400%;
     animation: spiritBreath 15s ease-in-out infinite;
   }
+  .light .spirit-breath {
+    background: linear-gradient(135deg, #D8E3FB 0%, #e8f0ff 25%, #f0f5ff 50%, #e8f0ff 75%, #D8E3FB 100%);
+    background-size: 400% 400%;
+  }
   @keyframes spiritBreath {
     0%   { background-position: 0% 50%; }
     50%  { background-position: 100% 50%; }
@@ -450,6 +454,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     pointer-events: none;
     animation: particleFloat linear infinite;
   }
+  .light .particle {
+    background: rgba(227, 34, 31, 0.15);
+  }
   @keyframes particleFloat {
     0%   { transform: translateY(0) translateX(0); opacity: 0; }
     10%  { opacity: 1; }
@@ -462,6 +469,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 
   /* ─── Pastor overlay ─── */
   .pastor-overlay { background: linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.4) 50%, transparent 100%); }
+  .light .pastor-overlay { background: linear-gradient(to top, rgba(15,33,71,0.90) 0%, rgba(15,33,71,0.3) 50%, transparent 100%); }
 
   /* ─── Scrollbar hide ─── */
   .scrollbar-hide::-webkit-scrollbar { display: none; }

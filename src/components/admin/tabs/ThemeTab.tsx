@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
-import { Save, RotateCcw, Palette, Type, RectangleHorizontal, Square, Minus, Maximize, Loader2 } from 'lucide-react';
+import { Save, RotateCcw, Palette, Type, RectangleHorizontal, Square, Minus, Maximize, Loader2, Sparkles } from 'lucide-react';
 import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../../types';
 
 // ─── Defaults ───────────────────────────────────────────────────
@@ -17,6 +17,74 @@ const DEFAULT_THEME: ThemeSettings = {
   body_font: 'Poppins',
   updated_at: new Date().toISOString(),
 };
+
+// ─── Color presets ─────────────────────────────────────────────
+interface ColorPreset {
+  name: string;
+  primary: string;
+  secondary: string;
+  accent: string;
+  preview: string[]; // 3 color swatches
+}
+
+const COLOR_PRESETS: ColorPreset[] = [
+  {
+    name: 'Conquête (défaut)',
+    primary: '#E3221F',
+    secondary: '#0F2147',
+    accent: '#D8E3FB',
+    preview: ['#E3221F', '#0F2147', '#D8E3FB'],
+  },
+  {
+    name: 'Bleu Royal',
+    primary: '#1E40AF',
+    secondary: '#0F172A',
+    accent: '#93C5FD',
+    preview: ['#1E40AF', '#0F172A', '#93C5FD'],
+  },
+  {
+    name: 'Bleu Ciel',
+    primary: '#0284C7',
+    secondary: '#0C4A6E',
+    accent: '#BAE6FD',
+    preview: ['#0284C7', '#0C4A6E', '#BAE6FD'],
+  },
+  {
+    name: 'Violet Spirituel',
+    primary: '#7C3AED',
+    secondary: '#1E1B4B',
+    accent: '#C4B5FD',
+    preview: ['#7C3AED', '#1E1B4B', '#C4B5FD'],
+  },
+  {
+    name: 'Vert Éternel',
+    primary: '#059669',
+    secondary: '#064E3B',
+    accent: '#A7F3D0',
+    preview: ['#059669', '#064E3B', '#A7F3D0'],
+  },
+  {
+    name: 'Or & Noir',
+    primary: '#D97706',
+    secondary: '#1C1917',
+    accent: '#FDE68A',
+    preview: ['#D97706', '#1C1917', '#FDE68A'],
+  },
+  {
+    name: 'Rose Grâce',
+    primary: '#DB2777',
+    secondary: '#1E1B2E',
+    accent: '#FBCFE8',
+    preview: ['#DB2777', '#1E1B2E', '#FBCFE8'],
+  },
+  {
+    name: 'Gris Moderne',
+    primary: '#475569',
+    secondary: '#0F172A',
+    accent: '#CBD5E1',
+    preview: ['#475569', '#0F172A', '#CBD5E1'],
+  },
+];
 
 // ─── Font catalogues ────────────────────────────────────────────
 const TITLE_FONTS = [
@@ -272,6 +340,50 @@ export function ThemeTab() {
         <div className="flex items-center gap-2 mb-5">
           <Palette className="h-5 w-5 text-evangile-500" />
           <h2 className="font-serif text-xl font-semibold text-cream">Couleurs</h2>
+        </div>
+
+        {/* ── Presets ── */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Sparkles className="h-4 w-4 text-cream/50" />
+            <label className="text-sm font-medium text-cream/70">Modèles de couleurs</label>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {COLOR_PRESETS.map((preset) => {
+              const isActive =
+                localSettings.primary_color === preset.primary &&
+                localSettings.secondary_color === preset.secondary;
+              return (
+                <button
+                  key={preset.name}
+                  type="button"
+                  onClick={() => {
+                    updateField('primary_color', preset.primary);
+                    updateField('secondary_color', preset.secondary);
+                    updateField('accent_color', preset.accent);
+                  }}
+                  className={`rounded-xl border p-3 text-left transition-all ${
+                    isActive
+                      ? 'border-evangile-500 bg-evangile-600/10'
+                      : 'border-white/5 bg-white/[0.02] hover:border-white/15 hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <div className="flex gap-1 mb-2">
+                    {preset.preview.map((c, i) => (
+                      <div
+                        key={i}
+                        className="h-5 flex-1 rounded-md"
+                        style={{ backgroundColor: c }}
+                      />
+                    ))}
+                  </div>
+                  <p className={`text-[11px] font-medium truncate ${isActive ? 'text-evangile-400' : 'text-cream/60'}`}>
+                    {preset.name}
+                  </p>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">

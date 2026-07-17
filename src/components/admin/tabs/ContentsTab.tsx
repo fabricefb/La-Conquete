@@ -556,7 +556,8 @@ export function ContentsTab() {
       if (cancelled) return;
 
       if (error) {
-        addToast('Erreur lors du chargement', 'error');
+        // Error silently — don't call addToast inside useEffect to avoid dependency loops
+        console.error('ContentsTab load error:', error.message);
       } else {
         const rows: PageContent[] = (data ?? []) as PageContent[];
         setContents(rows);
@@ -576,7 +577,8 @@ export function ContentsTab() {
 
     load();
     return () => { cancelled = true; };
-  }, [activePage, addToast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activePage]);
 
   // ── Grouped by section ──
 
