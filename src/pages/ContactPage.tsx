@@ -10,6 +10,7 @@ import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
 import { MapPin, Phone, Mail, Globe, Clock, Send, Navigation } from '../lib/icons';
+import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
 // ─── Types ─────────────────────────────────────────────────────────
@@ -189,9 +190,9 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                 <div className="flex flex-col gap-4">
                   {/* Address */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                    <IconBox pageKey="contact" elementId="info-mappin-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <MapPin className="h-4 w-4" />
-                    </div>
+                    </IconBox>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted">Adresse</p>
                       <p className="mt-1 text-sm text-cream">
@@ -202,9 +203,9 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                   {/* Phone */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                    <IconBox pageKey="contact" elementId="info-phone-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <Phone className="h-4 w-4" />
-                    </div>
+                    </IconBox>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted">Téléphone</p>
                       {phone ? (
@@ -222,9 +223,9 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
                   {/* Email */}
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                    <IconBox pageKey="contact" elementId="info-mail-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                       <Mail className="h-4 w-4" />
-                    </div>
+                    </IconBox>
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-widest text-muted">Email</p>
                       {email ? (
@@ -447,9 +448,9 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             {SERVICE_TIMES.map(({ day, service, time, Icon }, i) => (
               <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
                 <div className="glass rounded-3xl p-6 text-center transition-all duration-300 hover:scale-105">
-                  <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-evangile-600/20 text-evangile-500">
+                  <IconBox pageKey="contact" elementId={`service-clock-icon-${i}`} className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-evangile-600/20 text-evangile-500">
                     <Icon className="h-5 w-5" />
-                  </div>
+                  </IconBox>
                   <p className="text-xs font-bold uppercase tracking-widest text-evangile-500">{day}</p>
                   <h3 className="mt-1 font-serif text-lg font-semibold text-cream">{service}</h3>
                   <p className="mt-1 text-sm text-muted">{time}</p>

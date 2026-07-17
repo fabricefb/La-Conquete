@@ -7,6 +7,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { formatDate } from '../lib/date';
 import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
+import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
 interface EventsPageProps { onNavigate: (page: Page) => void; }
@@ -425,9 +426,9 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               {weeklyServices.map(({ title, day, time, Icon, desc }, i) => (
                 <EvtReveal key={title} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
                   <div className="glass rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-evangile-600/5 group h-full">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-600 transition-colors group-hover:bg-evangile-600 group-hover:text-white group-hover:border-evangile-600">
+                    <IconBox pageKey="events" elementId={`service-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-600 transition-colors group-hover:bg-evangile-600 group-hover:text-white group-hover:border-evangile-600">
                       <Icon className="h-5 w-5" />
-                    </div>
+                    </IconBox>
                     <h3 className="font-playfair text-lg font-semibold text-cream">{title}</h3>
                     <p className="mt-1 text-xs font-bold uppercase tracking-widest text-evangile-600 font-be-vn">{day}</p>
                     <p className="mt-1 text-sm text-muted font-be-vn">{time}</p>

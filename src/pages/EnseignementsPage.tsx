@@ -4,6 +4,7 @@ import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { IconBox } from '../components/IconBox';
 import { Play, Calendar, BookOpen, FileText, Download, Search } from '../lib/icons';
 import { supabase } from '../lib/supabase';
 import type { Page } from '../lib/navigation';
@@ -174,9 +175,9 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
           <div className="space-y-3">
             {STUDIES.map((s, i) => (
               <div key={s.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 hover:scale-[1.01]`}>
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                <IconBox pageKey="enseignements" elementId={`study-icon-${i}`} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                   <BookOpen className="h-5 w-5" />
-                </div>
+                </IconBox>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-cream truncate">{s.title}</h3>
                   <p className="text-xs text-muted">{s.sessions} sessions</p>

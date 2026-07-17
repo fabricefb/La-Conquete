@@ -7,6 +7,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
+import { IconBox } from '../components/IconBox';
 import {
   Users, UserPlus, ArrowRight, Check, Send, MapPin, Calendar,
   Heart, Star, Compass, BookOpen, Mic, Music, Shield, GraduationCap, HandHeart, Loader2, LogIn, X, ChevronDown, ChevronUp,
@@ -191,9 +192,9 @@ function DepartmentCard({ dept }: { dept: ExtendedDepartment }) {
       <div className="p-6 flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${isGold ? 'border-evangile-600/20 bg-evangile-600/10' : 'border-ember-500/20 bg-ember-500/10'}`}>
+          <IconBox pageKey="departments" elementId={`dept-icon-${dept.id || dept.name}`} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${isGold ? 'border-evangile-600/20 bg-evangile-600/10' : 'border-ember-500/20 bg-ember-500/10'}`}>
             <IconComp className={`h-6 w-6 ${isGold ? 'text-evangile-500' : 'text-ember-400'}`} />
-          </div>
+          </IconBox>
           <div className="flex-1 min-w-0">
             <h3 className="font-serif text-lg font-semibold text-cream">{dept.name}</h3>
             {dept.meeting_schedule && (
@@ -274,9 +275,9 @@ function JoinForm({ departmentId, departmentName, onNavigate }: { departmentId: 
     return (
       <div className="glass rounded-3xl p-8 sm:p-12 text-center">
         <div className="mb-4 flex justify-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
+          <IconBox pageKey="departments" elementId="login-cta-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
             <LogIn className="h-6 w-6 text-evangile-500" />
-          </div>
+          </IconBox>
         </div>
         <h3 className="font-serif text-2xl font-semibold text-cream">Connectez-vous pour rejoindre</h3>
         <p className="mt-3 text-muted max-w-lg mx-auto">
@@ -431,9 +432,9 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
             <RevealSection>
               <div className="glass rounded-3xl p-8 h-full">
                 <div className="mb-6 flex items-center gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
+                  <IconBox pageKey="departments" elementId="evangelisation-compass-icon" className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
                     <Compass className="h-7 w-7 text-evangile-500" />
-                  </div>
+                  </IconBox>
                   <div>
                     <h3 className="font-serif text-xl font-semibold text-cream">Notre Mission</h3>
                     {evangDept.leader_name && (
@@ -541,9 +542,9 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
           <RevealSection>
             <div className="glass rounded-3xl p-8 sm:p-12 text-center">
               <div className="mb-4 flex justify-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
+                <IconBox pageKey="departments" elementId="serve-handheart-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
                   <HandHeart className="h-6 w-6 text-evangile-500" />
-                </div>
+                </IconBox>
               </div>
               <h2 className="font-serif text-2xl font-semibold text-cream sm:text-3xl">Vous souhaitez servir ?</h2>
               <p className="mt-3 text-muted max-w-lg mx-auto">

@@ -6,6 +6,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { Clock, MonitorPlay, Navigation, Phone } from '../lib/icons';
 import { Car, Bus, Baby } from 'lucide-react';
+import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
 // ─── Data ─────────────────────────────────────────────────────────
@@ -58,9 +59,9 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {SCHEDULES.map((s, i) => (
               <div key={i} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.03]`}>
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                <IconBox pageKey="culte" elementId={`schedule-clock-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                   <Clock className="h-5 w-5" />
-                </div>
+                </IconBox>
                 <p className="text-xs font-semibold uppercase tracking-widest text-evangile-500">{s.day}</p>
                 <p className="mt-1 font-mono text-2xl font-bold text-cream">{s.time}</p>
                 <p className="mt-2 font-semibold text-cream/90">{s.label}</p>
@@ -130,9 +131,9 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {PRACTICALS.map((p, i) => (
               <div key={i} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03]`}>
-                <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                <IconBox pageKey="culte" elementId={`practical-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                   <p.Icon className="h-6 w-6" />
-                </div>
+                </IconBox>
                 <h3 className="font-semibold text-cream">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted">{p.desc}</p>
               </div>

@@ -1,4 +1,5 @@
 import { FileText, ArrowRight } from '../lib/icons';
+import { IconBox } from '../components/IconBox';
 import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
@@ -47,9 +48,9 @@ export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
           {COMMUNIQUES.map(c => (
             <div key={c.id} className="glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer">
               <div className="flex items-start gap-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evangile-600/10">
+                <IconBox pageKey="communiques" elementId="filetext-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-evangile-600/10">
                   <FileText className="h-5 w-5 text-evangile-600" />
-                </div>
+                </IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <span className="text-xs font-semibold uppercase tracking-wider text-evangile-600">{c.category}</span>

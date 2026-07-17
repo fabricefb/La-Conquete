@@ -1,4 +1,5 @@
 import { Bell, ArrowRight } from '../lib/icons';
+import { IconBox } from '../components/IconBox';
 import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
@@ -54,9 +55,9 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
           {ANNONCES.map(a => (
             <div key={a.id} className={`glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer ${a.urgent ? 'border-l-4 border-l-red-500' : ''}`}>
               <div className="flex items-start gap-4">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-evangile-600/10'}`}>
+                <IconBox pageKey="annonces" elementId="bell-icon" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-evangile-600/10'}`}>
                   <Bell className={`h-5 w-5 ${a.urgent ? 'text-red-400' : 'text-evangile-600'}`} />
-                </div>
+                </IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     {a.urgent && (

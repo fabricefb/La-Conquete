@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabase';
 
 interface SectionVisibility {
   visible: boolean;
@@ -8,37 +8,67 @@ interface SectionVisibility {
 
 /**
  * Hook universel pour charger la config builder d'une page.
- * Chaque page peut avoir une clé `builder_config_{pageKey}` dans site_settings.
- * Retourne `isSectionVisible(sectionId)` pour contrôler la visibilité.
+ * Charge DEUX clés depuis site_settings :
+ *   - `builder_config_{pageKey}`  → visibilité des sections
+ *   - `builder_elements_{pageKey}` → visibilité des éléments décoratifs (icones, etc.)
  */
 export function usePageBuilderConfig(pageKey: string) {
   const [config, setConfig] = useState<Record<string, SectionVisibility>>({});
+  const [elements, setElements] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     let cancelled = false;
-    supabase
-      .from('site_settings')
-      .select('value')
-      .eq('key', `builder_config_${pageKey}`)
-      .single()
-      .then(({ data }) => {
-        if (cancelled) return;
-        if (data?.value) {
-          try {
-            const parsed = typeof data.value === 'string'
-              ? JSON.parse(data.value) as any[]
-              : data.value as any[];
-            if (Array.isArray(parsed)) {
-              const cfg: Record<string, SectionVisibility> = {};
-              for (const s of parsed) {
-                cfg[s.id] = { visible: !!s.visible, config: s.config || {} };
-              }
-              setConfig(cfg);
+
+    async function load() {
+      const { data: sectionData } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', `builder_config_${pageKey}`)
+        .single();
+
+      if (cancelled) return;
+
+      if (sectionData?.value) {
+        try {
+          const parsed = typeof sectionData.value === 'string'
+            ? JSON.parse(sectionData.value) as any[]
+            : sectionData.value as any[];
+          if (Array.isArray(parsed)) {
+            const cfg: Record<string, SectionVisibility> = {};
+            for (const s of parsed) {
+              cfg[s.id] = { visible: !!s.visible, config: s.config || {} };
             }
-          } catch { /* keep empty */ }
-        }
-      })
-      .catch(() => {});
+            setConfig(cfg);
+          }
+        } catch { /* keep empty */ }
+      }
+
+      // Load elements config
+      const { data: elemData } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', `builder_elements_${pageKey}`)
+        .single();
+
+      if (cancelled) return;
+
+      if (elemData?.value) {
+        try {
+          const parsed = typeof elemData.value === 'string'
+            ? JSON.parse(elemData.value) as any[]
+            : elemData.value as any[];
+          if (Array.isArray(parsed)) {
+            const elMap: Record<string, boolean> = {};
+            for (const el of parsed) {
+              elMap[el.id] = el.visible !== false;
+            }
+            setElements(elMap);
+          }
+        } catch { /* keep empty */ }
+      }
+    }
+
+    load();
     return () => { cancelled = true; };
   }, [pageKey]);
 
@@ -52,5 +82,11 @@ export function usePageBuilderConfig(pageKey: string) {
     return config[sectionId]?.config?.[key] ?? fallback;
   }, [config]);
 
-  return { isSectionVisible, getSectionConfig, builderConfig: config };
+  const isElementVisible = useCallback((elementId: string, defaultVisible = true): boolean => {
+    const val = elements[elementId];
+    if (val === undefined) return defaultVisible;
+    return val;
+  }, [elements]);
+
+  return { isSectionVisible, isElementVisible, getSectionConfig, builderConfig: config, elementsConfig: elements };
 }

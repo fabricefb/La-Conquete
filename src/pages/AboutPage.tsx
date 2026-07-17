@@ -3,6 +3,7 @@ import { db, buildContentMap, getContent } from '../lib/supabase';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
+import { IconBox } from '../components/IconBox';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { MapPin, Phone, Mail, Heart, HandHeart, BookOpen } from '../lib/icons';
@@ -141,9 +142,9 @@ export function AboutPage({ onNavigate }: PageProps) {
             <RevealSection>
               <div className="glass rounded-3xl p-8 bg-radial-primary">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                  <IconBox pageKey="about" elementId="vision-bookopen-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                     <BookOpen className="h-5 w-5" />
-                  </div>
+                  </IconBox>
                   <h2 className="section-label mb-0">Notre Vision</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
@@ -155,9 +156,9 @@ export function AboutPage({ onNavigate }: PageProps) {
             <RevealSection className="reveal-delay-1">
               <div className="glass rounded-3xl p-8">
                 <div className="mb-4 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                  <IconBox pageKey="about" elementId="mission-heart-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
                     <Heart className="h-5 w-5" />
-                  </div>
+                  </IconBox>
                   <h2 className="section-label mb-0">Notre Mission</h2>
                 </div>
                 <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
@@ -375,13 +376,13 @@ export function AboutPage({ onNavigate }: PageProps) {
               <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
                 {href ? (
                   <a href={href} target="_blank" rel="noopener noreferrer" className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105 block">
-                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></div>
+                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></IconBox>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
                     <p className="text-sm font-medium text-cream">{value}</p>
                   </a>
                 ) : (
                   <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105">
-                    <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></div>
+                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></IconBox>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
                     <p className="text-sm font-medium text-cream">{value}</p>
                   </div>

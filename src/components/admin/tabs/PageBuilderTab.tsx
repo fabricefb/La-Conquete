@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Eye, EyeOff, ChevronUp, ChevronDown, Save, Loader2, GripVertical,
+  Sparkles, ToggleLeft, ToggleRight,
 } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
@@ -15,11 +16,119 @@ interface SectionEntry {
   config: Record<string, unknown>;
 }
 
+interface ElementEntry {
+  id: string;
+  label: string;
+  visible: boolean;
+}
+
 interface PageDef {
   key: string;
   label: string;
   sections: string[];
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Registre des éléments décoratifs par page
+   Chaque élément a un id unique et un label descriptif pour l'admin.
+   ═══════════════════════════════════════════════════════════════════ */
+
+const PAGE_ELEMENTS: Record<string, { id: string; label: string }[]> = {
+  home: [
+    { id: 'pillars-icon-0', label: 'Piliers — Icône Couronne (Foi)' },
+    { id: 'pillars-icon-1', label: 'Piliers — Icône Flamme (Communauté)' },
+    { id: 'pillars-icon-2', label: 'Piliers — Icône Boussole (Mission)' },
+    { id: 'unique-float-cross', label: 'Section Unique — Croix flottante' },
+  ],
+  about: [
+    { id: 'vision-bookopen-icon', label: 'Vision — Icône Livre ouvert' },
+    { id: 'mission-heart-icon', label: 'Mission — Icône Cœur' },
+    { id: 'contact-mappin-icon', label: 'Contact strip — Icône Adresse' },
+    { id: 'contact-phone-icon', label: 'Contact strip — Icône WhatsApp' },
+    { id: 'contact-mail-icon-1', label: 'Contact strip — Icône Email 1' },
+    { id: 'contact-mail-icon-2', label: 'Contact strip — Icône Email 2' },
+  ],
+  events: [
+    { id: 'service-icon-0', label: 'Cultes hebdo — Icône Dimanche matin' },
+    { id: 'service-icon-1', label: 'Cultes hebdo — Icône Dimanche soir' },
+    { id: 'service-icon-2', label: 'Cultes hebdo — Icône Mercredi' },
+    { id: 'service-icon-3', label: 'Cultes hebdo — Icône Vendredi' },
+    { id: 'service-icon-4', label: 'Cultes hebdo — Icône Jeudi' },
+    { id: 'service-icon-5', label: 'Cultes hebdo — Icône Samedi' },
+  ],
+  vision: [
+    { id: 'mission-icon-0', label: 'Mission — Icône Croix (Adorer)' },
+    { id: 'mission-icon-1', label: 'Mission — Icône Livre (Équiper)' },
+    { id: 'mission-icon-2', label: 'Mission — Icône Envoi (Envoyer)' },
+    { id: 'values-icon-0', label: 'Valeurs — Icône Flamme (Foi)' },
+    { id: 'values-icon-1', label: 'Valeurs — Icône Étoile (Excellence)' },
+    { id: 'values-icon-2', label: 'Valeurs — Icône Utilisateurs (Unité)' },
+    { id: 'values-icon-3', label: 'Valeurs — Icône Bouclier (Service)' },
+    { id: 'values-icon-4', label: 'Valeurs — Icône Couronne (Intégrité)' },
+    { id: 'values-icon-5', label: 'Valeurs — Icône Cœur (Amour)' },
+  ],
+  culte: [
+    { id: 'schedule-clock-icon-0', label: 'Horaires — Icône Dimanche' },
+    { id: 'schedule-clock-icon-1', label: 'Horaires — Icône Mercredi' },
+    { id: 'schedule-clock-icon-2', label: 'Horaires — Icône Vendredi' },
+    { id: 'schedule-clock-icon-3', label: 'Horaires — Icône Jeudi' },
+    { id: 'practical-icon-0', label: 'Infos pratiques — Icône Parking' },
+    { id: 'practical-icon-1', label: 'Infos pratiques — Icône Transport' },
+    { id: 'practical-icon-2', label: 'Infos pratiques — Icône Garderie' },
+    { id: 'practical-icon-3', label: 'Infos pratiques — Icône Contact' },
+  ],
+  jeunesse: [
+    { id: 'activity-icon-0', label: 'Activités — Icône Musique' },
+    { id: 'activity-icon-1', label: 'Activités — Icône Étude biblique' },
+    { id: 'activity-icon-2', label: 'Activités — Icône Événement' },
+    { id: 'activity-icon-3', label: 'Activités — Icône Sport' },
+    { id: 'activity-icon-4', label: 'Activités — Icône Gaming' },
+    { id: 'activity-icon-5', label: 'Activités — Icône Partage' },
+  ],
+  ministeres: [
+    { id: 'ministere-icon-0', label: 'Ministères — Icône Musique' },
+    { id: 'ministere-icon-1', label: 'Ministères — Icône Enseignement' },
+    { id: 'ministere-icon-2', label: 'Ministères — Icône Évangélisation' },
+    { id: 'ministere-icon-3', label: 'Ministères — Icône Aide sociale' },
+    { id: 'ministere-icon-4', label: 'Ministères — Icône Accueil' },
+    { id: 'ministere-icon-5', label: 'Ministères — Icône Enfants' },
+    { id: 'ministere-icon-6', label: 'Ministères — Icône Communication' },
+    { id: 'ministere-icon-7', label: 'Ministères — Icône Intercession' },
+    { id: 'ministere-icon-8', label: 'Ministères — Icône Leadership' },
+    { id: 'ministere-icon-9', label: 'Ministères — Icône Formation' },
+    { id: 'ministere-icon-10', label: 'Ministères — Icône Multimédia' },
+    { id: 'ministere-icon-11', label: 'Ministères — Icône Louange' },
+  ],
+  enseignements: [
+    { id: 'study-icon-0', label: 'Études bibliques — Icône Livre 1' },
+    { id: 'study-icon-1', label: 'Études bibliques — Icône Livre 2' },
+    { id: 'study-icon-2', label: 'Études bibliques — Icône Livre 3' },
+  ],
+  contact: [
+    { id: 'info-mappin-icon', label: 'Coordonnées — Icône Adresse' },
+    { id: 'info-phone-icon', label: 'Coordonnées — Icône Téléphone' },
+    { id: 'info-mail-icon', label: 'Coordonnées — Icône Email' },
+    { id: 'service-clock-icon-0', label: 'Cultes — Icône Horaire 1' },
+    { id: 'service-clock-icon-1', label: 'Cultes — Icône Horaire 2' },
+    { id: 'service-clock-icon-2', label: 'Cultes — Icône Horaire 3' },
+    { id: 'service-clock-icon-3', label: 'Cultes — Icône Horaire 4' },
+  ],
+  emissions: [
+    { id: 'newsletter-mail-icon', label: 'Newsletter — Icône Enveloppe' },
+  ],
+  communiques: [
+    { id: 'filetext-icon', label: 'Liste — Icône Document' },
+  ],
+  annonces: [
+    { id: 'bell-icon', label: 'Liste — Icône Cloche' },
+  ],
+  departments: [
+    { id: 'dept-icon', label: 'Cartes — Icônes départements' },
+    { id: 'login-cta-icon', label: 'Connexion — Icône Login' },
+    { id: 'evangelisation-compass-icon', label: 'Évangélisation — Icône Boussole' },
+    { id: 'serve-handheart-icon', label: 'Service — Icône Main-cœur' },
+  ],
+};
 
 /* ═══════════════════════════════════════════════════════════════════
    Page & Section Definitions
@@ -61,8 +170,20 @@ function buildDefaultSections(pageDef: PageDef): SectionEntry[] {
   }));
 }
 
-function storageKey(pageKey: string) {
+function buildDefaultElements(pageKey: string): ElementEntry[] {
+  return (PAGE_ELEMENTS[pageKey] ?? []).map(e => ({
+    id: e.id,
+    label: e.label,
+    visible: true,
+  }));
+}
+
+function sectionsStorageKey(pageKey: string) {
   return `builder_config_${pageKey}`;
+}
+
+function elementsStorageKey(pageKey: string) {
+  return `builder_elements_${pageKey}`;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -75,13 +196,15 @@ export function PageBuilderTab() {
   const [selectedPage, setSelectedPage] = useState(PAGES[0].key);
   const [sections, setSections] = useState<SectionEntry[]>(() => buildDefaultSections(PAGES[0]));
   const [originalSections, setOriginalSections] = useState<SectionEntry[]>(() => buildDefaultSections(PAGES[0]));
+  const [elements, setElements] = useState<ElementEntry[]>(() => buildDefaultElements(PAGES[0].key));
+  const [originalElements, setOriginalElements] = useState<ElementEntry[]>(() => buildDefaultElements(PAGES[0].key));
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const currentPage = PAGES.find(p => p.key === selectedPage) ?? PAGES[0];
-
-  const hasChanges =
-    JSON.stringify(sections) !== JSON.stringify(originalSections);
+  const hasSectionChanges = JSON.stringify(sections) !== JSON.stringify(originalSections);
+  const hasElementChanges = JSON.stringify(elements) !== JSON.stringify(originalElements);
+  const hasChanges = hasSectionChanges || hasElementChanges;
 
   /* ── Load config for the selected page ── */
   useEffect(() => {
@@ -90,11 +213,12 @@ export function PageBuilderTab() {
 
     async function load() {
       const defaults = buildDefaultSections(currentPage);
+      const elemDefaults = buildDefaultElements(currentPage.key);
 
       const { data } = await supabase
         .from('site_settings')
         .select('value')
-        .eq('key', storageKey(currentPage.key))
+        .eq('key', sectionsStorageKey(currentPage.key))
         .single();
 
       if (cancelled) return;
@@ -105,7 +229,6 @@ export function PageBuilderTab() {
             ? JSON.parse(data.value)
             : data.value;
 
-          // Merge saved config onto defaults (preserves new sections added to code)
           const savedMap = new Map(parsed.map(s => [s.id, s]));
           const merged = defaults.map(d => {
             const saved = savedMap.get(d.id);
@@ -120,7 +243,6 @@ export function PageBuilderTab() {
             return d;
           });
 
-          // Sort by saved order if available, otherwise keep default order
           const ordered = savedMap.size > 0
             ? merged.sort((a, b) => {
                 const aOrder = savedMap.get(a.id)?.order ?? defaults.findIndex(d => d.id === a.id);
@@ -140,6 +262,41 @@ export function PageBuilderTab() {
         setOriginalSections(JSON.parse(JSON.stringify(defaults)));
       }
 
+      // Load elements
+      const { data: elemData } = await supabase
+        .from('site_settings')
+        .select('value')
+        .eq('key', elementsStorageKey(currentPage.key))
+        .single();
+
+      if (cancelled) return;
+
+      if (elemData?.value) {
+        try {
+          const parsed: ElementEntry[] = typeof elemData.value === 'string'
+            ? JSON.parse(elemData.value)
+            : elemData.value;
+
+          const savedElMap = new Map(parsed.map(e => [e.id, e]));
+          const mergedElems = elemDefaults.map(d => {
+            const saved = savedElMap.get(d.id);
+            if (saved) {
+              return { ...d, visible: saved.visible !== false };
+            }
+            return d;
+          });
+
+          setElements(mergedElems);
+          setOriginalElements(JSON.parse(JSON.stringify(mergedElems)));
+        } catch {
+          setElements(elemDefaults);
+          setOriginalElements(JSON.parse(JSON.stringify(elemDefaults)));
+        }
+      } else {
+        setElements(elemDefaults);
+        setOriginalElements(JSON.parse(JSON.stringify(elemDefaults)));
+      }
+
       setLoading(false);
     }
 
@@ -147,11 +304,23 @@ export function PageBuilderTab() {
     return () => { cancelled = true; };
   }, [selectedPage, currentPage]);
 
-  /* ── Toggle visibility ── */
+  /* ── Toggle section visibility ── */
   const toggleVisibility = useCallback((index: number) => {
     setSections(prev =>
       prev.map((s, i) => (i === index ? { ...s, visible: !s.visible } : s)),
     );
+  }, []);
+
+  /* ── Toggle element visibility ── */
+  const toggleElementVisibility = useCallback((elementId: string) => {
+    setElements(prev =>
+      prev.map(e => (e.id === elementId ? { ...e, visible: !e.visible } : e)),
+    );
+  }, []);
+
+  /* ── Toggle all elements ── */
+  const toggleAllElements = useCallback((visible: boolean) => {
+    setElements(prev => prev.map(e => ({ ...e, visible })));
   }, []);
 
   /* ── Move up ── */
@@ -178,86 +347,113 @@ export function PageBuilderTab() {
   const handleSave = useCallback(async () => {
     setSaving(true);
     try {
-      const configToSave = sections.map((s, i) => ({
+      // Save sections
+      const sectionConfig = sections.map((s, i) => ({
         id: s.id,
         visible: s.visible,
         config: s.config,
         order: i,
       }));
 
-      const results = await Promise.allSettled([
-        // Try update first
-        supabase
-          .from('site_settings')
-          .update({
-            value: JSON.stringify(configToSave),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('key', storageKey(currentPage.key)),
-        // Try insert as fallback (handled below)
-      ]);
+      // Save elements
+      const elementConfig = elements.map(e => ({
+        id: e.id,
+        label: e.label,
+        visible: e.visible,
+      }));
 
-      const updateResult = results[0];
-      let saved = false;
+      // Upsert sections config
+      const updateResult = await supabase
+        .from('site_settings')
+        .update({
+          value: JSON.stringify(sectionConfig),
+          updated_at: new Date().toISOString(),
+        })
+        .eq('key', sectionsStorageKey(currentPage.key));
 
-      if (
-        updateResult.status === 'fulfilled' &&
-        !updateResult.value?.error
-      ) {
-        if (updateResult.value.count === 0) {
-          // No row updated — insert
-          const insertResult = await supabase
-            .from('site_settings')
-            .insert({
-              key: storageKey(currentPage.key),
-              value: JSON.stringify(configToSave),
-              type: 'json',
-              category: 'general',
-              label: `Builder config — ${currentPage.label}`,
-              sort_order: 500,
-              updated_at: new Date().toISOString(),
-            });
-
-          if (insertResult.error) {
-            addToast(`Erreur insertion : ${insertResult.error.message}`, 'error');
-            setSaving(false);
-            return;
-          }
-        }
-        saved = true;
-      } else {
-        // Anti-pattern fix: check both status and error
-        const err =
-          updateResult.status === 'rejected'
-            ? updateResult.reason
-            : updateResult.value?.error;
-
-        addToast(`Erreur sauvegarde : ${err?.message ?? 'inconnue'}`, 'error');
+      if (updateResult.error) {
+        addToast(`Erreur sauvegarde sections : ${updateResult.error.message}`, 'error');
         setSaving(false);
         return;
       }
 
-      if (saved) {
-        setOriginalSections(JSON.parse(JSON.stringify(sections)));
-        addToast(
-          `Configuration de "${currentPage.label}" enregistrée`,
-          'success',
-        );
+      if (updateResult.count === 0) {
+        const insertResult = await supabase
+          .from('site_settings')
+          .insert({
+            key: sectionsStorageKey(currentPage.key),
+            value: JSON.stringify(sectionConfig),
+            type: 'json',
+            category: 'general',
+            label: `Builder config — ${currentPage.label}`,
+            sort_order: 500,
+            updated_at: new Date().toISOString(),
+          });
+        if (insertResult.error) {
+          addToast(`Erreur insertion sections : ${insertResult.error.message}`, 'error');
+          setSaving(false);
+          return;
+        }
       }
+
+      // Upsert elements config (only if there are elements for this page)
+      if (elementConfig.length > 0) {
+        const elUpdateResult = await supabase
+          .from('site_settings')
+          .update({
+            value: JSON.stringify(elementConfig),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('key', elementsStorageKey(currentPage.key));
+
+        if (elUpdateResult.error) {
+          addToast(`Erreur sauvegarde éléments : ${elUpdateResult.error.message}`, 'error');
+          setSaving(false);
+          return;
+        }
+
+        if (elUpdateResult.count === 0) {
+          const elInsertResult = await supabase
+            .from('site_settings')
+            .insert({
+              key: elementsStorageKey(currentPage.key),
+              value: JSON.stringify(elementConfig),
+              type: 'json',
+              category: 'general',
+              label: `Builder éléments — ${currentPage.label}`,
+              sort_order: 501,
+              updated_at: new Date().toISOString(),
+            });
+          if (elInsertResult.error) {
+            addToast(`Erreur insertion éléments : ${elInsertResult.error.message}`, 'error');
+            setSaving(false);
+            return;
+          }
+        }
+      }
+
+      setOriginalSections(JSON.parse(JSON.stringify(sections)));
+      setOriginalElements(JSON.parse(JSON.stringify(elements)));
+      addToast(`Configuration de "${currentPage.label}" enregistrée`, 'success');
     } catch (err: any) {
       addToast(`Erreur : ${err?.message || 'inconnue'}`, 'error');
     } finally {
       setSaving(false);
     }
-  }, [sections, currentPage, addToast]);
+  }, [sections, elements, currentPage, addToast]);
 
   /* ── Reset ── */
   const handleReset = useCallback(() => {
     const defaults = buildDefaultSections(currentPage);
+    const elemDefaults = buildDefaultElements(currentPage.key);
     setSections(defaults);
     setOriginalSections(JSON.parse(JSON.stringify(defaults)));
+    setElements(elemDefaults);
+    setOriginalElements(JSON.parse(JSON.stringify(elemDefaults)));
     addToast('Réinitialisé aux valeurs par défaut', 'info');
   }, [currentPage, addToast]);
+
+  const currentElements = PAGE_ELEMENTS[currentPage.key] ?? [];
 
   /* ═══════════════════════════════════════════════════════════════════
      Render
@@ -272,7 +468,7 @@ export function PageBuilderTab() {
             Constructeur de pages
           </h2>
           <p className="mt-1 text-sm text-white/50">
-            Gérez la visibilité et l'ordre des sections de chaque page.
+            Gérez la visibilité et l'ordre des sections et éléments décoratifs de chaque page.
           </p>
         </div>
 
@@ -322,78 +518,152 @@ export function PageBuilderTab() {
         )}
       </div>
 
-      {/* ── Section list ── */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-5 w-5 animate-spin text-white/30" />
         </div>
       ) : (
-        <div className="space-y-1.5">
-          {sections.map((section, index) => (
-            <div
-              key={section.id}
-              className={`group flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
-                section.visible
-                  ? 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
-                  : 'border-white/5 bg-white/[0.01] opacity-50'
-              }`}
-            >
-              {/* Drag handle (decorative) */}
-              <GripVertical className="h-4 w-4 shrink-0 text-white/15" />
-
-              {/* Section label */}
-              <span className="flex-1 text-sm text-white/80">
-                <span className="font-mono text-xs text-white/40 mr-2">
-                  {section.id}
-                </span>
-                {section.id.charAt(0).toUpperCase() + section.id.slice(1)}
-              </span>
-
-              {/* Reorder arrows */}
-              <div className="flex items-center gap-0.5">
-                <button
-                  onClick={() => moveUp(index)}
-                  disabled={index === 0}
-                  className="rounded p-1 text-white/30 transition hover:bg-white/10 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed"
-                  title="Monter"
+        <>
+          {/* ═══════════════════════════════════════════════════════
+              SECTION: Sections
+              ═══════════════════════════════════════════════════════ */}
+          <div>
+            <h3 className="mb-3 text-sm font-semibold uppercase tracking-widest text-white/40">
+              Sections de la page
+            </h3>
+            <div className="space-y-1.5">
+              {sections.map((section, index) => (
+                <div
+                  key={section.id}
+                  className={`group flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                    section.visible
+                      ? 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
+                      : 'border-white/5 bg-white/[0.01] opacity-50'
+                  }`}
                 >
-                  <ChevronUp className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => moveDown(index)}
-                  disabled={index === sections.length - 1}
-                  className="rounded p-1 text-white/30 transition hover:bg-white/10 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed"
-                  title="Descendre"
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </button>
-              </div>
+                  <GripVertical className="h-4 w-4 shrink-0 text-white/15" />
 
-              {/* Visibility toggle */}
-              <button
-                onClick={() => toggleVisibility(index)}
-                className={`rounded p-1.5 transition ${
-                  section.visible
-                    ? 'text-amber-400 hover:bg-amber-400/10'
-                    : 'text-white/25 hover:bg-white/10 hover:text-white/60'
-                }`}
-                title={section.visible ? 'Masquer' : 'Afficher'}
-              >
-                {section.visible ? (
-                  <Eye className="h-4 w-4" />
-                ) : (
-                  <EyeOff className="h-4 w-4" />
-                )}
-              </button>
+                  <span className="flex-1 text-sm text-white/80">
+                    <span className="font-mono text-xs text-white/40 mr-2">
+                      {section.id}
+                    </span>
+                    {section.id.charAt(0).toUpperCase() + section.id.slice(1)}
+                  </span>
+
+                  <div className="flex items-center gap-0.5">
+                    <button
+                      onClick={() => moveUp(index)}
+                      disabled={index === 0}
+                      className="rounded p-1 text-white/30 transition hover:bg-white/10 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed"
+                      title="Monter"
+                    >
+                      <ChevronUp className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => moveDown(index)}
+                      disabled={index === sections.length - 1}
+                      className="rounded p-1 text-white/30 transition hover:bg-white/10 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed"
+                      title="Descendre"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </button>
+                  </div>
+
+                  <button
+                    onClick={() => toggleVisibility(index)}
+                    className={`rounded p-1.5 transition ${
+                      section.visible
+                        ? 'text-amber-400 hover:bg-amber-400/10'
+                        : 'text-white/25 hover:bg-white/10 hover:text-white/60'
+                    }`}
+                    title={section.visible ? 'Masquer' : 'Afficher'}
+                  >
+                    {section.visible ? (
+                      <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              ))}
+
+              {sections.length === 0 && (
+                <p className="py-8 text-center text-sm text-white/30">
+                  Aucune section définie pour cette page.
+                </p>
+              )}
             </div>
-          ))}
+          </div>
 
-          {sections.length === 0 && (
-            <p className="py-8 text-center text-sm text-white/30">
-              Aucune section définie pour cette page.
-            </p>
+          {/* ═══════════════════════════════════════════════════════
+              SECTION: Éléments décoratifs (icones, etc.)
+              ═══════════════════════════════════════════════════════ */}
+          {currentElements.length > 0 && (
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <h3 className="text-sm font-semibold uppercase tracking-widest text-white/40 flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Éléments décoratifs (icones)
+                </h3>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => toggleAllElements(true)}
+                    className="rounded px-2 py-1 text-[10px] font-medium text-white/40 transition hover:bg-white/5 hover:text-white/70"
+                    title="Tout afficher"
+                  >
+                    Tout afficher
+                  </button>
+                  <span className="text-white/20">|</span>
+                  <button
+                    onClick={() => toggleAllElements(false)}
+                    className="rounded px-2 py-1 text-[10px] font-medium text-white/40 transition hover:bg-white/5 hover:text-white/70"
+                    title="Tout masquer"
+                  >
+                    Tout masquer
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-1">
+                {elements.map((el) => (
+                  <div
+                    key={el.id}
+                    className={`group flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors ${
+                      el.visible
+                        ? 'border-white/5 bg-white/[0.015] hover:bg-white/[0.03]'
+                        : 'border-white/5 bg-white/[0.005] opacity-40'
+                    }`}
+                  >
+                    {/* Icon indicator */}
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-evangile-600/20 bg-evangile-600/5 text-evangile-500/60">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+
+                    {/* Label */}
+                    <span className="flex-1 text-sm text-white/70">
+                      <span className="font-mono text-[10px] text-white/30 mr-2">
+                        {el.id}
+                      </span>
+                      {el.label}
+                    </span>
+
+                    {/* Toggle */}
+                    <button
+                      onClick={() => toggleElementVisibility(el.id)}
+                      className="transition"
+                      title={el.visible ? 'Masquer cet élément' : 'Afficher cet élément'}
+                    >
+                      {el.visible ? (
+                        <ToggleRight className="h-5 w-5 text-amber-400" />
+                      ) : (
+                        <ToggleLeft className="h-5 w-5 text-white/25" />
+                      )}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-        </div>
+        </>
       )}
     </div>
   );

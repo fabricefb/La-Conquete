@@ -4,6 +4,7 @@ import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { IconBox } from '../components/IconBox';
 import {
   Music, BookOpen, Compass, HandHeart, Users, Star, Heart,
   Shield, Sparkles, Send, Video, Flame, type LucideIcon,
@@ -73,9 +74,9 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
                 key={m.title}
                 className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
               >
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-500">
+                <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-500">
                   <m.Icon className="h-6 w-6" />
-                </div>
+                </IconBox>
                 <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
                 <div className="mt-4 space-y-2 border-t border-white/5 pt-4">

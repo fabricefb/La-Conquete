@@ -5,6 +5,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { Radio, Play, Clock, ArrowRight, Star, Send, Mail, CheckCircle } from '../lib/icons';
+import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 import { UniversalHero } from '../components/UniversalHero';
 
@@ -413,9 +414,9 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
         <RevealSection>
           <div className="glass rounded-3xl p-8 sm:p-12 text-center">
             <div className="mb-4 flex justify-center">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
+              <IconBox pageKey="emissions" elementId="newsletter-mail-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
                 <Mail className="h-6 w-6 text-evangile-500" />
-              </div>
+              </IconBox>
             </div>
             <h2 className="font-serif text-2xl font-semibold text-cream sm:text-3xl">Ne manquez aucune émission</h2>
             <p className="mt-3 text-muted max-w-lg mx-auto">

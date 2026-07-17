@@ -4,6 +4,7 @@ import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { IconBox } from '../components/IconBox';
 import { Music, BookOpen, Heart, Users } from '../lib/icons';
 import { PartyPopper, Dumbbell, Gamepad2 } from 'lucide-react';
 import type { Page } from '../lib/navigation';
@@ -75,9 +76,9 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {ACTIVITIES.map((a, i) => (
               <div key={a.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card card-parallax rounded-2xl p-6 transition-all duration-300`}>
-                <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-evangile-600/10 text-evangile-500">
+                <IconBox pageKey="jeunesse" elementId={`activity-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-evangile-600/10 text-evangile-500">
                   <a.Icon className="h-6 w-6" />
-                </div>
+                </IconBox>
                 <h3 className="font-serif text-xl font-semibold text-cream">{a.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{a.desc}</p>
               </div>

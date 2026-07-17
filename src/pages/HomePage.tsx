@@ -5,6 +5,7 @@ import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { IconBox } from '../components/IconBox';
 import { TopBar } from '../components/home/TopBar';
 import { LiveStreamModal } from '../components/LiveStreamModal';
 import { TypingText } from '../components/home/TypingHero';
@@ -489,9 +490,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   </span>
 
                   {/* Icon */}
-                  <div className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-line ${accent}`}>
+                  <IconBox pageKey="home" elementId={`pillars-icon-${i}`} className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-line ${accent}`}>
                     <Icon className="h-6 w-6" />
-                  </div>
+                  </IconBox>
 
                   {/* Content */}
                   <h3 className={`mb-3 font-serif text-xl font-semibold ${accent}`}>
@@ -526,9 +527,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   />
                 </div>
                 {/* Floating Cross decoration */}
-                <div className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-evangile-600/20 text-evangile-500 shadow-xl shadow-black/20">
+                <IconBox pageKey="home" elementId="unique-float-cross" className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-evangile-600/20 text-evangile-500 shadow-xl shadow-black/20">
                   <Cross className="h-7 w-7" />
-                </div>
+                </IconBox>
               </div>
             </RevealSection>
 
