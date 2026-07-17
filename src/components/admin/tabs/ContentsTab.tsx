@@ -561,7 +561,7 @@ export function ContentsTab() {
   // ── Dirty check ──
 
   const hasChanges = contents.some((item) => {
-    return (draftValues[item.id] ?? '') !== item.value || (draftActive[item.id] ?? item.is_active) !== item.is_active;
+    return (draftValues[item.id] ?? '') !== item.value;
   });
 
   // ── Current page def ──
