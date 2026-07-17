@@ -24,7 +24,16 @@
 -- site_settings/page_contents vérifient is_admin.
 ALTER TABLE user_profiles DISABLE ROW LEVEL SECURITY;
 
--- ─── 1B. GARANTIR unique constraint sur page_contents ─────
+-- ─── 1B. Dédupliquer + GARANTIR unique sur page_contents ──
+DELETE FROM page_contents pc1
+WHERE EXISTS (
+  SELECT 1 FROM page_contents pc2
+  WHERE pc2.page = pc1.page
+    AND pc2.section_key = pc1.section_key
+    AND pc2.field_key = pc1.field_key
+    AND pc2.id > pc1.id
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -53,7 +62,13 @@ BEGIN
   END IF;
 END $$;
 
--- ─── 1D. GARANTIR unique constraint sur departments ──────
+-- ─── 1D. Dédupliquer + GARANTIR unique sur departments ────
+DELETE FROM departments d1
+WHERE EXISTS (
+  SELECT 1 FROM departments d2
+  WHERE d2.slug = d1.slug AND d2.id > d1.id
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -67,7 +82,16 @@ BEGIN
   END IF;
 END $$;
 
--- ─── 1E. GARANTIR unique constraint sur department_members ─
+-- ─── 1E. Dédupliquer + GARANTIR unique sur department_members ─
+-- Supprime les doublons en gardant la ligne la plus récente (plus grand id)
+DELETE FROM department_members dm1
+WHERE EXISTS (
+  SELECT 1 FROM department_members dm2
+  WHERE dm2.user_id = dm1.user_id
+    AND dm2.department_id = dm1.department_id
+    AND dm2.id > dm1.id
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -82,7 +106,15 @@ BEGIN
   END IF;
 END $$;
 
--- ─── 1F. GARANTIR unique constraint sur positions ────────
+-- ─── 1F. Dédupliquer + GARANTIR unique sur positions ──────
+DELETE FROM positions p1
+WHERE EXISTS (
+  SELECT 1 FROM positions p2
+  WHERE p2.department_id = p1.department_id
+    AND p2.name = p1.name
+    AND p2.id > p1.id
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -97,7 +129,15 @@ BEGIN
   END IF;
 END $$;
 
--- ─── 1G. GARANTIR unique constraint sur department_requests ─
+-- ─── 1G. Dédupliquer + GARANTIR unique sur department_requests ─
+DELETE FROM department_requests dr1
+WHERE EXISTS (
+  SELECT 1 FROM department_requests dr2
+  WHERE dr2.user_id = dr1.user_id
+    AND dr2.department_id = dr1.department_id
+    AND dr2.id > dr1.id
+);
+
 DO $$
 BEGIN
   IF NOT EXISTS (
