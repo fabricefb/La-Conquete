@@ -23,6 +23,7 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   unreadCount: number;
+  blockedMessage: string | null;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -223,12 +224,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAdmin = profile?.is_admin === true;
-  const isFullAdmin = profile?.is_admin === true;
+  const isFullAdmin = profile?.is_admin === true && !profile?.is_principal_pastor;
 
   // Check if user is blocked
+  const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
+
   useEffect(() => {
     if (profile?.is_blocked && user) {
-      console.warn('User is blocked, signing out.');
+      const reason = profile.blocked_reason || 'Votre compte a été désactivé.';
+      console.warn('User is blocked, signing out.', { reason });
+      setBlockedMessage(reason);
       supabase.auth.signOut();
       setUser(null);
       setProfile(null);
@@ -260,8 +265,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount }),
-    [user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount],
+    () => ({ user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount, blockedMessage }),
+    [user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount, blockedMessage],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

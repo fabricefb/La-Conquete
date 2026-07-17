@@ -318,11 +318,14 @@ export const db = {
   async joinDepartment(departmentId: string, positionId?: string): Promise<void> {
     const user = (await supabase.auth.getUser()).data.user;
     if (!user) throw new Error('Vous devez être connecté.');
+    // Use department_requests instead of direct membership
     const { error } = await supabase
-      .from('department_members').upsert({
+      .from('department_requests').upsert({
         user_id: user.id,
         department_id: departmentId,
         position_id: positionId || null,
+        status: 'en_attente',
+        message: 'Demande de rejoindre le département',
       }, { onConflict: 'user_id,department_id' });
     if (error) throw new Error(error.message);
   },
@@ -700,10 +703,22 @@ export const db = {
   // Profiles & Members
   // ═══════════════════════════════════════════════
 
-  getProfiles(roleLevel?: number, departmentId?: string) {
+  async getProfiles(roleLevel?: number, departmentId?: string) {
     let q = supabase.from('user_profiles').select('*').order('created_at', { ascending: false });
     if (roleLevel !== undefined) q = q.eq('role_level', roleLevel);
-    if (departmentId) q = q.eq('extension_id', departmentId);
+    if (departmentId) {
+      const { data: deptMembers } = await supabase
+        .from('department_members')
+        .select('user_id')
+        .eq('department_id', departmentId)
+        .eq('is_active', true);
+      if (deptMembers && deptMembers.length > 0) {
+        const userIds = deptMembers.map(m => m.user_id);
+        q = q.in('id', userIds);
+      } else {
+        return [];
+      }
+    }
     return fetchTable<UserProfile>(q);
   },
 

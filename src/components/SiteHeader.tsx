@@ -579,7 +579,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <MegaMenu
           key={item.label}
           item={item as NavItem & { mega: NonNullable<NavItem['mega']> }}
-          activePage={activePage}
+          activePage={activePage as Page}
           onNavigate={handleNav}
           onClose={() => {}}
           settingsMap={settingsMap}
@@ -608,7 +608,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <MobileMegaAccordion
           key={item.label}
           item={item as NavItem & { mega: NonNullable<NavItem['mega']> }}
-          activePage={activePage}
+          activePage={activePage as Page}
           onNavigate={handleNav}
         />
       );

@@ -749,9 +749,10 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
               <div className="flex items-center gap-2">
                 {(() => {
                   const stage = PIPELINE_STAGES.find(s => s.key === selectedConverti.pipeline_stage);
+                  const StageIcon = stage ? (ICON_MAP[stage.icon] ?? User) : User;
                   return stage ? (
                     <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${stage.bg}/20 ${stage.color}`}>
-                      <stage.Icon className="w-3.5 h-3.5" />
+                      <StageIcon className="w-3.5 h-3.5" />
                       {stage.label}
                     </span>
                   ) : null;

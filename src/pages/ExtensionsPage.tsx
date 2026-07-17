@@ -251,7 +251,7 @@ export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
         </div>
       </section>
     </div>
-      <SiteFooter />
+      <SiteFooter onNavigate={onNavigate} />
     </>
   );
 }

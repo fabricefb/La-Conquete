@@ -260,11 +260,20 @@ export function OnboardingFlow() {
         });
       }
 
-      // 2. Role upgrade + department joins (member path)
+      // 2. Role upgrade + department requests (member path)
       if (churchStatus === 'member') {
         await db.requestRoleUpgrade('member');
         for (const [deptId, positionId] of Object.entries(selectedDepts)) {
-          await db.joinDepartment(deptId, positionId || undefined);
+          // Create a department request instead of direct join
+          try {
+            await supabase.from('department_requests').insert({
+              user_id: user?.id,
+              department_id: deptId,
+              position_id: positionId || null,
+              status: 'en_attente',
+              message: 'Demande lors de l\'intégration',
+            });
+          } catch { /* non-bloquant */ }
         }
       }
 

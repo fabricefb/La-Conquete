@@ -77,19 +77,19 @@ const VERSES = [
    Component
    ═══════════════════════════════════════════════════════════════════ */
 export function DonsPage({ onNavigate }: DonsPageProps) {
-  const { ref: r1, inView: v1 } = useReveal();
-  const { ref: r2, inView: v2 } = useReveal();
-  const { ref: r3, inView: v3 } = useReveal();
-  const { theme, applyTheme } = useDynamicTheme();
+  const { ref: r1, visible: v1 } = useReveal();
+  const { ref: r2, visible: v2 } = useReveal();
+  const { ref: r3, visible: v3 } = useReveal();
+  const { resetTheme } = useDynamicTheme();
   const [activeTab, setActiveTab] = useState(DON_OPTIONS[0].id);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState('');
 
-  useEffect(() => { applyTheme('default'); }, [applyTheme]);
+  useEffect(() => { resetTheme(); }, [resetTheme]);
 
   // Load settings (phone, bank details, etc.)
   useEffect(() => {
-    buildSettingsMap().then(s => setSettings(s || {})).catch(() => {});
+    db.getSettings().then(settings => setSettings(buildSettingsMap(settings) || {})).catch(() => {});
   }, []);
 
   const churchPhone = settings['church_phone'] || '+243 000 000 000';
@@ -348,7 +348,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
       </section>
 
       <SiteFooter onNavigate={onNavigate} />
-      <MobileNav onNavigate={onNavigate} activePage="dons" />
+      <MobileNav onNavigate={onNavigate} active={"home" as Page} />
     </div>
   );
 }

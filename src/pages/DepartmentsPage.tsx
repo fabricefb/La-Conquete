@@ -24,13 +24,16 @@ interface DepartmentsPageProps {
   onNavigate: (page: Page) => void;
 }
 
-interface ExtendedDepartment extends Department {
+interface ExtendedDepartment extends Omit<Department, 'meeting_schedule' | 'mission' | 'activities' | 'requirements' | 'image_url' | 'leader_id' | 'extension_id' | 'member_count'> {
   member_count?: number;
   leader_name?: string;
-  meeting_schedule?: string;
-  mission?: string;
-  activities?: string;
-  requirements?: string;
+  meeting_schedule?: string | null;
+  mission?: string | null;
+  activities?: string | null;
+  requirements?: string | null;
+  image_url?: string | null;
+  leader_id?: string | null;
+  extension_id?: string | null;
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -296,14 +299,14 @@ function JoinForm({ departmentId, departmentName, onNavigate }: { departmentId: 
     setSubmitting(true);
     setError('');
     try {
-      // Insérer dans department_members avec role_in_dept = 'pending'
+      // Insérer dans department_requests (système d'approbation)
       const { error: insertErr } = await supabase
-        .from('department_members')
+        .from('department_requests')
         .upsert({
           user_id: user.id,
           department_id: departmentId,
-          role_in_dept: 'pending',
-          is_active: true,
+          message: motivation.trim(),
+          status: 'en_attente',
         }, { onConflict: 'user_id,department_id' });
 
       if (insertErr) throw new Error(insertErr.message);

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, Youtube, Facebook, MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, Youtube, Facebook, MessageCircle } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
 
 // ---------------------------------------------------------------------------

@@ -14,9 +14,9 @@ interface PageProps { onNavigate: (page: Page) => void; }
 
 /* ── Hardcoded fallback pastors (used only if DB is empty) ── */
 const FALLBACK_PASTORS: Pastor[] = [
-  { id: 'fb-1', name: 'Pst Josué Romain KAZADI', role: 'Pasteur Principal — Fondateur', bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.', photo_url: '/pasteur-kazadi.jpg', thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.', sort_order: 0, is_main: true, is_active: true, created_at: '', updated_at: '' },
-  { id: 'fb-2', name: 'Theresse KATEBA', role: "Épouse du Pasteur — Co-fondatrice", bio: '', photo_url: '/theresse-kateba.jpg', thought: '', sort_order: 1, is_main: false, is_active: true, created_at: '', updated_at: '' },
-  { id: 'fb-3', name: 'Maurisse ESOSA', role: 'Pasteur Associé', bio: '', photo_url: '/maurisse-esosa.jpg', thought: '', sort_order: 2, is_main: false, is_active: true, created_at: '', updated_at: '' },
+  { id: 'fb-1', name: 'Pst Josué Romain KAZADI', role: 'Pasteur Principal — Fondateur', bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.', photo_url: '/pasteur-kazadi.jpg', thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.', sort_order: 0, is_main: true, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
+  { id: 'fb-2', name: 'Theresse KATEBA', role: "Épouse du Pasteur — Co-fondatrice", bio: '', photo_url: '/theresse-kateba.jpg', thought: '', sort_order: 1, is_main: false, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
+  { id: 'fb-3', name: 'Maurisse ESOSA', role: 'Pasteur Associé', bio: '', photo_url: '/maurisse-esosa.jpg', thought: '', sort_order: 2, is_main: false, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
 ];
 
 /* ── Predications ── */
@@ -117,7 +117,7 @@ export function AboutPage({ onNavigate }: PageProps) {
   return (
     <div className="bg-bg min-h-screen">
       <SiteHeader activePage="about" onNavigate={onNavigate} />
-      <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="about" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
       <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
@@ -413,7 +413,7 @@ export function AboutPage({ onNavigate }: PageProps) {
       </section>
 
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-      <MobileNav active="about" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="about" onNavigate={onNavigate} />
     </div>
   );
 }

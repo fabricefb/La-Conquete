@@ -195,10 +195,9 @@ function PrayerTab({ profile, addToast, userDepts }: { profile: any; addToast: (
     setSubmitting(true);
     try {
       await db.createPrayerRequest({
-        title: form.title.trim(),
-        content: form.content.trim(),
+        content: form.title.trim() + '\n' + form.content.trim(),
         is_anonymous: form.is_anonymous,
-        visibility: form.visibility,
+        is_confidential: false,
       });
       addToast('Requête de prière soumise avec succès.', 'success');
       setForm({ title: '', content: '', is_anonymous: false, visibility: 'public' });
@@ -216,7 +215,7 @@ function PrayerTab({ profile, addToast, userDepts }: { profile: any; addToast: (
     try {
       await db.updatePrayerRequestStatus(req.id, 'en_priere');
       addToast('Nous prions avec vous ! 🙏', 'success');
-      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'en_priere' as PrayerRequestStatus, prayer_count: (r as any).prayer_count + 1 } : r));
+      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, status: 'en_priere' as any, prayer_count: (r as any).prayer_count + 1 } : r));
     } catch {
       addToast('Erreur lors de la mise à jour.', 'error');
     }
@@ -230,7 +229,7 @@ function PrayerTab({ profile, addToast, userDepts }: { profile: any; addToast: (
     try {
       await db.updatePrayerRequestStatus(reqId, 'repondu');
       addToast('Requête marquée comme répondue.', 'success');
-      setRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'repondu' as PrayerRequestStatus } : r));
+      setRequests(prev => prev.map(r => r.id === reqId ? { ...r, status: 'repondu' as any } : r));
       setRespondingTo(null);
       setResponseText('');
     } catch {
@@ -1255,7 +1254,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
         .select('department_id, departments(name, id), role_in_dept')
         .eq('user_id', user.id)
         .eq('is_active', true);
-      setUserDepts((deptMemberships as UserDeptMembership[]) || []);
+      setUserDepts((deptMemberships as any) || []);
     })();
   }, [user]);
 

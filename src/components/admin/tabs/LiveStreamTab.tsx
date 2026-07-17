@@ -138,7 +138,7 @@ export function LiveStreamTab() {
       // Auto-generate embed URL when platform or channel URL changes
       if (key === 'live_platform' || key === 'live_channel_url') {
         next.live_embed_url = generateEmbedUrl(
-          key === 'live_platform' ? value : next.live_platform,
+          key === 'live_platform' ? (value as 'youtube' | 'facebook') : next.live_platform,
           key === 'live_channel_url' ? value : next.live_channel_url,
         );
       }

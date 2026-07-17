@@ -84,7 +84,7 @@ export function LiveStreamModal({ open, onClose }: LiveStreamModalProps) {
   const toggleFullscreen = () => {
     if (!modalRef) return;
     if (!document.fullscreenElement) {
-      modalRef.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      modalRef.current?.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
     } else {
       document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
     }

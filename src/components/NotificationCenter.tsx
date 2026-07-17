@@ -22,10 +22,10 @@ const NOTIF_ICONS: Record<string, React.ReactNode> = {
 };
 
 const DEMO_NOTIFICATIONS: NotificationItem[] = [
-  { id: 'd1', user_id: '', title: 'Culte de dimanche', message: 'Rappel : Le culte dominical commence à 9h00. Venez avec votre Bible !', type: 'event_reminder', is_read: false, link: '', created_at: new Date(Date.now() - 3600000).toISOString() },
-  { id: 'd2', user_id: '', title: 'Nouvelle prédication', message: '« La Foi qui Vainc le Monde » par Pasteur Kazadi est maintenant disponible.', type: 'new_content', is_read: false, link: '', created_at: new Date(Date.now() - 7200000).toISOString() },
+  { id: 'd1', user_id: '', title: 'Culte de dimanche', message: 'Rappel : Le culte dominical commence à 9h00. Venez avec votre Bible !', type: 'info', is_read: false, link: '', created_at: new Date(Date.now() - 3600000).toISOString() },
+  { id: 'd2', user_id: '', title: 'Nouvelle prédication', message: '« La Foi qui Vainc le Monde » par Pasteur Kazadi est maintenant disponible.', type: 'new_comment', is_read: false, link: '', created_at: new Date(Date.now() - 7200000).toISOString() },
   { id: 'd3', user_id: '', title: 'Pensée du jour', message: '"Confie-toi en l\'Éternel de tout ton cœur." — Proverbes 3:5', type: 'info', is_read: false, link: '', created_at: new Date(Date.now() - 18000000).toISOString() },
-  { id: 'd4', user_id: '', title: 'Visite pastorale', message: 'Une visite pastorale est prévue pour votre secteur cette semaine.', type: 'pastoral', is_read: true, link: '', created_at: new Date(Date.now() - 86400000).toISOString() },
+  { id: 'd4', user_id: '', title: 'Visite pastorale', message: 'Une visite pastorale est prévue pour votre secteur cette semaine.', type: 'general', is_read: true, link: '', created_at: new Date(Date.now() - 86400000).toISOString() },
   { id: 'd5', user_id: '', title: 'Réunion de prière', message: 'La réunion de prière de mercredi est reportée à 19h30.', type: 'alert', is_read: true, link: '', created_at: new Date(Date.now() - 172800000).toISOString() },
 ];
 

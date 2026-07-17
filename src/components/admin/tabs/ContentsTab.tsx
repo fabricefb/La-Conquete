@@ -10,6 +10,7 @@ import {
   Megaphone, Heart, MapPin, BookOpen, Eye,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+type IconComponent = React.ComponentType<any>;
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -32,14 +33,14 @@ interface PageContent {
 interface SectionDef {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   description: string;
 }
 
 interface PageDef {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   description: string;
   sections: SectionDef[];
 }
@@ -687,7 +688,7 @@ async function seedPageIfEmpty(pageKey: string) {
 
 // ─── Section label resolver ─────────────────────────────────────────
 
-function getSectionLabel(pageKey: string, sectionKey: string): { label: string; icon: LucideIcon; description: string } {
+function getSectionLabel(pageKey: string, sectionKey: string): { label: string; icon: IconComponent; description: string } {
   const page = PAGES.find((p) => p.key === pageKey);
   if (!page) return { label: sectionKey, icon: FileText, description: '' };
   const sec = page.sections.find((s) => s.key === sectionKey);

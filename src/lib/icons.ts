@@ -30,4 +30,4 @@ export {
   Instagram,
 } from 'lucide-react';
 
-export type LucideIcon = React.FC<{ className?: string }>;
+export type LucideIcon = React.FC<{ className?: string; style?: React.CSSProperties }>;

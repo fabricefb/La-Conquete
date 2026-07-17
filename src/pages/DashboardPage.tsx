@@ -6,7 +6,7 @@ import { db, supabase } from '../lib/supabase';
 import { formatDate } from '../lib/date';
 import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
-  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList, Quote, Sparkles, Eye, EyeOff,
+  MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList, Quote, Sparkles, Eye, EyeOff, AlertTriangle,
 } from '../lib/icons';
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
@@ -221,6 +221,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   // ── Fetch all dashboard data ────────────────────────────────────
   useEffect(() => {
     if (!user) return;
+    const userId = user.id;
     let cancelled = false;
 
     async function loadDashboard() {
@@ -292,9 +293,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         const { data: deptMembers, error: dmError } = await supabase
           .from('department_members')
           .select('department_id, position_id, is_active')
-          .eq('user_id', user.id);
+          .eq('user_id', userId);
         if (dmError) console.error('[DASHBOARD] dept_members query error:', dmError);
-        console.log('[DASHBOARD] dept_members for user', user.id, ':', deptMembers?.length ?? 0, 'rows');
+        console.log('[DASHBOARD] dept_members for user', userId, ':', deptMembers?.length ?? 0, 'rows');
 
         // Récupérer les infos départements et positions séparément
         let deptMap: Record<string, any> = {};
@@ -314,7 +315,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         const { data: notifData } = await supabase
           .from('notifications')
           .select('*')
-          .eq('user_id', user.id)
+          .eq('user_id', userId)
           .order('created_at', { ascending: false })
           .limit(8);
 
@@ -345,7 +346,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             const { data: acceptedReqs, error: reqErr } = await supabase
               .from('department_requests')
               .select('id, department_id, status')
-              .eq('user_id', user.id)
+              .eq('user_id', userId)
               .in('status', ['accepte', 'accepted', 'approuve', 'approved']);
             console.log('[DASHBOARD] demandes acceptées:', acceptedReqs, 'erreur:', reqErr);
 
@@ -354,7 +355,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 console.log('[DASHBOARD] Réparation pour dept', req.department_id);
                 // Stratégie 1: upsert
                 const r1 = await supabase.from('department_members').upsert({
-                  user_id: user.id,
+                  user_id: userId,
                   department_id: req.department_id,
                   role_in_dept: 'member',
                   is_active: true,
@@ -364,7 +365,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 if (r1.error) {
                   // Stratégie 2: insert simple
                   const r2 = await supabase.from('department_members').insert({
-                    user_id: user.id,
+                    user_id: userId,
                     department_id: req.department_id,
                     role_in_dept: 'member',
                     is_active: true,
@@ -374,7 +375,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     // Stratégie 3: forcer is_active = true
                     const r3 = await supabase.from('department_members')
                       .update({ is_active: true })
-                      .eq('user_id', user.id)
+                      .eq('user_id', userId)
                       .eq('department_id', req.department_id);
                     console.log('[DASHBOARD] update résultat:', r3.error ? 'ÉCHEC: ' + r3.error.message : 'OK');
                   }
@@ -385,7 +386,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               const { data: repairedDepts, error: repErr } = await supabase
                 .from('department_members')
                 .select('department_id, position_id, is_active')
-                .eq('user_id', user.id);
+                .eq('user_id', userId);
               console.log('[DASHBOARD] re-fetch après réparation:', repairedDepts?.length ?? 0, 'rows, err:', repErr);
               const activeRepaired = (repairedDepts || []).filter((dm: any) => dm.is_active !== false);
               console.log('[DASHBOARD] actifs après réparation:', activeRepaired.length);
@@ -564,7 +565,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     setPrayerSubmitting(true);
     try {
       const { error } = await supabase.from('prayer_requests').insert({
-        user_id: newPrayerAnonymous ? null : user.id,
+        user_id: newPrayerAnonymous ? null : user?.id,
         author_name: profile?.full_name || 'Anonyme',
         content: newPrayerContent.trim(),
         is_anonymous: newPrayerAnonymous,
@@ -661,7 +662,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     setDeptRequestSubmitting(true);
     try {
       const { error } = await supabase.from('department_requests').insert({
-        user_id: user.id,
+        user_id: user?.id,
         department_id: deptId,
         status: 'en_attente',
         message: 'Je souhaite rejoindre ce département',
@@ -670,9 +671,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         // Table might not exist — fall back to notification for admins
         if (error.message?.includes('does not exist') || error.code === '42P01') {
           await supabase.from('notifications').insert({
-            user_id: user.id,
+            user_id: user?.id!,
             title: `Demande de département — ${deptName}`,
-            body: `Utilisateur ${profile?.full_name || user.email} demande à rejoindre le département ${deptName}`,
+            body: `Utilisateur ${profile?.full_name || user?.email} demande à rejoindre le département ${deptName}`,
             type: 'info',
             is_read: false,
           });
@@ -699,10 +700,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         const notifyIds = [
           ...(leaders || []).map(l => l.user_id),
           ...(admins || []).map(a => a.id),
-        ].filter(id => id !== user.id);
+        ].filter(id => id !== user?.id);
 
         if (notifyIds.length > 0) {
-          const requesterName = profile?.full_name || user.email;
+          const requesterName = profile?.full_name || user?.email;
           await supabase.from('notifications').insert(
             notifyIds.map(uid => ({
               user_id: uid,
@@ -937,7 +938,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           notifications.slice(0, 10).map((notif, idx) => {
                             const notifIcon = notif.type === 'prayer' ? Heart
                               : notif.type === 'visit' ? MapPin
-                              : notif.type === 'dept_approved' || notif.type === 'dept_rejected' ? CheckCircle
+                              : (notif.type as string) === 'dept_approved' || (notif.type as string) === 'dept_rejected' ? CheckCircle
                               : notif.type === 'alert' ? AlertTriangle
                               : MessageSquare;
                             const NIcon = notifIcon;

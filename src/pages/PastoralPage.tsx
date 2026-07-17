@@ -387,7 +387,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
         setSchedule(prev => prev.map(s => s.id === scheduleModal.id ? { ...s, ...payload } as PastorSchedule : s));
       } else {
         const created = await db.upsertPastorSchedule(payload);
-        setSchedule(prev => [...prev, created as PastorSchedule]);
+        setSchedule(prev => [...prev, created as unknown as PastorSchedule]);
       }
       addToast('Créneau enregistré.', 'success');
       setScheduleModalOpen(false);
@@ -1072,7 +1072,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
                             </span>
                           )}
                           {daySched.length > 0 && (
-                            <span className="ml-auto text-xs text-muted">{daySched.length} créneau{x}{daySched.length > 1 ? 'x' : ''}</span>
+                            <span className="ml-auto text-xs text-muted">{daySched.length} créneau{daySched.length > 1 ? 'x' : ''}</span>
                           )}
                         </div>
 

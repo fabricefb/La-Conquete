@@ -238,11 +238,11 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
     return d >= pStart && d <= pEnd;
   });
   const periodTotals = IMPACT_CARDS.reduce<Record<string, number>>((acc, card) => {
-    acc[card.key] = filteredCounters.reduce((s, c) => s + (c[card.key] ?? 0), 0);
+    acc[card.key] = filteredCounters.reduce((s, c) => s + (Number(c[card.key]) || 0), 0);
     return acc;
   }, {});
   const allTimeTotals = IMPACT_CARDS.reduce<Record<string, number>>((acc, card) => {
-    acc[card.key] = counters.reduce((s, c) => s + (c[card.key] ?? 0), 0);
+    acc[card.key] = counters.reduce((s, c) => s + (Number(c[card.key]) || 0), 0);
     return acc;
   }, {});
 

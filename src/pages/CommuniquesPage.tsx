@@ -66,7 +66,7 @@ export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
         </div>
       </section>
     </div>
-      <SiteFooter />
+      <SiteFooter onNavigate={onNavigate} />
     </>
   );
 }

@@ -65,15 +65,19 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   useEffect(() => {
     if (step === 2 && departments.length === 0) {
       setLoadingDepts(true);
-      supabase.from('departments')
-        .select('id, name, slug, icon_name, description')
-        .eq('is_active', true)
-        .order('sort_order')
-        .then(({ data }) => {
+      (async () => {
+        try {
+          const { data } = await supabase.from('departments')
+            .select('id, name, slug, icon_name, description')
+            .eq('is_active', true)
+            .order('sort_order');
           if (data) setDepartments(data as typeof departments);
-        })
-        .catch(() => {})
-        .finally(() => setLoadingDepts(false));
+        } catch {
+          // ignore
+        } finally {
+          setLoadingDepts(false);
+        }
+      })();
     }
   }, [step, departments.length]);
 
@@ -156,26 +160,24 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           gender: gender || null,
         };
 
-        const { error: err1 } = await supabase
-          .from('user_profiles')
-          .upsert({ ...baseProfileData, onboarding_completed: true }, { onConflict: 'id' });
-
-        if (err1 && (err1.message.includes('does not exist') || err1.code === '42703')) {
+        try {
           await supabase
             .from('user_profiles')
-            .upsert(baseProfileData, { onConflict: 'id' })
-            .catch(() => {});
-        }
+            .upsert(baseProfileData, { onConflict: 'id' });
+        } catch { /* non-bloquant */ }
 
-        // Si membre, rejoindre le département
+        // Si membre, envoyer une demande au département
         if (churchStatus === 'member' && selectedDept) {
-          await supabase
-            .from('department_members')
-            .upsert({
-              user_id: data.user.id,
-              department_id: selectedDept,
-            }, { onConflict: 'user_id,department_id' })
-            .catch(() => {});
+          try {
+            await supabase
+              .from('department_requests')
+              .insert({
+                user_id: data.user.id,
+                department_id: selectedDept,
+                status: 'en_attente',
+                message: 'Demande lors de l\'inscription',
+              });
+          } catch { /* non-bloquant */ }
         }
 
         if (data.session) {

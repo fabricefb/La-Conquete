@@ -77,7 +77,7 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
         </div>
       </section>
     </div>
-      <SiteFooter />
+      <SiteFooter onNavigate={onNavigate} />
     </>
   );
 }

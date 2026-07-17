@@ -313,7 +313,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                           <button
                             key={opt.val}
                             type="button"
-                            onClick={() => setForm(f => ({ ...f, visitorType: opt.val }))}
+                            onClick={() => setForm(f => ({ ...f, visitorType: opt.val as typeof f.visitorType }))}
                             className={`rounded-xl px-3 py-2.5 text-xs font-medium border transition-all ${
                               form.visitorType === opt.val
                                 ? 'border-evangile-600/50 bg-evangile-600/10 text-evangile-500'

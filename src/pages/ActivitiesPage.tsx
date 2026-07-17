@@ -269,7 +269,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
   return (
     <div className="bg-bg min-h-screen">
       <SiteHeader activePage="activities" onNavigate={onNavigate} />
-      <MobileNav active="activities" theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="activities" onNavigate={onNavigate} />
 
       {/* ── Hero ── */}
       <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">

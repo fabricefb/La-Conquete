@@ -262,7 +262,7 @@ export function DepartmentsTab() {
       if (memRes.error) {
         addToast('Erreur lors du chargement des membres', 'error');
       } else {
-        const memData = ((memRes.data as unknown[]) ?? []).map((m: Record<string, unknown>) => ({
+        const memData = ((memRes.data as unknown[]) ?? []).map((m: any) => ({
           ...(m as DepartmentMember),
           full_name: (m.profiles as Record<string, unknown> | null)?.full_name as string | null ?? null,
         }));

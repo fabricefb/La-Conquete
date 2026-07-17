@@ -22,7 +22,7 @@ interface SectionColorEntry {
   bg: string;     // hex color for background
 }
 
-type SectionColorMap = Record<string, SectionColorEntry>;
+export type SectionColorMap = Record<string, SectionColorEntry>;
 
 interface UseSectionColorsReturn {
   colorMap: SectionColorMap;

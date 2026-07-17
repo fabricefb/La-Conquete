@@ -12,6 +12,7 @@ import { useToast } from '../../../contexts/ToastContext';
 
 interface SectionEntry {
   id: string;
+  order: number;
   visible: boolean;
   config: Record<string, unknown>;
 }

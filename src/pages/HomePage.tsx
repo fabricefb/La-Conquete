@@ -44,9 +44,6 @@ const DEFAULT_MINISTRY_IMG =
   'https://images.pexels.com/photos/8465180/pexels-photo-8465180.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_MEDIA_IMG =
   'https://images.pexels.com/photos/196656/pexels-photo-196656.jpeg?auto=compress&cs=tinysrgb&w=800';
-const DEFAULT_CTA_IMG =
-  'https://images.pexels.com/photos/3728816/pexels-photo-3728816.jpeg?auto=compress&cs=tinysrgb&w=1920';
-
 /* ═══════════════════════════════════════════════════════════════════
    RevealSection helper
    ═══════════════════════════════════════════════════════════════════ */
@@ -129,34 +126,6 @@ const smallVerses = [
   { text: 'Le Seigneur est mon berger, je ne manquerai de rien.', ref: 'Psaumes 23:1' },
   { text: 'Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d\u2019eux.', ref: 'Matthieu 18:20' },
   { text: 'Confiez-vous en l\u2019Éternel de tout votre c\u0153ur.', ref: 'Proverbes 3:5' },
-];
-
-/* ═══════════════════════════════════════════════════════════════════
-   Sample blog articles
-   ═══════════════════════════════════════════════════════════════════ */
-
-const sampleArticles = [
-  {
-    title: 'Retour sur la semaine de jeûne et prière 2024',
-    category: 'Vie de l\u2019église',
-    date: '15 Janvier 2024',
-    excerpt: 'Une semaine marquée par la présence de Dieu, des témoignages puissants et des vies transformées par la puissance de la prière collective.',
-    img: 'https://images.pexels.com/photos/47361/pexels-photo-47361.jpeg?auto=compress&cs=tinysrgb&w=600',
-  },
-  {
-    title: 'Nouveau programme de disciplesbat pour les jeunes',
-    category: 'Jeunesse',
-    date: '8 Février 2024',
-    excerpt: 'Lancez-vous dans un parcours de croissance spirituelle conçu spécialement pour la nouvelle génération de croyants.',
-    img: 'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=600',
-  },
-  {
-    title: 'Extension de Masina : inauguration du nouveau local',
-    category: 'Extensions',
-    date: '22 Mars 2024',
-    excerpt: 'La famille de la Conquête s\u2019agrandit avec l\u2019inauguration officielle du local de Masina, un nouveau lieu de culte pour la communauté.',
-    img: 'https://images.pexels.com/photos/4481259/pexels-photo-4481259.jpeg?auto=compress&cs=tinysrgb&w=600',
-  },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -483,7 +452,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
-      {isSectionVisible('topbar') && <TopBar onNavigate={onNavigate} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} />}
+      {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} />}
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (
@@ -766,23 +735,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </div>
           </RevealSection>
         </div>
-      </section>
-      )}
-
-      {/* ═══════ SECTION: MAP (masquée par défaut) ═══════ */
-      {false && (
-      <section className="py-0">
-        <iframe
-          title="Localisation de l'Église Évangélique La Conquête"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000"
-          width="100%"
-          height={400}
-          style={{ border: 0 }}
-          allowFullScreen
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-          className="w-full"
-        />
       </section>
       )}
 
