@@ -136,7 +136,7 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
         <div className="absolute bottom-4 left-6 right-6">
           <h3 className="text-2xl font-bold text-white">{ext.name}</h3>
           <div className="flex items-center gap-2 mt-1">
-            <MapPin className="h-4 w-4 text-evangile-500" />
+            <MapPin className="h-4 w-4 text-accent-400" />
             <span className="text-sm text-white/80">{ext.city}</span>
           </div>
         </div>
@@ -148,7 +148,7 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
 
         {/* Address */}
         <div className="flex items-start gap-3 text-sm">
-          <Building2 className="h-4 w-4 text-evangile-600 mt-0.5 shrink-0" />
+          <Building2 className="h-4 w-4 text-accent-500 mt-0.5 shrink-0" />
           <span className="text-cream/80">{ext.address}</span>
         </div>
 
@@ -157,7 +157,7 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
           <div className="space-y-4">
             {ext.pastors.map(p => (
               <div key={p.name} className="flex items-center gap-4">
-                <img src={p.photo} alt={p.name} className="h-14 w-14 rounded-full object-cover border-2 border-evangile-600/30" />
+                <img src={p.photo} alt={p.name} className="h-14 w-14 rounded-full object-cover border-2 border-accent-400/30" />
                 <div>
                   <p className="font-semibold text-cream">{p.name}</p>
                   <p className="text-sm text-muted">{p.role}</p>
@@ -172,15 +172,15 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
           <div className="space-y-3">
             {ext.activities.map(a => (
               <div key={a.title} className="flex items-start gap-3 p-3 rounded-xl bg-white/5">
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-evangile-600/10">
-                  <Users className="h-4 w-4 text-evangile-600" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent-400/10">
+                  <Users className="h-4 w-4 text-accent-500" />
                 </div>
                 <div>
                   <p className="font-medium text-cream text-sm">{a.title}</p>
                   <p className="text-xs text-muted mt-0.5">{a.description}</p>
                   <div className="flex items-center gap-1.5 mt-1">
-                    <Clock className="h-3 w-3 text-evangile-600/60" />
-                    <span className="text-xs text-evangile-600/80">{a.schedule}</span>
+                    <Clock className="h-3 w-3 text-accent-500/60" />
+                    <span className="text-xs text-accent-500/80">{a.schedule}</span>
                   </div>
                 </div>
               </div>
@@ -207,13 +207,13 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
           <div className="space-y-2">
             {ext.program.map(p => (
               <div key={p.day + p.label} className="flex items-center gap-4 p-3 rounded-xl bg-white/5">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-evangile-600/10">
-                  <Calendar className="h-5 w-5 text-evangile-600" />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent-400/10">
+                  <Calendar className="h-5 w-5 text-accent-500" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
                     <p className="font-medium text-cream text-sm">{p.day}</p>
-                    <span className="text-xs text-evangile-600/80">{p.time}</span>
+                    <span className="text-xs text-accent-500/80">{p.time}</span>
                   </div>
                   <p className="text-xs text-muted mt-0.5">{p.label}</p>
                 </div>

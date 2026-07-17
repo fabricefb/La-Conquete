@@ -59,6 +59,20 @@ export default {
         ember: { 400:'#ff7b6b', 500:'#f23c2e', 600:'#b9170d', 700:'#8c110a' },
         sky:   { 50:'#f0f4ff', 100:'#D8E3FB', 200:'#b8ccf7', 300:'#8fb0f0', 400:'#6a96e8', 500:'#4a7cdd', 600:'#3a64be', 700:'#2d4e9a', 800:'#1e3470', 900:'#0f2147' },
 
+        /* --- Accent Bleu (nuances de bleu pour icônes, labels, hover) --- */
+        'accent': {
+          50:  'rgb(var(--accent-50-rgb) / <alpha-value>)',
+          100: 'rgb(var(--accent-100-rgb) / <alpha-value>)',
+          200: 'rgb(var(--accent-200-rgb) / <alpha-value>)',
+          300: 'rgb(var(--accent-300-rgb) / <alpha-value>)',
+          400: 'rgb(var(--accent-400-rgb) / <alpha-value>)',
+          500: 'rgb(var(--accent-500-rgb) / <alpha-value>)',
+          600: 'rgb(var(--accent-600-rgb) / <alpha-value>)',
+          700: 'rgb(var(--accent-700-rgb) / <alpha-value>)',
+          800: 'rgb(var(--accent-800-rgb) / <alpha-value>)',
+          900: 'rgb(var(--accent-900-rgb) / <alpha-value>)',
+        },
+
         /* ─── CSS-variable-based semantic colors ─── */
         bg:            'rgb(var(--bg-rgb) / <alpha-value>)',
         'bg-elevated': 'rgb(var(--bg-elevated-rgb) / <alpha-value>)',
@@ -130,7 +144,7 @@ export default {
         'glow-red': '0 0 40px rgba(227, 34, 31, 0.15), 0 0 80px rgba(227, 34, 31, 0.08)',
         'glow-blue':'0 0 40px rgba(15, 33, 71, 0.25), 0 0 80px rgba(15, 33, 71, 0.10)',
         'card':     '0 4px 24px rgba(100, 120, 180, 0.08)',
-        'card-hover':'0 20px 50px rgba(0, 0, 0, 0.3), 0 8px 20px rgba(227, 34, 31, 0.08)',
+        'card-hover':'0 20px 50px rgba(0,0,0,0.3), 0 8px 20px rgba(74,124,221,0.08)',
       },
       backgroundImage: {
         'gradient-radial-red':  'radial-gradient(ellipse at center, rgba(227, 34, 31, 0.12) 0%, transparent 70%)',

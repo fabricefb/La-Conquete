@@ -1011,7 +1011,7 @@ export function HomepageBuilderTab() {
                 onClick={() => setActiveSection(isActive ? null : section.id)}
                 className={`flex w-full items-center gap-2 border-b border-white/5 px-3 py-2.5 text-left transition-colors hover:bg-white/5 ${
                   isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
-                } ${dragIdx === i ? 'opacity-30' : ''} ${dropIdx === i ? 'border-t-2 border-t-evangile-500' : ''}`}
+                } ${dragIdx === i ? 'opacity-30' : ''} ${dropIdx === i ? 'border-t-2 border-t-accent-400' : ''}`}
               >
                 <GripVertical className="h-4 w-4 flex-shrink-0 text-white/40 cursor-grab active:cursor-grabbing" />
                 <Icon className="h-4 w-4 flex-shrink-0 text-white/50" />

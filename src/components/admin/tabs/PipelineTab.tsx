@@ -70,7 +70,7 @@ function CellulesSection({ profiles }: { profiles: UserProfile[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
-          <Users className="h-5 w-5 text-evangile-500" /> Cellules de maison
+          <Users className="h-5 w-5 text-accent-400" /> Cellules de maison
         </h3>
         <button onClick={() => setFormOpen((o) => !o)} className="btn-gold flex items-center gap-2 text-sm">
           <Plus className="h-4 w-4" /> Nouvelle cellule
@@ -78,7 +78,7 @@ function CellulesSection({ profiles }: { profiles: UserProfile[] }) {
       </div>
 
       {formOpen && (
-        <div className="glass rounded-xl p-4 space-y-3 border border-evangile-600/20">
+        <div className="glass rounded-xl p-4 space-y-3 border border-accent-400/20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-muted">Nom <span className="text-red-400">*</span></label>
@@ -118,7 +118,7 @@ function CellulesSection({ profiles }: { profiles: UserProfile[] }) {
       )}
 
       {loading ? (
-        <div className="glass rounded-xl p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-evangile-500" /></div>
+        <div className="glass rounded-xl p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-accent-400" /></div>
       ) : cellules.length === 0 ? (
         <p className="text-sm text-muted text-center py-4">Aucune cellule.</p>
       ) : (
@@ -180,7 +180,7 @@ function ZonesSection({ profiles }: { profiles: UserProfile[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-evangile-500" /> Zones d'évangélisation
+          <MapPin className="h-5 w-5 text-accent-400" /> Zones d'évangélisation
         </h3>
         <button onClick={() => setFormOpen((o) => !o)} className="btn-gold flex items-center gap-2 text-sm">
           <Plus className="h-4 w-4" /> Nouvelle zone
@@ -188,7 +188,7 @@ function ZonesSection({ profiles }: { profiles: UserProfile[] }) {
       </div>
 
       {formOpen && (
-        <div className="glass rounded-xl p-4 space-y-3 border border-evangile-600/20">
+        <div className="glass rounded-xl p-4 space-y-3 border border-accent-400/20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-muted">Nom <span className="text-red-400">*</span></label>
@@ -214,7 +214,7 @@ function ZonesSection({ profiles }: { profiles: UserProfile[] }) {
       )}
 
       {loading ? (
-        <div className="glass rounded-xl p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-evangile-500" /></div>
+        <div className="glass rounded-xl p-8 text-center"><Loader2 className="mx-auto h-5 w-5 animate-spin text-accent-400" /></div>
       ) : zones.length === 0 ? (
         <p className="text-sm text-muted text-center py-4">Aucune zone.</p>
       ) : (
@@ -368,7 +368,7 @@ export function PipelineTab() {
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return <ChevronDown className="h-3 w-3 text-muted/30" />;
-    return sortDir === 'asc' ? <ChevronUp className="h-3 w-3 text-evangile-500" /> : <ChevronDown className="h-3 w-3 text-evangile-500" />;
+    return sortDir === 'asc' ? <ChevronUp className="h-3 w-3 text-accent-400" /> : <ChevronDown className="h-3 w-3 text-accent-400" />;
   };
 
   // ---- selection -----------------------------------------------------------
@@ -462,13 +462,13 @@ export function PipelineTab() {
 
       {/* Section toggle */}
       <div className="flex gap-1 rounded-xl bg-white/5 p-1">
-        <button onClick={() => setActiveSection('pipeline')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'pipeline' ? 'bg-evangile-600/20 text-evangile-500' : 'text-muted hover:text-cream'}`}>
+        <button onClick={() => setActiveSection('pipeline')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'pipeline' ? 'bg-accent-400/20 text-accent-400' : 'text-muted hover:text-cream'}`}>
           Pipeline
         </button>
-        <button onClick={() => setActiveSection('cellules')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'cellules' ? 'bg-evangile-600/20 text-evangile-500' : 'text-muted hover:text-cream'}`}>
+        <button onClick={() => setActiveSection('cellules')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'cellules' ? 'bg-accent-400/20 text-accent-400' : 'text-muted hover:text-cream'}`}>
           <Users className="h-4 w-4" /> Cellules
         </button>
-        <button onClick={() => setActiveSection('zones')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'zones' ? 'bg-evangile-600/20 text-evangile-500' : 'text-muted hover:text-cream'}`}>
+        <button onClick={() => setActiveSection('zones')} className={`flex-1 flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition ${activeSection === 'zones' ? 'bg-accent-400/20 text-accent-400' : 'text-muted hover:text-cream'}`}>
           <MapPin className="h-4 w-4" /> Zones
         </button>
       </div>
@@ -535,8 +535,8 @@ export function PipelineTab() {
 
           {/* Bulk actions */}
           {selected.size > 0 && (
-            <div className="glass rounded-xl p-3 flex items-center gap-3 border border-evangile-600/20">
-              <span className="text-sm text-evangile-500 font-medium">{selected.size} sélectionné(s)</span>
+            <div className="glass rounded-xl p-3 flex items-center gap-3 border border-accent-400/20">
+              <span className="text-sm text-accent-400 font-medium">{selected.size} sélectionné(s)</span>
               <select value={bulkAction} onChange={(e) => setBulkAction(e.target.value as typeof bulkAction)} className="input-surface px-3 py-1.5 text-xs">
                 <option value="">— Action —</option>
                 <option value="advance">Avancer au stade suivant</option>
@@ -552,7 +552,7 @@ export function PipelineTab() {
 
           {/* Converti list */}
           {loading ? (
-            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" /></div>
+            <div className="glass rounded-2xl p-12 text-center"><Loader2 className="mx-auto h-6 w-6 animate-spin text-accent-400" /></div>
           ) : sortedConvertis.length === 0 ? (
             <div className="glass rounded-2xl p-12 text-center"><p className="text-muted text-sm">Aucun converti dans le pipeline.</p></div>
           ) : (
@@ -615,7 +615,7 @@ export function PipelineTab() {
                         {!isLast && (
                           <button
                             onClick={() => handleAdvance(c)}
-                            className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[10px] text-muted hover:text-evangile-500 hover:border-evangile-600/40 transition"
+                            className="flex items-center gap-1 rounded-lg border border-line px-2.5 py-1.5 text-[10px] text-muted hover:text-accent-400 hover:border-accent-400/40 transition"
                             title={`Avancer vers "${STAGE_LABELS[STAGES[stageIdx + 1].key]}"`}
                           >
                             <ArrowRight className="h-3 w-3" />

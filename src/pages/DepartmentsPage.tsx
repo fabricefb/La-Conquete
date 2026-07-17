@@ -192,14 +192,14 @@ function DepartmentCard({ dept }: { dept: ExtendedDepartment }) {
       <div className="p-6 flex flex-col flex-1">
         {/* Header */}
         <div className="flex items-start gap-4">
-          <IconBox pageKey="departments" elementId={`dept-icon-${dept.id || dept.name}`} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${isGold ? 'border-evangile-600/20 bg-evangile-600/10' : 'border-ember-500/20 bg-ember-500/10'}`}>
-            <IconComp className={`h-6 w-6 ${isGold ? 'text-evangile-500' : 'text-ember-400'}`} />
+          <IconBox pageKey="departments" elementId={`dept-icon-${dept.id || dept.name}`} className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border ${isGold ? 'border-accent-400/20 bg-accent-400/10' : 'border-ember-500/20 bg-ember-500/10'}`}>
+            <IconComp className={`h-6 w-6 ${isGold ? 'text-accent-400' : 'text-ember-400'}`} />
           </IconBox>
           <div className="flex-1 min-w-0">
             <h3 className="font-serif text-lg font-semibold text-cream">{dept.name}</h3>
             {dept.meeting_schedule && (
               <div className="mt-1 flex items-center gap-1.5 text-xs text-muted">
-                <Calendar className="h-3.5 w-3.5 text-evangile-500" />
+                <Calendar className="h-3.5 w-3.5 text-accent-400" />
                 {dept.meeting_schedule}
               </div>
             )}
@@ -213,13 +213,13 @@ function DepartmentCard({ dept }: { dept: ExtendedDepartment }) {
         <div className="mt-4 flex items-center gap-4 text-sm text-muted">
           {dept.leader_name && (
             <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4 text-evangile-500" />
+              <Users className="h-4 w-4 text-accent-400" />
               <span className="font-medium text-cream">{dept.leader_name}</span>
             </span>
           )}
           {dept.member_count != null && (
             <span className="flex items-center gap-1.5">
-              <UserPlus className="h-4 w-4 text-evangile-500" />
+              <UserPlus className="h-4 w-4 text-accent-400" />
               {dept.member_count} membres
             </span>
           )}
@@ -229,7 +229,7 @@ function DepartmentCard({ dept }: { dept: ExtendedDepartment }) {
         {(dept.mission || dept.activities || dept.requirements) && (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="mt-4 flex items-center gap-1.5 text-sm font-medium text-evangile-500 transition-colors hover:text-evangile-400 self-start"
+            className="mt-4 flex items-center gap-1.5 text-sm font-medium text-accent-400 transition-colors hover:text-accent-300 self-start"
           >
             {expanded ? 'Voir moins' : 'En savoir plus'}
             {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -241,19 +241,19 @@ function DepartmentCard({ dept }: { dept: ExtendedDepartment }) {
           <div className="mt-4 space-y-4 border-t border-line pt-4">
             {dept.mission && (
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-evangile-500 mb-1.5">Mission</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-1.5">Mission</h4>
                 <p className="text-sm text-muted leading-relaxed">{dept.mission}</p>
               </div>
             )}
             {dept.activities && (
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-evangile-500 mb-1.5">Activités</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-1.5">Activités</h4>
                 <p className="text-sm text-muted leading-relaxed">{dept.activities}</p>
               </div>
             )}
             {dept.requirements && (
               <div>
-                <h4 className="text-xs font-semibold uppercase tracking-widest text-evangile-500 mb-1.5">Conditions pour rejoindre</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-1.5">Conditions pour rejoindre</h4>
                 <p className="text-sm text-muted leading-relaxed">{dept.requirements}</p>
               </div>
             )}
@@ -275,8 +275,8 @@ function JoinForm({ departmentId, departmentName, onNavigate }: { departmentId: 
     return (
       <div className="glass rounded-3xl p-8 sm:p-12 text-center">
         <div className="mb-4 flex justify-center">
-          <IconBox pageKey="departments" elementId="login-cta-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-            <LogIn className="h-6 w-6 text-evangile-500" />
+          <IconBox pageKey="departments" elementId="login-cta-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/10">
+            <LogIn className="h-6 w-6 text-accent-400" />
           </IconBox>
         </div>
         <h3 className="font-serif text-2xl font-semibold text-cream">Connectez-vous pour rejoindre</h3>
@@ -432,8 +432,8 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
             <RevealSection>
               <div className="glass rounded-3xl p-8 h-full">
                 <div className="mb-6 flex items-center gap-4">
-                  <IconBox pageKey="departments" elementId="evangelisation-compass-icon" className="flex h-14 w-14 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                    <Compass className="h-7 w-7 text-evangile-500" />
+                  <IconBox pageKey="departments" elementId="evangelisation-compass-icon" className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/10">
+                    <Compass className="h-7 w-7 text-accent-400" />
                   </IconBox>
                   <div>
                     <h3 className="font-serif text-xl font-semibold text-cream">Notre Mission</h3>
@@ -445,13 +445,13 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
                 <p className="text-muted leading-relaxed">{evangDept.mission ?? evangDept.description}</p>
                 {evangDept.meeting_schedule && (
                   <div className="mt-4 flex items-center gap-2 text-sm text-muted">
-                    <Calendar className="h-4 w-4 text-evangile-500" />
+                    <Calendar className="h-4 w-4 text-accent-400" />
                     Réunion : {evangDept.meeting_schedule}
                   </div>
                 )}
                 {evangDept.activities && (
                   <div className="mt-6">
-                    <h4 className="text-xs font-semibold uppercase tracking-widest text-evangile-500 mb-2">Nos Activités</h4>
+                    <h4 className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-2">Nos Activités</h4>
                     <p className="text-sm text-muted leading-relaxed">{evangDept.activities}</p>
                   </div>
                 )}
@@ -464,22 +464,22 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
                 {/* Impact Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="glass rounded-2xl p-5 text-center">
-                    <div className="text-3xl font-bold text-evangile-500">{zonesCouvertes}</div>
+                    <div className="text-3xl font-bold text-accent-400">{zonesCouvertes}</div>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted">Zones couvertes</p>
                   </div>
                   <div className="glass rounded-2xl p-5 text-center">
-                    <div className="text-3xl font-bold text-evangile-500">{convertisMois}</div>
+                    <div className="text-3xl font-bold text-accent-400">{convertisMois}</div>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-muted">Convertis ce mois</p>
                   </div>
                 </div>
 
                 {/* Zones List */}
                 <div className="glass rounded-2xl p-6 flex-1">
-                  <h4 className="text-xs font-semibold uppercase tracking-widest text-evangile-500 mb-4">Zones évangélisées</h4>
+                  <h4 className="text-xs font-semibold uppercase tracking-widest text-accent-400 mb-4">Zones évangélisées</h4>
                   <div className="space-y-3">
                     {zones.map((zone) => (
                       <div key={zone.id} className="flex items-start gap-3">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-evangile-500" />
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-accent-400" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-cream">{zone.name}</p>
                           <div className="flex items-center gap-3 mt-0.5">
@@ -526,7 +526,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
               />
               <button
                 onClick={() => setSelectedDept(null)}
-                className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-all hover:border-evangile-600/40 hover:text-evangile-500"
+                className="absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-all hover:border-accent-400/40 hover:text-accent-400"
                 aria-label="Fermer"
               >
                 <X className="h-4 w-4" />
@@ -542,8 +542,8 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
           <RevealSection>
             <div className="glass rounded-3xl p-8 sm:p-12 text-center">
               <div className="mb-4 flex justify-center">
-                <IconBox pageKey="departments" elementId="serve-handheart-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/10">
-                  <HandHeart className="h-6 w-6 text-evangile-500" />
+                <IconBox pageKey="departments" elementId="serve-handheart-icon" className="flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/10">
+                  <HandHeart className="h-6 w-6 text-accent-400" />
                 </IconBox>
               </div>
               <h2 className="font-serif text-2xl font-semibold text-cream sm:text-3xl">Vous souhaitez servir ?</h2>
@@ -555,7 +555,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
                   <button
                     key={dept.id}
                     onClick={() => setSelectedDept(dept)}
-                    className="rounded-full border border-line px-5 py-2.5 text-sm font-medium text-cream transition-all duration-200 hover:border-evangile-600/40 hover:text-evangile-500 hover:bg-evangile-600/5"
+                    className="rounded-full border border-line px-5 py-2.5 text-sm font-medium text-cream transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400 hover:bg-accent-400/5"
                   >
                     {dept.name}
                   </button>

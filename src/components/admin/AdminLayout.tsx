@@ -142,7 +142,7 @@ function SidebarNav({
                 onClick={() => { onTabChange(id); onClose?.(); }}
                 className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
                   activeTab === id
-                    ? 'bg-evangile-600/10 text-evangile-500'
+                    ? 'bg-accent-400/10 text-accent-400'
                     : 'text-muted hover:text-cream hover:bg-white/5'
                 }`}
               >
@@ -186,7 +186,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
             <Menu className="h-4 w-4" />
           </button>
           <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-evangile-500" />
+            <Landmark className="h-5 w-5 text-accent-400" />
             <span className="font-serif text-lg font-semibold text-cream">Back-Office</span>
             <span className="hidden text-xs text-muted sm:inline">La Conquête</span>
           </div>
@@ -200,7 +200,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
             <ChevronRight className="h-3 w-3" />
           </button>
           <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-evangile-600/20 text-[10px] font-bold text-evangile-500">
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/20 text-[10px] font-bold text-accent-400">
               {(profile?.full_name ?? profile?.email ?? 'A').charAt(0).toUpperCase()}
             </div>
             <span className="hidden text-xs text-cream sm:inline max-w-[120px] truncate">

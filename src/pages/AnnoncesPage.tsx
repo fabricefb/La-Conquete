@@ -55,8 +55,8 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
           {ANNONCES.map(a => (
             <div key={a.id} className={`glass rounded-2xl p-6 transition-all duration-300 hover:bg-white/5 group cursor-pointer ${a.urgent ? 'border-l-4 border-l-red-500' : ''}`}>
               <div className="flex items-start gap-4">
-                <IconBox pageKey="annonces" elementId="bell-icon" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-evangile-600/10'}`}>
-                  <Bell className={`h-5 w-5 ${a.urgent ? 'text-red-400' : 'text-evangile-600'}`} />
+                <IconBox pageKey="annonces" elementId="bell-icon" className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${a.urgent ? 'bg-red-500/15' : 'bg-accent-400/10'}`}>
+                  <Bell className={`h-5 w-5 ${a.urgent ? 'text-red-400' : 'text-accent-500'}`} />
                 </IconBox>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
@@ -67,10 +67,10 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
                       {new Date(a.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
                     </span>
                   </div>
-                  <h3 className="text-lg font-semibold text-cream group-hover:text-evangile-400 transition-colors">{a.title}</h3>
+                  <h3 className="text-lg font-semibold text-cream group-hover:text-accent-300 transition-colors">{a.title}</h3>
                   <p className="mt-2 text-sm text-muted leading-relaxed">{a.content}</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted group-hover:text-evangile-500 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
+                <ArrowRight className="h-5 w-5 text-muted group-hover:text-accent-400 group-hover:translate-x-1 transition-all shrink-0 mt-2" />
               </div>
             </div>
           ))}

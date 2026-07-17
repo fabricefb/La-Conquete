@@ -253,7 +253,7 @@ export function SettingsTab() {
             Les images sont gérées dans chaque page via « Page d'accueil » ou « Constructeur ».
           </p>
         </div>
-        <span className="rounded-full bg-evangile-600/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">
+        <span className="rounded-full bg-accent-400/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">
           {modifiedKeys.size} modifié{modifiedKeys.size !== 1 ? 's' : ''}
         </span>
       </div>
@@ -299,7 +299,7 @@ export function SettingsTab() {
                       )}
                       {renderInput(setting)}
                       {modifiedKeys.has(setting.key) && (
-                        <span className="mt-1 inline-block text-[10px] text-evangile-500">
+                        <span className="mt-1 inline-block text-[10px] text-accent-400">
                           modifié
                         </span>
                       )}

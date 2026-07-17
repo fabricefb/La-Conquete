@@ -81,14 +81,14 @@ function WeeklySchedule() {
   return (
     <section className="relative overflow-hidden px-4 py-16 md:py-24">
       <div className="absolute inset-0 bg-gradient-to-b from-bg via-ink-950/50 to-bg" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-evangile-600/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-400/5 rounded-full blur-[120px] animate-pulse" />
       <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-evangile-700/5 rounded-full blur-[100px]" style={{ animationDelay: '3s' }} />
       <div className="relative z-10 mx-auto max-w-7xl">
         <div className="reveal flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
           <div className="flex items-center gap-4">
             <img src={LOGO} alt="Logo" className="w-14 h-14 md:w-18 md:h-18 rounded-full object-cover opacity-90" />
             <h2 className="font-serif text-3xl md:text-5xl font-black text-cream leading-tight">
-              Programme <span className="text-evangile-500">de la Semaine</span>
+              Programme <span className="text-accent-400">de la Semaine</span>
             </h2>
           </div>
           <div className="text-right">
@@ -103,11 +103,11 @@ function WeeklySchedule() {
             slot.fullWidth ? (
               <article key={slot.day} className="reveal snap-center min-w-[320px] md:min-w-[700px] lg:min-w-full glass rounded-3xl p-6 md:p-10 relative overflow-hidden group flex-shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/90 to-evangile-600/10" />
-                <div className="absolute -right-10 -top-10 w-48 h-48 bg-evangile-600/10 rounded-full blur-[80px] group-hover:scale-110 transition-transform duration-700" />
+                <div className="absolute -right-10 -top-10 w-48 h-48 bg-accent-400/10 rounded-full blur-[80px] group-hover:scale-110 transition-transform duration-700" />
                 <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
                   <div className="text-center md:text-left">
                     <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                      <span className="bg-evangile-600 text-ink-950 px-4 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase">{slot.day}</span>
+                      <span className="bg-accent-500 text-ink-950 px-4 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase">{slot.day}</span>
                       <span className="font-serif text-4xl md:text-5xl font-black text-gold/30">{slot.date}</span>
                     </div>
                     <h3 className="font-serif text-3xl md:text-5xl font-black uppercase tracking-tight text-cream leading-none">{slot.title}</h3>
@@ -115,7 +115,7 @@ function WeeklySchedule() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
                     <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
                       <p className="text-[10px] font-bold text-gold/60 uppercase mb-2 tracking-widest">1<sup>er</sup> Culte (FR)</p>
-                      <p className="text-2xl md:text-3xl font-serif font-black text-evangile-500">08:00</p>
+                      <p className="text-2xl md:text-3xl font-serif font-black text-accent-400">08:00</p>
                       <p className="text-xs text-muted/50 mt-1">Fin à 10:00</p>
                     </div>
                     <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">

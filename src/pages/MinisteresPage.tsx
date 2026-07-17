@@ -74,17 +74,17 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
                 key={m.title}
                 className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
               >
-                <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-500">
+                <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
                   <m.Icon className="h-6 w-6" />
                 </IconBox>
                 <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
                 <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
                 <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
                   <p className="flex items-center gap-2 text-xs text-muted">
-                    <span className="font-semibold text-evangile-500">Horaires :</span> {m.schedule}
+                    <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
                   </p>
                   <p className="flex items-center gap-2 text-xs text-muted">
-                    <span className="font-semibold text-evangile-500">Contact :</span> {m.contact}
+                    <span className="font-semibold text-accent-400">Contact :</span> {m.contact}
                   </p>
                 </div>
               </div>

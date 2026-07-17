@@ -143,7 +143,7 @@ export function CreneauxTab() {
   if (loading) {
     return (
       <div className="glass rounded-2xl p-12 text-center">
-        <Loader2 className="mx-auto h-6 w-6 animate-spin text-evangile-500" />
+        <Loader2 className="mx-auto h-6 w-6 animate-spin text-accent-400" />
         <p className="text-muted text-sm mt-3">Chargement des créneaux...</p>
       </div>
     );
@@ -160,13 +160,13 @@ export function CreneauxTab() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setViewMode('creneaux')}
-            className={`rounded-lg px-3 py-2 text-xs font-medium transition ${viewMode === 'creneaux' ? 'bg-evangile-600/20 text-evangile-500' : 'bg-white/5 text-muted hover:text-cream'}`}
+            className={`rounded-lg px-3 py-2 text-xs font-medium transition ${viewMode === 'creneaux' ? 'bg-accent-400/20 text-accent-400' : 'bg-white/5 text-muted hover:text-cream'}`}
           >
             Créneaux
           </button>
           <button
             onClick={() => setViewMode('responses')}
-            className={`rounded-lg px-3 py-2 text-xs font-medium transition ${viewMode === 'responses' ? 'bg-evangile-600/20 text-evangile-500' : 'bg-white/5 text-muted hover:text-cream'}`}
+            className={`rounded-lg px-3 py-2 text-xs font-medium transition ${viewMode === 'responses' ? 'bg-accent-400/20 text-accent-400' : 'bg-white/5 text-muted hover:text-cream'}`}
           >
             Réponses
           </button>
@@ -203,7 +203,7 @@ export function CreneauxTab() {
 
       {/* Create Form */}
       {formOpen && (
-        <div className="glass rounded-2xl p-6 space-y-4 border border-evangile-600/20">
+        <div className="glass rounded-2xl p-6 space-y-4 border border-accent-400/20">
           <div className="flex items-center justify-between">
             <h3 className="font-serif text-lg font-semibold text-cream">Nouveau créneau</h3>
             <button onClick={() => { setFormOpen(false); setForm(EMPTY_FORM); }} className="text-muted hover:text-cream transition">
@@ -334,7 +334,7 @@ export function CreneauxTab() {
                           <p className="text-xs font-medium text-muted uppercase tracking-widest">Réponses des serviteurs</p>
                           {cResponses.map(r => (
                             <div key={r.id} className="flex items-center gap-3 rounded-xl bg-white/5 p-3">
-                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 text-xs font-bold">
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-400/20 text-accent-400 text-xs font-bold">
                                 {(r.responder_name || '?').charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1 min-w-0">
@@ -377,7 +377,7 @@ export function CreneauxTab() {
               const creneau = creneaux.find(c => c.id === r.creneau_id);
               return (
                 <div key={r.id} className="glass rounded-xl p-4 flex items-center gap-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-evangile-600/20 text-evangile-500 text-xs font-bold">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-400/20 text-accent-400 text-xs font-bold">
                     {(r.responder_name || '?').charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">

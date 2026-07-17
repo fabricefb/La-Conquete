@@ -90,20 +90,20 @@ export function VerseRotator({
     <div className="glass-card relative overflow-hidden rounded-2xl p-8 sm:p-10 md:p-12">
       {/* Decorative corner — top-left */}
       <div className="absolute left-0 top-0 h-8 w-8">
-        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-evangile-600/80 to-transparent" />
-        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-evangile-600/80 to-transparent" />
+        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-accent-600/80 to-transparent" />
+        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-accent-600/80 to-transparent" />
         <div className="absolute left-4 top-0 h-1 w-1 rounded-full bg-red-500" />
       </div>
 
       {/* Decorative corner — bottom-right */}
       <div className="absolute bottom-0 right-0 h-8 w-8">
-        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-evangile-600/80 to-transparent" />
-        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-evangile-600/80 to-transparent" />
+        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-accent-600/80 to-transparent" />
+        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-accent-600/80 to-transparent" />
         <div className="absolute bottom-4 right-0 h-1 w-1 rounded-full bg-red-500" />
       </div>
 
       {/* BookOpen icon — top right */}
-      <div className="absolute right-6 top-6 text-evangile-500/30">
+      <div className="absolute right-6 top-6 text-accent-400/30">
         <BookOpen className="h-8 w-8" strokeWidth={1.5} />
       </div>
 
@@ -150,7 +150,7 @@ export function VerseRotator({
               onClick={() => handleManualNav(index)}
               className={`h-2 rounded-full transition-all duration-300 ${
                 index === currentIndex
-                  ? 'w-6 bg-gradient-to-r from-evangile-600 to-red-500'
+                  ? 'w-6 bg-gradient-to-r from-accent-600 to-red-500'
                   : 'w-2 hover:scale-125'
               }`}
               style={

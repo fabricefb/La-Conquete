@@ -142,7 +142,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
                     </div>
                   </div>
                   <p className="mt-1 text-sm text-muted line-clamp-2 flex-1">{item.description}</p>
-                  <span className="mt-3 inline-block self-start rounded-full bg-evangile-600/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-evangile-500">{item.category}</span>
+                  <span className="mt-3 inline-block self-start rounded-full bg-accent-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-400">{item.category}</span>
                 </div>
               ))}
             </div>
@@ -158,7 +158,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
           <div className="grid gap-6 sm:grid-cols-3">
             {SERIES.map((s, i) => (
               <div key={s.title} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]`}>
-                <p className="text-xs font-bold uppercase tracking-widest text-evangile-500">{s.count} enseignements</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-accent-400">{s.count} enseignements</p>
                 <h3 className="mt-2 font-serif text-lg font-semibold text-cream">{s.title}</h3>
                 <p className="mt-2 text-sm text-muted">{s.desc}</p>
               </div>
@@ -175,7 +175,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
           <div className="space-y-3">
             {STUDIES.map((s, i) => (
               <div key={s.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-5 flex items-center gap-4 transition-all duration-300 hover:scale-[1.01]`}>
-                <IconBox pageKey="enseignements" elementId={`study-icon-${i}`} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                <IconBox pageKey="enseignements" elementId={`study-icon-${i}`} className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                   <BookOpen className="h-5 w-5" />
                 </IconBox>
                 <div className="flex-1 min-w-0">
@@ -191,7 +191,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
       {/* ═══ RESSOURCES TÉLÉCHARGEABLES ═══ */}
       <section className="py-20 px-4 bg-radial-primary">
         <div className="reveal mx-auto max-w-2xl text-center">
-          <FileText className="mx-auto mb-4 h-8 w-8 text-evangile-500/60" />
+          <FileText className="mx-auto mb-4 h-8 w-8 text-accent-400/60" />
           <p className="section-label justify-center">Ressources</p>
           <h2 className="mt-4 font-serif text-3xl font-semibold text-cream sm:text-4xl">Téléchargements</h2>
           <p className="mt-4 text-muted">Les supports PDF des enseignements seront bientôt disponibles.</p>

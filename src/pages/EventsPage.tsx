@@ -68,12 +68,12 @@ function catBadge(cat: string, isLive: boolean) {
 
 /* ─── Category badge color ─── */
 function catBadgeColor(cat: string) {
-  return cat === 'Missions' ? 'bg-evangile-600' : 'bg-ink-700';
+  return cat === 'Missions' ? 'bg-accent-500' : 'bg-ink-700';
 }
 
 /* ─── Button color ─── */
 function ctaBtnClass(cat: string) {
-  return cat === 'Missions' ? 'bg-evangile-600 hover:opacity-90' : 'bg-ink-700 hover:bg-ink-600';
+  return cat === 'Missions' ? 'bg-accent-500 hover:opacity-90' : 'bg-ink-700 hover:bg-ink-600';
 }
 
 export function EventsPage({ onNavigate }: EventsPageProps) {
@@ -146,11 +146,11 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               <p className="text-body-lg text-sky-100 max-w-xl mb-8 leading-relaxed">{heroSubtitle}</p>
               <div className="flex flex-wrap gap-4">
                 <div className="flex items-center gap-2 text-white/80">
-                  <MS className="text-evangile-600 text-[20px]">location_on</MS>
+                  <MS className="text-accent-500 text-[20px]">location_on</MS>
                   <span className="font-be-vn text-label-lg uppercase tracking-wide">Lubumbashi Main Campus</span>
                 </div>
                 <div className="flex items-center gap-2 text-white/80">
-                  <MS className="text-evangile-600 text-[20px]">schedule</MS>
+                  <MS className="text-accent-500 text-[20px]">schedule</MS>
                   <span className="font-be-vn text-label-lg uppercase tracking-wide">Horaires GMT+2</span>
                 </div>
               </div>
@@ -164,7 +164,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                   const { day, month } = formatDate(bentoEvents[0].event_date);
                   return (
                     <div className="glass-card p-6 rounded-xl flex flex-col justify-between aspect-square">
-                      <span className="text-headline-xl font-bold text-evangile-600 font-playfair">{day}</span>
+                      <span className="text-headline-xl font-bold text-accent-500 font-playfair">{day}</span>
                       <div>
                         <p className="font-bold uppercase tracking-widest text-[12px] text-sky-100">{month}</p>
                         <p className="font-playfair text-headline-md text-white/90 mt-1 line-clamp-2">{bentoEvents[0].title}</p>
@@ -176,7 +176,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 {bentoEvents[1] && (() => {
                   const { day, month } = formatDate(bentoEvents[1].event_date);
                   return (
-                    <div className="bg-evangile-600 p-6 rounded-xl flex flex-col justify-between aspect-square shadow-xl shadow-evangile-600/20">
+                    <div className="bg-evangile-600 p-6 rounded-xl flex flex-col justify-between aspect-square shadow-xl shadow-accent-500/20">
                       <span className="text-headline-xl font-bold text-white font-playfair">{day}</span>
                       <div>
                         <p className="font-bold uppercase tracking-widest text-[12px] text-white/80">{month}</p>
@@ -192,13 +192,13 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                       <MS className="text-white text-[24px]">celebration</MS>
                     </div>
                     <div>
-                      <p className="font-be-vn text-label-lg text-evangile-600 uppercase">Prochain Culte</p>
+                      <p className="font-be-vn text-label-lg text-accent-500 uppercase">Prochain Culte</p>
                       <p className="font-playfair text-headline-md text-white/90">
                         {nextSunday ? nextSunday.title : 'Culte de Célébration'}
                       </p>
                     </div>
                   </div>
-                  <span className="text-evangile-600 font-bold font-be-vn text-label-lg hidden sm:block">
+                  <span className="text-accent-500 font-bold font-be-vn text-label-lg hidden sm:block">
                     {nextSunday
                       ? new Date(nextSunday.event_date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase() + ' ' + formatDate(nextSunday.event_date).day + ':00'
                       : 'DIM 09:00'}
@@ -217,7 +217,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 <button key={cat} onClick={() => setActiveCategory(cat)}
                   className={`px-5 py-2 rounded-full font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
                     activeCategory === cat
-                      ? 'bg-evangile-600 text-white shadow-lg shadow-evangile-600/20'
+                      ? 'bg-evangile-600 text-white shadow-lg shadow-accent-500/20'
                       : 'bg-bg-elevated text-muted hover:bg-bg-card-hover'
                   }`}>
                   {CAT_LABELS[cat] || cat}
@@ -262,7 +262,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 const { day, month } = formatDate(feat.event_date);
                 return (
                   <EvtReveal className="mb-8">
-                    <div className="group rounded-xl overflow-hidden border border-line hover:border-evangile-600/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-evangile-600/5">
+                    <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
                       <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
                         <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                           style={{ backgroundImage: `url(${feat.image_url || FALLBACK_IMG})` }} />
@@ -279,13 +279,13 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                       <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
                         <div>
                           <div className="flex items-center gap-4 mb-3">
-                            <div className="px-4 py-2 rounded-lg bg-bg-card text-evangile-600 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
+                            <div className="px-4 py-2 rounded-lg bg-bg-card text-accent-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
                               <span>{day}</span>
                               <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
                             </div>
                             <div>
                               <h2 className="font-playfair text-2xl md:text-3xl font-bold text-cream leading-tight">{feat.title}</h2>
-                              <p className="text-evangile-600 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">
+                              <p className="text-accent-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">
                                 {feat.is_featured ? 'Événement à la une' : feat.category}
                               </p>
                             </div>
@@ -295,12 +295,12 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
                           <div className="flex flex-wrap gap-5 text-muted">
                             <span className="flex items-center gap-2 text-sm">
-                              <MS className="text-evangile-600 text-[18px]">schedule</MS>
+                              <MS className="text-accent-500 text-[18px]">schedule</MS>
                               <span className="font-be-vn">{new Date(feat.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} – 11:30</span>
                             </span>
                             {feat.location && (
                               <span className="flex items-center gap-2 text-sm">
-                                <MS className="text-evangile-600 text-[18px]">location_on</MS>
+                                <MS className="text-accent-500 text-[18px]">location_on</MS>
                                 <span className="font-be-vn">{feat.location}</span>
                               </span>
                             )}
@@ -324,7 +324,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                       const { day, month } = formatDate(event.event_date);
                       return (
                         <EvtReveal key={event.id} delay={Math.min((i % 4) + 1, 4) as 1|2|3|4}>
-                          <div className="group rounded-xl overflow-hidden border border-line hover:border-evangile-600/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-evangile-600/5">
+                          <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
                             {/* Image */}
                             <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
                               <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
@@ -338,13 +338,13 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                             <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
                               <div>
                                 <div className="flex items-center gap-4 mb-3">
-                                  <div className="px-4 py-2 rounded-lg bg-bg-card text-evangile-600 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
+                                  <div className="px-4 py-2 rounded-lg bg-bg-card text-accent-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
                                     <span>{day}</span>
                                     <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
                                   </div>
                                   <div>
                                     <h3 className="font-playfair text-xl md:text-2xl font-bold text-cream leading-tight">{event.title}</h3>
-                                    <p className="text-evangile-600 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">{event.category}</p>
+                                    <p className="text-accent-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">{event.category}</p>
                                   </div>
                                 </div>
                                 <p className="text-muted leading-relaxed line-clamp-2">{event.description}</p>
@@ -352,12 +352,12 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
                                 <div className="flex flex-wrap gap-5 text-muted">
                                   <span className="flex items-center gap-2 text-sm">
-                                    <MS className="text-evangile-600 text-[18px]">schedule</MS>
+                                    <MS className="text-accent-500 text-[18px]">schedule</MS>
                                     <span className="font-be-vn">{new Date(event.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                                   </span>
                                   {event.location && (
                                     <span className="flex items-center gap-2 text-sm">
-                                      <MS className="text-evangile-600 text-[18px]">location_on</MS>
+                                      <MS className="text-accent-500 text-[18px]">location_on</MS>
                                       <span className="font-be-vn">{event.location}</span>
                                     </span>
                                   )}
@@ -384,12 +384,12 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                             <div className="relative h-48 overflow-hidden">
                               <img src={event.image_url || FALLBACK_IMG} alt={event.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
                               <div className="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-14 rounded-lg bg-black/70 backdrop-blur-sm text-center">
-                                <span className="text-xl font-bold text-evangile-500 font-playfair leading-none">{day}</span>
+                                <span className="text-xl font-bold text-accent-400 font-playfair leading-none">{day}</span>
                                 <span className="text-[9px] uppercase tracking-widest text-white/70">{month}</span>
                               </div>
                             </div>
                             <div className="flex flex-col flex-1 p-5">
-                              <span className="mb-2 self-start rounded-full border border-evangile-600/20 bg-evangile-600/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-evangile-500">{event.category}</span>
+                              <span className="mb-2 self-start rounded-full border border-accent-400/20 bg-accent-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">{event.category}</span>
                               <h3 className="font-playfair text-lg font-semibold text-cream flex-1">{event.title}</h3>
                               <p className="mt-1 text-sm text-muted line-clamp-2">{event.description}</p>
                               {event.location && (
@@ -425,12 +425,12 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {weeklyServices.map(({ title, day, time, Icon, desc }, i) => (
                 <EvtReveal key={title} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
-                  <div className="glass rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-evangile-600/5 group h-full">
-                    <IconBox pageKey="events" elementId={`service-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-evangile-600/20 bg-evangile-600/5 text-evangile-600 transition-colors group-hover:bg-evangile-600 group-hover:text-white group-hover:border-evangile-600">
+                  <div className="glass rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-accent-500/5 group h-full">
+                    <IconBox pageKey="events" elementId={`service-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 text-accent-500 transition-colors group-hover:bg-accent-500 group-hover:text-white group-hover:border-accent-500">
                       <Icon className="h-5 w-5" />
                     </IconBox>
                     <h3 className="font-playfair text-lg font-semibold text-cream">{title}</h3>
-                    <p className="mt-1 text-xs font-bold uppercase tracking-widest text-evangile-600 font-be-vn">{day}</p>
+                    <p className="mt-1 text-xs font-bold uppercase tracking-widest text-accent-500 font-be-vn">{day}</p>
                     <p className="mt-1 text-sm text-muted font-be-vn">{time}</p>
                     {desc && <p className="mt-2 text-xs text-muted/60 font-be-vn">{desc}</p>}
                   </div>
@@ -442,7 +442,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
           {/* ═══════ NEWSLETTER ═══════ */}
           <EvtReveal className="mt-16 md:mt-24">
             <div className="glass rounded-2xl p-8 md:p-12 bg-radial-primary text-center">
-              <MS className="text-evangile-600 text-[40px] mb-4">mail</MS>
+              <MS className="text-accent-500 text-[40px] mb-4">mail</MS>
               <h2 className="mt-2 font-playfair text-2xl md:text-3xl font-bold text-cream">Ne Manquez Aucun Moment de Bénédiction</h2>
               <p className="mt-3 text-muted max-w-2xl mx-auto font-be-vn">
                 Recevez les dernières mises à jour sur nos événements, séminaires et cultes directement dans votre boîte mail.

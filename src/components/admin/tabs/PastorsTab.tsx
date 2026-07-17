@@ -355,13 +355,13 @@ export function PastorsTab() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-serif text-base font-semibold text-cream truncate">{p.name}</h3>
                       {p.is_main && (
-                        <span className="shrink-0 rounded-full bg-evangile-600/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-evangile-500">Principal</span>
+                        <span className="shrink-0 rounded-full bg-accent-400/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-accent-400">Principal</span>
                       )}
                       {!p.is_active && (
                         <span className="shrink-0 rounded-full bg-ember-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-ember-400">Inactif</span>
                       )}
                     </div>
-                    <p className="text-sm text-evangile-500 truncate">{p.role}</p>
+                    <p className="text-sm text-accent-400 truncate">{p.role}</p>
                     {p.bio && <p className="text-xs text-muted mt-1 line-clamp-1">{p.bio}</p>}
                     {/* Social links inline */}
                     <div className="flex items-center gap-2 mt-1.5">
@@ -377,7 +377,7 @@ export function PastorsTab() {
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
                     {isFullAdmin && (
-                    <button onClick={(e) => { e.stopPropagation(); toggleMain(p.id, p.is_main); }} className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${p.is_main ? 'text-evangile-500' : 'text-muted hover:text-cream'}`} title={p.is_main ? 'Retirer principal' : 'Définir principal'}>
+                    <button onClick={(e) => { e.stopPropagation(); toggleMain(p.id, p.is_main); }} className={`flex h-8 w-8 items-center justify-center rounded-lg transition ${p.is_main ? 'text-accent-400' : 'text-muted hover:text-cream'}`} title={p.is_main ? 'Retirer principal' : 'Définir principal'}>
                       {p.is_main ? <Star className="h-4 w-4" /> : <StarOff className="h-4 w-4" />}
                     </button>
                     )}
@@ -408,9 +408,9 @@ export function PastorsTab() {
 
                     {/* Thought */}
                     {p.thought && (
-                      <div className="rounded-xl bg-evangile-600/5 border-l-2 border-evangile-600/30 p-4">
+                      <div className="rounded-xl bg-accent-400/5 border-l-2 border-accent-400/30 p-4">
                         <p className="text-sm text-cream/80 italic">"{p.thought}"</p>
-                        <p className="text-[10px] text-evangile-500 mt-2">— {p.name}</p>
+                        <p className="text-[10px] text-accent-400 mt-2">— {p.name}</p>
                       </div>
                     )}
 
@@ -464,12 +464,12 @@ export function PastorsTab() {
                         <h4 className="text-xs font-semibold uppercase tracking-widest text-muted mb-2">Contact</h4>
                         <div className="flex gap-4">
                           {p.email && (
-                            <a href={`mailto:${p.email}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-evangile-500 transition">
+                            <a href={`mailto:${p.email}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-accent-400 transition">
                               <Mail className="h-3 w-3" /> {p.email}
                             </a>
                           )}
                           {p.phone && (
-                            <a href={`tel:${p.phone}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-evangile-500 transition">
+                            <a href={`tel:${p.phone}`} className="flex items-center gap-1.5 text-xs text-cream/70 hover:text-accent-400 transition">
                               <Phone className="h-3 w-3" /> {p.phone}
                             </a>
                           )}

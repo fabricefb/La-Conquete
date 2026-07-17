@@ -832,8 +832,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
-            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-evangile-600/10">
-              <Shield className="h-10 w-10 text-evangile-500" />
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-accent-400/10">
+              <Shield className="h-10 w-10 text-accent-400" />
             </div>
             <h2 className="text-headline-lg font-display gold-text mb-3">
               Espace Membre
@@ -873,7 +873,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <EvtReveal>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
                 <div className="flex items-center gap-4">
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-evangile-600/15 ring-2 ring-evangile-600/30">
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent-400/15 ring-2 ring-accent-500/30">
                     {profile?.avatar_url ? (
                       <img
                         src={profile.avatar_url}
@@ -881,7 +881,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         className="h-12 w-12 rounded-full object-cover"
                       />
                     ) : (
-                      <User className="h-6 w-6 text-evangile-500" />
+                      <User className="h-6 w-6 text-accent-400" />
                     )}
                     <span className="absolute -bottom-0.5 -right-0.5 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-bg" />
                   </div>
@@ -898,9 +898,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 <div className="relative" ref={notifRef}>
                   <button
                     onClick={() => setShowNotifDropdown(p => !p)}
-                    className="relative flex items-center gap-2.5 rounded-xl glass px-4 py-3 text-sm font-medium text-cream transition-all duration-200 hover:border-evangile-600/30 hover:bg-white/5"
+                    className="relative flex items-center gap-2.5 rounded-xl glass px-4 py-3 text-sm font-medium text-cream transition-all duration-200 hover:border-accent-400/30 hover:bg-white/5"
                   >
-                    <Bell className="h-5 w-5 text-evangile-500" />
+                    <Bell className="h-5 w-5 text-accent-400" />
                     <span className="hidden sm:inline">Notifications</span>
                     {unreadCount > 0 && (
                       <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-evangile-600 px-1.5 text-[11px] font-bold text-white">
@@ -921,7 +921,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                               setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
                               setUnreadCount(0);
                             }}
-                            className="text-[11px] text-evangile-500 hover:text-evangile-400 transition"
+                            className="text-[11px] text-accent-400 hover:text-accent-300 transition"
                           >
                             Tout marquer lu
                           </button>
@@ -976,7 +976,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                1b. HERO — DAILY BIBLE VERSE
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal>
-              <div className="mb-10 relative overflow-hidden rounded-2xl bg-gradient-to-br from-evangile-600/10 via-bg to-amber-400/5 border border-evangile-600/10">
+              <div className="mb-10 relative overflow-hidden rounded-2xl bg-gradient-to-br from-accent-600/10 via-bg to-amber-400/5 border border-accent-400/10">
                 {/* Subtle pattern overlay */}
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)', backgroundSize: '24px 24px' }} />
 
@@ -1004,7 +1004,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       <p className="text-sm sm:text-base text-cream/80 leading-relaxed italic max-w-2xl line-clamp-2">
                         « {heroExhortation} »
                       </p>
-                      <p className="text-xs text-evangile-500/70 mt-2 font-display">
+                      <p className="text-xs text-accent-400/70 mt-2 font-display">
                         — Église Évangélique La Conquête
                       </p>
                     </>
@@ -1033,13 +1033,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       return (
                         <div
                           key={stat.label}
-                          className="glass-card group flex flex-col gap-3 p-5 sm:p-6 transition-all duration-300 hover:border-evangile-600/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-evangile-600/5 cursor-default"
+                          className="glass-card group flex flex-col gap-3 p-5 sm:p-6 transition-all duration-300 hover:border-accent-400/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-accent-500/5 cursor-default"
                         >
                           <div className="flex items-center justify-between">
                             <span className="text-xs sm:text-sm text-muted font-sans leading-snug">
                               {stat.label}
                             </span>
-                            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-evangile-600/10">
+                            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-white/5 transition-colors duration-300 group-hover:bg-accent-400/10">
                               <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
                             </div>
                           </div>
@@ -1059,8 +1059,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               <section className="mb-10">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/10">
-                      <Calendar className="h-5 w-5 text-evangile-500" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10">
+                      <Calendar className="h-5 w-5 text-accent-400" />
                     </div>
                     <h2 className="text-headline-md font-display text-cream">
                       Prochains Événements
@@ -1089,15 +1089,15 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       return (
                         <div
                           key={evt.id}
-                          className="glass-card group flex gap-4 p-4 sm:p-5 transition-all duration-300 hover:border-evangile-600/20 hover:-translate-y-0.5 cursor-pointer"
+                          className="glass-card group flex gap-4 p-4 sm:p-5 transition-all duration-300 hover:border-accent-400/20 hover:-translate-y-0.5 cursor-pointer"
                           onClick={() => onNavigate('events')}
                         >
                           {/* Date badge */}
-                          <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-evangile-600/10 ring-1 ring-evangile-600/20 transition-colors duration-300 group-hover:bg-evangile-600/15">
-                            <span className="text-lg font-bold text-evangile-500 font-display leading-none">
+                          <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl bg-accent-400/10 ring-1 ring-accent-500/20 transition-colors duration-300 group-hover:bg-accent-400/15">
+                            <span className="text-lg font-bold text-accent-400 font-display leading-none">
                               {day}
                             </span>
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-evangile-500/80 mt-0.5">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent-400/80 mt-0.5">
                               {month}
                             </span>
                           </div>
@@ -1413,7 +1413,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                               return (
                                 <div
                                   key={dept.id}
-                                  className="group rounded-xl bg-white/3 border border-white/10 p-4 transition-all duration-200 hover:border-evangile-600/20"
+                                  className="group rounded-xl bg-white/3 border border-white/10 p-4 transition-all duration-200 hover:border-accent-400/20"
                                 >
                                   <div className="flex items-start gap-3">
                                     <div
@@ -1465,18 +1465,18 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     {departments.map((dept) => (
                       <div
                         key={dept.id}
-                        className="glass-card group p-5 transition-all duration-300 hover:border-evangile-600/20 hover:-translate-y-0.5"
+                        className="glass-card group p-5 transition-all duration-300 hover:border-accent-400/20 hover:-translate-y-0.5"
                       >
                         <div className="flex items-start gap-4">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-evangile-600/10 ring-1 ring-evangile-600/20 transition-colors duration-300 group-hover:bg-evangile-600/15">
-                            <Star className="h-5 w-5 text-evangile-500" />
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-400/10 ring-1 ring-accent-500/20 transition-colors duration-300 group-hover:bg-accent-400/15">
+                            <Star className="h-5 w-5 text-accent-400" />
                           </div>
                           <div className="flex-1 min-w-0">
                             <h3 className="text-base font-semibold text-cream truncate">
                               {dept.department_name}
                             </h3>
                             {dept.position_name && (
-                              <p className="mt-0.5 text-sm text-evangile-500 font-medium">
+                              <p className="mt-0.5 text-sm text-accent-400 font-medium">
                                 {dept.position_name}
                               </p>
                             )}
@@ -1484,7 +1484,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         </div>
                         <DeptMemberCount departmentId={dept.id} />
                         <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
-                          <Clock className="h-3.5 w-3.5 shrink-0 text-evangile-500/70" />
+                          <Clock className="h-3.5 w-3.5 shrink-0 text-accent-400/70" />
                           <span>Réunion hebdomadaire —</span>
                           <span className="text-cream/70 font-medium">
                             À confirmer
@@ -1498,7 +1498,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 <div className="mt-4 pt-4 border-t border-line">
                   <button
                     onClick={() => setShowRoleRequest(true)}
-                    className="text-xs text-muted hover:text-evangile-500 transition-colors flex items-center gap-1.5"
+                    className="text-xs text-muted hover:text-accent-400 transition-colors flex items-center gap-1.5"
                   >
                     <Shield className="h-3.5 w-3.5" />
                     Demander un rôle pastoral (ancien, diacre, pasteur...)
@@ -1612,19 +1612,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         <p className="text-xs text-muted">Demandez une visite pastorale à domicile. Un pasteur ou ancien vous contactera pour planifier.</p>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Nom et prénom *</label>
-                          <input type="text" value={visitForm.name} onChange={(e) => setVisitForm({ ...visitForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="Votre nom complet" />
+                          <input type="text" value={visitForm.name} onChange={(e) => setVisitForm({ ...visitForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition" placeholder="Votre nom complet" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Numéro de téléphone / WhatsApp</label>
-                          <input type="tel" value={visitForm.phone} onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="+243 XX XX XX XX" />
+                          <input type="tel" value={visitForm.phone} onChange={(e) => setVisitForm({ ...visitForm, phone: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition" placeholder="+243 XX XX XX XX" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Adresse complète / Lieu de la visite *</label>
-                          <input type="text" value={visitForm.address} onChange={(e) => setVisitForm({ ...visitForm, address: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="Quartier, ville, repère" />
+                          <input type="text" value={visitForm.address} onChange={(e) => setVisitForm({ ...visitForm, address: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition" placeholder="Quartier, ville, repère" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Motif de la visite *</label>
-                          <select value={visitForm.motif} onChange={(e) => setVisitForm({ ...visitForm, motif: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition appearance-none cursor-pointer">
+                          <select value={visitForm.motif} onChange={(e) => setVisitForm({ ...visitForm, motif: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition appearance-none cursor-pointer">
                             <option value="" className="bg-bg text-muted">— Choisir un motif —</option>
                             <option value="Conseil spirituel" className="bg-bg text-cream">Conseil spirituel</option>
                             <option value="Soutien moral" className="bg-bg text-cream">Soutien moral</option>
@@ -1636,14 +1636,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm font-medium text-cream mb-1.5 block">Créneau horaire</label>
-                            <select value={visitForm.timeOfDay} onChange={(e) => setVisitForm({ ...visitForm, timeOfDay: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition appearance-none cursor-pointer">
+                            <select value={visitForm.timeOfDay} onChange={(e) => setVisitForm({ ...visitForm, timeOfDay: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition appearance-none cursor-pointer">
                               <option value="Matin" className="bg-bg text-cream">Matin</option>
                               <option value="Après-midi" className="bg-bg text-cream">Après-midi</option>
                             </select>
                           </div>
                           <div>
                             <label className="text-sm font-medium text-cream mb-1.5 block">Jour préféré</label>
-                            <select value={visitForm.dayRange} onChange={(e) => setVisitForm({ ...visitForm, dayRange: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition appearance-none cursor-pointer">
+                            <select value={visitForm.dayRange} onChange={(e) => setVisitForm({ ...visitForm, dayRange: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition appearance-none cursor-pointer">
                               <option value="Lundi-Vendredi" className="bg-bg text-cream">Lundi à Vendredi</option>
                               <option value="Samedi" className="bg-bg text-cream">Samedi</option>
                               <option value="Dimanche" className="bg-bg text-cream">Dimanche</option>
@@ -1674,19 +1674,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           <div className="flex items-center justify-between mb-1.5">
                             <label className="text-sm font-medium text-cream">Nom et prénom</label>
                             <label className="flex items-center gap-2 cursor-pointer text-xs text-muted hover:text-cream transition">
-                              <input type="checkbox" checked={pastoralPrayerForm.hideName} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, hideName: e.target.checked })} className="rounded border-line bg-white/5 text-evangile-500 focus:ring-evangile-600/30" />
+                              <input type="checkbox" checked={pastoralPrayerForm.hideName} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, hideName: e.target.checked })} className="rounded border-line bg-white/5 text-accent-400 focus:ring-accent-500/30" />
                               Masquer mon nom
                             </label>
                           </div>
-                          <input type="text" value={pastoralPrayerForm.hideName ? '' : pastoralPrayerForm.name} disabled={pastoralPrayerForm.hideName} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition disabled:opacity-40" placeholder="Votre nom" />
+                          <input type="text" value={pastoralPrayerForm.hideName ? '' : pastoralPrayerForm.name} disabled={pastoralPrayerForm.hideName} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, name: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition disabled:opacity-40" placeholder="Votre nom" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">E-mail</label>
-                          <input type="email" value={pastoralPrayerForm.email} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, email: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition" placeholder="votre@email.com" />
+                          <input type="email" value={pastoralPrayerForm.email} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, email: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition" placeholder="votre@email.com" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-1.5 block">Votre besoin / Intention de prière *</label>
-                          <textarea value={pastoralPrayerForm.content} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, content: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition min-h-[120px] resize-y" placeholder="Décrivez votre besoin de prière…" />
+                          <textarea value={pastoralPrayerForm.content} onChange={(e) => setPastoralPrayerForm({ ...pastoralPrayerForm, content: e.target.value })} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition min-h-[120px] resize-y" placeholder="Décrivez votre besoin de prière…" />
                         </div>
                         <div>
                           <label className="text-sm font-medium text-cream mb-2 block">Confidentialité</label>
@@ -1696,11 +1696,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                               ['pastoral', 'Équipe pastorale uniquement', 'Visible par le pasteur, anciens et diacres'],
                               ['confidentiel', 'Confidentielle', 'Visible par le pasteur uniquement'],
                             ] as const).map(([val, label, desc]) => (
-                              <label key={val} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${pastoralPrayerForm.visibility === val ? 'bg-evangile-600/10 border-evangile-600/30 text-evangile-500' : 'bg-white/3 border-line text-cream/80 hover:bg-white/5'}`}>
+                              <label key={val} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all duration-200 ${pastoralPrayerForm.visibility === val ? 'bg-accent-400/10 border-accent-400/30 text-accent-400' : 'bg-white/3 border-line text-cream/80 hover:bg-white/5'}`}>
                                 <input type="radio" name="pastoral-prayer-visibility" value={val} checked={pastoralPrayerForm.visibility === val} onChange={() => setPastoralPrayerForm({ ...pastoralPrayerForm, visibility: val })} className="mt-0.5" />
                                 <div>
                                   <span className="text-sm font-medium block">{label}</span>
-                                  <span className={`text-xs ${pastoralPrayerForm.visibility === val ? 'text-evangile-500/70' : 'text-muted'}`}>{desc}</span>
+                                  <span className={`text-xs ${pastoralPrayerForm.visibility === val ? 'text-accent-400/70' : 'text-muted'}`}>{desc}</span>
                                 </div>
                               </label>
                             ))}
@@ -1747,7 +1747,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                                     : 'Ne vous découragez pas. Le parcours spirituel connaît des saisons. Nous sommes là pour vous accompagner.'}
                               </p>
                               {evalWantInterview && (
-                                <p className="mt-3 text-sm text-evangile-500 font-medium">🙏 Un pasteur vous contactera bientôt pour un entretien personnalisé.</p>
+                                <p className="mt-3 text-sm text-accent-400 font-medium">🙏 Un pasteur vous contactera bientôt pour un entretien personnalisé.</p>
                               )}
                             </div>
                             <button onClick={resetEval} className="btn-ghost text-sm px-4 py-2">Recommencer l'évaluation</button>
@@ -1782,7 +1782,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                                               <button
                                                 key={opt}
                                                 onClick={() => setEvalAnswers((prev) => ({ ...prev, [q.id]: oi }))}
-                                                className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${evalAnswers[q.id] === oi ? 'bg-evangile-600/15 border-evangile-600/40 text-evangile-500' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5 hover:text-cream'}`}
+                                                className={`px-3.5 py-2 rounded-xl text-xs font-medium border transition-all duration-200 ${evalAnswers[q.id] === oi ? 'bg-accent-400/15 border-accent-400/40 text-accent-400' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5 hover:text-cream'}`}
                                               >
                                                 {opt}
                                               </button>
@@ -1799,7 +1799,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                             <div className="border-t border-line pt-4">
                               <label className="text-sm font-medium text-cream mb-2 block">Souhaitez-vous planifier un entretien pastoral ?</label>
                               <div className="flex gap-3">
-                                <button onClick={() => setEvalWantInterview(true)} className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${evalWantInterview ? 'bg-evangile-600/15 border-evangile-600/40 text-evangile-500' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5'}`}>Oui</button>
+                                <button onClick={() => setEvalWantInterview(true)} className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${evalWantInterview ? 'bg-accent-400/15 border-accent-400/40 text-accent-400' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5'}`}>Oui</button>
                                 <button onClick={() => setEvalWantInterview(false)} className={`px-5 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${!evalWantInterview ? 'bg-white/5 border-cream/20 text-cream' : 'bg-white/3 border-line text-cream/70 hover:bg-white/5'}`}>Non</button>
                               </div>
                             </div>
@@ -1848,8 +1848,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               <section className="mb-10">
                 <div className="flex items-center justify-between mb-5">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-evangile-600/10">
-                      <Sparkles className="h-5 w-5 text-evangile-500" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10">
+                      <Sparkles className="h-5 w-5 text-accent-400" />
                     </div>
                     <h2 className="text-headline-md font-display text-cream">
                       Témoignage
@@ -1887,7 +1887,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                             onClick={() => setTestimonyCategory(c.val)}
                             className={`rounded-lg px-3 py-1.5 text-[11px] font-medium border transition-all ${
                               testimonyCategory === c.val
-                                ? 'border-evangile-600/50 bg-evangile-600/10 text-evangile-500'
+                                ? 'border-accent-400/50 bg-accent-400/10 text-accent-400'
                                 : 'border-line text-muted hover:text-cream hover:border-white/20'
                             }`}
                           >
@@ -1901,14 +1901,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       placeholder="Partagez ce que Dieu a fait dans votre vie..."
                       value={testimonyContent}
                       onChange={(e) => setTestimonyContent(e.target.value)}
-                      className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-evangile-600/30 focus:border-evangile-600/30 resize-none"
+                      className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 text-sm text-cream placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-accent-500/30 focus:border-accent-400/30 resize-none"
                     />
                     <label className="flex items-center gap-2 text-sm text-muted cursor-pointer select-none">
                       <input
                         type="checkbox"
                         checked={testimonyAnonymous}
                         onChange={(e) => setTestimonyAnonymous(e.target.checked)}
-                        className="h-4 w-4 rounded border-white/20 bg-white/5 text-evangile-500 focus:ring-evangile-600/30"
+                        className="h-4 w-4 rounded border-white/20 bg-white/5 text-accent-400 focus:ring-accent-500/30"
                       />
                       Publier anonymement
                     </label>
@@ -1926,7 +1926,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </div>
                 ) : (
                   <div className="glass-card flex flex-col items-center justify-center py-10 text-center">
-                    <Quote className="mb-3 h-10 w-10 text-evangile-500/30" />
+                    <Quote className="mb-3 h-10 w-10 text-accent-400/30" />
                     <p className="text-muted text-sm mb-1">Aucun témoignage partagé</p>
                     <p className="text-xs text-muted/60">Partagez ce que Dieu a fait dans votre vie pour encourager l'église.</p>
                   </div>
@@ -1959,13 +1959,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   <div className="glass-card p-5 sm:p-6">
                     <div className="relative">
                       {/* Timeline line */}
-                      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-evangile-600/20" />
+                      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-accent-400/20" />
 
                       <div className="space-y-6">
                         {notifications.slice(0, 5).map((notif, idx) => (
                           <div key={notif.id} className="relative flex gap-4">
                             {/* Dot */}
-                            <div className="relative z-10 mt-1 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-bg ring-2 ring-evangile-600/30">
+                            <div className="relative z-10 mt-1 flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-bg ring-2 ring-accent-500/30">
                               {notif.type === 'prayer' ? (
                                 <Heart className="h-3.5 w-3.5 text-rose-400" />
                               ) : notif.type === 'visit' ? (
@@ -2026,7 +2026,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             <p className="text-xs text-muted">Soumettez votre demande. L'administrateur examinera votre profil et vous répondra.</p>
             <div>
               <label className="text-sm font-medium text-cream mb-1.5 block">Rôle souhaité *</label>
-              <select value={roleRequestForm.requested_role} onChange={e => setRoleRequestForm({...roleRequestForm, requested_role: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition appearance-none cursor-pointer">
+              <select value={roleRequestForm.requested_role} onChange={e => setRoleRequestForm({...roleRequestForm, requested_role: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition appearance-none cursor-pointer">
                 <option value="" className="bg-bg text-muted">— Choisir —</option>
                 <option value="ancien" className="bg-bg text-cream">Ancien</option>
                 <option value="diacre" className="bg-bg text-cream">Diacre</option>
@@ -2037,7 +2037,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </div>
             <div>
               <label className="text-sm font-medium text-cream mb-1.5 block">Pourquoi souhaitez-vous ce rôle ?</label>
-              <textarea value={roleRequestForm.reason} onChange={e => setRoleRequestForm({...roleRequestForm, reason: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-evangile-600/50 transition min-h-[100px] resize-y" placeholder="Décrivez votre appel et votre engagement..." />
+              <textarea value={roleRequestForm.reason} onChange={e => setRoleRequestForm({...roleRequestForm, reason: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-line text-cream text-sm outline-none focus:border-accent-400/50 transition min-h-[100px] resize-y" placeholder="Décrivez votre appel et votre engagement..." />
             </div>
             <div className="flex gap-3 justify-end">
               <button onClick={() => setShowRoleRequest(false)} className="btn-ghost text-sm px-4 py-2">Annuler</button>

@@ -148,11 +148,11 @@ export function LocationsTab() {
           {locations.map((loc) => (
             <div key={loc.id} className="glass rounded-2xl p-4 flex items-start justify-between gap-4 transition hover:scale-[1.005]">
               <div className="flex items-start gap-3">
-                <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-evangile-500' : 'text-ember-400'}`} />
+                <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-accent-400' : 'text-ember-400'}`} />
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-cream">{loc.name}</p>
-                    {loc.is_main && <span className="rounded-full bg-evangile-600/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-evangile-500">Principal</span>}
+                    {loc.is_main && <span className="rounded-full bg-accent-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-accent-400">Principal</span>}
                     {!loc.is_active && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted">Inactif</span>}
                   </div>
                   <p className="text-sm text-muted">{loc.address}, {loc.city}</p>
@@ -160,7 +160,7 @@ export function LocationsTab() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {isFullAdmin && <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-evangile-600/40 hover:text-evangile-500 transition"><Edit3 className="h-4 w-4" /></button>}
+                {isFullAdmin && <button onClick={() => openEdit(loc)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-accent-400/40 hover:text-accent-400 transition"><Edit3 className="h-4 w-4" /></button>}
                 {isFullAdmin && <button onClick={() => handleDelete(loc.id, loc.name)} className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:border-ember-500/40 hover:text-ember-400 transition"><Trash2 className="h-4 w-4" /></button>}
               </div>
             </div>

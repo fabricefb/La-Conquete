@@ -63,7 +63,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <p className="reveal section-label justify-center">À propos</p>
           <h2 className="reveal reveal-delay-1 mt-4 font-serif text-3xl font-semibold text-cream sm:text-4xl">Qui sommes-nous ?</h2>
           <p className="reveal reveal-delay-2 mt-6 text-base leading-relaxed text-muted sm:text-lg">
-            Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className="text-evangile-500 font-semibold">présent</span>.
+            Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className="text-accent-400 font-semibold">présent</span>.
           </p>
         </div>
       </section>
@@ -76,7 +76,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {ACTIVITIES.map((a, i) => (
               <div key={a.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card card-parallax rounded-2xl p-6 transition-all duration-300`}>
-                <IconBox pageKey="jeunesse" elementId={`activity-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-evangile-600/10 text-evangile-500">
+                <IconBox pageKey="jeunesse" elementId={`activity-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent-400/10 text-accent-400">
                   <a.Icon className="h-6 w-6" />
                 </IconBox>
                 <h3 className="font-serif text-xl font-semibold text-cream">{a.title}</h3>
@@ -95,8 +95,8 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <div className="space-y-4">
             {PROGRAM.map((p, i) => (
               <div key={p.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-5 flex items-start gap-4 transition-all duration-300 hover:scale-[1.01]`}>
-                <div className="flex-shrink-0 rounded-xl bg-evangile-600/10 px-3 py-1.5 text-center">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-evangile-500">{p.date}</p>
+                <div className="flex-shrink-0 rounded-xl bg-accent-400/10 px-3 py-1.5 text-center">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-accent-400">{p.date}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-cream">{p.title}</h3>
@@ -132,7 +132,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
             {TESTIMONIALS.map((t, i) => (
               <div key={t.name} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6`}>
                 <div className="mb-3 flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-evangile-600/10 text-evangile-500 font-bold text-sm">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-400/10 text-accent-400 font-bold text-sm">
                     {t.name.charAt(0)}
                   </div>
                   <p className="font-semibold text-cream">{t.name}</p>
@@ -152,7 +152,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
             Tu as entre 15 et 35 ans ? Tu cherches une communauté où grandir et servir ? Viens nous rencontrer !
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Users className="h-5 w-5 text-evangile-500" />
+            <Users className="h-5 w-5 text-accent-400" />
             <button onClick={() => onNavigate('contact')} className="btn-primary">Rejoindre la jeunesse</button>
           </div>
         </div>

@@ -142,7 +142,7 @@ export function AboutPage({ onNavigate }: PageProps) {
             <RevealSection>
               <div className="glass rounded-3xl p-8 bg-radial-primary">
                 <div className="mb-4 flex items-center gap-3">
-                  <IconBox pageKey="about" elementId="vision-bookopen-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                  <IconBox pageKey="about" elementId="vision-bookopen-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                     <BookOpen className="h-5 w-5" />
                   </IconBox>
                   <h2 className="section-label mb-0">Notre Vision</h2>
@@ -156,7 +156,7 @@ export function AboutPage({ onNavigate }: PageProps) {
             <RevealSection className="reveal-delay-1">
               <div className="glass rounded-3xl p-8">
                 <div className="mb-4 flex items-center gap-3">
-                  <IconBox pageKey="about" elementId="mission-heart-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500">
+                  <IconBox pageKey="about" elementId="mission-heart-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                     <Heart className="h-5 w-5" />
                   </IconBox>
                   <h2 className="section-label mb-0">Notre Mission</h2>
@@ -185,13 +185,13 @@ export function AboutPage({ onNavigate }: PageProps) {
             <RevealSection>
               <div className="flex justify-center">
                 <div className="relative">
-                  <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-evangile-600/30 to-ember-500/20 blur-xl" />
+                  <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-accent-600/30 to-ember-500/20 blur-xl" />
                   <img
                     src={main.photo_url || '/pasteur-kazadi.jpg'}
                     alt={main.name}
                     className="relative h-80 w-64 rounded-3xl object-cover shadow-2xl sm:h-96 sm:w-72"
                   />
-                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-evangile-600 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg">
+                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-accent-500 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg">
                     Fondateur
                   </div>
                 </div>
@@ -200,13 +200,13 @@ export function AboutPage({ onNavigate }: PageProps) {
 
             <RevealSection className="reveal-delay-1">
               <h3 className="font-serif text-3xl font-bold text-cream sm:text-4xl">{main.name}</h3>
-              <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-evangile-500">{main.role}</p>
+              <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-accent-400">{main.role}</p>
               <p className="mt-6 text-base leading-relaxed text-cream/80">{main.bio}</p>
 
               {main.thought && (
-                <blockquote className="mt-8 border-l-2 border-evangile-600/40 pl-5">
+                <blockquote className="mt-8 border-l-2 border-accent-400/40 pl-5">
                   <p className="text-sm italic leading-relaxed text-muted">« {main.thought} »</p>
-                  <p className="mt-2 text-xs font-semibold text-evangile-500">— {main.name}</p>
+                  <p className="mt-2 text-xs font-semibold text-accent-400">— {main.name}</p>
                 </blockquote>
               )}
             </RevealSection>
@@ -236,7 +236,7 @@ export function AboutPage({ onNavigate }: PageProps) {
                   </div>
                   <div className="p-6 text-center">
                     <h3 className="font-serif text-lg font-semibold text-cream">{member.name}</h3>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-evangile-500">{member.role}</p>
+                    <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-accent-400">{member.role}</p>
                   </div>
                 </div>
               </RevealSection>
@@ -245,9 +245,9 @@ export function AboutPage({ onNavigate }: PageProps) {
 
           {/* Placeholder for extension pastors */}
           <RevealSection className="mt-12">
-            <div className="glass rounded-3xl p-8 text-center border border-dashed border-evangile-600/20">
+            <div className="glass rounded-3xl p-8 text-center border border-dashed border-accent-400/20">
               <p className="text-sm text-muted">
-                <span className="font-semibold text-evangile-500">Pasteurs des extensions</span> — Les portraits des pasteurs responsables de nos églises extensions seront ajoutés prochainement.
+                <span className="font-semibold text-accent-400">Pasteurs des extensions</span> — Les portraits des pasteurs responsables de nos églises extensions seront ajoutés prochainement.
               </p>
             </div>
           </RevealSection>
@@ -314,7 +314,7 @@ export function AboutPage({ onNavigate }: PageProps) {
         <div className="mx-auto max-w-4xl">
           <RevealSection className="text-center">
             <div className="mb-4 flex justify-center">
-              <HandHeart className="h-8 w-8 text-evangile-500/60" />
+              <HandHeart className="h-8 w-8 text-accent-400/60" />
             </div>
             <p className="section-label justify-center">Soutenir l'œuvre</p>
             <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Dîmes, Offrandes & Dons</h2>
@@ -327,7 +327,7 @@ export function AboutPage({ onNavigate }: PageProps) {
             {GIVING.map((item, i) => (
               <RevealSection key={item.label} className={`reveal-delay-${i + 1}`}>
                 <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.02]">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-evangile-500">{item.label}</p>
+                  <p className="text-xs font-semibold uppercase tracking-widest text-accent-400">{item.label}</p>
                   <p className="mt-2 font-mono text-lg font-semibold text-cream">{item.value}</p>
                 </div>
               </RevealSection>
@@ -376,13 +376,13 @@ export function AboutPage({ onNavigate }: PageProps) {
               <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
                 {href ? (
                   <a href={href} target="_blank" rel="noopener noreferrer" className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105 block">
-                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></IconBox>
+                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400"><Icon className="h-5 w-5" /></IconBox>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
                     <p className="text-sm font-medium text-cream">{value}</p>
                   </a>
                 ) : (
                   <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105">
-                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-evangile-600/20 text-evangile-500"><Icon className="h-5 w-5" /></IconBox>
+                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400"><Icon className="h-5 w-5" /></IconBox>
                     <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
                     <p className="text-sm font-medium text-cream">{value}</p>
                   </div>
