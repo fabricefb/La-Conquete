@@ -36,67 +36,68 @@ interface CulteTypeConfig {
   group: 'hebdomadaire' | 'special';
   dayOfWeek: number;        // 0=Dim, 1=Lun ... 6=Sam
   defaultTime: string;
+  endTime: string;
   color: string;            // tailwind text color
 }
 
 const WORSHIP_TYPE_CONFIGS: Record<WorshipServiceType, CulteTypeConfig> = {
   enseignement_priere: {
     label: "Culte d'enseignement et pri\u00e8re",
-    description: 'Mercredi \u2014 Enseignement biblique et pri\u00e8re',
-    group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '18:00',
+    description: 'Mercredi \u2014 Enseignement biblique et pri\u00e8re (16h30\u201318h00)',
+    group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '16:30', endTime: '18:00',
     color: 'text-blue-300',
   },
   jeune_priere: {
     label: 'Culte de je\u00fbne et pri\u00e8re',
-    description: 'Vendredi \u2014 Je\u00fbne et pri\u00e8re communautaire',
-    group: 'hebdomadaire', dayOfWeek: 5, defaultTime: '17:00',
+    description: 'Vendredi \u2014 Je\u00fbne et pri\u00e8re communautaire (16h00\u201318h30)',
+    group: 'hebdomadaire', dayOfWeek: 5, defaultTime: '16:00', endTime: '18:30',
     color: 'text-purple-300',
   },
   jeune_gen_espoir: {
     label: 'Culte de je\u00fbne (G\u00e9n\u00e9ration Espoir)',
-    description: 'Samedi \u2014 Je\u00fbne des jeunes G\u00e9n\u00e9ration Espoir',
-    group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '08:00',
+    description: 'Samedi \u2014 Je\u00fbne des jeunes G\u00e9n\u00e9ration Espoir (15h00\u201317h00)',
+    group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '15:00', endTime: '17:00',
     color: 'text-emerald-300',
   },
   adoration_louange: {
     label: "Culte d'adoration et louange",
-    description: 'Dimanche \u2014 Culte principal d\u2019adoration et louange',
-    group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '09:00',
+    description: 'Dimanche \u2014 Culte principal d\u2019adoration et louange (08h00\u201310h45)',
+    group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '08:00', endTime: '10:45',
     color: 'text-amber-300',
   },
   seminaire: {
     label: 'S\u00e9minaire', description: 'S\u00e9minaire d\u2019enseignement',
-    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '12:00',
     color: 'text-cyan-300',
   },
   veillee: {
     label: 'Veill\u00e9e', description: 'Veill\u00e9e de pri\u00e8re ou louange',
-    group: 'special', dayOfWeek: -1, defaultTime: '21:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '21:00', endTime: '23:00',
     color: 'text-indigo-300',
   },
   culte_special: {
     label: 'Culte sp\u00e9cial', description: 'Culte th\u00e9matique ou occasionnel',
-    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '12:00',
     color: 'text-rose-300',
   },
   conference: {
     label: 'Conf\u00e9rence', description: 'Conf\u00e9rence ou convention',
-    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '17:00',
     color: 'text-orange-300',
   },
   exposition: {
     label: 'Exposition', description: 'Exposition biblique',
-    group: 'special', dayOfWeek: -1, defaultTime: '10:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '10:00', endTime: '12:00',
     color: 'text-teal-300',
   },
   retraite: {
     label: 'Retraite', description: 'Retraite spirituelle',
-    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '17:00',
     color: 'text-violet-300',
   },
   autre: {
     label: 'Autre', description: 'Autre type de culte',
-    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '11:00',
     color: 'text-gray-300',
   },
 };
@@ -473,7 +474,7 @@ export function PlanificationTab() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}</p>
+                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
                           {svc.is_delayed && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
