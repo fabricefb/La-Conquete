@@ -353,7 +353,28 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
       <SiteHeader onNavigate={onNavigate} activePage="predications" />
 
       {/* ─── HERO ─── */}
-      <UniversalHero pageKey="predications" defaultBadge="Prédications" defaultTitle="Nos Prédications" defaultSubtitle="Retrouvez les enseignements bibliques, prédications et séries de notre église pour nourrir votre vie spirituelle." />
+      <UniversalHero pageKey="predications" defaultBadge="Prédications" defaultTitle="Nos Prédications" defaultSubtitle="Retrouvez les enseignements bibliques, prédications et séries de notre église pour nourrir votre vie spirituelle.">
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+          <a
+            href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full bg-accent-400 px-6 py-3 text-sm font-bold text-navy-900 transition-all duration-300 hover:bg-accent-300 hover:scale-[1.03] active:scale-95"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            Voir sur YouTube
+          </a>
+          <a
+            href="https://www.facebook.com/profile.php?id=100063920379476"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-6 py-3 text-sm font-bold text-gold transition-all duration-300 hover:bg-gold/20 hover:scale-[1.03] active:scale-95"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            Voir sur Facebook
+          </a>
+        </div>
+      </UniversalHero>
 
       {/* ─── FILTER BAR (sticky) ─── */}
       <section className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">
@@ -397,68 +418,108 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
         </div>
       </section>
 
-      {/* ─── FEATURED SERMON ─── */}
-      {featured && (
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-          <RevealSection>
-            <div className="glass rounded-3xl overflow-hidden">
-              <div className="grid lg:grid-cols-2">
-                <VideoPlayerPlaceholder title={featured.title} large />
-                <div className="flex flex-col justify-center p-8 lg:p-12">
-                  <span className="mb-4 self-start rounded-full border border-accent-400/20 bg-accent-400/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">
-                    Prédication à la une
-                  </span>
-                  <h2 className="font-serif text-3xl font-semibold text-cream lg:text-4xl">{featured.title}</h2>
-                  <p className="mt-4 text-muted leading-relaxed">{featured.description}</p>
-                  <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted">
-                    <span className="flex items-center gap-1.5">
-                      <Mic className="h-4 w-4 text-accent-400" />
-                      {featured.preacher}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Calendar className="h-4 w-4 text-accent-400" />
-                      {new Date(featured.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                    {featured.duration && (
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="h-4 w-4 text-accent-400" />
-                        {featured.duration}
-                      </span>
-                    )}
+      {/* ─── LIENS EXTERNES : YouTube & Facebook ─── */}
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <RevealSection>
+          <div className="grid gap-6 sm:grid-cols-2">
+            {/* YouTube Card */}
+            <a
+              href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass group rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.02]"
+            >
+              <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-red-900/40 via-navy-900 to-black">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,0,0,0.08),transparent_70%)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-red-500/50 bg-red-500/10 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:border-red-500/80 group-hover:bg-red-500/20">
+                    <svg className="ml-1 h-8 w-8 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
                   </div>
-                  {featured.series && (
-                    <span className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-accent-400/20 bg-accent-400/10 px-3 py-1 text-xs font-medium text-accent-400">
-                      <BookOpen className="h-3.5 w-3.5" />
-                      Série : {featured.series}
-                    </span>
-                  )}
                 </div>
               </div>
-            </div>
-          </RevealSection>
-        </section>
-      )}
+              <div className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10">
+                    <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl font-semibold text-cream">Chaîne YouTube</h3>
+                    <p className="text-sm text-muted">Retrouvez toutes nos prédications en vidéo</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-sm font-medium text-red-400">
+                  Regarder maintenant <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </div>
+            </a>
 
-      {/* ─── SERMON GRID ─── */}
+            {/* Facebook Card */}
+            <a
+              href="https://www.facebook.com/profile.php?id=100063920379476"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass group rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.02]"
+            >
+              <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-blue-900/40 via-navy-900 to-black">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,89,152,0.1),transparent_70%)]" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-blue-500/50 bg-blue-500/10 backdrop-blur-sm transition-all duration-300 group-hover:scale-110 group-hover:border-blue-500/80 group-hover:bg-blue-500/20">
+                    <svg className="h-8 w-8 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10">
+                    <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                  </div>
+                  <div>
+                    <h3 className="font-serif text-xl font-semibold text-cream">Page Facebook</h3>
+                    <p className="text-sm text-muted">Suivez-nous pour les live et annonces</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-2 text-sm font-medium text-blue-400">
+                  Voir notre page <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </div>
+            </a>
+          </div>
+        </RevealSection>
+      </section>
+
+      {/* ─── DERNIÈRES PRÉDICATIONS (liens externes) ─── */}
       <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <RevealSection>
-          <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Toutes les prédications</h2>
+          <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Dernières prédications</h2>
         </RevealSection>
-        {gridSermons.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {gridSermons.map((sermon, i) => (
-              <RevealSection key={sermon.id} className={`reveal-delay-${(i % 3) + 1}`}>
-                <SermonCard sermon={sermon} />
-              </RevealSection>
-            ))}
-          </div>
-        ) : (
-          <div className="py-16 text-center">
-            <Search className="mx-auto h-10 w-10 text-muted/30" />
-            <p className="mt-4 text-lg font-serif font-semibold text-muted">Aucune prédication trouvée</p>
-            <p className="mt-2 text-sm text-muted/60">Essayez d'ajuster vos filtres de recherche.</p>
-          </div>
-        )}
+        <div className="space-y-3">
+          {SAMPLE_SERMONS.slice(0, 6).map((sermon, i) => (
+            <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
+              <a
+                href="https://www.youtube.com/@EgliseEvangeliqueLaConquete/videos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass group rounded-2xl flex items-center gap-4 p-4 transition-all duration-200 hover:bg-white/[0.03] cursor-pointer block"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 transition-all group-hover:border-red-500/40 group-hover:bg-red-500/20">
+                  <Play className="ml-0.5 h-5 w-5 text-red-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-serif text-base font-semibold text-cream truncate">{sermon.title}</h3>
+                  <div className="flex items-center gap-3 text-sm text-muted mt-0.5">
+                    <span>{sermon.preacher}</span>
+                    <span className="text-muted/40">·</span>
+                    <span>{new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                  </div>
+                </div>
+                {sermon.duration && (
+                  <span className="shrink-0 text-sm text-muted hidden sm:block">{sermon.duration}</span>
+                )}
+                <ArrowRight className="h-4 w-4 text-muted/40 transition-transform group-hover:translate-x-1 group-hover:text-accent-400 shrink-0" />
+              </a>
+            </RevealSection>
+          ))}
+        </div>
       </section>
 
       {/* ─── SERIES / COLLECTIONS ─── */}

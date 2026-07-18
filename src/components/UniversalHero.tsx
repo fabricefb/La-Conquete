@@ -117,6 +117,7 @@ export function UniversalHero({
             {subtitle}
           </p>
         )}
+        {children}
       </div>
     </section>
   );
