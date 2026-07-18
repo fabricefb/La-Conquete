@@ -12,7 +12,6 @@ import { LiveStreamModal } from '../components/LiveStreamModal';
 import { TypingText } from '../components/home/TypingHero';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
-import { InteractiveMap } from '../components/InteractiveMap';
 import {
   Crown,
   Flame,
@@ -31,7 +30,7 @@ import {
   Clock,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
-import type { Location, ChurchEvent } from '../types';
+import type { ChurchEvent } from '../types';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants & defaults
@@ -169,7 +168,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [pastors, setPastors] = useState<any[]>([]);
-  const [locations, setLocations] = useState<Location[]>([]);
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveModalOpen, setLiveModalOpen] = useState(false);
@@ -182,14 +180,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, testimonialData, pastorData, builderData, colorsData, locationData, eventData] = await Promise.all([
+        const [contents, settings, testimonialData, pastorData, builderData, colorsData, eventData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
           db.getActiveTestimonials(),
           db.getActivePastors(),
           supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
           supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
-          db.getActiveLocations().catch(() => []),
           db.getEvents().catch(() => []),
         ]);
         if (cancelled) return;
@@ -233,7 +230,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
           (pastorData || [])
             .sort((a: any, b: any) => (b.role_level ?? 0) - (a.role_level ?? 0)),
         );
-        setLocations((locationData || []) as Location[]);
         setEvents((eventData || []) as ChurchEvent[]);
       } catch {
         // Silently fall back to defaults
@@ -262,6 +258,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const getBuilderConfig = (sectionId: string, key: string, fallback: unknown = ''): unknown => {
     return builderConfig[sectionId]?.config?.[key] ?? fallback;
   };
+
+  // Helper: get inline style from section colors
+  const getSectionStyle = (sectionId: string): React.CSSProperties => {
+    const c = sectionColors[sectionId];
+    if (!c) return {};
+    const s: React.CSSProperties = {};
+    if (c.bg) s.backgroundColor = c.bg;
+    if (c.text) s.color = c.text;
+    return s;
+  };
+
+  // Pastors section config
+  const pastorsLabel = getContent(cm, 'pastors', 'label', 'Notre équipe');
+  const pastorsTitle = getContent(cm, 'pastors', 'title', 'Rencontrez ceux qui servent');
+  const pastorColumns = Number(getBuilderConfig('pastors', 'columns', 4)) || 4;
+  const pastorMaxDisplay = Number(getBuilderConfig('pastors', 'max_display', 8)) || 8;
+  const pastorShowBio = getBuilderConfig('pastors', 'show_bio', true) as boolean;
 
   // Topbar dynamic content
   const topbarPhone = getContent(cm, 'topbar', 'phone', '');
@@ -513,7 +526,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (
-      <section className="py-24 bg-radial-primary">
+      <section className="py-24 bg-radial-primary" style={getSectionStyle('pillars')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Nos Fondements</p>
@@ -558,7 +571,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: MOT DU PASTEUR ═══════ */}
       {isSectionVisible('unique') && (
-      <section className="py-24">
+      <section className="py-24" style={getSectionStyle('unique')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             {/* Left: PNG portrait (no frame) + signature */}
@@ -628,7 +641,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: EXPLORER ═══════ */}
       {isSectionVisible('explore') && (
-      <section className="py-24 bg-radial-primary">
+      <section className="py-24 bg-radial-primary" style={getSectionStyle('explore')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Explorer</p>
@@ -710,7 +723,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: DERNIÈRES NOUVELLES ═══════ */}
       {isSectionVisible('news') && (
-      <section className="py-24 bg-radial-primary">
+      <section className="py-24 bg-radial-primary" style={getSectionStyle('news')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Actualités</p>
@@ -771,7 +784,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {isSectionVisible('quote') && (
       <section
         className="py-28"
-        style={{ backgroundColor: 'rgb(var(--bg-rgb))' }}
+        style={{ ...getSectionStyle('quote'), backgroundColor: 'rgb(var(--bg-rgb))' }}
       >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <RevealSection>
@@ -802,17 +815,17 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: PASTORAL TEAM ═══════ */}
       {isSectionVisible('pastors') && pastors.length > 0 && (
-        <section className="py-24">
+        <section className="py-24" style={getSectionStyle('pastors')}>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
-              <p className="section-label justify-center">Notre équipe</p>
+              <p className="section-label justify-center" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : undefined}>{pastorsLabel}</p>
               <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
-                Rencontrez ceux qui servent
+                {pastorsTitle}
               </h2>
             </RevealSection>
 
             <RevealSection>
-              <EnhancedPastorGrid pastors={pastors} />
+              <EnhancedPastorGrid pastors={pastors.slice(0, pastorMaxDisplay)} columns={pastorColumns} showBio={pastorShowBio} />
             </RevealSection>
           </div>
         </section>
@@ -820,7 +833,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: TESTIMONIALS ═══════ */}
       {isSectionVisible('testimonials') && testimonials.length > 0 && (
-        <section className="py-24 bg-radial-primary">
+        <section className="py-24 bg-radial-primary" style={getSectionStyle('testimonials')}>
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center">Témoignages</p>
@@ -839,21 +852,22 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
       <section className="relative h-[520px] overflow-hidden">
-        {/* Map as full background */}
-        <div className="absolute inset-0">
-          <div className="h-full w-full [&_.overflow-hidden]:!rounded-none [&_.overflow-hidden]:!border-0 [&_.overflow-hidden]:!shadow-none">
-            {locations.length > 0 ? (
-              <InteractiveMap locations={locations} className="h-full [&_div:first-child]:!rounded-none [&_div:first-child]:!border-0" />
-            ) : (
-              <div className="h-full w-full bg-evangile-900/50" />
-            )}
-          </div>
+        {/* Map as full background (Google Maps iframe) */}
+        <div className="absolute inset-0 z-0">
+          <iframe
+            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3907.451037817296!2d27.47710807481882!3d-11.662413288545377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19723fdfcdd79fa3%3A0xd1db505d58bc72bb!2sEglise%20Evang%C3%A8lique%20la%20Conqu%C3%AAte!5e0!3m2!1sfr!2scd!4v1784346539701!5m2!1sfr!2scd"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="strict-origin-when-cross-origin"
+            title="Localisation Église La Conquête"
+          />
         </div>
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/50" />
+        <div className="absolute inset-0 bg-black/50 z-[1]" />
 
         {/* CTA content overlay */}
-        <div className="relative z-10 flex items-center justify-center h-full">
+        <div className="relative z-[2] flex items-center justify-center h-full">
           <div className="mx-auto max-w-2xl px-4 text-center">
             <RevealSection>
               {/* Heart with ping */}

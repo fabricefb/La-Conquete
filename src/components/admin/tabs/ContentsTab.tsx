@@ -320,6 +320,10 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'title', label: 'Titre du CTA', type: 'text', value: 'Rejoignez notre famille' },
       { field_key: 'text', label: 'Texte du CTA', type: 'text', value: '' },
     ],
+    pastors: [
+      { field_key: 'label', label: 'Label de section', type: 'text', value: 'Notre équipe' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Rencontrez ceux qui servent' },
+    ],
     quote: [
       { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: '' },
       { field_key: 'text', label: 'Texte de la citation', type: 'text', value: '' },

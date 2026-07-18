@@ -13,6 +13,7 @@ interface Pastor {
 interface EnhancedPastorGridProps {
   pastors: Pastor[];
   columns?: number;
+  showBio?: boolean;
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -40,19 +41,25 @@ function getInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export function EnhancedPastorGrid({ pastors, columns: _columns = 4 }: EnhancedPastorGridProps) {
-  const displayPastors = pastors.slice(0, 8);
+export function EnhancedPastorGrid({ pastors, columns: _columns = 4, showBio = true }: EnhancedPastorGridProps) {
+  const cols = _columns >= 1 && _columns <= 4 ? _columns : 4;
+  const colClasses: Record<number, string> = {
+    1: 'grid-cols-1',
+    2: 'sm:grid-cols-2',
+    3: 'sm:grid-cols-2 lg:grid-cols-3',
+    4: 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',
+  };
 
   return (
-    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-      {displayPastors.map((pastor) => (
-        <PastorCard key={pastor.id} pastor={pastor} />
+    <div className={`grid grid-cols-1 gap-6 ${colClasses[cols] || colClasses[4]}`}>
+      {pastors.map((pastor) => (
+        <PastorCard key={pastor.id} pastor={pastor} showBio={showBio} />
       ))}
     </div>
   );
 }
 
-function PastorCard({ pastor }: { pastor: Pastor }) {
+function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: boolean }) {
   const initials = getInitials(pastor.full_name);
   const category = pastor.pastor_category ?? '';
   const categoryLabel = CATEGORY_LABELS[category] || category;
@@ -125,8 +132,8 @@ function PastorCard({ pastor }: { pastor: Pastor }) {
           <p className="text-muted mt-0.5 text-sm">{pastor.title}</p>
         )}
 
-        {/* Bio — visible on hover */}
-        {pastor.bio && (
+        {/* Bio — visible on hover (if enabled) */}
+        {showBio && pastor.bio && (
           <p
             className="mt-2 line-clamp-2 text-xs leading-relaxed opacity-0 transition-all duration-300 group-hover:opacity-80"
             style={{ color: 'rgb(var(--text-muted-rgb))' }}
