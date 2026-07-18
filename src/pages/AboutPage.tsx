@@ -13,6 +13,9 @@ import type { Pastor } from '../types';
 
 interface PageProps { onNavigate: (page: Page) => void; }
 
+const DEFAULT_ABOUT_HERO_IMG =
+  'https://images.pexels.com/photos/2889440/pexels-photo-2889440.jpeg?auto=compress&cs=tinysrgb&w=1920';
+
 /* ── Hardcoded fallback pastors (used only if DB is empty) ── */
 const FALLBACK_PASTORS: Pastor[] = [
   { id: 'fb-1', name: 'Pst Josué Romain KAZADI', role: 'Pasteur Principal — Fondateur', bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.', photo_url: '/pasteur-kazadi.jpg', thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.', sort_order: 0, is_main: true, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
@@ -102,7 +105,7 @@ export function AboutPage({ onNavigate }: PageProps) {
       <div className="min-h-screen bg-bg text-cream font-sans">
         <SiteHeader activePage="about" onNavigate={onNavigate} />
         <MobileNav active="about" onNavigate={onNavigate} />
-        <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" />
+        <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" bgImage={DEFAULT_ABOUT_HERO_IMG} />
         <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       </div>
     );
@@ -114,7 +117,7 @@ export function AboutPage({ onNavigate }: PageProps) {
       <MobileNav active="about" onNavigate={onNavigate} />
 
       {/* ═══ HERO ═══ */}
-      <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" />
+      <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" bgImage={DEFAULT_ABOUT_HERO_IMG} />
 
       {/* ═══ VISION & MISSION ═══ */}
       <section className="py-20 px-4">

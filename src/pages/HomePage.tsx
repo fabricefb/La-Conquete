@@ -12,6 +12,7 @@ import { LiveStreamModal } from '../components/LiveStreamModal';
 import { TypingText } from '../components/home/TypingHero';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
+import { InteractiveMap } from '../components/InteractiveMap';
 import {
   Crown,
   Flame,
@@ -26,8 +27,11 @@ import {
   Calendar,
   Eye,
   ChevronDown,
+  Newspaper,
+  Clock,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import type { Location, ChurchEvent } from '../types';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants & defaults
@@ -165,6 +169,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
   const [testimonials, setTestimonials] = useState<any[]>([]);
   const [pastors, setPastors] = useState<any[]>([]);
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveModalOpen, setLiveModalOpen] = useState(false);
   const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
@@ -176,13 +182,15 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, testimonialData, pastorData, builderData, colorsData] = await Promise.all([
+        const [contents, settings, testimonialData, pastorData, builderData, colorsData, locationData, eventData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
           db.getActiveTestimonials(),
           db.getActivePastors(),
           supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
           supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
+          db.getActiveLocations().catch(() => []),
+          db.getEvents().catch(() => []),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
@@ -225,6 +233,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           (pastorData || [])
             .sort((a: any, b: any) => (b.role_level ?? 0) - (a.role_level ?? 0)),
         );
+        setLocations((locationData || []) as Location[]);
+        setEvents((eventData || []) as ChurchEvent[]);
       } catch {
         // Silently fall back to defaults
       } finally {
@@ -333,6 +343,24 @@ export function HomePage({ onNavigate }: HomePageProps) {
     'Demande-moi, et je te donnerai les nations pour héritage.',
   );
   const aboutImage = getContent(cm, 'about', 'image', DEFAULT_ABOUT_IMG);
+
+  // Pastor Word (Mot du pasteur)
+  const pastorWordLabel = getContent(cm, 'pastor_word', 'label', 'Mot du pasteur');
+  const pastorWordTitle = getContent(cm, 'pastor_word', 'title', 'Conseils pastoraux');
+  const pastorWordText1 = getContent(cm, 'pastor_word', 'text_1', 'Cher membre de la famille La Conquête, Dieu a un plan extraordinaire pour votre vie. Ne laissez pas les circonstances définir votre destinée, mais laissez la Parole de Dieu établir vos pas.');
+  const pastorWordText2 = getContent(cm, 'pastor_word', 'text_2', 'Nous sommes dans une saison où Dieu appelle son Église à se lever, à prendre position et à manifester sa gloire dans chaque domaine de la société.');
+  const pastorWordQuote = getContent(cm, 'pastor_word', 'bible_text', 'Car je connais les projets que j\'ai formés sur vous, dit l\'Éternel, projets de paix et non de malheur, afin de vous donner un avenir et de l\'espérance.');
+  const pastorWordQuoteRef = getContent(cm, 'pastor_word', 'bible_ref', 'Jérémie 29:11');
+  const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', 'https://snvmythqboaeakzcqkpy.supabase.co/storage/v1/object/public/media/home/about/1784289838638-pkobgo.jpg');
+  const pastorSignature = getContent(cm, 'pastor_word', 'signature_image', '');
+
+  // News section
+  const newsTitle = getContent(cm, 'news', 'title', 'Dernières nouvelles');
+  const newsSubtitle = getContent(cm, 'news', 'subtitle', 'Restez informé des activités et événements à venir dans notre communauté.');
+
+  // CTA map section
+  const ctaTitle = getContent(cm, 'cta_map', 'title', 'Rejoignez notre famille');
+  const ctaText = getContent(cm, 'cta_map', 'text', 'Vous êtes appelé à faire partie de cette aventure extraordinaire. Venez rencontrer une communauté qui prie, qui aime et qui sert ensemble.');
 
   // Quote
   const quoteText = getContent(
@@ -523,49 +551,51 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
       )}
 
-      {/* ═══════ SECTION: WE ARE UNIQUE ═══════ */}
+      {/* ═══════ SECTION: MOT DU PASTEUR ═══════ */}
       {isSectionVisible('unique') && (
       <section className="py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left: Image */}
+            {/* Left: PNG portrait (no frame) + signature */}
             <RevealSection>
-              <div className="relative">
-                <div className="overflow-hidden rounded-3xl">
+              <div className="relative flex flex-col items-center lg:items-start">
+                <img
+                  src={pastorPortrait}
+                  alt="Pasteur"
+                  className="h-[420px] w-auto max-w-full object-contain drop-shadow-2xl"
+                  loading="lazy"
+                />
+                {pastorSignature && (
                   <img
-                    src={aboutImage}
-                    alt="Église La Conquête"
-                    className="cutout-mask h-[480px] w-full object-cover transition-transform duration-700 hover:scale-105"
+                    src={pastorSignature}
+                    alt="Signature"
+                    className="mt-4 h-12 w-auto object-contain opacity-80"
                     loading="lazy"
                   />
-                </div>
-                {/* Floating Cross decoration */}
-                <IconBox pageKey="home" elementId="unique-float-cross" className="absolute -bottom-4 -right-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-bg/90 border border-accent-400/20 text-accent-400 shadow-xl shadow-black/20">
-                  <Cross className="h-7 w-7" />
-                </IconBox>
+                )}
               </div>
             </RevealSection>
 
             {/* Right: Text */}
             <RevealSection className="reveal-delay-1">
-              <p className="section-label">Qui sommes-nous</p>
+              <p className="section-label">{pastorWordLabel}</p>
               <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold leading-snug text-cream">
-                Une église qui fait la différence
+                {pastorWordTitle}
               </h2>
-              <p className="mt-6 leading-relaxed text-muted">{aboutText1}</p>
-              <p className="mt-4 leading-relaxed text-muted">{aboutText2}</p>
+              <p className="mt-6 leading-relaxed text-muted">{pastorWordText1}</p>
+              <p className="mt-4 leading-relaxed text-muted">{pastorWordText2}</p>
 
               {/* Signed quote */}
               <blockquote className="mt-8 border-l-4 border-accent-400/50 pl-5">
-                <p className="text-sm italic text-cream/70">&laquo; {aboutQuote} &raquo;</p>
-                <p className="mt-1 text-xs font-semibold text-accent-400">&mdash; Psaumes 2:8</p>
+                <p className="text-sm italic text-cream/70">&laquo; {pastorWordQuote} &raquo;</p>
+                <p className="mt-1 text-xs font-semibold text-accent-400">&mdash; {pastorWordQuoteRef}</p>
               </blockquote>
 
               <button
                 onClick={() => onNavigate('about')}
                 className="btn-gold mt-8"
               >
-                En savoir plus
+                Voir À propos
                 <ArrowRight className="h-4 w-4" />
               </button>
             </RevealSection>
@@ -656,6 +686,65 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
       )}
 
+      {/* ═══════ SECTION: DERNIÈRES NOUVELLES ═══════ */}
+      {isSectionVisible('news') && (
+      <section className="py-24 bg-radial-primary">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <RevealSection className="mb-14 text-center">
+            <p className="section-label justify-center">Actualités</p>
+            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+              {newsTitle}
+            </h2>
+            <p className="mt-4 text-muted max-w-2xl mx-auto">{newsSubtitle}</p>
+          </RevealSection>
+
+          {events.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {events.slice(0, 3).map((evt, i) => (
+                <RevealSection key={evt.id} className={`reveal-delay-${i + 1}`}>
+                  <div className="glass-card group rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1">
+                    {evt.image_url && (
+                      <div className="relative h-48 overflow-hidden">
+                        <img
+                          src={evt.image_url}
+                          alt={evt.title}
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          loading="lazy"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                        <span className="absolute right-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-accent-400/20 border border-accent-400/30 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-accent-300 backdrop-blur-sm">
+                          <Calendar className="h-3 w-3" />
+                          {evt.category}
+                        </span>
+                      </div>
+                    )}
+                    <div className="p-5">
+                      <div className="mb-2 flex items-center gap-2 text-xs text-muted">
+                        <Clock className="h-3.5 w-3.5" />
+                        {new Date(evt.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </div>
+                      <h3 className="font-serif text-lg font-semibold text-cream leading-snug">{evt.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-2">{evt.description}</p>
+                      <button onClick={() => onNavigate('events')} className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-accent-400 hover:text-accent-300 transition-colors">
+                        En savoir plus <ArrowRight className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </RevealSection>
+              ))}
+            </div>
+          ) : (
+            <RevealSection>
+              <div className="glass rounded-2xl p-8 text-center border border-dashed border-accent-400/20">
+                <Newspaper className="mx-auto mb-3 h-8 w-8 text-accent-400/40" />
+                <p className="text-muted text-sm">Aucun événement à venir pour le moment. Revenez bientôt !</p>
+              </div>
+            </RevealSection>
+          )}
+        </div>
+      </section>
+      )}
+
       {/* ═══════ SECTION: BIBLICAL QUOTE (full-width dark) ═══════ */}
       {isSectionVisible('quote') && (
       <section
@@ -725,39 +814,52 @@ export function HomePage({ onNavigate }: HomePageProps) {
         </section>
       )}
 
-      {/* ═══════ SECTION: CTA FINAL ═══════ */}
+      {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
-      <section className="relative py-28 overflow-hidden">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-conquete-blue/5 to-conquete-blue/10" />
+      <section className="relative h-[520px] overflow-hidden">
+        {/* Map as full background */}
+        <div className="absolute inset-0">
+          <div className="h-full w-full [&_.overflow-hidden]:!rounded-none [&_.overflow-hidden]:!border-0 [&_.overflow-hidden]:!shadow-none">
+            {locations.length > 0 ? (
+              <InteractiveMap locations={locations} className="h-full [&_div:first-child]:!rounded-none [&_div:first-child]:!border-0" />
+            ) : (
+              <div className="h-full w-full bg-evangile-900/50" />
+            )}
+          </div>
+        </div>
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/50" />
 
-        <div className="relative z-10 mx-auto max-w-2xl px-4 text-center">
-          <RevealSection>
-            {/* Heart with ping */}
-            <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400/20" />
-              <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent-400/15 border border-accent-400/30">
-                <Heart className="h-7 w-7 text-accent-400" />
+        {/* CTA content overlay */}
+        <div className="relative z-10 flex items-center justify-center h-full">
+          <div className="mx-auto max-w-2xl px-4 text-center">
+            <RevealSection>
+              {/* Heart with ping */}
+              <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400/20" />
+                <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent-400/15 border border-accent-400/30">
+                  <Heart className="h-7 w-7 text-accent-400" />
+                </div>
               </div>
-            </div>
 
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream">
-              Rejoignez notre famille
-            </h2>
-            <p className="mt-4 text-lg leading-relaxed text-cream/70 max-w-lg mx-auto">
-              Vous êtes appelé à faire partie de cette aventure extraordinaire. Venez rencontrer une communauté qui prie, qui aime et qui sert ensemble.
-            </p>
+              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream">
+                {ctaTitle}
+              </h2>
+              <p className="mt-4 text-lg leading-relaxed text-cream/90 max-w-lg mx-auto">
+                {ctaText}
+              </p>
 
-            <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <button onClick={() => onNavigate('contact')} className="btn-gold">
-                Rejoindre
-                <ArrowRight className="h-4 w-4" />
-              </button>
-              <button onClick={() => onNavigate('about')} className="btn-ghost">
-                En savoir plus
-              </button>
-            </div>
-          </RevealSection>
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <button onClick={() => onNavigate('contact')} className="btn-gold">
+                  Rejoindre
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button onClick={() => onNavigate('about')} className="btn-ghost border-white/30 text-white hover:bg-white/10">
+                  En savoir plus
+                </button>
+              </div>
+            </RevealSection>
+          </div>
         </div>
       </section>
       )}
