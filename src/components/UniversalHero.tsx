@@ -90,10 +90,10 @@ export function UniversalHero({
     );
   }
 
-  // Standard hero (40vh)
+  // Standard hero
   return (
     <section
-      className={`relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary${heroBg ? '' : ''}`}
+      className={`relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-radial-primary`}
       style={heroBg ? {
         backgroundImage: `url(${heroBg})`,
         backgroundSize: 'cover',
@@ -101,7 +101,7 @@ export function UniversalHero({
       } : undefined}
     >
       {heroBg && <div className="absolute inset-0 bg-black/50" />}
-      <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
+      <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 pt-28 text-center">
         {badge && (
           <div className="animate-fade-up">
             <span className="mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
