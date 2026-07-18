@@ -7,6 +7,7 @@ import {
   Calendar, Plus, Send, Eye, Trash2, ChevronUp, ChevronDown,
   Copy, MessageSquare, CheckCircle, Clock, AlertCircle,
   Loader2, X, RefreshCw, Church, Mic, User, Info,
+  AlertTriangle, Timer, Play,
 } from '../../../lib/icons';
 import type {
   WorshipService, WorshipServiceType, WorshipServiceStatus,
@@ -85,6 +86,25 @@ function generateToken(): string {
 
 function formatDate(d: string): string {
   return new Date(d).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+/* ── 12h Deadline helpers ── */
+function getDeadlineInfo(deadlineStr: string): { label: string; cls: string; isExpired: boolean; hoursLeft: number } {
+  const deadline = new Date(deadlineStr);
+  const now = new Date();
+  const diffMs = deadline.getTime() - now.getTime();
+  const hoursLeft = diffMs / (1000 * 60 * 60);
+  const isExpired = diffMs <= 0;
+  if (isExpired) {
+    return { label: 'Expir\u00e9', cls: 'bg-red-500/20 text-red-400', isExpired: true, hoursLeft: 0 };
+  }
+  if (hoursLeft < 3) {
+    return { label: `Urgent : ${Math.ceil(hoursLeft)}h restantes`, cls: 'bg-red-500/20 text-red-300', isExpired: false, hoursLeft };
+  }
+  if (hoursLeft < 6) {
+    return { label: `${Math.ceil(hoursLeft)}h restantes`, cls: 'bg-amber-500/20 text-amber-300', isExpired: false, hoursLeft };
+  }
+  return { label: `${Math.ceil(hoursLeft)}h restantes`, cls: 'bg-emerald-500/20 text-emerald-300', isExpired: false, hoursLeft };
 }
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
@@ -254,6 +274,34 @@ export function PlanificationTab() {
     addToast({ type: 'success', message: 'WhatsApp ouvert' });
   };
 
+  /* ── Toggle delay on a service ── */
+  const [delayModal, setDelayModal] = useState<{ serviceId: string; currentMinutes: number } | null>(null);
+  const [delayMinutes, setDelayMinutes] = useState(30);
+
+  const handleToggleDelay = async (serviceId: string, enable: boolean, minutes?: number) => {
+    try {
+      if (enable) {
+        await supabase.from('worship_services').update({
+          is_delayed: true,
+          delayed_at: new Date().toISOString(),
+          delayed_minutes: minutes || 30,
+        }).eq('id', serviceId);
+        addToast({ type: 'success', message: `Culte signal\u00e9 en retard de ${minutes || 30} min \u2014 les liens sont repouss\u00e9s` });
+      } else {
+        await supabase.from('worship_services').update({
+          is_delayed: false,
+          delayed_at: null,
+          delayed_minutes: 0,
+        }).eq('id', serviceId);
+        addToast({ type: 'success', message: 'Retard annul\u00e9 \u2014 les liens sont remis \u00e0 la deadline initiale' });
+      }
+      setDelayModal(null);
+      fetchAll();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || 'Erreur' });
+    }
+  };
+
   /* ── Delete service ── */
   const handleDeleteService = async (id: string) => {
     if (!confirm('Supprimer ce culte et tous ses formulaires ?')) return;
@@ -324,31 +372,75 @@ export function PlanificationTab() {
               const oratorLinks = linksForService(svc.id, 'orator');
               const presidentLinks = linksForService(svc.id, 'president');
               const st = STATUS_CONFIG[svc.status];
+              const deadlineInfo = svc.form_deadline_at ? getDeadlineInfo(svc.form_deadline_at) : null;
 
               return (
-                <div key={svc.id} className="glass-card rounded-xl p-4 space-y-3">
+                <div key={svc.id} className={`glass-card rounded-xl p-4 space-y-3 ${svc.is_delayed ? 'ring-1 ring-red-500/30' : ''}`}>
+                  {/* Header row */}
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10">
-                        <Church className="h-5 w-5 text-accent-400" />
+                      <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${svc.is_delayed ? 'bg-red-500/15' : 'bg-accent-400/10'}`}>
+                        {svc.is_delayed
+                          ? <AlertTriangle className="h-5 w-5 text-red-400" />
+                          : <Church className="h-5 w-5 text-accent-400" />}
                       </div>
                       <div>
-                        <p className="font-medium text-cream">{formatDate(svc.date)} \u2014 {svc.time}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}</p>
+                          {svc.is_delayed && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 flex items-center gap-1">
+                              <AlertTriangle className="h-3 w-3" />
+                              EN RETARD (+{svc.delayed_minutes || 0} min)
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 Orateur: ${svc.orator_name}` : ''}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* 12h deadline badge */}
+                      {deadlineInfo && (
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${deadlineInfo.cls}`}>
+                          <Timer className="h-3 w-3" />
+                          {deadlineInfo.label}
+                        </span>
+                      )}
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${st.color}`}>{st.label}</span>
                       {isFullAdmin && (
-                        <button onClick={() => handleDeleteService(svc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
+                        <div className="flex items-center gap-0.5">
+                          <button
+                            onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
+                            className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
+                            title={svc.is_delayed ? 'G\u00e9rer le retard' : 'Signaler un retard'}
+                          >
+                            <AlertTriangle className="h-4 w-4" />
+                          </button>
+                          <button onClick={() => handleDeleteService(svc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
 
                   {svc.president_name && (
                     <p className="text-sm text-cream/70">Pr\u00e9sident: {svc.president_name}</p>
+                  )}
+
+                  {/* Delay info bar */}
+                  {svc.is_delayed && (
+                    <div className="bg-red-500/8 rounded-lg px-3 py-2 border border-red-500/15 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-xs text-red-300 font-medium">Culte programm\u00e9 en retard de {svc.delayed_minutes || 0} minutes</p>
+                        <p className="text-[10px] text-red-400/70">La deadline des formulaires a \u00e9t\u00e9 repouss\u00e9e automatiquement de {svc.delayed_minutes || 0} min. Les liens WhatsApp non utilis\u00e9s sont mis \u00e0 jour.</p>
+                      </div>
+                      {isFullAdmin && (
+                        <button onClick={() => handleToggleDelay(svc.id, false)} className="text-[10px] px-2 py-1 rounded bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-colors shrink-0">
+                          Annuler le retard
+                        </button>
+                      )}
+                    </div>
                   )}
 
                   {/* WhatsApp Links */}
@@ -615,8 +707,59 @@ export function PlanificationTab() {
       {activeTab === 'formulaires' && renderFormulaires()}
       {activeTab === 'ordre' && renderOrdre()}
 
-      {/* Modal */}
+      {/* Create Modal */}
       {renderCreateModal()}
+
+      {/* Delay Modal */}
+      {delayModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setDelayModal(null)}>
+          <div className="glass-card rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-cream flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-amber-400" />
+                {delayModal.currentMinutes > 0 ? 'Modifier le retard' : 'Signaler un retard'}
+              </h3>
+              <button onClick={() => setDelayModal(null)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted hover:text-cream transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-xs text-muted mb-4">
+              Indiquez de combien de minutes le culte est en retard. La deadline des formulaires (12h avant le culte) sera repouss\u00e9e automatiquement. Les liens WhatsApp non utilis\u00e9s seront mis \u00e0 jour.
+            </p>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs text-muted block mb-1">Dur\u00e9e du retard (minutes)</label>
+                <input
+                  type="number"
+                  min={5}
+                  max={720}
+                  step={5}
+                  value={delayMinutes}
+                  onChange={e => setDelayMinutes(parseInt(e.target.value) || 30)}
+                  className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream"
+                />
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleToggleDelay(delayModal.serviceId, true, delayMinutes)}
+                  className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-amber-500/15 text-amber-300 hover:bg-amber-500/25 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Play className="h-4 w-4" />
+                  Confirmer le retard
+                </button>
+                {delayModal.currentMinutes > 0 && (
+                  <button
+                    onClick={() => handleToggleDelay(delayModal.serviceId, false)}
+                    className="px-4 py-2.5 rounded-lg text-sm font-medium bg-white/5 text-muted hover:text-cream hover:bg-white/10 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -717,4 +860,4 @@ function CreateServiceModal({ onClose, onSubmit }: {
 }
 
 // Re-export for public form page
-export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, generateToken, isTableNotFoundError, formatDate };
+export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, generateToken, isTableNotFoundError, formatDate, getDeadlineInfo };

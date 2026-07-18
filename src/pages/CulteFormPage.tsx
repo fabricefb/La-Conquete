@@ -3,9 +3,9 @@ import { supabase } from '../lib/supabase';
 import {
   Church, Loader2, CheckCircle, AlertCircle, Plus, Trash2,
   ChevronUp, ChevronDown, Send, BookOpen, Mic, User,
-  Info, ArrowLeft,
+  Info, ArrowLeft, AlertTriangle, Clock,
 } from '../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, isTableNotFoundError, formatDate } from '../components/admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, isTableNotFoundError, formatDate, getDeadlineInfo } from '../components/admin/tabs/PlanificationTab';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipOrderItemType,
@@ -36,6 +36,8 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   // Link & service data
   const [link, setLink] = useState<WorshipFormLink | null>(null);
   const [service, setService] = useState<WorshipService | null>(null);
+  const [deadlineExpired, setDeadlineExpired] = useState(false);
+  const [deadlineInfo, setDeadlineInfo] = useState<ReturnType<typeof getDeadlineInfo> | null>(null);
 
   // Orator form state
   const [oratorName, setOratorName] = useState('');
@@ -93,7 +95,22 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         .eq('id', linkData.service_id)
         .single();
 
-      if (svcData) setService(svcData as WorshipService);
+      if (svcData) {
+        const svc = svcData as WorshipService;
+        setService(svc);
+
+        // Check 12h deadline
+        if (svc.form_deadline_at) {
+          const dlInfo = getDeadlineInfo(svc.form_deadline_at);
+          setDeadlineInfo(dlInfo);
+          if (dlInfo.isExpired) {
+            setDeadlineExpired(true);
+            setError(`La date limite pour soumettre ce formulaire est expir\u00e9e (12h avant le culte).${svc.is_delayed ? ' Le culte est en retard, mais la deadline a d\u00e9j\u00e0 \u00e9t\u00e9 repouss\u00e9e.' : ''} Contactez le d\u00e9partement m\u00e9dia.`);
+            setLoading(false);
+            return;
+          }
+        }
+      }
 
       // 3. Load existing data based on type
       if (linkData.link_type === 'orator') {
@@ -167,6 +184,10 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   /* ── Submit orator form ── */
   const submitOratorForm = async () => {
     if (!link || !service) return;
+    if (deadlineExpired) {
+      setError('La date limite est expir\u00e9e. Vous ne pouvez plus soumettre ce formulaire.');
+      return;
+    }
     if (!oratorName.trim() || !theme.trim()) {
       setError('Le nom et le th\u00e8me sont obligatoires.');
       return;
@@ -239,6 +260,10 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   /* ── Submit president form ── */
   const submitPresidentForm = async () => {
     if (!link || !service) return;
+    if (deadlineExpired) {
+      setError('La date limite est expir\u00e9e. Vous ne pouvez plus soumettre ce formulaire.');
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -608,6 +633,26 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
       {/* Form content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Deadline warning banner */}
+        {deadlineInfo && !deadlineExpired && deadlineInfo.hoursLeft < 6 && (
+          <div className={`rounded-xl p-3 mb-4 flex items-start gap-2 text-xs border ${deadlineInfo.hoursLeft < 3 ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
+            <Clock className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Attention : {deadlineInfo.label}</p>
+              <p className="opacity-80 mt-0.5">Ce formulaire doit \u00eatre soumis au plus tard 12 heures avant le culte.</p>
+            </div>
+          </div>
+        )}
+        {service?.is_delayed && !deadlineExpired && (
+          <div className="bg-amber-500/10 rounded-xl p-3 mb-4 flex items-start gap-2 text-amber-300 text-xs border border-amber-500/20">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium">Culte en retard de {service.delayed_minutes} minutes</p>
+              <p className="opacity-80 mt-0.5">La deadline a \u00e9t\u00e9 repouss\u00e9e en cons\u00e9quence.</p>
+            </div>
+          </div>
+        )}
+
         {existingForm && isOrator && (
           <div className="bg-amber-500/10 rounded-xl p-3 mb-4 flex items-center gap-2 text-amber-300 text-xs border border-amber-500/20">
             <Info className="h-4 w-4 shrink-0" />

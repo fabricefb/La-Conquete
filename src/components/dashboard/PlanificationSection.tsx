@@ -5,9 +5,9 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Church, Calendar, Mic, User, ChevronDown,
   Loader2, Info, Clock, CheckCircle, AlertCircle, BookOpen,
-  Send, Copy, Eye,
+  Send, Copy, Eye, AlertTriangle, Timer,
 } from '../../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, isTableNotFoundError, formatDate } from '../admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, isTableNotFoundError, formatDate, getDeadlineInfo } from '../admin/tabs/PlanificationTab';
 import type {
   WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipFormLink,
@@ -164,12 +164,29 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
           const st = STATUS_CONFIG[svc.status];
           const hasOratorForm = !!oratorForms[svc.id];
           const hasOrder = (orderItems[svc.id]?.length || 0) > 0;
+          const dlInfo = svc.form_deadline_at ? getDeadlineInfo(svc.form_deadline_at) : null;
 
           return (
-            <div key={svc.id} className="bg-white/3 rounded-lg p-3 border border-line/15">
+            <div key={svc.id} className={`bg-white/3 rounded-lg p-3 border ${svc.is_delayed ? 'border-red-500/25' : 'border-line/15'}`}>
               <div className="flex items-center justify-between mb-1.5">
-                <p className="text-sm font-medium text-cream">{formatDate(svc.date)} \u2014 {svc.time}</p>
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${st.color}`}>{st.label}</span>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}</p>
+                  {svc.is_delayed && (
+                    <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/20 text-red-300 flex items-center gap-0.5">
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      RETARD
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {dlInfo && (
+                    <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-medium flex items-center gap-0.5 ${dlInfo.cls}`}>
+                      <Timer className="h-2.5 w-2.5" />
+                      {dlInfo.label}
+                    </span>
+                  )}
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${st.color}`}>{st.label}</span>
+                </div>
               </div>
               <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 ${svc.orator_name}` : ''}</p>
               <div className="flex gap-3 mt-2">
