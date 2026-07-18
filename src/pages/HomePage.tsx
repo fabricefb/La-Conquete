@@ -17,7 +17,6 @@ import {
   Flame,
   Compass,
   Quote,
-  Cross,
   Heart,
   ArrowRight,
   Radio,

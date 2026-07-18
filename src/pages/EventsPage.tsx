@@ -6,7 +6,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { formatDate } from '../lib/date';
-import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
+import { Calendar, MapPin, BookOpen, Heart, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
 import { IconBox } from '../components/IconBox';
 import { EvtReveal } from '../components/EvtReveal';
 import type { Page } from '../lib/navigation';

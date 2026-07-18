@@ -10,8 +10,15 @@ import {
 import type { Toast, ToastType } from '../types';
 
 // ─── Context shape ───────────────────────────────────────────────
+interface ToastObject {
+  type?: ToastType;
+  message: string;
+  duration?: number;
+}
+
 interface ToastContextValue {
-  addToast: (message: string, type?: ToastType, duration?: number) => void;
+  /** Supports both positional `(message, type?, duration?)` and object `({ type?, message, duration? })` forms */
+  addToast: ((message: string, type?: ToastType, duration?: number) => void) & ((obj: ToastObject) => void);
   removeToast: (id: string) => void;
 }
 
@@ -119,13 +126,27 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addToast = useCallback(
-    (message: string, type: ToastType = 'info', duration?: number) => {
+    (first: string | ToastObject, second?: ToastType, third?: number) => {
+      let message: string;
+      let type: ToastType = 'info';
+      let duration: number | undefined;
+
+      if (typeof first === 'object') {
+        message = first.message;
+        type = first.type ?? 'info';
+        duration = first.duration;
+      } else {
+        message = first;
+        type = second ?? 'info';
+        duration = third;
+      }
+
       const id = crypto.randomUUID();
       const newToast: Toast = { id, type, message, duration };
       setToasts((prev) => [...prev, newToast]);
     },
     [],
-  );
+  ) as ToastContextValue['addToast'];
 
   const value = useMemo<ToastContextValue>(
     () => ({ addToast, removeToast }),

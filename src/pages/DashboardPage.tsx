@@ -12,7 +12,7 @@ import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
 import { MediaCenterSection } from '../components/dashboard/MediaCenterSection';
 import { useEventReminders } from '../lib/hooks/useEventReminders';
-import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
+import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem } from '../types';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';

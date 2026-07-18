@@ -5,7 +5,9 @@
 export type ToastType = 'success' | 'error' | 'info';
 
 // ─── Navigation ──────────────────────────────────────────────────
-export type Page = 'home' | 'about' | 'activities' | 'events' | 'media' | 'contact' | 'admin' | 'crm' | 'dashboard' | 'emissions' | 'predications' | 'departments' | 'reports' | 'communication' | 'pastoral' | 'culte' | 'pasteurs' | 'ministeres' | 'vision' | 'jeunesse' | 'enseignements' | 'blog';
+// NOTE: The canonical Page type lives in lib/navigation.ts.
+// Re-export here so that types/index.ts remains a single import point.
+export type { Page } from '../lib/navigation';
 export type Theme = 'dark' | 'light';
 
 // ─── Role System V2 ──────────────────────────────────────────
