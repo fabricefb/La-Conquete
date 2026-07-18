@@ -102,3 +102,29 @@ Stage Summary:
 - All accent/encoding bugs fixed across DashboardPage, VerseRotator, HomePage
 - Deduplication prevents duplicate sections for multi-department members
 - Build clean, no TypeScript errors
+
+---
+Task ID: 7
+Agent: Main Agent
+Task: Optimize Media Center for Communication department — unified view, link generation, batch fetch
+
+Work Log:
+- Analyzed redundant PlanificationSection + MediaCenterSection (both fetched same data independently, N+1 queries)
+- Rewrote MediaCenterSection from scratch (662→320 lines) as unified "Centre Média et Communication"
+- Optimized data fetching: batch `IN` queries instead of N+1 per service (3 queries instead of 2N+1)
+- Added link generation capability: "Créer lien orateur" / "Créer lien président" buttons directly on each service card
+- All actions now visible WITHOUT expanding: copy link, WA send, program WA, preview, generate link
+- Added stats bar (4 KPIs: cultes à venir, formulaires remplis, ordres créés, liens générés)
+- Removed PlanificationSection from dashboard routing — single unified component replaces both
+- DashboardPage.tsx: removed PlanificationSection import, simplified routing to single MediaCenterSection
+- Fixed XCircle icon not found → replaced with Info
+- Build clean, bundle reduced 882KB → 871KB
+
+Stage Summary:
+- Communication dept members see one unified "Centre Média et Communication" section
+- Can VIEW all worship services, forms, order items
+- Can GENERATE form links for orators and presidents (was admin-only before)
+- Can SEND form links and program content via WhatsApp (directly, no expand needed)
+- Can PREVIEW forms
+- Can COPY links to clipboard
+- 3x fewer API calls (batch vs N+1)
