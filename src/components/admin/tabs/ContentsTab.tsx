@@ -7,7 +7,7 @@ import {
   Save, Plus, Trash2, X, ChevronDown, ChevronRight,
   Loader2, Home, Info, Flame, Compass, Quote, Users,
   MessageSquare, Calendar, Radio, Video, Building2,
-  Megaphone, Heart, MapPin, BookOpen, Eye,
+  Megaphone, Heart, MapPin, BookOpen, Eye, Newspaper,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 type IconComponent = React.ComponentType<any>;
@@ -54,7 +54,10 @@ const PAGES: PageDef[] = [
       { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email, texte défilant' },
       { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, diaporama, titre, verset biblique' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
-      { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Textes, image et citation' },
+      { key: 'pastor_word', label: 'Mot du pasteur', icon: Users, description: 'Portrait, signature, textes et citation' },
+      { key: 'news', label: 'Dernières nouvelles', icon: Newspaper, description: 'Titre et sous-titre de la section actualités' },
+      { key: 'cta_map', label: 'CTA & Carte', icon: MapPin, description: 'Texte du CTA en superposition sur la carte' },
+      { key: 'about', label: 'Qui sommes-nous (ancien)', icon: Info, description: 'Textes, image et citation' },
       { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence' },
     ],
   },
@@ -293,6 +296,24 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
       { field_key: 'image', label: 'Photo', type: 'image_url', value: '' },
       { field_key: 'cta_text', label: 'Texte du bouton', type: 'text', value: 'En savoir plus' },
+    ],
+    pastor_word: [
+      { field_key: 'label', label: 'Label de section', type: 'text', value: 'Mot du pasteur' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Conseils pastoraux' },
+      { field_key: 'text_1', label: 'Texte principal', type: 'text', value: '' },
+      { field_key: 'text_2', label: 'Texte secondaire', type: 'text', value: '' },
+      { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
+      { field_key: 'bible_ref', label: 'Référence biblique', type: 'text', value: '' },
+      { field_key: 'portrait_image', label: 'Photo portrait (PNG sans fond)', type: 'image_url', value: '' },
+      { field_key: 'signature_image', label: 'Image signature (PNG)', type: 'image_url', value: '' },
+    ],
+    news: [
+      { field_key: 'title', label: 'Titre de la section', type: 'text', value: 'Dernières nouvelles' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+    ],
+    cta_map: [
+      { field_key: 'title', label: 'Titre du CTA', type: 'text', value: 'Rejoignez notre famille' },
+      { field_key: 'text', label: 'Texte du CTA', type: 'text', value: '' },
     ],
     quote: [
       { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: '' },
