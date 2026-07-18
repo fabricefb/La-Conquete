@@ -768,10 +768,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         requester_id: user?.id, requester_name: visitForm.name, requester_phone: visitForm.phone || null,
         beneficiary_name: visitForm.name, beneficiary_phone: visitForm.phone || null, beneficiary_address: visitForm.address,
         visit_type: 'pastorale' as const, reason: visitForm.motif,
-        preferred_time: `${visitForm.timeOfDay} \u2014 ${visitForm.dayRange}`, urgency: 'normale' as const, status: 'en_attente' as const,
+        preferred_time: `${visitForm.timeOfDay} — ${visitForm.dayRange}`, urgency: 'normale' as const, status: 'en_attente' as const,
       });
       if (error) throw error;
-      addToast('Votre demande de visite a \u00e9t\u00e9 soumise avec succ\u00e8s !', 'success');
+      addToast('Votre demande de visite a été soumise avec succès !', 'success');
       setVisitForm({ name: profile?.full_name || '', phone: profile?.phone || '', address: '', motif: '', timeOfDay: 'Matin', dayRange: 'Lundi-Vendredi' });
       setOpenAccordion(null);
     } catch (err: any) {
@@ -781,7 +781,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   // ── Pastoral prayer form submission ───────────────────────────
   const handlePastoralPrayerSubmit = async () => {
-    if (!pastoralPrayerForm.content.trim()) { addToast('Veuillez d\u00e9crire votre intention de pri\u00e8re.', 'error'); return; }
+    if (!pastoralPrayerForm.content.trim()) { addToast('Veuillez décrire votre intention de prière.', 'error'); return; }
     setPastoralPrayerSubmitting(true);
     try {
       const isAnon = pastoralPrayerForm.hideName;
@@ -792,7 +792,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         is_confidential: pastoralPrayerForm.visibility === 'confidentiel', status: 'received', visibility: pastoralPrayerForm.visibility,
       });
       if (error) throw error;
-      addToast('Votre requ\u00eate de pri\u00e8re a \u00e9t\u00e9 envoy\u00e9e ! \ud83d\ude4f', 'success');
+      addToast('Votre requête de prière a été envoyée ! 🙏', 'success');
       setPastoralPrayerForm({ name: profile?.full_name || '', email: profile?.email || user?.email || '', content: '', hideName: false, visibility: 'public' });
       setOpenAccordion(null);
     } catch (err: any) {
@@ -802,24 +802,24 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   // ── Self-evaluation data & scoring ────────────────────────────
   const EVAL_QUESTIONS = [
-    { id: 1, cat: 'Intimit\u00e9 avec Dieu', q: 'Lecture de la Parole \u2014 \u00c0 quelle fr\u00e9quence lisez-vous la Bible ?', opts: ['Chaque jour', 'Plusieurs fois/semaine', 'Rarement', 'Jamais'] },
-    { id: 2, cat: 'Intimit\u00e9 avec Dieu', q: 'M\u00e9ditation \u2014 Prenez-vous le temps de m\u00e9diter ?', opts: ['Toujours', 'Souvent', 'Parfois', 'Rarement'] },
-    { id: 3, cat: 'Intimit\u00e9 avec Dieu', q: 'Vie de pri\u00e8re \u2014 Comment \u00e9valueriez-vous votre temps de pri\u00e8re ?', opts: ['Excellente', 'Stable', '\u00c0 am\u00e9liorer', 'Tr\u00e8s difficile'] },
-    { id: 4, cat: 'Intimit\u00e9 avec Dieu', q: '\u00c9coute spirituelle \u2014 Discernez-vous la voix de Dieu ?', opts: ['Clairement', 'Parfois', "J'ai du mal"] },
-    { id: 5, cat: 'Vie Communautaire', q: 'Assiduit\u00e9 aux cultes \u2014 \u00c0 quelle fr\u00e9quence ?', opts: ['Chaque dimanche', '2-3 fois/mois', 'Occasionnellement'] },
-    { id: 6, cat: 'Vie Communautaire', q: "Groupes restreints \u2014 Faites-vous partie d'une cellule/groupe ?", opts: ['Oui activement', 'Oui mais je rate souvent', 'Non mais je voudrais', 'Non pas int\u00e9ress\u00e9'] },
-    { id: 7, cat: 'Vie Communautaire', q: "Relations fraternelles \u2014 Encouragez-vous d'autres fr\u00e8res ?", opts: ['R\u00e9guli\u00e8rement', 'De temps en temps', 'Rarement'] },
-    { id: 8, cat: 'Service et Mission', q: "Service \u00e0 l'\u00e9glise \u2014 Impliqu\u00e9 dans un d\u00e9partement ?", opts: ['Oui activement', 'Non mais je cherche', 'Non manque de temps'] },
-    { id: 9, cat: 'Service et Mission', q: 'G\u00e9n\u00e9rosit\u00e9 \u2014 Soutenez-vous par d\u00eemes/offrandes ?', opts: ['Oui avec joie', 'Parfois selon moyens', "J'ai du mal"] },
-    { id: 10, cat: 'Service et Mission', q: '\u00c9vang\u00e9lisation \u2014 Parlez-vous de J\u00e9sus autour de vous ?', opts: ['D\u00e8s que possible', 'Parfois', 'Rarement'] },
-    { id: 11, cat: 'Transformation du Caract\u00e8re', q: 'Gestion des \u00e9motions \u2014 Face aux conflits ?', opts: ['Pardonne et paix', 'Essaie de calmer', 'Ranc\u0153ur'] },
-    { id: 12, cat: 'Transformation du Caract\u00e8re', q: 'Victoire sur le p\u00e9ch\u00e9 \u2014 Progression ?', opts: ['R\u00e9elle d\u00e9livrance', 'Combat intense', 'Stagnation/recul'] },
+    { id: 1, cat: 'Intimité avec Dieu', q: 'Lecture de la Parole — À quelle fréquence lisez-vous la Bible ?', opts: ['Chaque jour', 'Plusieurs fois/semaine', 'Rarement', 'Jamais'] },
+    { id: 2, cat: 'Intimité avec Dieu', q: 'Méditation — Prenez-vous le temps de méditer ?', opts: ['Toujours', 'Souvent', 'Parfois', 'Rarement'] },
+    { id: 3, cat: 'Intimité avec Dieu', q: 'Vie de prière — Comment évalueriez-vous votre temps de prière ?', opts: ['Excellente', 'Stable', 'À améliorer', 'Très difficile'] },
+    { id: 4, cat: 'Intimité avec Dieu', q: 'Écoute spirituelle — Discernez-vous la voix de Dieu ?', opts: ['Clairement', 'Parfois', "J'ai du mal"] },
+    { id: 5, cat: 'Vie Communautaire', q: 'Assiduité aux cultes — À quelle fréquence ?', opts: ['Chaque dimanche', '2-3 fois/mois', 'Occasionnellement'] },
+    { id: 6, cat: 'Vie Communautaire', q: "Groupes restreints — Faites-vous partie d'une cellule/groupe ?", opts: ['Oui activement', 'Oui mais je rate souvent', 'Non mais je voudrais', 'Non pas intéressé'] },
+    { id: 7, cat: 'Vie Communautaire', q: "Relations fraternelles — Encouragez-vous d'autres frères ?", opts: ['Régulièrement', 'De temps en temps', 'Rarement'] },
+    { id: 8, cat: 'Service et Mission', q: "Service à l'église — Impliqué dans un département ?", opts: ['Oui activement', 'Non mais je cherche', 'Non manque de temps'] },
+    { id: 9, cat: 'Service et Mission', q: 'Générosité — Soutenez-vous par dîmes/offrandes ?', opts: ['Oui avec joie', 'Parfois selon moyens', "J'ai du mal"] },
+    { id: 10, cat: 'Service et Mission', q: 'Évangélisation — Parlez-vous de Jésus autour de vous ?', opts: ['Dès que possible', 'Parfois', 'Rarement'] },
+    { id: 11, cat: 'Transformation du Caractère', q: 'Gestion des émotions — Face aux conflits ?', opts: ['Pardonne et paix', 'Essaie de calmer', 'Rancœur'] },
+    { id: 12, cat: 'Transformation du Caractère', q: 'Victoire sur le péché — Progression ?', opts: ['Réelle délivrance', 'Combat intense', 'Stagnation/recul'] },
   ];
   const getScoreForOption = (qId: number, optIdx: number): number => { if (qId === 11 && optIdx === 2) return 0; return Math.max(0, 3 - optIdx); };
 
   const handleEvalSubmit = async () => {
     if (Object.keys(evalAnswers).length < EVAL_QUESTIONS.length) {
-      addToast(`Veuillez r\u00e9pondre \u00e0 toutes les questions (${Object.keys(evalAnswers).length}/${EVAL_QUESTIONS.length}).`, 'error'); return;
+      addToast(`Veuillez répondre à toutes les questions (${Object.keys(evalAnswers).length}/${EVAL_QUESTIONS.length}).`, 'error'); return;
     }
     let score = 0;
     EVAL_QUESTIONS.forEach((q) => { score += getScoreForOption(q.id, evalAnswers[q.id]); });
@@ -1823,36 +1823,50 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             {/* ═══════════════════════════════════════════════════════
                8. DÉPARTEMENT-SPECIFIC SECTIONS (role-filtered)
                ═══════════════════════════════════════════════════════ */}
-            {!dataLoading && departments
-              .filter((dept) => !shouldHideDeptSection(dept))
-              .map((dept, idx) => {
-              const isProtocole = dept.department_name.toLowerCase().includes('protocole');
-              const isMediaPlanif = dept.department_name.toLowerCase().includes('m\u00e9dia') ||
-                dept.department_name.toLowerCase().includes('presse') ||
-                dept.department_name.toLowerCase().includes('planification');
-              return (
-                <EvtReveal key={dept.id} delay={7 + idx}>
-                  <section className="mb-10">
-                    {isProtocole ? (
-                      <ProtocolSection accentColor={dept.accent_color} />
-                    ) : isMediaPlanif ? (
-                      <>
-                        <PlanificationSection accentColor={dept.accent_color} />
-                        <div className="mt-8">
-                          <MediaCenterSection accentColor={dept.accent_color} />
-                        </div>
-                      </>
-                    ) : (
-                      <DepartmentSection
-                        departmentId={dept.id}
-                        departmentName={dept.department_name}
-                        accentColor={dept.accent_color}
-                      />
-                    )}
-                  </section>
-                </EvtReveal>
-              );
-            })}
+            {!dataLoading && (() => {
+              /* Track which special sections were already rendered to avoid duplicates
+                 (e.g. user in both "Multimédia" and "Communication" should see MediaCenter only once) */
+              const renderedSpecial = new Set<string>();
+              return departments
+                .filter((dept) => !shouldHideDeptSection(dept))
+                .map((dept, idx) => {
+                  const deptName = dept.department_name.toLowerCase();
+                  const isProtocole = deptName.includes('protocole');
+                  const isMediaPlanif = deptName.includes('média') ||
+                    deptName.includes('media') ||
+                    deptName.includes('presse') ||
+                    deptName.includes('communication') ||
+                    deptName.includes('planification');
+
+                  /* Skip duplicate special sections */
+                  const specialKey = isProtocole ? 'protocole' : isMediaPlanif ? 'media_planif' : null;
+                  if (specialKey && renderedSpecial.has(specialKey)) return null;
+                  if (specialKey) renderedSpecial.add(specialKey);
+
+                  return (
+                    <EvtReveal key={dept.id} delay={7 + idx}>
+                      <section className="mb-10">
+                        {isProtocole ? (
+                          <ProtocolSection accentColor={dept.accent_color} />
+                        ) : isMediaPlanif ? (
+                          <>
+                            <PlanificationSection accentColor={dept.accent_color} />
+                            <div className="mt-8">
+                              <MediaCenterSection accentColor={dept.accent_color} />
+                            </div>
+                          </>
+                        ) : (
+                          <DepartmentSection
+                            departmentId={dept.id}
+                            departmentName={dept.department_name}
+                            accentColor={dept.accent_color}
+                          />
+                        )}
+                      </section>
+                    </EvtReveal>
+                  );
+                }).filter(Boolean);
+            })()}
 
             {/* ═══════════════════════════════════════════════════════
                8.5 TÉMOIGNAGE

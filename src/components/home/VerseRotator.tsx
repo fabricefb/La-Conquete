@@ -14,19 +14,19 @@ interface VerseRotatorProps {
 
 const defaultVerses: Verse[] = [
   {
-    text: 'Car je connais les projets que j\u2019ai form\u00e9s sur vous, dit l\u2019\u00c9ternel, projets de paix et non de malheur, afin de vous donner un avenir et de l\u2019esp\u00e9rance.',
-    reference: 'J\u00e9r\u00e9mie 29:11',
+    text: "Car je connais les projets que j'ai formés sur vous, dit l'Éternel, projets de paix et non de malheur, afin de vous donner un avenir et de l'espérance.",
+    reference: 'Jérémie 29:11',
   },
   {
     text: 'Je peux tout par celui qui me fortifie.',
     reference: 'Philippiens 4:13',
   },
   {
-    text: 'Le c\u0153ur de l\u2019homme m\u00e9dite sa voie, mais c\u2019est l\u2019\u00c9ternel qui dirige ses pas.',
+    text: "Le cœur de l'homme médite sa voie, mais c'est l'Éternel qui dirige ses pas.",
     reference: 'Proverbes 16:9',
   },
   {
-    text: 'Car l\u00e0 o\u00f9 deux ou trois sont assembl\u00e9s en mon nom, je suis au milieu d\u2019eux.',
+    text: "Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux.",
     reference: 'Matthieu 18:20',
   },
 ];
@@ -136,7 +136,7 @@ export function VerseRotator({
             border: '1px solid rgb(var(--glass-border-rgb) / 0.2)',
             color: 'rgb(var(--text-muted-rgb))',
           }}
-          aria-label="Verset pr\u00e9c\u00e9dent"
+          aria-label="Verset précédent"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>

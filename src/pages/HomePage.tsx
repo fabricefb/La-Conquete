@@ -128,8 +128,8 @@ function SkeletonPage() {
 const smallVerses = [
   { text: 'Je peux tout par celui qui me fortifie.', ref: 'Philippiens 4:13' },
   { text: 'Le Seigneur est mon berger, je ne manquerai de rien.', ref: 'Psaumes 23:1' },
-  { text: 'Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d\u2019eux.', ref: 'Matthieu 18:20' },
-  { text: 'Confiez-vous en l\u2019Éternel de tout votre c\u0153ur.', ref: 'Proverbes 3:5' },
+  { text: "Car là où deux ou trois sont assemblés en mon nom, je suis au milieu d'eux.", ref: 'Matthieu 18:20' },
+  { text: "Confiez-vous en l'Éternel de tout votre cœur.", ref: 'Proverbes 3:5' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -326,14 +326,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
     cm,
     'pillars',
     'pillar_2_desc',
-    'Une famille soudée par l\u2019amour du Christ, où chacun trouve sa place, son soutien et sa mission au service du corps.',
+    "Une famille soudée par l'amour du Christ, où chacun trouve sa place, son soutien et sa mission au service du corps.",
   );
   const pillar3Title = getContent(cm, 'pillars', 'pillar_3_title', 'Mission');
   const pillar3Desc = getContent(
     cm,
     'pillars',
     'pillar_3_desc',
-    'Un appel à aller au-delà des murs, à porter l\u2019Évangile aux nations et à faire des disciples pour la gloire de Dieu.',
+    "Un appel à aller au-delà des murs, à porter l'Évangile aux nations et à faire des disciples pour la gloire de Dieu.",
   );
 
   // About
@@ -341,13 +341,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
     cm,
     'about',
     'text_1',
-    'Fondée sur la Parole vivante de Dieu, l\u2019Église Évangélique La Conquête est une communauté de foi qui croit en la puissance transformatrice de l\u2019Évangile. Nous sommes appelés à bâtir des vies, à transformer des c\u0153urs et à conquérir des nations pour la gloire de Dieu.',
+    "Fondée sur la Parole vivante de Dieu, l'Église Évangélique La Conquête est une communauté de foi qui croit en la puissance transformatrice de l'Évangile. Nous sommes appelés à bâtir des vies, à transformer des cœurs et à conquérir des nations pour la gloire de Dieu.",
   );
   const aboutText2 = getContent(
     cm,
     'about',
     'text_2',
-    'Chaque croyant est un ambassadeur, porteur d\u2019une vision divine pour sa génération. Ensemble, nous avançons dans notre destinée collective avec foi, amour et détermination.',
+    "Chaque croyant est un ambassadeur, porteur d'une vision divine pour sa génération. Ensemble, nous avançons dans notre destinée collective avec foi, amour et détermination.",
   );
   const aboutQuote = getContent(
     cm,
@@ -385,7 +385,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
     cm,
     'quote',
     'text',
-    'Car nous sommes son ouvrage, ayant été créés en Jésus-Christ pour de bonnes \u0153uvres, que Dieu a préparées d\u2019avance, afin que nous les pratiquions.',
+    "Car nous sommes son ouvrage, ayant été créés en Jésus-Christ pour de bonnes œuvres, que Dieu a préparées d'avance, afin que nous les pratiquions.",
   );
   const quoteRef = getContent(cm, 'quote', 'reference', 'Éphésiens 2:10');
 

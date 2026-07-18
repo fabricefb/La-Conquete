@@ -78,3 +78,27 @@ Stage Summary:
 - Media Center fully functional with real form data display
 - 7 potential bugs fixed across 4 files
 - Build passes (tsc + vite build clean)
+
+---
+Task ID: 6
+Agent: Main Agent
+Task: Add Communication department access to Media Center + fix Unicode escape encoding bugs
+
+Work Log:
+- Explored role/department/permission system (15 departments, V2 role_level system, keyword-based routing)
+- Found that "Communication" department (slug: communication) did NOT match any keyword in DashboardPage routing
+- Updated DashboardPage.tsx department routing: added 'communication' and 'media' (without accent) to isMediaPlanif keywords
+- Added deduplication logic using Set to prevent duplicate MediaCenter/PlanificationSection when user is in both Multimédia and Communication
+- Fixed all Unicode escape sequences (\u00e9, \u00e8, \u00ea, \u00c9, \u00c0, \u0153, \u2014, \ud83d\ude4f) across 3 files:
+  - DashboardPage.tsx: 18 replacements (toast messages, evaluation questions, time formatting)
+  - VerseRotator.tsx: 4 replacements (Bible verses, aria-label)
+  - HomePage.tsx: 7 replacements (verses, pillar descriptions, about text, quote)
+- Fixed French apostrophe-in-single-quote syntax errors by switching to double quotes
+- Verified PlanificationTab already has Preview + WhatsApp buttons (from previous session, lines 698-709)
+- Build passes clean (tsc + vite build)
+
+Stage Summary:
+- Communication department members now see PlanificationSection + MediaCenterSection on their dashboard
+- All accent/encoding bugs fixed across DashboardPage, VerseRotator, HomePage
+- Deduplication prevents duplicate sections for multi-department members
+- Build clean, no TypeScript errors
