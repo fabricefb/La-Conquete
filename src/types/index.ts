@@ -1118,7 +1118,21 @@ export interface EventReminder {
 }
 
 // ─── Worship Planning (Planification de Culte) ──────────────────
-export type WorshipServiceType = 'dimanche' | 'midis' | 'veille' | 'special' | 'jeune' | 'autre';
+// 4 cultes hebdomadaires standards + types d'événements spéciaux
+export type WorshipServiceType =
+  // ── Cultes hebdomadaires standards ──
+  | 'enseignement_priere'   // Mercredi : Culte d'enseignement et prière
+  | 'jeune_priere'          // Vendredi : Culte de jeûne et prière
+  | 'jeune_gen_espoir'      // Samedi : Culte de jeûne (Génération Espoir)
+  | 'adoration_louange'     // Dimanche : Culte d'adoration et louange
+  // ── Événements spéciaux ──
+  | 'seminaire'
+  | 'veillee'
+  | 'culte_special'
+  | 'conference'
+  | 'exposition'
+  | 'retraite'
+  | 'autre';
 export type WorshipServiceStatus = 'draft' | 'planned' | 'orator_submitted' | 'president_submitted' | 'completed' | 'cancelled';
 
 export interface WorshipService {

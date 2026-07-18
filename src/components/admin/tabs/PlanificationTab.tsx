@@ -26,10 +26,100 @@ const SUB_TABS = [
 ] as const;
 type SubTab = typeof SUB_TABS[number]['key'];
 
-const SERVICE_TYPE_LABELS: Record<WorshipServiceType, string> = {
-  dimanche: 'Dimanche', midis: 'Midi', veille: 'Veill\u00e9e',
-  special: 'Sp\u00e9cial', jeune: 'Je\u00fbne', autre: 'Autre',
+/* ═══════════════════════════════════════════════════════════════════
+   Constants — Types de cultes avec groupes, heures par défaut
+   ═══════════════════════════════════════════════════════════════════ */
+
+interface CulteTypeConfig {
+  label: string;
+  description: string;
+  group: 'hebdomadaire' | 'special';
+  dayOfWeek: number;        // 0=Dim, 1=Lun ... 6=Sam
+  defaultTime: string;
+  color: string;            // tailwind text color
+}
+
+const WORSHIP_TYPE_CONFIGS: Record<WorshipServiceType, CulteTypeConfig> = {
+  enseignement_priere: {
+    label: "Culte d'enseignement et pri\u00e8re",
+    description: 'Mercredi \u2014 Enseignement biblique et pri\u00e8re',
+    group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '18:00',
+    color: 'text-blue-300',
+  },
+  jeune_priere: {
+    label: 'Culte de je\u00fbne et pri\u00e8re',
+    description: 'Vendredi \u2014 Je\u00fbne et pri\u00e8re communautaire',
+    group: 'hebdomadaire', dayOfWeek: 5, defaultTime: '17:00',
+    color: 'text-purple-300',
+  },
+  jeune_gen_espoir: {
+    label: 'Culte de je\u00fbne (G\u00e9n\u00e9ration Espoir)',
+    description: 'Samedi \u2014 Je\u00fbne des jeunes G\u00e9n\u00e9ration Espoir',
+    group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '08:00',
+    color: 'text-emerald-300',
+  },
+  adoration_louange: {
+    label: "Culte d'adoration et louange",
+    description: 'Dimanche \u2014 Culte principal d\u2019adoration et louange',
+    group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '09:00',
+    color: 'text-amber-300',
+  },
+  seminaire: {
+    label: 'S\u00e9minaire', description: 'S\u00e9minaire d\u2019enseignement',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    color: 'text-cyan-300',
+  },
+  veillee: {
+    label: 'Veill\u00e9e', description: 'Veill\u00e9e de pri\u00e8re ou louange',
+    group: 'special', dayOfWeek: -1, defaultTime: '21:00',
+    color: 'text-indigo-300',
+  },
+  culte_special: {
+    label: 'Culte sp\u00e9cial', description: 'Culte th\u00e9matique ou occasionnel',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    color: 'text-rose-300',
+  },
+  conference: {
+    label: 'Conf\u00e9rence', description: 'Conf\u00e9rence ou convention',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    color: 'text-orange-300',
+  },
+  exposition: {
+    label: 'Exposition', description: 'Exposition biblique',
+    group: 'special', dayOfWeek: -1, defaultTime: '10:00',
+    color: 'text-teal-300',
+  },
+  retraite: {
+    label: 'Retraite', description: 'Retraite spirituelle',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    color: 'text-violet-300',
+  },
+  autre: {
+    label: 'Autre', description: 'Autre type de culte',
+    group: 'special', dayOfWeek: -1, defaultTime: '09:00',
+    color: 'text-gray-300',
+  },
 };
+
+const SERVICE_TYPE_LABELS: Record<WorshipServiceType, string> = Object.fromEntries(
+  Object.entries(WORSHIP_TYPE_CONFIGS).map(([k, v]) => [k, v.label])
+) as Record<WorshipServiceType, string>;
+
+// Grouped for the select dropdown
+const CULTE_TYPE_GROUPS = [
+  {
+    label: 'Cultes hebdomadaires',
+    types: Object.entries(WORSHIP_TYPE_CONFIGS)
+      .filter(([, v]) => v.group === 'hebdomadaire')
+      .map(([k, v]) => ({ value: k as WorshipServiceType, ...v })),
+  },
+  {
+    label: '\u00c9v\u00e9nements sp\u00e9ciaux',
+    types: Object.entries(WORSHIP_TYPE_CONFIGS)
+      .filter(([, v]) => v.group === 'special')
+      .map(([k, v]) => ({ value: k as WorshipServiceType, ...v })),
+  },
+];
 
 const STATUS_CONFIG: Record<WorshipServiceStatus, { label: string; color: string }> = {
   draft: { label: 'Brouillon', color: 'bg-gray-500/20 text-gray-300' },
@@ -169,20 +259,22 @@ export function PlanificationTab() {
   const fetchOratorForm = useCallback(async (serviceId: string) => {
     setSelectedServiceId(serviceId);
     try {
-      const [formRes, ptsRes] = await Promise.allSettled([
-        supabase.from('worship_orator_forms').select('*').eq('service_id', serviceId).single(),
-        supabase.from('worship_orator_points').select('*').eq('form_id', '').order('position'),
-      ]);
+      const { data: formData, error: formErr } = await supabase
+        .from('worship_orator_forms').select('*').eq('service_id', serviceId).single();
 
-      let formData: WorshipOratorForm | null = null;
-      if (formRes.status === 'fulfilled' && formRes.value.data) {
-        formData = formRes.value.data as WorshipOratorForm;
-        if (ptsRes.status === 'fulfilled' && ptsRes.value.data) {
-          const pts = (ptsRes.value.data as WorshipOratorPoint[]).filter(p => p.form_id === formData!.id);
-          setOratorPoints(pts);
-        }
+      if (formErr || !formData) {
+        setOratorForm(null);
+        setOratorPoints([]);
+        return;
       }
-      setOratorForm(formData);
+
+      const form = formData as WorshipOratorForm;
+      setOratorForm(form);
+
+      // Fetch points AFTER we have the form ID
+      const { data: ptsData } = await supabase
+        .from('worship_orator_points').select('*').eq('form_id', form.id).order('position');
+      setOratorPoints((ptsData as WorshipOratorPoint[]) || []);
     } catch { /* empty */ }
   }, []);
 
@@ -209,7 +301,7 @@ export function PlanificationTab() {
       if (error) throw error;
       addToast({ type: 'success', message: 'Culte cr\u00e9\u00e9 avec succ\u00e8s' });
 
-      // Auto-generate form links
+      // Auto-generate form links (expires_at is set by DB trigger to form_deadline_at)
       if (data) {
         const oratorToken = generateToken();
         const presidentToken = generateToken();
@@ -217,12 +309,10 @@ export function PlanificationTab() {
           supabase.from('worship_form_links').insert({
             service_id: data.id, link_type: 'orator', token: oratorToken,
             recipient_name: svc.orator_name || null,
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           }),
           supabase.from('worship_form_links').insert({
             service_id: data.id, link_type: 'president', token: presidentToken,
             recipient_name: svc.president_name || null,
-            expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           }),
         ]);
       }
@@ -243,7 +333,6 @@ export function PlanificationTab() {
         recipient_name: recipientName || null,
         recipient_phone: recipientPhone || null,
         is_used: false, sent_at: null,
-        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       }, { onConflict: 'service_id,link_type' });
 
       if (error) throw error;
@@ -775,13 +864,32 @@ function CreateServiceModal({ onClose, onSubmit }: {
     orator_name: string; president_name: string; notes: string;
   }) => void;
 }) {
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [type, setType] = useState<WorshipServiceType>('adoration_louange');
+  const [date, setDate] = useState('');
   const [time, setTime] = useState('09:00');
-  const [type, setType] = useState<WorshipServiceType>('dimanche');
   const [oratorName, setOratorName] = useState('');
   const [presidentName, setPresidentName] = useState('');
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
+
+  // Auto-fill date & time when type changes for weekly cultes
+  const handleTypeChange = (newType: WorshipServiceType) => {
+    setType(newType);
+    const config = WORSHIP_TYPE_CONFIGS[newType];
+    if (config.dayOfWeek >= 0) {
+      // Find next occurrence of this day
+      const today = new Date();
+      const target = new Date(today);
+      const currentDay = today.getDay();
+      let daysAhead = config.dayOfWeek - currentDay;
+      if (daysAhead <= 0) daysAhead += 7;
+      target.setDate(today.getDate() + daysAhead);
+      setDate(target.toISOString().split('T')[0]);
+    } else if (!date) {
+      setDate(new Date().toISOString().split('T')[0]);
+    }
+    setTime(config.defaultTime);
+  };
 
   const handleSubmit = async () => {
     if (!date) return;
@@ -789,6 +897,14 @@ function CreateServiceModal({ onClose, onSubmit }: {
     await onSubmit({ date, time, type, orator_name: oratorName, president_name: presidentName, notes });
     setSaving(false);
   };
+
+  // Initialize default date/time on mount
+  useEffect(() => {
+    handleTypeChange('adoration_louange');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const currentConfig = WORSHIP_TYPE_CONFIGS[type];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
@@ -803,6 +919,24 @@ function CreateServiceModal({ onClose, onSubmit }: {
         </div>
 
         <div className="space-y-4">
+          {/* Type select — grouped */}
+          <div>
+            <label className="text-xs text-muted block mb-1.5">Type de culte *</label>
+            <select value={type} onChange={e => handleTypeChange(e.target.value as WorshipServiceType)}
+              className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream">
+              {CULTE_TYPE_GROUPS.map(group => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.types.map(t => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+            {currentConfig && (
+              <p className="text-[11px] text-muted mt-1">{currentConfig.description}</p>
+            )}
+          </div>
+
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted block mb-1">Date *</label>
@@ -814,16 +948,6 @@ function CreateServiceModal({ onClose, onSubmit }: {
               <input type="time" value={time} onChange={e => setTime(e.target.value)}
                 className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream" />
             </div>
-          </div>
-
-          <div>
-            <label className="text-xs text-muted block mb-1">Type de culte</label>
-            <select value={type} onChange={e => setType(e.target.value as WorshipServiceType)}
-              className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream">
-              {Object.entries(SERVICE_TYPE_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -859,5 +983,5 @@ function CreateServiceModal({ onClose, onSubmit }: {
   );
 }
 
-// Re-export for public form page
-export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, generateToken, isTableNotFoundError, formatDate, getDeadlineInfo };
+// Re-export for public form page & dashboard section
+export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, CULTE_TYPE_GROUPS, generateToken, isTableNotFoundError, formatDate, getDeadlineInfo };

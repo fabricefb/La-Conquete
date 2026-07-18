@@ -14,8 +14,11 @@ CREATE TABLE IF NOT EXISTS worship_services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
   time TIME NOT NULL DEFAULT '09:00',
-  type TEXT NOT NULL DEFAULT 'dimanche' CHECK (type IN (
-    'dimanche', 'midis', 'veille', 'special', 'jeune', 'autre'
+  type TEXT NOT NULL DEFAULT 'adoration_louange' CHECK (type IN (
+    -- 4 cultes hebdomadaires standards
+    'enseignement_priere', 'jeune_priere', 'jeune_gen_espoir', 'adoration_louange',
+    -- événements spéciaux
+    'seminaire', 'veillee', 'culte_special', 'conference', 'exposition', 'retraite', 'autre'
   )),
   orator_name TEXT,
   president_name TEXT,

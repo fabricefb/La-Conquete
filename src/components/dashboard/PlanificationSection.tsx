@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -7,7 +7,7 @@ import {
   Loader2, Info, Clock, CheckCircle, AlertCircle, BookOpen,
   Send, Copy, Eye, AlertTriangle, Timer,
 } from '../../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, isTableNotFoundError, formatDate, getDeadlineInfo } from '../admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, getDeadlineInfo } from '../admin/tabs/PlanificationTab';
 import type {
   WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipFormLink,
@@ -188,7 +188,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
                   <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${st.color}`}>{st.label}</span>
                 </div>
               </div>
-              <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 ${svc.orator_name}` : ''}</p>
+              <p className={`text-xs ${WORSHIP_TYPE_CONFIGS[svc.type]?.color || 'text-muted'}`}>{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 ${svc.orator_name}` : ''}</p>
               <div className="flex gap-3 mt-2">
                 <span className={`text-[10px] flex items-center gap-1 ${hasOratorForm ? 'text-green-400' : 'text-muted'}`}>
                   {hasOratorForm ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
@@ -198,6 +198,37 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
                   {hasOrder ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
                   Ordre
                 </span>
+              </div>
+              {/* WhatsApp actions for department members */}
+              <div className="flex gap-1.5 mt-2 pt-2 border-t border-line/20">
+                {linksForService(svc.id, 'orator').map(link => (
+                  <React.Fragment key={link.id}>
+                    <button onClick={() => copyLink(link.token)} className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 text-muted hover:text-cream transition-colors" title="Copier lien orateur">
+                      <Copy className="h-3 w-3" /><span className="text-[10px]">Orateur</span>
+                    </button>
+                    <button onClick={() => openWhatsApp(link)} className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/10 hover:bg-green-500/20 text-green-400/70 hover:text-green-400 transition-colors" title="WhatsApp orateur">
+                      <Send className="h-3 w-3" /><span className="text-[10px]">WA</span>
+                    </button>
+                  </React.Fragment>
+                ))}
+                {linksForService(svc.id, 'orator').length === 0 && (
+                  <span className="text-[10px] text-muted/50 italic">Lien orateur non g\u00e9n\u00e9r\u00e9</span>
+                )}
+              </div>
+              <div className="flex gap-1.5 mt-1">
+                {linksForService(svc.id, 'president').map(link => (
+                  <React.Fragment key={link.id}>
+                    <button onClick={() => copyLink(link.token)} className="flex items-center gap-1 px-2 py-1 rounded-md bg-white/5 hover:bg-white/10 text-muted hover:text-cream transition-colors" title="Copier lien pr\u00e9sident">
+                      <Copy className="h-3 w-3" /><span className="text-[10px]">Pr\u00e9sident</span>
+                    </button>
+                    <button onClick={() => openWhatsApp(link)} className="flex items-center gap-1 px-2 py-1 rounded-md bg-green-500/10 hover:bg-green-500/20 text-green-400/70 hover:text-green-400 transition-colors" title="WhatsApp pr\u00e9sident">
+                      <Send className="h-3 w-3" /><span className="text-[10px]">WA</span>
+                    </button>
+                  </React.Fragment>
+                ))}
+                {linksForService(svc.id, 'president').length === 0 && (
+                  <span className="text-[10px] text-muted/50 italic">Lien pr\u00e9sident non g\u00e9n\u00e9r\u00e9</span>
+                )}
               </div>
               {selectedServiceId === svc.id && (
                 <div className="mt-3 pt-3 border-t border-line/20 space-y-2">
