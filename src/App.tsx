@@ -36,6 +36,7 @@ const VisionPage = lazy(() => import('./pages/VisionPage').then(m => ({ default:
 const JeunessePage = lazy(() => import('./pages/JeunessePage').then(m => ({ default: m.JeunessePage })));
 const EnseignementsPage = lazy(() => import('./pages/EnseignementsPage').then(m => ({ default: m.EnseignementsPage })));
 const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
+const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
 
 const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog'];
 function getPage(): Page {
@@ -50,6 +51,15 @@ function PageLoader() {
       <div className="w-8 h-8 border-2 border-accent-400/30 border-t-accent-500 rounded-full animate-spin" />
     </div>
   );
+}
+
+/* ─── Check if current route is a form-culte link ─── */
+function getFormCulteToken(): string | null {
+  const h = window.location.hash.replace('#', '');
+  if (h.startsWith('form-culte/')) {
+    return h.replace('form-culte/', '');
+  }
+  return null;
 }
 
 /* ─── Auth modal state (global) ──────────────────────────── */
@@ -70,6 +80,7 @@ function AppRouter() {
   const { authOpen, authView, openAuth, closeAuth } = useAuthModal();
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [bibleOpen, setBibleOpen] = useState(false);
+  const [formToken, setFormToken] = useState<string | null>(getFormCulteToken);
 
   // ── Redirect admin/pastor to #admin after login ──
   useEffect(() => {
@@ -99,7 +110,15 @@ function AppRouter() {
   }, [page, openAuth]);
 
   useEffect(() => {
-    const fn = () => setPage(getPage());
+    const fn = () => {
+      const token = getFormCulteToken();
+      if (token) {
+        setFormToken(token);
+      } else {
+        setFormToken(null);
+        setPage(getPage());
+      }
+    };
     window.addEventListener('hashchange', fn);
     return () => window.removeEventListener('hashchange', fn);
   }, []);
@@ -110,37 +129,41 @@ function AppRouter() {
   return (
     <>
       <Suspense fallback={<PageLoader />}>
-        {(() => {
-          switch (page) {
-            case 'home': return <HomePage {...nav} />;
-            case 'about': return <AboutPage {...nav} />;
-            case 'activities': return <ActivitiesPage {...nav} />;
-            case 'events': return <EventsPage {...nav} />;
-            case 'media': return <MediaPage {...nav} />;
-            case 'contact': return <ContactPage {...nav} />;
-            case 'admin': return <AdminPage onNavigate={setPage} />;
-            case 'dashboard': return <DashboardPage onNavigate={setPage} />;
-            case 'crm': return <CrmPage {...nav} />;
-            case 'pastoral': return <PastoralPage onNavigate={setPage} />;
-            case 'reports': return <ReportsPage {...nav} />;
-            case 'communication': return <CommunicationPage onNavigate={setPage} />;
-            case 'emissions': return <EmissionsPage {...nav} />;
-            case 'predications': return <PredicationsPage {...nav} />;
-            case 'departments': return <DepartmentsPage {...nav} />;
-            case 'extensions': return <ExtensionsPage {...nav} />;
-            case 'communiques': return <CommuniquesPage {...nav} />;
-            case 'annonces': return <AnnoncesPage {...nav} />;
-            case 'dons': return <DonsPage {...nav} />;
-            case 'culte': return <CultePage {...nav} />;
-            case 'pasteurs': return <PasteursPage {...nav} />;
-            case 'ministeres': return <MinisteresPage {...nav} />;
-            case 'vision': return <VisionPage {...nav} />;
-            case 'jeunesse': return <JeunessePage {...nav} />;
-            case 'enseignements': return <EnseignementsPage {...nav} />;
-            case 'blog': return <BlogPage {...nav} />;
-            default: return <HomePage {...nav} />;
-          }
-        })()}
+        {formToken ? (
+          <CulteFormPage token={formToken} />
+        ) : (
+          (() => {
+            switch (page) {
+              case 'home': return <HomePage {...nav} />;
+              case 'about': return <AboutPage {...nav} />;
+              case 'activities': return <ActivitiesPage {...nav} />;
+              case 'events': return <EventsPage {...nav} />;
+              case 'media': return <MediaPage {...nav} />;
+              case 'contact': return <ContactPage {...nav} />;
+              case 'admin': return <AdminPage onNavigate={setPage} />;
+              case 'dashboard': return <DashboardPage onNavigate={setPage} />;
+              case 'crm': return <CrmPage {...nav} />;
+              case 'pastoral': return <PastoralPage onNavigate={setPage} />;
+              case 'reports': return <ReportsPage {...nav} />;
+              case 'communication': return <CommunicationPage onNavigate={setPage} />;
+              case 'emissions': return <EmissionsPage {...nav} />;
+              case 'predications': return <PredicationsPage {...nav} />;
+              case 'departments': return <DepartmentsPage {...nav} />;
+              case 'extensions': return <ExtensionsPage {...nav} />;
+              case 'communiques': return <CommuniquesPage {...nav} />;
+              case 'annonces': return <AnnoncesPage {...nav} />;
+              case 'dons': return <DonsPage {...nav} />;
+              case 'culte': return <CultePage {...nav} />;
+              case 'pasteurs': return <PasteursPage {...nav} />;
+              case 'ministeres': return <MinisteresPage {...nav} />;
+              case 'vision': return <VisionPage {...nav} />;
+              case 'jeunesse': return <JeunessePage {...nav} />;
+              case 'enseignements': return <EnseignementsPage {...nav} />;
+              case 'blog': return <BlogPage {...nav} />;
+              default: return <HomePage {...nav} />;
+            }
+          })()
+        )}
       </Suspense>
       <AuthModal isOpen={authOpen} onClose={() => { closeAuth(); sessionStorage.removeItem('lc_admin_redirected'); }} initialView={authView} />
       {/* ── Global Innovation Components ── */}

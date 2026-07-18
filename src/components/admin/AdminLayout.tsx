@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Package, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, LayoutGrid, BookOpen, Zap, Radio,
+  UserCheck, LayoutGrid, BookOpen, Zap, Radio, CalendarCheck,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -63,6 +63,7 @@ const tabGroups: TabGroup[] = [
       { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
       { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
       { id: 'protocol', label: 'Protocole', Icon: UserCheck },
+      { id: 'planification_culte', label: 'Planification Culte', Icon: CalendarCheck },
     ],
   },
   {

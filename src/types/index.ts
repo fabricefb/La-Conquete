@@ -286,7 +286,8 @@ export type AdminTab =
   | 'guide'
   | 'animations'
   | 'live_stream'
-  | 'audio';
+  | 'audio'
+  | 'planification_culte';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
@@ -1114,4 +1115,77 @@ export interface EventReminder {
   target_ids: string[];
   is_active: boolean;
   created_at: string;
+}
+
+// ─── Worship Planning (Planification de Culte) ──────────────────
+export type WorshipServiceType = 'dimanche' | 'midis' | 'veille' | 'special' | 'jeune' | 'autre';
+export type WorshipServiceStatus = 'draft' | 'planned' | 'orator_submitted' | 'president_submitted' | 'completed' | 'cancelled';
+
+export interface WorshipService {
+  id: string;
+  date: string;
+  time: string;
+  type: WorshipServiceType;
+  orator_name: string | null;
+  president_name: string | null;
+  status: WorshipServiceStatus;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorshipOratorForm {
+  id: string;
+  service_id: string;
+  orator_name: string;
+  theme: string;
+  sub_theme: string | null;
+  bible_book: string | null;
+  bible_chapter: string | null;
+  bible_verses: string | null;
+  summary: string | null;
+  remarks: string | null;
+  status: 'draft' | 'submitted';
+  submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface WorshipOratorPoint {
+  id: string;
+  form_id: string;
+  title: string;
+  description: string | null;
+  position: number;
+  created_at: string;
+}
+
+export type WorshipOrderItemType = 'louange' | 'adoration' | 'offrande' | 'communique' | 'predication'
+  | 'temoignage' | 'sainte_cene' | 'priere_nouveaux' | 'accueil_invites'
+  | 'intervention_speciale' | 'priere_finale' | 'autre';
+
+export interface WorshipOrderItem {
+  id: string;
+  service_id: string;
+  item_type: WorshipOrderItemType;
+  custom_label: string | null;
+  notes: string | null;
+  duration_minutes: number;
+  position: number;
+  created_at: string;
+}
+
+export interface WorshipFormLink {
+  id: string;
+  service_id: string;
+  link_type: 'orator' | 'president';
+  token: string;
+  recipient_name: string | null;
+  recipient_phone: string | null;
+  is_used: boolean;
+  sent_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
 }

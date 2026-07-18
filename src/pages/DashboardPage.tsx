@@ -10,6 +10,7 @@ import {
 } from '../lib/icons';
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
+import { PlanificationSection } from '../components/dashboard/PlanificationSection';
 import { useEventReminders } from '../lib/hooks/useEventReminders';
 import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
 import type { Page } from '../lib/navigation';
@@ -1825,11 +1826,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               .filter((dept) => !shouldHideDeptSection(dept))
               .map((dept, idx) => {
               const isProtocole = dept.department_name.toLowerCase().includes('protocole');
+              const isMediaPlanif = dept.department_name.toLowerCase().includes('m\u00e9dia') ||
+                dept.department_name.toLowerCase().includes('presse') ||
+                dept.department_name.toLowerCase().includes('planification');
               return (
                 <EvtReveal key={dept.id} delay={7 + idx}>
                   <section className="mb-10">
                     {isProtocole ? (
                       <ProtocolSection accentColor={dept.accent_color} />
+                    ) : isMediaPlanif ? (
+                      <PlanificationSection accentColor={dept.accent_color} />
                     ) : (
                       <DepartmentSection
                         departmentId={dept.id}
