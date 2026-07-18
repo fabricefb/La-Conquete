@@ -11,6 +11,7 @@ import {
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
 import { PlanificationSection } from '../components/dashboard/PlanificationSection';
+import { MediaCenterSection } from '../components/dashboard/MediaCenterSection';
 import { useEventReminders } from '../lib/hooks/useEventReminders';
 import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem, UserProfile, Department, Position } from '../types';
 import type { Page } from '../lib/navigation';
@@ -1836,6 +1837,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       <ProtocolSection accentColor={dept.accent_color} />
                     ) : isMediaPlanif ? (
                       <PlanificationSection accentColor={dept.accent_color} />
+                      <div className="mt-8">
+                        <MediaCenterSection accentColor={dept.accent_color} />
+                      </div>
                     ) : (
                       <DepartmentSection
                         departmentId={dept.id}

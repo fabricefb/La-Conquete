@@ -3,9 +3,9 @@ import { supabase } from '../lib/supabase';
 import {
   Church, Loader2, CheckCircle, AlertCircle, Plus, Trash2,
   ChevronUp, ChevronDown, Send, BookOpen, Mic, User,
-  Info, ArrowLeft, AlertTriangle, Clock,
+  Info, ArrowLeft, AlertTriangle, Clock, MessageSquare, Eye,
 } from '../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, isTableNotFoundError, formatDate, getDeadlineInfo } from '../components/admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo } from '../components/admin/tabs/PlanificationTab';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipOrderItemType,
@@ -58,8 +58,48 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   const [existingOrder, setExistingOrder] = useState<WorshipOrderItem[]>([]);
 
   const [submitting, setSubmitting] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const isOrator = link?.link_type === 'orator';
+
+  /* ── Send form content via WhatsApp ── */
+  const sendViaWhatsApp = () => {
+    const BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
+    let message = '';
+    if (isOrator) {
+      message = `*FORMULAIRE ORATEUR*\n`;
+      message += `Culte: ${service ? formatDate(service.date) : ''} ${service ? formatTime(service.time) : ''}\n`;
+      message += `Type: ${service ? SERVICE_TYPE_LABELS[service.type] : ''}\n\n`;
+      message += `*Orateur:* ${oratorName || '-'}\n`;
+      message += `*Thème:* ${theme || '-'}\n`;
+      if (subTheme) message += `*Sous-thème:* ${subTheme}\n`;
+      if (bibleBook) message += `*Verset:* ${bibleBook} ${bibleChapter || ''}:${bibleVerses || ''}\n`;
+      if (points.some(p => p.title.trim())) {
+        message += `\n*Points du message:*\n`;
+        points.filter(p => p.title.trim()).forEach((p, i) => {
+          message += `${i + 1}. ${p.title}`;
+          if (p.description) message += ` — ${p.description}`;
+          message += '\n';
+        });
+      }
+      if (summary) message += `\n*Résumé:*\n${summary}\n`;
+      if (remarks) message += `\n*Remarques:* ${remarks}\n`;
+    } else {
+      message = `*ORDRE DU CULTE*\n`;
+      message += `Culte: ${service ? formatDate(service.date) : ''} ${service ? formatTime(service.time) : ''}\n`;
+      message += `Type: ${service ? SERVICE_TYPE_LABELS[service.type] : ''}\n`;
+      message += `Président: ${presidentName || '-'}\n\n`;
+      orderItems.forEach((item, i) => {
+        const label = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
+        message += `${i + 1}. ${item.custom_label || label} (${item.duration_minutes} min)\n`;
+        if (item.notes) message += `   Notes: ${item.notes}\n`;
+      });
+      const total = orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0);
+      message += `\n*Durée totale:* ${total} min`;
+    }
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+  };
 
   /* ── Load data ── */
   const loadData = useCallback(async () => {
@@ -390,7 +430,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="flex items-center gap-2 mb-1">
             <Church className="h-4 w-4 text-accent-400" />
             <span className="text-sm font-medium text-accent-400">
-              {formatDate(service.date)} \u2014 {service.time}
+              {formatDate(service.date)} \u2014 {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
             </span>
           </div>
           <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[service.type]}</p>
@@ -495,12 +535,26 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50 resize-none" />
       </div>
 
-      {/* Submit */}
-      <button onClick={submitOratorForm} disabled={submitting || !oratorName.trim() || !theme.trim()}
-        className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        {existingForm ? 'Mettre \u00e0 jour et soumettre' : 'Soumettre le formulaire'}
-      </button>
+      {/* Actions: Preview + WhatsApp + Submit */}
+      <div className="flex gap-2">
+        <button onClick={() => setShowPreview(!showPreview)}
+          className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
+          <Eye className="h-4 w-4" />
+          {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
+        </button>
+        <button onClick={sendViaWhatsApp}
+          className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
+          <MessageSquare className="h-4 w-4" />
+          WhatsApp
+        </button>
+      </div>
+      {!showPreview && (
+        <button onClick={submitOratorForm} disabled={submitting || !oratorName.trim() || !theme.trim()}
+          className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {existingForm ? 'Mettre \u00e0 jour et soumettre' : 'Soumettre le formulaire'}
+        </button>
+      )}
     </div>
   );
 
@@ -515,7 +569,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="flex items-center gap-2 mb-1">
             <Church className="h-4 w-4 text-purple-400" />
             <span className="text-sm font-medium text-purple-400">
-              {formatDate(service.date)} \u2014 {service.time}
+              {formatDate(service.date)} \u2014 {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
             </span>
           </div>
           <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[service.type]}</p>
@@ -604,11 +658,131 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         <span className="text-sm font-medium text-cream">{orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0)} minutes</span>
       </div>
 
-      {/* Submit */}
-      <button onClick={submitPresidentForm} disabled={submitting || orderItems.length === 0}
+      {/* Actions: Preview + WhatsApp + Submit */}
+      <div className="flex gap-2">
+        <button onClick={() => setShowPreview(!showPreview)}
+          className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
+          <Eye className="h-4 w-4" />
+          {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
+        </button>
+        <button onClick={sendViaWhatsApp}
+          className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
+          <MessageSquare className="h-4 w-4" />
+          WhatsApp
+        </button>
+      </div>
+      {!showPreview && (
+        <button onClick={submitPresidentForm} disabled={submitting || orderItems.length === 0}
+          className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          {existingOrder.length > 0 ? 'Mettre \u00e0 jour l\u2019ordre' : 'Soumettre l\u2019ordre du culte'}
+        </button>
+      )}
+    </div>
+  );
+
+  /* ═══════════════════════════════════════════════════════════════
+     Preview Render
+     ═══════════════════════════════════════════════════════════════ */
+  const renderPreview = () => (
+    <div className="space-y-5">
+      <div className="flex items-center gap-2 mb-2">
+        <Eye className="h-4 w-4 text-accent-400" />
+        <h2 className="text-base font-semibold text-cream">Pr\u00e9visualisation</h2>
+      </div>
+
+      {isOrator ? (
+        <div className="glass-card rounded-xl p-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs text-muted block mb-1">Orateur</label>
+              <p className="text-sm font-medium text-cream">{oratorName || '\u2014'}</p>
+            </div>
+            <div>
+              <label className="text-xs text-muted block mb-1">Th\u00e8me principal</label>
+              <p className="text-sm font-medium text-cream">{theme || '\u2014'}</p>
+            </div>
+            {subTheme && (
+              <div>
+                <label className="text-xs text-muted block mb-1">Sous-th\u00e8me</label>
+                <p className="text-sm text-cream/80">{subTheme}</p>
+              </div>
+            )}
+            {bibleBook && (
+              <div>
+                <label className="text-xs text-muted block mb-1">Verset biblique</label>
+                <p className="text-sm text-cream/80">{bibleBook} {bibleChapter || ''}:{bibleVerses || ''}</p>
+              </div>
+            )}
+          </div>
+          {points.filter(p => p.title.trim()).length > 0 && (
+            <div>
+              <label className="text-xs text-muted block mb-2">Grands points du message</label>
+              <div className="space-y-2">
+                {points.filter(p => p.title.trim()).map((pt, i) => (
+                  <div key={i} className="bg-white/3 rounded-lg p-3 border border-line/20">
+                    <div className="flex items-start gap-2">
+                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{i + 1}</span>
+                      <div>
+                        <p className="text-sm font-medium text-cream">{pt.title}</p>
+                        {pt.description && <p className="text-xs text-muted mt-1">{pt.description}</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {summary && (
+            <div>
+              <label className="text-xs text-muted block mb-1">R\u00e9sum\u00e9 du message</label>
+              <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{summary}</p>
+            </div>
+          )}
+          {remarks && (
+            <div>
+              <label className="text-xs text-muted block mb-1">Remarques</label>
+              <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{remarks}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="glass-card rounded-xl p-5 space-y-3">
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="text-xs text-muted block mb-1">Pr\u00e9sident</label>
+              <p className="text-sm font-medium text-cream">{presidentName || '\u2014'}</p>
+            </div>
+          </div>
+          <div className="divide-y divide-line/20">
+            {orderItems.map((item, idx) => {
+              const typeLabel = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
+              return (
+                <div key={idx} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-purple-500/15 text-purple-400 text-xs font-bold shrink-0">{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-cream">{item.custom_label || typeLabel}</p>
+                    {item.notes && <p className="text-xs text-muted mt-0.5 truncate">{item.notes}</p>}
+                  </div>
+                  <span className="text-xs text-muted shrink-0">{item.duration_minutes} min</span>
+                </div>
+              );
+            })}
+          </div>
+          <div className="bg-white/3 rounded-lg p-3 text-center">
+            <span className="text-sm text-muted">Dur\u00e9e totale estim\u00e9e : </span>
+            <span className="text-sm font-medium text-cream">{orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0)} minutes</span>
+          </div>
+        </div>
+      )}
+
+      {/* Submit from preview */}
+      <button
+        onClick={isOrator ? submitOratorForm : submitPresidentForm}
+        disabled={submitting || (isOrator ? (!oratorName.trim() || !theme.trim()) : orderItems.length === 0)}
         className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        {existingOrder.length > 0 ? 'Mettre \u00e0 jour l\u2019ordre' : 'Soumettre l\u2019ordre du culte'}
+        Confirmer et soumettre
       </button>
     </div>
   );
@@ -666,7 +840,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           </div>
         )}
 
-        {isOrator ? renderOratorForm() : renderPresidentForm()}
+        {showPreview ? renderPreview() : (isOrator ? renderOratorForm() : renderPresidentForm())}
       </div>
     </div>
   );

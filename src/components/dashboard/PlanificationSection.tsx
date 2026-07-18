@@ -7,7 +7,7 @@ import {
   Loader2, Info, Clock, CheckCircle, AlertCircle, BookOpen,
   Send, Copy, Eye, AlertTriangle, Timer,
 } from '../../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, getDeadlineInfo } from '../admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo } from '../admin/tabs/PlanificationTab';
 import type {
   WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipFormLink,
@@ -170,7 +170,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
             <div key={svc.id} className={`bg-white/3 rounded-lg p-3 border ${svc.is_delayed ? 'border-red-500/25' : 'border-line/15'}`}>
               <div className="flex items-center justify-between mb-1.5">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
+                  <p className="text-sm font-medium text-cream">{formatDate(svc.date)} &mdash; {formatTime(svc.time)}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
                   {svc.is_delayed && (
                     <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/20 text-red-300 flex items-center gap-0.5">
                       <AlertTriangle className="h-2.5 w-2.5" />

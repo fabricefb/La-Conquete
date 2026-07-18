@@ -179,6 +179,11 @@ function formatDate(d: string): string {
   return new Date(d).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatTime(t: string): string {
+  // PostgreSQL TIME returns "08:00:00" — strip seconds
+  return t ? t.substring(0, 5) : '';
+}
+
 /* ── 12h Deadline helpers ── */
 function getDeadlineInfo(deadlineStr: string): { label: string; cls: string; isExpired: boolean; hoursLeft: number } {
   const deadline = new Date(deadlineStr);
@@ -474,7 +479,7 @@ export function PlanificationTab() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {svc.time}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
+                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {formatTime(svc.time)}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
                           {svc.is_delayed && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
@@ -979,4 +984,4 @@ function CreateServiceModal({ onClose, onSubmit }: {
 }
 
 // Re-export for public form page & dashboard section
-export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, CULTE_TYPE_GROUPS, generateToken, isTableNotFoundError, formatDate, getDeadlineInfo };
+export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, CULTE_TYPE_GROUPS, generateToken, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo };
