@@ -75,21 +75,41 @@ EXCEPTION WHEN OTHERS THEN
   RAISE NOTICE 'Erreur ajout colonne form_deadline_at: %', SQLERRM;
 END $$;
 
+-- ── Migrer les anciens types vers les nouveaux AVANT de changer la contrainte ──
+UPDATE worship_services SET type = 'enseignement_priere' WHERE type IN ('dimanche', 'enseignement');
+UPDATE worship_services SET type = 'jeune_priere' WHERE type IN ('jeune', 'jeudi');
+UPDATE worship_services SET type = 'jeune_gen_espoir' WHERE type IN ('samedi', 'gen_espoir');
+UPDATE worship_services SET type = 'adoration_louange' WHERE type IN ('dim', 'midis');
+UPDATE worship_services SET type = 'veillee' WHERE type = 'veille';
+UPDATE worship_services SET type = 'culte_special' WHERE type = 'special';
+UPDATE worship_services SET type = 'autre' WHERE type NOT IN (
+  'enseignement_priere', 'jeune_priere', 'jeune_gen_espoir', 'adoration_louange',
+  'seminaire', 'veillee', 'culte_special', 'conference', 'exposition', 'retraite', 'autre'
+);
+
 -- ── Mettre à jour le CHECK constraint sur type si ancienne version ──
 DO $$ BEGIN
-  -- Supprimer l'ancienne contrainte si elle existe avec les vieux types
   IF EXISTS (SELECT 1 FROM information_schema.table_constraints
-    WHERE table_name = 'worship_services' AND constraint_name LIKE '%type%') THEN
-    DECLARE
-      cname TEXT;
-    BEGIN
-      SELECT constraint_name INTO cname FROM information_schema.table_constraints
-        WHERE table_name = 'worship_services' AND constraint_name LIKE '%type%' LIMIT 1;
-      IF cname IS NOT NULL THEN
-        EXECUTE format('ALTER TABLE worship_services DROP CONSTRAINT %I', cname);
-      END IF;
-    END;
+    WHERE table_name = 'worship_services' AND constraint_name = 'worship_services_type_check') THEN
+    ALTER TABLE worship_services DROP CONSTRAINT worship_services_type_check;
   END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- Supprimer toute autre contrainte CHECK résiduelle sur "type"
+DO $$ BEGIN
+  DECLARE
+    cname TEXT;
+  BEGIN
+    FOR cname IN
+      SELECT constraint_name FROM information_schema.table_constraints
+        WHERE table_name = 'worship_services'
+          AND constraint_type = 'CHECK'
+          AND constraint_name != 'worship_services_type_check'
+    LOOP
+      EXECUTE format('ALTER TABLE worship_services DROP CONSTRAINT %I', cname);
+    END LOOP;
+  END;
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
 
