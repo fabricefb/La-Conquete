@@ -18,8 +18,6 @@ import type {
   ConvertiTimeline,
   EventAssignment,
   EventMinute,
-  InventoryItem,
-  InventoryReservation,
   CelluleMaison,
   ZoneEvangelisation,
   PrayerRequest,
@@ -433,38 +431,6 @@ export const db = {
     return supabase.from('event_minutes').delete().eq('id', id);
   },
 
-  getInventoryItems(category?: string) {
-    let q = supabase.from('inventory_items').select('*').order('name');
-    if (category) q = q.eq('category', category);
-    return fetchTable<InventoryItem>(q);
-  },
-
-  async upsertInventoryItem(data: Partial<InventoryItem>) {
-    const res = data.id
-      ? await supabase.from('inventory_items').update(data).eq('id', data.id).select().single()
-      : await supabase.from('inventory_items').insert(data).select().single();
-    if (res.error) throw new Error(res.error.message);
-    return res.data as InventoryItem;
-  },
-
-  async deleteInventoryItem(id: string) {
-    const { error } = await supabase.from('inventory_items').delete().eq('id', id);
-    if (error) throw new Error(error.message);
-  },
-
-  getInventoryReservations(itemId?: string) {
-    let q = supabase.from('inventory_reservations').select('*').order('created_at', { ascending: false });
-    if (itemId) q = q.eq('item_id', itemId);
-    return fetchTable<InventoryReservation>(q);
-  },
-
-  async upsertInventoryReservation(data: Partial<InventoryReservation>) {
-    const res = data.id
-      ? await supabase.from('inventory_reservations').update(data).eq('id', data.id).select().single()
-      : await supabase.from('inventory_reservations').insert(data).select().single();
-    if (res.error) throw new Error(res.error.message);
-    return res.data as InventoryReservation;
-  },
 
   // ═══════════════════════════════════════════════
   // MODULE 2 — CRM Convertis (additional)

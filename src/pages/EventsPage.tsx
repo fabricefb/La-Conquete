@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
 import type { ChurchEvent } from '../types';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -8,13 +8,16 @@ import { MobileNav } from '../components/MobileNav';
 import { formatDate } from '../lib/date';
 import { Calendar, MapPin, BookOpen, Heart, Moon, Users, Send, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
 import { IconBox } from '../components/IconBox';
+import { EvtReveal } from '../components/EvtReveal';
 import type { Page } from '../lib/navigation';
 
 interface EventsPageProps { onNavigate: (page: Page) => void; }
 
-const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion'] as const;
+const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'] as const;
 const CAT_LABELS: Record<string, string> = {
-  'Tous': 'Tous', 'Cultes': 'Cultes', 'Missions': 'Missions', 'Jeunesse': 'Jeunesse', 'Communion': 'Communion',
+  'Tous': 'Tous', 'Cultes': 'Cultes', 'Missions': 'Missions', 'Jeunesse': 'Jeunesse',
+  'Communion': 'Communion', 'Formation': 'Formation', 'Évangélisation': 'Évangélisation',
+  'Spécial': 'Spécial', 'Autre': 'Autre',
 };
 
 const weeklyServices = [
@@ -27,32 +30,6 @@ const weeklyServices = [
 ];
 
 const FALLBACK_IMG = 'https://images.pexels.com/photos/2774557/pexels-photo-2774557.jpeg?auto=compress&cs=tinysrgb&w=800';
-
-/* ─── Tiny intersection-observer hook for .evt-reveal ─── */
-function useEvtReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold: 0.08 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return { ref, inView };
-}
-
-function EvtReveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const { ref, inView } = useEvtReveal();
-  return (
-    <div ref={ref} className={`evt-reveal ${inView ? 'in' : ''} ${delay ? `evt-reveal-delay-${delay}` : ''} ${className}`}>
-      {children}
-    </div>
-  );
-}
 
 /* ─── Material Symbol wrapper ─── */
 function MS({ children, className = '' }: { children: string; className?: string }) {

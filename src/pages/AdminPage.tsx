@@ -15,7 +15,6 @@ import { MessagesTab } from '../components/admin/tabs/MessagesTab';
 import { ThemeTab } from '../components/admin/tabs/ThemeTab';
 import { PastorsTab } from '../components/admin/tabs/PastorsTab';
 import { AssignmentsTab } from '../components/admin/tabs/AssignmentsTab';
-import { InventoryTab } from '../components/admin/tabs/InventoryTab';
 import { AlertsTab } from '../components/admin/tabs/AlertsTab';
 import { PipelineTab } from '../components/admin/tabs/PipelineTab';
 import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
@@ -104,7 +103,6 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'assignments': return <AssignmentsTab />;
       case 'creneaux': return <CreneauxTab />;
       case 'ministries': return <MinistriesTab />;
-      case 'inventory': return <InventoryTab />;
       case 'alerts': return <AlertsTab />;
       case 'pipeline': return <PipelineTab />;
       case 'media': return <MediaTab />;

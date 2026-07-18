@@ -4,7 +4,7 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
-  Menu, X, Landmark, Crown, Package, Bell, Heart,
+  Menu, X, Landmark, Crown, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
   UserCheck, LayoutGrid, BookOpen, Zap, Radio, CalendarCheck,
 } from 'lucide-react';
@@ -53,7 +53,6 @@ const tabGroups: TabGroup[] = [
       { id: 'creneaux', label: 'Créneaux', Icon: Clock },
       { id: 'events', label: 'Événements', Icon: Calendar },
       { id: 'locations', label: 'Lieux', Icon: MapPin },
-      { id: 'inventory', label: 'Inventaire', Icon: Package },
     ],
   },
   {
@@ -85,13 +84,13 @@ interface AdminLayoutProps {
 
 // Onglets masqués pour le pasteur principal (consultation uniquement)
 const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>([
-  'theme', 'settings', 'inventory', 'media',
+  'theme', 'settings', 'media',
   'pipeline', 'onboarding', 'protocol', 'creneaux',
 ]);
 
 // Onglets masqués pour les utilisateurs niveau 4 (diacre, collaborateur, etc.)
 const HIDDEN_TABS_FOR_LEVEL4 = new Set<AdminTab>([
-  'theme', 'settings', 'inventory', 'media',
+  'theme', 'settings', 'media',
   'pipeline', 'creneaux',
 ]);
 

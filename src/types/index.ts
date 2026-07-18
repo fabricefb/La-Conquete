@@ -273,7 +273,6 @@ export type AdminTab =
   | 'testimonials'
   | 'messages'
   | 'pastors'
-  | 'inventory'
   | 'alerts'
   | 'pipeline'
   | 'theme'
@@ -471,35 +470,6 @@ export interface EventMinute {
   is_completed: boolean;
 }
 
-export interface InventoryItem {
-  id: string;
-  name: string;
-  category: 'sound' | 'seating' | 'lighting' | 'literature' | 'generators' | 'tents' | 'vehicles' | 'other';
-  description?: string;
-  quantity_total: number;
-  quantity_available: number;
-  condition: 'excellent' | 'good' | 'fair' | 'needs_repair' | 'retired';
-  location_stored?: string;
-  image_url?: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface InventoryReservation {
-  id: string;
-  item_id: string;
-  item_name?: string;
-  event_id: string;
-  event_title?: string;
-  quantity_reserved: number;
-  reserved_by: string;
-  reserved_by_name?: string;
-  status: 'pending' | 'approved' | 'active' | 'returned' | 'overdue';
-  reserved_date: string;
-  return_date?: string;
-  notes?: string;
-  created_at: string;
-}
 
 // ═════════════════════════════════════════════════════
 // MODULE 2 — Suivi Convertis (CRM Spirituel)

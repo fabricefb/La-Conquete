@@ -19,6 +19,7 @@ import type {
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { EvtReveal } from '../components/EvtReveal';
 
 /* ═══════════════════════════════════════════════════════════════════
    Types & Constants
@@ -91,34 +92,6 @@ const TARGET_TYPES: { value: string; label: string }[] = [
   { value: 'custom', label: 'Sélection personnalisée' },
 ];
 
-/* ═══════════════════════════════════════════════════════════════════
-   IntersectionObserver reveal
-   ═══════════════════════════════════════════════════════════════════ */
-
-function useEvtReveal() {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setInView(true); obs.disconnect(); } },
-      { threshold: 0.08 },
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return { ref, inView };
-}
-
-function EvtReveal({ children, className = '', delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const { ref, inView } = useEvtReveal();
-  return (
-    <div ref={ref} className={`evt-reveal ${inView ? 'in' : ''} ${delay ? `evt-reveal-delay-${delay}` : ''} ${className}`}>
-      {children}
-    </div>
-  );
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    Helpers

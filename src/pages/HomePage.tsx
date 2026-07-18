@@ -400,9 +400,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="home" />
 
-      {/* ═══════ HERO (fullscreen) ═══════ */}
-      <div className="h-16 shrink-0" />
-      <section className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden">
+      {/* ═══════ HERO (full-screen immersive) ═══════ */}
+      <section className="relative h-screen spirit-breath flex items-center justify-center overflow-hidden">
         {/* Parallax background wrapper */}
         <div
           ref={bgRef}
