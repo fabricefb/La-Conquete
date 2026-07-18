@@ -25,4 +25,5 @@ export type Page =
   | 'vision'
   | 'jeunesse'
   | 'enseignements'
-  | 'blog';
+  | 'blog'
+  | 'evangelisation';

@@ -11,6 +11,7 @@ import {
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
 import { MediaCenterSection } from '../components/dashboard/MediaCenterSection';
+import { EvangelismDashboardSection } from '../components/dashboard/EvangelismDashboardSection';
 import { useEventReminders } from '../lib/hooks/useEventReminders';
 import type { ChurchEvent, PrayerRequest as PrayerReqType, NotificationItem } from '../types';
 import type { Page } from '../lib/navigation';
@@ -1793,8 +1794,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     deptName.includes('communication') ||
                     deptName.includes('planification');
 
+                  const isEvangelism = deptName.includes('evangelis') ||
+                    deptName.includes('évangélis');
+
                   /* Skip duplicate special sections */
-                  const specialKey = isProtocole ? 'protocole' : isMediaPlanif ? 'media_planif' : null;
+                  const specialKey = isProtocole ? 'protocole' : isMediaPlanif ? 'media_planif' : isEvangelism ? 'evangelism' : null;
                   if (specialKey && renderedSpecial.has(specialKey)) return null;
                   if (specialKey) renderedSpecial.add(specialKey);
 
@@ -1805,6 +1809,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           <ProtocolSection accentColor={dept.accent_color} />
                         ) : isMediaPlanif ? (
                           <MediaCenterSection accentColor={dept.accent_color} />
+                        ) : isEvangelism ? (
+                          <EvangelismDashboardSection accentColor={dept.accent_color} />
                         ) : (
                           <DepartmentSection
                             departmentId={dept.id}

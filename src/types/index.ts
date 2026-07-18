@@ -288,7 +288,8 @@ export type AdminTab =
   | 'animations'
   | 'live_stream'
   | 'audio'
-  | 'planification_culte';
+  | 'planification_culte'
+  | 'evangelism';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
@@ -1178,4 +1179,170 @@ export interface WorshipFormLink {
   expires_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+// ═══════ MODULE 7 — Évangélisation ═══════
+export type EvangelismObjective =
+  | 'porte_a_porte' | 'marche' | 'campagne' | 'rue'
+  | 'hopital' | 'prison' | 'ecole' | 'stade' | 'autre';
+
+export type EvangelismOutingStatus = 'planifiee' | 'en_cours' | 'terminee' | 'annulee';
+
+export const EVANGELISM_OBJECTIVE_LABELS: Record<EvangelismObjective, string> = {
+  porte_a_porte: 'Porte-à-porte',
+  marche: 'Marché',
+  campagne: 'Campagne',
+  rue: 'Rue',
+  hopital: 'Hôpital',
+  prison: 'Prison',
+  ecole: 'École',
+  stade: 'Stade',
+  autre: 'Autre',
+};
+
+export const EVANGELISM_OUTING_STATUS_LABELS: Record<EvangelismOutingStatus, string> = {
+  planifiee: 'Planifiée',
+  en_cours: 'En cours',
+  terminee: 'Terminée',
+  annulee: 'Annulée',
+};
+
+export const EVANGELISM_OUTING_STATUS_COLORS: Record<EvangelismOutingStatus, string> = {
+  planifiee: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
+  en_cours: 'bg-amber-500/15 text-amber-300 border-amber-500/20',
+  terminee: 'bg-green-500/15 text-green-300 border-green-500/20',
+  annulee: 'bg-red-500/15 text-red-300 border-red-500/20',
+};
+
+export interface EvangelismOuting {
+  id: string;
+  title: string;
+  description: string | null;
+  outing_date: string;
+  start_time: string;
+  end_time: string | null;
+  location: string;
+  location_quartier: string | null;
+  objective: EvangelismObjective;
+  status: EvangelismOutingStatus;
+  responsible_id: string | null;
+  responsible_name: string | null;
+  notes: string | null;
+  team_member_ids: string[] | null;
+  team_member_names: string[] | null;
+  expected_attendees: number;
+  actual_attendees: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EvangelismDecision =
+  | 'interesse' | 'en_savoir_plus' | 'accepte_christ'
+  | 'veut_venir_eglise' | 'deja_croyant' | 'pas_interesse' | 'a_suivre';
+
+export type EvangelismContactStatus =
+  | 'a_contacter' | 'contacte' | 'en_suivi' | 'integre_eglise' | 'perdu_de_vue';
+
+export const EVANGELISM_DECISION_LABELS: Record<EvangelismDecision, string> = {
+  interesse: 'Intéressé',
+  en_savoir_plus: 'Veut en savoir plus',
+  accepte_christ: 'A accepté Christ',
+  veut_venir_eglise: 'Veut venir à l\'église',
+  deja_croyant: 'Déjà croyant',
+  pas_interesse: 'Pas intéressé',
+  a_suivre: 'À suivre',
+};
+
+export const EVANGELISM_CONTACT_STATUS_LABELS: Record<EvangelismContactStatus, string> = {
+  a_contacter: 'À contacter',
+  contacte: 'Contacté',
+  en_suivi: 'En suivi',
+  integre_eglise: 'Intégré à l\'église',
+  perdu_de_vue: 'Perdu de vue',
+};
+
+export const EVANGELISM_CONTACT_STATUS_COLORS: Record<EvangelismContactStatus, string> = {
+  a_contacter: 'bg-orange-500/15 text-orange-300 border-orange-500/20',
+  contacte: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
+  en_suivi: 'bg-amber-500/15 text-amber-300 border-amber-500/20',
+  integre_eglise: 'bg-green-500/15 text-green-300 border-green-500/20',
+  perdu_de_vue: 'bg-gray-500/15 text-gray-300 border-gray-500/20',
+};
+
+export interface EvangelismContact {
+  id: string;
+  outing_id: string | null;
+  full_name: string;
+  phone: string | null;
+  whatsapp: string | null;
+  address: string | null;
+  quartier: string | null;
+  decision: EvangelismDecision;
+  needs: string | null;
+  prayer_request: string | null;
+  notes: string | null;
+  status: EvangelismContactStatus;
+  assigned_to: string | null;
+  assigned_to_name: string | null;
+  first_contact_at: string | null;
+  first_call_at: string | null;
+  first_visit_at: string | null;
+  invited_culte_id: string | null;
+  invited_culte_date: string | null;
+  came_to_culte: boolean;
+  culte_notes: string | null;
+  baptized: boolean;
+  baptism_date: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type EvangelismFollowupType =
+  | 'appel' | 'visite' | 'message' | 'invitation_culte'
+  | 'etude_biblique' | 'prière' | 'autre';
+
+export type EvangelismFollowupResult = 'positif' | 'neutre' | 'negatif' | 'a_reporter' | 'en_attente';
+
+export const EVANGELISM_FOLLOWUP_TYPE_LABELS: Record<EvangelismFollowupType, string> = {
+  appel: 'Appel téléphonique',
+  visite: 'Visite',
+  message: 'Message',
+  invitation_culte: 'Invitation culte',
+  etude_biblique: 'Étude biblique',
+  'prière': 'Prière',
+  autre: 'Autre',
+};
+
+export const EVANGELISM_FOLLOWUP_RESULT_LABELS: Record<EvangelismFollowupResult, string> = {
+  positif: 'Positif',
+  neutre: 'Neutre',
+  negatif: 'Négatif',
+  a_reporter: 'À reporter',
+  en_attente: 'En attente',
+};
+
+export interface EvangelismFollowup {
+  id: string;
+  contact_id: string;
+  followup_type: EvangelismFollowupType;
+  scheduled_date: string;
+  completed_at: string | null;
+  notes: string | null;
+  result: EvangelismFollowupResult;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface EvangelismStats {
+  total_outings: number;
+  total_contacts: number;
+  decisions: number;
+  integrated: number;
+  came_to_culte: number;
+  followups_done: number;
+  active_followups: number;
+  baptized: number;
 }

@@ -63,6 +63,7 @@ const tabGroups: TabGroup[] = [
       { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
       { id: 'protocol', label: 'Protocole', Icon: UserCheck },
       { id: 'planification_culte', label: 'Planification Culte', Icon: CalendarCheck },
+      { id: 'evangelism', label: 'Évangélisation', Icon: Heart },
     ],
   },
   {

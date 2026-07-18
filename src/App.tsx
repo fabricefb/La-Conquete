@@ -15,6 +15,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { AudioPlayer } from './components/AudioPlayer';
 import { BibleReader } from './components/BibleReader';
 import { NotificationCenter } from './components/NotificationCenter';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import type { Page } from './lib/navigation';
 
 /* ─── Lazy-loaded pages (code splitting) ─── */
@@ -37,8 +38,9 @@ const JeunessePage = lazy(() => import('./pages/JeunessePage').then(m => ({ defa
 const EnseignementsPage = lazy(() => import('./pages/EnseignementsPage').then(m => ({ default: m.EnseignementsPage })));
 const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
+const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(m => ({ default: m.EvangelisationPage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
 function getPage(): Page {
   const h = window.location.hash.replace('#', '');
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
@@ -160,6 +162,7 @@ function AppRouter() {
               case 'jeunesse': return <JeunessePage {...nav} />;
               case 'enseignements': return <EnseignementsPage {...nav} />;
               case 'blog': return <BlogPage {...nav} />;
+              case 'evangelisation': return <EvangelisationPage {...nav} />;
               default: return <HomePage {...nav} />;
             }
           })()
@@ -168,6 +171,7 @@ function AppRouter() {
       <AuthModal isOpen={authOpen} onClose={() => { closeAuth(); sessionStorage.removeItem('lc_admin_redirected'); }} initialView={authView} />
       {/* ── Global Innovation Components ── */}
       <AudioPlayer />
+      <PWAInstallPrompt />
       <BibleReader isOpen={bibleOpen} onClose={() => setBibleOpen(false)} />
       {page !== 'admin' && page !== 'dashboard' && <NotificationCenter />}
     </>
