@@ -443,11 +443,9 @@ export function PlanificationTab() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-cream">Planification des cultes</h3>
-          {isFullAdmin && (
-            <button onClick={() => setShowCreateModal(true)} className="btn-gold text-sm flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Nouveau culte
-            </button>
-          )}
+          <button onClick={() => setShowCreateModal(true)} className="btn-gold text-sm flex items-center gap-2">
+            <Plus className="h-4 w-4" /> Nouveau culte
+          </button>
         </div>
 
         {services.length === 0 ? (
@@ -495,20 +493,20 @@ export function PlanificationTab() {
                         </span>
                       )}
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${st.color}`}>{st.label}</span>
-                      {isFullAdmin && (
-                        <div className="flex items-center gap-0.5">
-                          <button
-                            onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
-                            className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
-                            title={svc.is_delayed ? 'G\u00e9rer le retard' : 'Signaler un retard'}
-                          >
-                            <AlertTriangle className="h-4 w-4" />
-                          </button>
+                      <div className="flex items-center gap-0.5">
+                        <button
+                          onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
+                          className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
+                          title={svc.is_delayed ? 'G\u00e9rer le retard' : 'Signaler un retard'}
+                        >
+                          <AlertTriangle className="h-4 w-4" />
+                        </button>
+                        {isFullAdmin && (
                           <button onClick={() => handleDeleteService(svc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors">
                             <Trash2 className="h-4 w-4" />
                           </button>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -551,11 +549,9 @@ export function PlanificationTab() {
                           </button>
                         </>
                       )}
-                      {isFullAdmin && (
-                        <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                      <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
                     </div>
 
                     {/* President link */}
@@ -575,11 +571,9 @@ export function PlanificationTab() {
                           </button>
                         </>
                       )}
-                      {isFullAdmin && (
-                        <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
-                          <RefreshCw className="h-3.5 w-3.5" />
-                        </button>
-                      )}
+                      <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
                     </div>
                   </div>
 
