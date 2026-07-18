@@ -218,7 +218,7 @@ function ServiceCard({
           </span>
           <span className="inline-flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
-            {formatTime(service.time)}{typeCfg?.endTime ? `\u2013${typeCfg.endTime}` : ''}
+            {formatTime(service.time)}{typeCfg?.endTime ? `–${typeCfg.endTime}` : ''}
           </span>
         </div>
 

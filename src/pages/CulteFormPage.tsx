@@ -121,7 +121,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
       // Check expiry
       if (linkData.expires_at && new Date(linkData.expires_at) < new Date()) {
-        setError('Ce lien a expir\u00e9. Contactez le d\u00e9partement m\u00e9dia.');
+        setError('Ce lien a expiré. Contactez le département média.');
         setLoading(false);
         return;
       }
@@ -145,13 +145,13 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           setDeadlineInfo(dlInfo);
           if (dlInfo.isExpired) {
             setDeadlineExpired(true);
-            setError(`La date limite pour soumettre ce formulaire est expir\u00e9e (12h avant le culte).${svc.is_delayed ? ' Le culte est en retard, mais la deadline a d\u00e9j\u00e0 \u00e9t\u00e9 repouss\u00e9e.' : ''} Contactez le d\u00e9partement m\u00e9dia.`);
+            setError(`La date limite pour soumettre ce formulaire est expirée (12h avant le culte).${svc.is_delayed ? ' Le culte est en retard, mais la deadline a déjà été repoussée.' : ''} Contactez le département média.`);
             setLoading(false);
             return;
           }
         }
       } else {
-        setError('Service introuvable. Contactez le d\u00e9partement m\u00e9dia.');
+        setError('Service introuvable. Contactez le département média.');
         setLoading(false);
         return;
       }
@@ -214,9 +214,9 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       }
     } catch (err) {
       if (isTableNotFoundError(err)) {
-        setError('Module en cours de configuration. Veuillez r\u00e9essayer plus tard.');
+        setError('Module en cours de configuration. Veuillez réessayer plus tard.');
       } else {
-        setError('Une erreur est survenue. Veuillez r\u00e9essayer.');
+        setError('Une erreur est survenue. Veuillez réessayer.');
       }
     } finally {
       setLoading(false);
@@ -229,11 +229,11 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   const submitOratorForm = async () => {
     if (!link || !service) return;
     if (deadlineExpired) {
-      setError('La date limite est expir\u00e9e. Vous ne pouvez plus soumettre ce formulaire.');
+      setError('La date limite est expirée. Vous ne pouvez plus soumettre ce formulaire.');
       return;
     }
     if (!oratorName.trim() || !theme.trim()) {
-      setError('Le nom et le th\u00e8me sont obligatoires.');
+      setError('Le nom et le thème sont obligatoires.');
       return;
     }
 
@@ -309,7 +309,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   const submitPresidentForm = async () => {
     if (!link || !service) return;
     if (deadlineExpired) {
-      setError('La date limite est expir\u00e9e. Vous ne pouvez plus soumettre ce formulaire.');
+      setError('La date limite est expirée. Vous ne pouvez plus soumettre ce formulaire.');
       return;
     }
     setSubmitting(true);
@@ -418,14 +418,14 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         {success && (
           <div className="rounded-xl p-3 mb-3 flex items-center gap-2 text-xs bg-green-500/10 text-green-300 border border-green-500/20">
             <CheckCircle className="h-4 w-4 shrink-0" />
-            <span>{isOrator ? 'Formulaire orateur soumis avec succ\u00e8s !' : 'Ordre du culte soumis avec succ\u00e8s !'}</span>
+            <span>{isOrator ? 'Formulaire orateur soumis avec succès !' : 'Ordre du culte soumis avec succès !'}</span>
           </div>
         )}
         <div className="flex gap-2">
           <button onClick={() => setShowPreview(!showPreview)}
             className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
             <Eye className="h-4 w-4" />
-            {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
+            {showPreview ? 'Modifier' : 'Prévisualiser'}
           </button>
           <button onClick={sendViaWhatsApp}
             className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
@@ -438,10 +438,10 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             className="btn-gold flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
             {success
-              ? (isOrator ? 'Mettre \u00e0 jour' : 'Mettre \u00e0 jour')
+              ? (isOrator ? 'Mettre à jour' : 'Mettre à jour')
               : (existingForm || existingOrder.length > 0
-                ? (isOrator ? 'Mettre \u00e0 jour et soumettre' : 'Mettre \u00e0 jour l\u2019ordre')
-                : (isOrator ? 'Soumettre le formulaire' : 'Soumettre l\u2019ordre du culte'))}
+                ? (isOrator ? 'Mettre à jour et soumettre' : 'Mettre à jour l’ordre')
+                : (isOrator ? 'Soumettre le formulaire' : 'Soumettre l’ordre du culte'))}
           </button>
         </div>
       </div>
@@ -476,7 +476,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="flex items-center gap-2 mb-1">
             <Church className="h-4 w-4 text-accent-400" />
             <span className="text-sm font-medium text-accent-400">
-              {formatDate(service.date)} \u2014 {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
+              {formatDate(service.date)} — {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `–${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
             </span>
           </div>
           <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[service.type]}</p>
@@ -496,18 +496,18 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       {/* Theme */}
       <div>
         <label className="text-sm font-medium text-cream block mb-1.5">
-          Th\u00e8me principal <span className="text-red-400">*</span>
+          Thème principal <span className="text-red-400">*</span>
         </label>
         <input type="text" value={theme} onChange={e => setTheme(e.target.value)}
-          placeholder="Le th\u00e8me de votre message"
+          placeholder="Le thème de votre message"
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50" />
       </div>
 
       {/* Sub-theme */}
       <div>
-        <label className="text-sm font-medium text-cream block mb-1.5">Sous-th\u00e8me (optionnel)</label>
+        <label className="text-sm font-medium text-cream block mb-1.5">Sous-thème (optionnel)</label>
         <input type="text" value={subTheme} onChange={e => setSubTheme(e.target.value)}
-          placeholder="Sous-th\u00e8me ou angle sp\u00e9cifique"
+          placeholder="Sous-thème ou angle spécifique"
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50" />
       </div>
 
@@ -567,9 +567,9 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
       {/* Summary */}
       <div>
-        <label className="text-sm font-medium text-cream block mb-1.5">R\u00e9sum\u00e9 du message (optionnel)</label>
+        <label className="text-sm font-medium text-cream block mb-1.5">Résumé du message (optionnel)</label>
         <textarea value={summary} onChange={e => setSummary(e.target.value)} rows={4}
-          placeholder="Un r\u00e9sum\u00e9 de votre message pour l'\u00e9quipe m\u00e9dia…"
+          placeholder="Un résumé de votre message pour l'équipe média…"
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50 resize-none" />
       </div>
 
@@ -577,7 +577,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       <div>
         <label className="text-sm font-medium text-cream block mb-1.5">Remarques / avis (optionnel)</label>
         <textarea value={remarks} onChange={e => setRemarks(e.target.value)} rows={2}
-          placeholder="Informations compl\u00e9mentaires pour le d\u00e9partement m\u00e9dia…"
+          placeholder="Informations complémentaires pour le département média…"
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50 resize-none" />
       </div>
 
@@ -595,7 +595,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="flex items-center gap-2 mb-1">
             <Church className="h-4 w-4 text-purple-400" />
             <span className="text-sm font-medium text-purple-400">
-              {formatDate(service.date)} \u2014 {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
+              {formatDate(service.date)} — {formatTime(service.time)}{WORSHIP_TYPE_CONFIGS[service.type]?.endTime ? `–${WORSHIP_TYPE_CONFIGS[service.type].endTime}` : ''}
             </span>
           </div>
           <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[service.type]}</p>
@@ -606,7 +606,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       <div>
         <label className="text-sm font-medium text-cream block mb-1.5">Votre nom</label>
         <input type="text" value={presidentName} onChange={e => setPresidentName(e.target.value)}
-          placeholder="Nom du pr\u00e9sident de culte"
+          placeholder="Nom du président de culte"
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50" />
       </div>
 
@@ -615,7 +615,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         <div className="flex items-center justify-between mb-2">
           <label className="text-sm font-medium text-cream">Ordre du culte</label>
           <button onClick={addOrderItem} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
-            <Plus className="h-3.5 w-3.5" /> Ajouter une \u00e9tape
+            <Plus className="h-3.5 w-3.5" /> Ajouter une étape
           </button>
         </div>
 
@@ -664,13 +664,13 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
                 {/* Custom label (for "autre" type) */}
                 {item.item_type === 'autre' && (
                   <input type="text" value={item.custom_label} onChange={e => updateOrderItem(idx, 'custom_label', e.target.value)}
-                    placeholder="Pr\u00e9cisez le type…"
+                    placeholder="Précisez le type…"
                     className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream placeholder:text-muted/50" />
                 )}
 
                 {/* Notes */}
                 <input type="text" value={item.notes} onChange={e => updateOrderItem(idx, 'notes', e.target.value)}
-                  placeholder="Notes ou d\u00e9tails (optionnel)"
+                  placeholder="Notes ou détails (optionnel)"
                   className="input-surface w-full rounded-lg px-3 py-2 text-xs text-cream placeholder:text-muted/50" />
               </div>
             );
@@ -680,7 +680,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
       {/* Total duration */}
       <div className="bg-white/3 rounded-xl p-3 text-center">
-        <span className="text-sm text-muted">Dur\u00e9e totale estim\u00e9e : </span>
+        <span className="text-sm text-muted">Durée totale estimée : </span>
         <span className="text-sm font-medium text-cream">{orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0)} minutes</span>
       </div>
 
@@ -694,7 +694,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
     <div className="space-y-5">
       <div className="flex items-center gap-2 mb-2">
         <Eye className="h-4 w-4 text-accent-400" />
-        <h2 className="text-base font-semibold text-cream">Pr\u00e9visualisation</h2>
+        <h2 className="text-base font-semibold text-cream">Prévisualisation</h2>
       </div>
 
       {isOrator ? (
@@ -702,15 +702,15 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-xs text-muted block mb-1">Orateur</label>
-              <p className="text-sm font-medium text-cream">{oratorName || '\u2014'}</p>
+              <p className="text-sm font-medium text-cream">{oratorName || '—'}</p>
             </div>
             <div>
-              <label className="text-xs text-muted block mb-1">Th\u00e8me principal</label>
-              <p className="text-sm font-medium text-cream">{theme || '\u2014'}</p>
+              <label className="text-xs text-muted block mb-1">Thème principal</label>
+              <p className="text-sm font-medium text-cream">{theme || '—'}</p>
             </div>
             {subTheme && (
               <div>
-                <label className="text-xs text-muted block mb-1">Sous-th\u00e8me</label>
+                <label className="text-xs text-muted block mb-1">Sous-thème</label>
                 <p className="text-sm text-cream/80">{subTheme}</p>
               </div>
             )}
@@ -741,7 +741,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           )}
           {summary && (
             <div>
-              <label className="text-xs text-muted block mb-1">R\u00e9sum\u00e9 du message</label>
+              <label className="text-xs text-muted block mb-1">Résumé du message</label>
               <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{summary}</p>
             </div>
           )}
@@ -756,8 +756,8 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         <div className="glass-card rounded-xl p-5 space-y-3">
           <div className="grid grid-cols-1 gap-3">
             <div>
-              <label className="text-xs text-muted block mb-1">Pr\u00e9sident</label>
-              <p className="text-sm font-medium text-cream">{presidentName || '\u2014'}</p>
+              <label className="text-xs text-muted block mb-1">Président</label>
+              <p className="text-sm font-medium text-cream">{presidentName || '—'}</p>
             </div>
           </div>
           <div className="divide-y divide-line/20">
@@ -776,7 +776,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             })}
           </div>
           <div className="bg-white/3 rounded-lg p-3 text-center">
-            <span className="text-sm text-muted">Dur\u00e9e totale estim\u00e9e : </span>
+            <span className="text-sm text-muted">Durée totale estimée : </span>
             <span className="text-sm font-medium text-cream">{orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0)} minutes</span>
           </div>
         </div>
@@ -795,7 +795,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           {isOrator ? <Mic className="h-5 w-5 text-amber-400" /> : <User className="h-5 w-5 text-purple-400" />}
           <h1 className="text-sm font-semibold text-cream flex-1">
-            {isOrator ? 'Formulaire Orateur' : 'Formulaire Pr\u00e9sident de Culte'}
+            {isOrator ? 'Formulaire Orateur' : 'Formulaire Président de Culte'}
           </h1>
           <span className="text-xs text-muted">
             {service ? formatDate(service.date) : ''}
@@ -811,7 +811,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             <Clock className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">Attention : {deadlineInfo.label}</p>
-              <p className="opacity-80 mt-0.5">Ce formulaire doit \u00eatre soumis au plus tard 12 heures avant le culte.</p>
+              <p className="opacity-80 mt-0.5">Ce formulaire doit être soumis au plus tard 12 heures avant le culte.</p>
             </div>
           </div>
         )}
@@ -820,7 +820,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">Culte en retard de {service.delayed_minutes} minutes</p>
-              <p className="opacity-80 mt-0.5">La deadline a \u00e9t\u00e9 repouss\u00e9e en cons\u00e9quence.</p>
+              <p className="opacity-80 mt-0.5">La deadline a été repoussée en conséquence.</p>
             </div>
           </div>
         )}
@@ -828,13 +828,13 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         {existingForm && isOrator && (
           <div className="bg-amber-500/10 rounded-xl p-3 mb-4 flex items-center gap-2 text-amber-300 text-xs border border-amber-500/20">
             <Info className="h-4 w-4 shrink-0" />
-            Vous avez d\u00e9j\u00e0 soumis un formulaire. Modifiez et soumettez \u00e0 nouveau pour mettre \u00e0 jour.
+            Vous avez déjà soumis un formulaire. Modifiez et soumettez à nouveau pour mettre à jour.
           </div>
         )}
         {existingOrder.length > 0 && !isOrator && (
           <div className="bg-purple-500/10 rounded-xl p-3 mb-4 flex items-center gap-2 text-purple-300 text-xs border border-purple-500/20">
             <Info className="h-4 w-4 shrink-0" />
-            Vous avez d\u00e9j\u00e0 soumis un ordre. Modifiez et soumettez \u00e0 nouveau pour mettre \u00e0 jour.
+            Vous avez déjà soumis un ordre. Modifiez et soumettez à nouveau pour mettre à jour.
           </div>
         )}
 

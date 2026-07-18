@@ -42,46 +42,46 @@ interface CulteTypeConfig {
 
 const WORSHIP_TYPE_CONFIGS: Record<WorshipServiceType, CulteTypeConfig> = {
   enseignement_priere: {
-    label: "Culte d'enseignement et pri\u00e8re",
-    description: 'Mercredi \u2014 Enseignement biblique et pri\u00e8re (16h30\u201318h00)',
+    label: "Culte d'enseignement et prière",
+    description: 'Mercredi — Enseignement biblique et prière (16h30–18h00)',
     group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '16:30', endTime: '18:00',
     color: 'text-blue-300',
   },
   jeune_priere: {
-    label: 'Culte de je\u00fbne et pri\u00e8re',
-    description: 'Vendredi \u2014 Je\u00fbne et pri\u00e8re communautaire (16h00\u201318h30)',
+    label: 'Culte de jeûne et prière',
+    description: 'Vendredi — Jeûne et prière communautaire (16h00–18h30)',
     group: 'hebdomadaire', dayOfWeek: 5, defaultTime: '16:00', endTime: '18:30',
     color: 'text-purple-300',
   },
   jeune_gen_espoir: {
-    label: 'Culte de je\u00fbne (G\u00e9n\u00e9ration Espoir)',
-    description: 'Samedi \u2014 Je\u00fbne des jeunes G\u00e9n\u00e9ration Espoir (15h00\u201317h00)',
+    label: 'Culte de jeûne (Génération Espoir)',
+    description: 'Samedi — Jeûne des jeunes Génération Espoir (15h00–17h00)',
     group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '15:00', endTime: '17:00',
     color: 'text-emerald-300',
   },
   adoration_louange: {
     label: "Culte d'adoration et louange",
-    description: 'Dimanche \u2014 Culte principal d\u2019adoration et louange (08h00\u201310h45)',
+    description: 'Dimanche — Culte principal d’adoration et louange (08h00–10h45)',
     group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '08:00', endTime: '10:45',
     color: 'text-amber-300',
   },
   seminaire: {
-    label: 'S\u00e9minaire', description: 'S\u00e9minaire d\u2019enseignement',
+    label: 'Séminaire', description: 'Séminaire d’enseignement',
     group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '12:00',
     color: 'text-cyan-300',
   },
   veillee: {
-    label: 'Veill\u00e9e', description: 'Veill\u00e9e de pri\u00e8re ou louange',
+    label: 'Veillée', description: 'Veillée de prière ou louange',
     group: 'special', dayOfWeek: -1, defaultTime: '21:00', endTime: '23:00',
     color: 'text-indigo-300',
   },
   culte_special: {
-    label: 'Culte sp\u00e9cial', description: 'Culte th\u00e9matique ou occasionnel',
+    label: 'Culte spécial', description: 'Culte thématique ou occasionnel',
     group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '12:00',
     color: 'text-rose-300',
   },
   conference: {
-    label: 'Conf\u00e9rence', description: 'Conf\u00e9rence ou convention',
+    label: 'Conférence', description: 'Conférence ou convention',
     group: 'special', dayOfWeek: -1, defaultTime: '09:00', endTime: '17:00',
     color: 'text-orange-300',
   },
@@ -115,7 +115,7 @@ const CULTE_TYPE_GROUPS = [
       .map(([k, v]) => ({ value: k as WorshipServiceType, ...v })),
   },
   {
-    label: '\u00c9v\u00e9nements sp\u00e9ciaux',
+    label: 'Événements spéciaux',
     types: Object.entries(WORSHIP_TYPE_CONFIGS)
       .filter(([, v]) => v.group === 'special')
       .map(([k, v]) => ({ value: k as WorshipServiceType, ...v })),
@@ -124,40 +124,40 @@ const CULTE_TYPE_GROUPS = [
 
 const STATUS_CONFIG: Record<WorshipServiceStatus, { label: string; color: string }> = {
   draft: { label: 'Brouillon', color: 'bg-gray-500/20 text-gray-300' },
-  planned: { label: 'Planifi\u00e9', color: 'bg-blue-500/20 text-blue-300' },
+  planned: { label: 'Planifié', color: 'bg-blue-500/20 text-blue-300' },
   orator_submitted: { label: 'Orateur OK', color: 'bg-amber-500/20 text-amber-300' },
-  president_submitted: { label: 'Pr\u00e9sident OK', color: 'bg-purple-500/20 text-purple-300' },
+  president_submitted: { label: 'Président OK', color: 'bg-purple-500/20 text-purple-300' },
   completed: { label: 'Complet', color: 'bg-green-500/20 text-green-300' },
-  cancelled: { label: 'Annul\u00e9', color: 'bg-red-500/20 text-red-300' },
+  cancelled: { label: 'Annulé', color: 'bg-red-500/20 text-red-300' },
 };
 
 const ORDER_ITEM_TYPES: { value: WorshipOrderItemType; label: string }[] = [
   { value: 'louange', label: 'Louange' },
   { value: 'adoration', label: 'Adoration' },
   { value: 'offrande', label: 'Offrande' },
-  { value: 'communique', label: 'Communiqu\u00e9' },
-  { value: 'predication', label: 'Pr\u00e9dication' },
-  { value: 'temoignage', label: 'T\u00e9moignages' },
-  { value: 'sainte_cene', label: 'Sainte C\u00e8ne' },
-  { value: 'priere_nouveaux', label: 'Pri\u00e8re nouveaux' },
-  { value: 'accueil_invites', label: 'Accueil invit\u00e9s' },
-  { value: 'intervention_speciale', label: 'Intervention sp\u00e9ciale' },
-  { value: 'priere_finale', label: 'Pri\u00e8re finale' },
+  { value: 'communique', label: 'Communiqué' },
+  { value: 'predication', label: 'Prédication' },
+  { value: 'temoignage', label: 'Témoignages' },
+  { value: 'sainte_cene', label: 'Sainte Cène' },
+  { value: 'priere_nouveaux', label: 'Prière nouveaux' },
+  { value: 'accueil_invites', label: 'Accueil invités' },
+  { value: 'intervention_speciale', label: 'Intervention spéciale' },
+  { value: 'priere_finale', label: 'Prière finale' },
   { value: 'autre', label: 'Autre' },
 ];
 
 const BIBLE_BOOKS = [
-  'Gen\u00e8se','Exode','L\u00e9vitique','Nombres','Deut\u00e9ronome',
-  'Josu\u00e9','Juges','Ruth','1 Samuel','2 Samuel','1 Rois','2 Rois',
-  '1 Chroniques','2 Chroniques','Esdras','N\u00e9h\u00e9mie','Esther','Job',
-  'Psaumes','Proverbes','Eccl\u00e9siaste','Cantique des Cantiques',
-  '\u00c9sa\u00efe','J\u00e9r\u00e9mie','Lamentations','\u00c9z\u00e9chiel','Daniel',
-  'Os\u00e9e','Jo\u00ebl','Amos','Abdias','Jonas','Mich\u00e9e','Nahum',
-  'Habakuk','Sophonie','Agg\u00e9e','Zacharie','Malachie',
+  'Genèse','Exode','Lévitique','Nombres','Deutéronome',
+  'Josué','Juges','Ruth','1 Samuel','2 Samuel','1 Rois','2 Rois',
+  '1 Chroniques','2 Chroniques','Esdras','Néhémie','Esther','Job',
+  'Psaumes','Proverbes','Ecclésiaste','Cantique des Cantiques',
+  'Ésaïe','Jérémie','Lamentations','Ézéchiel','Daniel',
+  'Osée','Joël','Amos','Abdias','Jonas','Michée','Nahum',
+  'Habakuk','Sophonie','Aggée','Zacharie','Malachie',
   'Matthieu','Marc','Luc','Jean','Actes','Romains','1 Corinthiens',
-  '2 Corinthiens','Galates','\u00c9ph\u00e9siens','Philippiens','Colossiens',
-  '1 Thessaloniciens','2 Thessaloniciens','1 Timoth\u00e9e','2 Timoth\u00e9e',
-  'Tite','Phil\u00e9mon','H\u00e9breux','Jacques','1 Pierre','2 Pierre',
+  '2 Corinthiens','Galates','Éphésiens','Philippiens','Colossiens',
+  '1 Thessaloniciens','2 Thessaloniciens','1 Timothée','2 Timothée',
+  'Tite','Philémon','Hébreux','Jacques','1 Pierre','2 Pierre',
   '1 Jean','2 Jean','3 Jean','Jude','Apocalypse',
 ];
 
@@ -192,7 +192,7 @@ function getDeadlineInfo(deadlineStr: string): { label: string; cls: string; isE
   const hoursLeft = diffMs / (1000 * 60 * 60);
   const isExpired = diffMs <= 0;
   if (isExpired) {
-    return { label: 'Expir\u00e9', cls: 'bg-red-500/20 text-red-400', isExpired: true, hoursLeft: 0 };
+    return { label: 'Expiré', cls: 'bg-red-500/20 text-red-400', isExpired: true, hoursLeft: 0 };
   }
   if (hoursLeft < 3) {
     return { label: `Urgent : ${Math.ceil(hoursLeft)}h restantes`, cls: 'bg-red-500/20 text-red-300', isExpired: false, hoursLeft };
@@ -232,6 +232,13 @@ export function PlanificationTab() {
 
   /* ── State: Form links ── */
   const [formLinks, setFormLinks] = useState<WorshipFormLink[]>([]);
+
+  /* ── State: Preview modal ── */
+  const [previewService, setPreviewService] = useState<WorshipService | null>(null);
+  const [previewForm, setPreviewForm] = useState<WorshipOratorForm | null>(null);
+  const [previewPoints, setPreviewPoints] = useState<WorshipOratorPoint[]>([]);
+  const [previewOrder, setPreviewOrder] = useState<WorshipOrderItem[]>([]);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   /* ── Fetch all data ── */
   const fetchAll = useCallback(async () => {
@@ -305,7 +312,7 @@ export function PlanificationTab() {
       }).select().single();
 
       if (error) throw error;
-      addToast({ type: 'success', message: 'Culte cr\u00e9\u00e9 avec succ\u00e8s' });
+      addToast({ type: 'success', message: 'Culte créé avec succès' });
 
       // Auto-generate form links (expires_at is set by DB trigger to form_deadline_at)
       if (data) {
@@ -326,7 +333,7 @@ export function PlanificationTab() {
       setShowCreateModal(false);
       fetchAll();
     } catch (err: any) {
-      addToast({ type: 'error', message: err.message || 'Erreur lors de la cr\u00e9ation' });
+      addToast({ type: 'error', message: err.message || 'Erreur lors de la création' });
     }
   };
 
@@ -342,7 +349,7 @@ export function PlanificationTab() {
       }, { onConflict: 'service_id,link_type' });
 
       if (error) throw error;
-      addToast({ type: 'success', message: 'Lien g\u00e9n\u00e9r\u00e9' });
+      addToast({ type: 'success', message: 'Lien généré' });
       fetchAll();
     } catch (err: any) {
       addToast({ type: 'error', message: err.message || 'Erreur' });
@@ -364,9 +371,100 @@ export function PlanificationTab() {
       : `https://wa.me/?text=${encodeURIComponent(message)}`;
 
     // Mark as sent
-    supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id);
+    supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
     window.open(waUrl, '_blank');
     addToast({ type: 'success', message: 'WhatsApp ouvert' });
+  };
+
+  /* ── Preview form content (modal) ── */
+  const handlePreview = async (svc: WorshipService) => {
+    setPreviewService(svc);
+    setPreviewLoading(true);
+    setPreviewForm(null);
+    setPreviewPoints([]);
+    setPreviewOrder([]);
+    try {
+      const [formRes, orderRes] = await Promise.allSettled([
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).single(),
+        supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
+      ]);
+      if (formRes.status === 'fulfilled' && formRes.value.data) {
+        const form = formRes.value.data as WorshipOratorForm;
+        setPreviewForm(form);
+        const { data: ptsData } = await supabase.from('worship_orator_points').select('*').eq('form_id', form.id).order('position');
+        setPreviewPoints((ptsData as WorshipOratorPoint[]) || []);
+      }
+      if (orderRes.status === 'fulfilled' && orderRes.value.data) {
+        setPreviewOrder(orderRes.value.data as WorshipOrderItem[]);
+      }
+    } catch { /* empty */ }
+    setPreviewLoading(false);
+  };
+
+  /* ── Send form content via WhatsApp ── */
+  const handleSendContentWhatsApp = async (svc: WorshipService) => {
+    let message = '';
+    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
+
+    // Fetch form and order if not already loaded
+    let form: WorshipOratorForm | null = previewForm;
+    let pts: WorshipOratorPoint[] = previewPoints;
+    let order: WorshipOrderItem[] = previewOrder;
+
+    if (!form || (previewService?.id !== svc.id)) {
+      const [formRes, orderRes] = await Promise.allSettled([
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).single(),
+        supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
+      ]);
+      if (formRes.status === 'fulfilled' && formRes.value.data) {
+        form = formRes.value.data as WorshipOratorForm;
+        const { data: ptsData } = await supabase.from('worship_orator_points').select('*').eq('form_id', form.id).order('position');
+        pts = (ptsData as WorshipOratorPoint[]) || [];
+      }
+      if (orderRes.status === 'fulfilled' && orderRes.value.data) {
+        order = orderRes.value.data as WorshipOrderItem[];
+      }
+    }
+
+    if (form) {
+      message += `*FORMULAIRE ORATEUR*\n`;
+      message += `Culte: ${formatDate(svc.date)} ${formatTime(svc.time)}\n`;
+      message += `Type: ${typeLabel}\n\n`;
+      message += `*Orateur:* ${form.orator_name || svc.orator_name || '-'}\n`;
+      message += `*Thème:* ${form.theme || '-'}\n`;
+      if (form.sub_theme) message += `*Sous-thème:* ${form.sub_theme}\n`;
+      if (form.bible_book) message += `*Verset:* ${form.bible_book} ${form.bible_chapter || ''}:${form.bible_verses || ''}\n`;
+      if (pts.length > 0) {
+        message += `\n*Points du message:*\n`;
+        pts.forEach((p, i) => {
+          message += `${i + 1}. ${p.title}`;
+          if (p.description) message += ` — ${p.description}`;
+          message += '\n';
+        });
+      }
+      if (form.summary) message += `\n*Résumé:*\n${form.summary}\n`;
+    }
+    if (order.length > 0) {
+      if (message) message += '\n';
+      message += `*ORDRE DU CULTE*\n`;
+      message += `Président: ${svc.president_name || '-'}\n\n`;
+      order.forEach((item, i) => {
+        const label = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
+        message += `${i + 1}. ${item.custom_label || label} (${item.duration_minutes} min)\n`;
+        if (item.notes) message += `   Notes: ${item.notes}\n`;
+      });
+      const total = order.reduce((s, i) => s + (i.duration_minutes || 0), 0);
+      message += `\n*Durée totale:* ${total} min`;
+    }
+
+    if (!message) {
+      addToast({ type: 'error', message: 'Aucun formulaire soumis pour ce culte.' });
+      return;
+    }
+
+    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(waUrl, '_blank');
+    addToast({ type: 'success', message: 'Contenu envoyé par WhatsApp' });
   };
 
   /* ── Toggle delay on a service ── */
@@ -381,14 +479,14 @@ export function PlanificationTab() {
           delayed_at: new Date().toISOString(),
           delayed_minutes: minutes || 30,
         }).eq('id', serviceId);
-        addToast({ type: 'success', message: `Culte signal\u00e9 en retard de ${minutes || 30} min \u2014 les liens sont repouss\u00e9s` });
+        addToast({ type: 'success', message: `Culte signalé en retard de ${minutes || 30} min — les liens sont repoussés` });
       } else {
         await supabase.from('worship_services').update({
           is_delayed: false,
           delayed_at: null,
           delayed_minutes: 0,
         }).eq('id', serviceId);
-        addToast({ type: 'success', message: 'Retard annul\u00e9 \u2014 les liens sont remis \u00e0 la deadline initiale' });
+        addToast({ type: 'success', message: 'Retard annulé — les liens sont remis à la deadline initiale' });
       }
       setDelayModal(null);
       fetchAll();
@@ -402,7 +500,7 @@ export function PlanificationTab() {
     if (!confirm('Supprimer ce culte et tous ses formulaires ?')) return;
     try {
       await supabase.from('worship_services').delete().eq('id', id);
-      addToast({ type: 'success', message: 'Culte supprim\u00e9' });
+      addToast({ type: 'success', message: 'Culte supprimé' });
       fetchAll();
     } catch (err: any) {
       addToast({ type: 'error', message: err.message || 'Erreur' });
@@ -413,7 +511,7 @@ export function PlanificationTab() {
   const copyLink = (token: string) => {
     const url = `${BASE_URL}/#/form-culte/${token}`;
     navigator.clipboard.writeText(url);
-    addToast({ type: 'success', message: 'Lien copi\u00e9' });
+    addToast({ type: 'success', message: 'Lien copié' });
   };
 
   /* ═══════════════════════════════════════════════════════════════
@@ -424,8 +522,8 @@ export function PlanificationTab() {
       <div className="glass-card rounded-2xl p-10 text-center">
         <Info className="h-12 w-12 text-muted mx-auto mb-4" />
         <p className="font-serif text-xl font-semibold text-cream mb-2">Module en cours de configuration</p>
-        <p className="text-sm text-muted mb-4">Les tables de planification de culte n'ont pas encore \u00e9t\u00e9 cr\u00e9\u00e9es dans la base de donn\u00e9es.</p>
-        <p className="text-xs text-muted">Ex\u00e9cutez la migration SQL <code className="bg-white/5 px-2 py-0.5 rounded">worship_planning_migration.sql</code> dans Supabase.</p>
+        <p className="text-sm text-muted mb-4">Les tables de planification de culte n'ont pas encore été créées dans la base de données.</p>
+        <p className="text-xs text-muted">Exécutez la migration SQL <code className="bg-white/5 px-2 py-0.5 rounded">worship_planning_migration.sql</code> dans Supabase.</p>
       </div>
     );
   }
@@ -457,7 +555,7 @@ export function PlanificationTab() {
         {services.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center">
             <Calendar className="h-10 w-10 text-muted mx-auto mb-3" />
-            <p className="text-muted">Aucun culte planifi\u00e9</p>
+            <p className="text-muted">Aucun culte planifié</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -479,7 +577,7 @@ export function PlanificationTab() {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {formatTime(svc.time)}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `\u2013${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
+                          <p className="font-medium text-cream">{formatDate(svc.date)} &mdash; {formatTime(svc.time)}{WORSHIP_TYPE_CONFIGS[svc.type]?.endTime ? `–${WORSHIP_TYPE_CONFIGS[svc.type].endTime}` : ''}</p>
                           {svc.is_delayed && (
                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 flex items-center gap-1">
                               <AlertTriangle className="h-3 w-3" />
@@ -487,7 +585,7 @@ export function PlanificationTab() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type] ?? svc.type} {svc.orator_name ? `\u00b7 Orateur: ${svc.orator_name}` : ''}</p>
+                        <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type] ?? svc.type} {svc.orator_name ? `· Orateur: ${svc.orator_name}` : ''}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -503,7 +601,7 @@ export function PlanificationTab() {
                         <button
                           onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
                           className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
-                          title={svc.is_delayed ? 'G\u00e9rer le retard' : 'Signaler un retard'}
+                          title={svc.is_delayed ? 'Gérer le retard' : 'Signaler un retard'}
                         >
                           <AlertTriangle className="h-4 w-4" />
                         </button>
@@ -517,7 +615,7 @@ export function PlanificationTab() {
                   </div>
 
                   {svc.president_name && (
-                    <p className="text-sm text-cream/70">Pr\u00e9sident: {svc.president_name}</p>
+                    <p className="text-sm text-cream/70">Président: {svc.president_name}</p>
                   )}
 
                   {/* Delay info bar */}
@@ -525,8 +623,8 @@ export function PlanificationTab() {
                     <div className="bg-red-500/8 rounded-lg px-3 py-2 border border-red-500/15 flex items-center gap-2">
                       <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
                       <div className="flex-1">
-                        <p className="text-xs text-red-300 font-medium">Culte programm\u00e9 en retard de {svc.delayed_minutes || 0} minutes</p>
-                        <p className="text-[10px] text-red-400/70">La deadline des formulaires a \u00e9t\u00e9 repouss\u00e9e automatiquement de {svc.delayed_minutes || 0} min. Les liens WhatsApp non utilis\u00e9s sont mis \u00e0 jour.</p>
+                        <p className="text-xs text-red-300 font-medium">Culte programmé en retard de {svc.delayed_minutes || 0} minutes</p>
+                        <p className="text-[10px] text-red-400/70">La deadline des formulaires a été repoussée automatiquement de {svc.delayed_minutes || 0} min. Les liens WhatsApp non utilisés sont mis à jour.</p>
                       </div>
                       {isFullAdmin && (
                         <button onClick={() => handleToggleDelay(svc.id, false)} className="text-[10px] px-2 py-1 rounded bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-colors shrink-0">
@@ -555,7 +653,7 @@ export function PlanificationTab() {
                           </button>
                         </>
                       )}
-                      <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
+                      <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
                         <RefreshCw className="h-3.5 w-3.5" />
                       </button>
                     </div>
@@ -563,7 +661,7 @@ export function PlanificationTab() {
                     {/* President link */}
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-purple-400 shrink-0" />
-                      <span className="text-xs text-muted flex-1">Formulaire pr\u00e9sident</span>
+                      <span className="text-xs text-muted flex-1">Formulaire président</span>
                       {presidentLinks.length > 0 && presidentLinks[0] && (
                         <>
                           <button onClick={() => copyLink(presidentLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
@@ -577,14 +675,14 @@ export function PlanificationTab() {
                           </button>
                         </>
                       )}
-                      <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="R\u00e9g\u00e9n\u00e9rer le lien">
+                      <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
                         <RefreshCw className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </div>
 
-                  {/* View buttons */}
-                  <div className="flex gap-2 pt-1">
+                  {/* Action buttons */}
+                  <div className="flex flex-wrap gap-2 pt-1">
                     <button
                       onClick={() => { fetchOratorForm(svc.id); setActiveTab('formulaires'); }}
                       className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors"
@@ -596,6 +694,18 @@ export function PlanificationTab() {
                       className="text-xs px-3 py-1.5 rounded-lg bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 transition-colors"
                     >
                       <Eye className="h-3 w-3 inline mr-1" /> Voir ordre du culte
+                    </button>
+                    <button
+                      onClick={() => handlePreview(svc)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 transition-colors flex items-center gap-1"
+                    >
+                      <Eye className="h-3 w-3" /> Prévisualiser
+                    </button>
+                    <button
+                      onClick={() => handleSendContentWhatsApp(svc)}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-green-500/10 text-green-300 hover:bg-green-500/20 transition-colors flex items-center gap-1"
+                    >
+                      <MessageSquare className="h-3 w-3" /> Envoyer par WhatsApp
                     </button>
                   </div>
                 </div>
@@ -615,7 +725,7 @@ export function PlanificationTab() {
       return (
         <div className="glass-card rounded-xl p-8 text-center">
           <MessageSquare className="h-10 w-10 text-muted mx-auto mb-3" />
-          <p className="text-muted">S\u00e9lectionnez un culte dans l'onglet "Cultes" pour voir le formulaire orateur</p>
+          <p className="text-muted">Sélectionnez un culte dans l'onglet "Cultes" pour voir le formulaire orateur</p>
         </div>
       );
     }
@@ -625,7 +735,7 @@ export function PlanificationTab() {
         <div className="glass-card rounded-xl p-8 text-center">
           <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
           <p className="text-muted">Aucun formulaire orateur soumis pour ce culte</p>
-          <p className="text-xs text-muted mt-1">Le lien n'a pas encore \u00e9t\u00e9 rempli par l'orateur.</p>
+          <p className="text-xs text-muted mt-1">Le lien n'a pas encore été rempli par l'orateur.</p>
         </div>
       );
     }
@@ -646,12 +756,12 @@ export function PlanificationTab() {
               <p className="text-sm font-medium text-cream">{oratorForm.orator_name}</p>
             </div>
             <div>
-              <label className="text-xs text-muted block mb-1">Th\u00e8me principal</label>
+              <label className="text-xs text-muted block mb-1">Thème principal</label>
               <p className="text-sm font-medium text-cream">{oratorForm.theme}</p>
             </div>
             {oratorForm.sub_theme && (
               <div>
-                <label className="text-xs text-muted block mb-1">Sous-th\u00e8me</label>
+                <label className="text-xs text-muted block mb-1">Sous-thème</label>
                 <p className="text-sm text-cream/80">{oratorForm.sub_theme}</p>
               </div>
             )}
@@ -684,7 +794,7 @@ export function PlanificationTab() {
 
             {oratorForm.summary && (
               <div>
-                <label className="text-xs text-muted block mb-1">R\u00e9sum\u00e9 du message</label>
+                <label className="text-xs text-muted block mb-1">Résumé du message</label>
                 <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.summary}</p>
               </div>
             )}
@@ -712,7 +822,7 @@ export function PlanificationTab() {
       return (
         <div className="glass-card rounded-xl p-8 text-center">
           <Clock className="h-10 w-10 text-muted mx-auto mb-3" />
-          <p className="text-muted">S\u00e9lectionnez un culte dans l'onglet "Cultes" pour voir l'ordre du culte</p>
+          <p className="text-muted">Sélectionnez un culte dans l'onglet "Cultes" pour voir l'ordre du culte</p>
         </div>
       );
     }
@@ -721,8 +831,8 @@ export function PlanificationTab() {
       return (
         <div className="glass-card rounded-xl p-8 text-center">
           <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-          <p className="text-muted">Aucun ordre du culte d\u00e9fini pour ce culte</p>
-          <p className="text-xs text-muted mt-1">Le pr\u00e9sident n'a pas encore rempli le formulaire.</p>
+          <p className="text-muted">Aucun ordre du culte défini pour ce culte</p>
+          <p className="text-xs text-muted mt-1">Le président n'a pas encore rempli le formulaire.</p>
         </div>
       );
     }
@@ -733,7 +843,7 @@ export function PlanificationTab() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-cream">Ordre du culte</h3>
-          <span className="text-xs text-muted">Dur\u00e9e totale estim\u00e9e: {totalMinutes} min</span>
+          <span className="text-xs text-muted">Durée totale estimée: {totalMinutes} min</span>
         </div>
 
         <div className="glass-card rounded-xl divide-y divide-line/20 overflow-hidden">
@@ -813,11 +923,11 @@ export function PlanificationTab() {
               </button>
             </div>
             <p className="text-xs text-muted mb-4">
-              Indiquez de combien de minutes le culte est en retard. La deadline des formulaires (12h avant le culte) sera repouss\u00e9e automatiquement. Les liens WhatsApp non utilis\u00e9s seront mis \u00e0 jour.
+              Indiquez de combien de minutes le culte est en retard. La deadline des formulaires (12h avant le culte) sera repoussée automatiquement. Les liens WhatsApp non utilisés seront mis à jour.
             </p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-muted block mb-1">Dur\u00e9e du retard (minutes)</label>
+                <label className="text-xs text-muted block mb-1">Durée du retard (minutes)</label>
                 <input
                   type="number"
                   min={5}
@@ -846,6 +956,107 @@ export function PlanificationTab() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {previewService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setPreviewService(null)}>
+          <div className="glass-card rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-cream flex items-center gap-2">
+                <Eye className="h-5 w-5 text-blue-400" /> Prévisualisation — {formatDate(previewService.date)} {formatTime(previewService.time)}
+              </h3>
+              <button onClick={() => setPreviewService(null)} className="p-1.5 rounded-lg hover:bg-white/10 text-muted hover:text-cream transition-colors">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <p className="text-xs text-muted mb-4">{SERVICE_TYPE_LABELS[previewService.type] ?? previewService.type} {previewService.orator_name ? `· Orateur: ${previewService.orator_name}` : ''} {previewService.president_name ? `· Président: ${previewService.president_name}` : ''}</p>
+
+            {previewLoading ? (
+              <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-accent-400" /></div>
+            ) : (
+              <div className="space-y-4">
+                {!previewForm && previewOrder.length === 0 && (
+                  <div className="text-center py-8">
+                    <Info className="h-10 w-10 text-muted mx-auto mb-3" />
+                    <p className="text-muted">Aucun formulaire soumis pour ce culte.</p>
+                  </div>
+                )}
+
+                {/* Orator form */}
+                {previewForm && (
+                  <div className="bg-amber-500/5 rounded-xl p-4 border border-amber-500/10 space-y-3">
+                    <p className="text-xs text-amber-400 font-medium uppercase tracking-wider">Formulaire Orateur</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-muted block mb-1">Orateur</label>
+                        <p className="text-sm font-medium text-cream">{previewForm.orator_name}</p>
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted block mb-1">Thème principal</label>
+                        <p className="text-sm font-medium text-cream">{previewForm.theme}</p>
+                      </div>
+                      {previewForm.sub_theme && (
+                        <div>
+                          <label className="text-xs text-muted block mb-1">Sous-thème</label>
+                          <p className="text-sm text-cream/80">{previewForm.sub_theme}</p>
+                        </div>
+                      )}
+                      {previewForm.bible_book && (
+                        <div>
+                          <label className="text-xs text-muted block mb-1">Verset biblique</label>
+                          <p className="text-sm text-cream/80">{previewForm.bible_book}{previewForm.bible_chapter && previewForm.bible_verses ? ` ${previewForm.bible_chapter}:${previewForm.bible_verses}` : ''}</p>
+                        </div>
+                      )}
+                    </div>
+                    {previewPoints.length > 0 && (
+                      <div>
+                        <label className="text-xs text-muted block mb-2">Points du message</label>
+                        <div className="space-y-1.5">
+                          {previewPoints.map((pt, i) => (
+                            <div key={pt.id || i} className="flex items-start gap-2 bg-white/3 rounded-lg p-2.5">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-400/15 text-amber-400 text-[10px] font-bold shrink-0">{i + 1}</span>
+                              <div>
+                                <p className="text-sm font-medium text-cream">{pt.title}</p>
+                                {pt.description && <p className="text-xs text-muted mt-0.5">{pt.description}</p>}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {previewForm.summary && (
+                      <div>
+                        <label className="text-xs text-muted block mb-1">Résumé</label>
+                        <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3">{previewForm.summary}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Order items */}
+                {previewOrder.length > 0 && (
+                  <div className="bg-purple-500/5 rounded-xl p-4 border border-purple-500/10 space-y-2">
+                    <p className="text-xs text-purple-400 font-medium uppercase tracking-wider">Ordre du Culte</p>
+                    {previewOrder.map((item, i) => {
+                      const label = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
+                      return (
+                        <div key={item.id || i} className="flex items-center gap-3 py-1.5">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-purple-400/15 text-purple-400 text-[10px] font-bold shrink-0">{i + 1}</span>
+                          <span className="text-sm text-cream flex-1">{item.custom_label || label}</span>
+                          <span className="text-xs text-muted">{item.duration_minutes} min</span>
+                        </div>
+                      );
+                    })}
+                    <p className="text-xs text-muted pt-2 border-t border-purple-500/10">
+                      Durée totale : {previewOrder.reduce((s, i) => s + (i.duration_minutes || 0), 0)} min
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -958,9 +1169,9 @@ function CreateServiceModal({ onClose, onSubmit }: {
                 className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream placeholder:text-muted/50" />
             </div>
             <div>
-              <label className="text-xs text-muted block mb-1">Nom du pr\u00e9sident</label>
+              <label className="text-xs text-muted block mb-1">Nom du président</label>
               <input type="text" value={presidentName} onChange={e => setPresidentName(e.target.value)}
-                placeholder="Ex: Fr\u00e8re Pierre"
+                placeholder="Ex: Frère Pierre"
                 className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream placeholder:text-muted/50" />
             </div>
           </div>
@@ -968,14 +1179,14 @@ function CreateServiceModal({ onClose, onSubmit }: {
           <div>
             <label className="text-xs text-muted block mb-1">Notes (optionnel)</label>
             <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
-              placeholder="Culte sp\u00e9cial, th\u00e8me de mois, etc."
+              placeholder="Culte spécial, thème de mois, etc."
               className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream placeholder:text-muted/50 resize-none" />
           </div>
 
           <button onClick={handleSubmit} disabled={!date || saving}
             className="btn-gold w-full py-3 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-            Cr\u00e9er le culte
+            Créer le culte
           </button>
         </div>
       </div>
