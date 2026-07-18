@@ -5,7 +5,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { supabase } from '../lib/supabase';
-import { Globe, Mail, Phone } from '../lib/icons';
+import { Facebook, MonitorPlay, Mail } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { Pastor } from '../types';
 
@@ -25,14 +25,109 @@ const CATEGORIES = [
 // ─── Skeleton ─────────────────────────────────────────────────────
 function SkeletonCard() {
   return (
-    <div className="glass-card rounded-2xl overflow-hidden animate-pulse">
-      <div className="h-64 bg-white/5" />
-      <div className="p-6 space-y-3">
-        <div className="h-4 w-24 rounded bg-white/10" />
-        <div className="h-6 w-40 rounded bg-white/10" />
-        <div className="h-3 w-full rounded bg-white/5" />
-        <div className="h-3 w-3/4 rounded bg-white/5" />
+    <div className="animate-pulse">
+      <div className="aspect-[3/4] bg-white/5 rounded-none" />
+    </div>
+  );
+}
+
+// ─── Pastor Card (same style as EnhancedPastorGrid: hover bio, no border, PNG-ready) ──
+function PastorCard({ pastor }: { pastor: Pastor }) {
+  const hasSocials =
+    pastor.social_links &&
+    Object.values(pastor.social_links).some((v) => v && v.trim() !== '');
+
+  return (
+    <div className="group relative aspect-[3/4] overflow-hidden">
+      {/* Photo — PNG-friendly (object-contain for transparent PNGs) */}
+      {pastor.photo_url ? (
+        <img
+          src={pastor.photo_url}
+          alt={pastor.name}
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(227,34,31,0.25) 0%, rgba(15,33,71,0.85) 100%)',
+          }}
+        >
+          <span className="font-serif text-4xl font-bold tracking-wider text-cream/60">
+            {pastor.name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+          </span>
+        </div>
+      )}
+
+      {/* Name — always visible at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
+        <h3 className="font-semibold text-lg leading-tight text-cream drop-shadow-lg">
+          {pastor.name}
+        </h3>
+        {pastor.role && (
+          <p className="mt-0.5 text-sm text-cream/80 drop-shadow-md">{pastor.role}</p>
+        )}
       </div>
+
+      {/* Bio overlay — appears ONLY on hover */}
+      {pastor.bio && (
+        <div
+          className="absolute inset-0 z-20 flex items-end p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: 'linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.85) 40%, rgba(6,13,29,0.6) 70%, transparent 100%)',
+          }}
+        >
+          <div className="w-full">
+            <h3 className="font-semibold text-lg leading-tight text-cream">
+              {pastor.name}
+            </h3>
+            {pastor.role && (
+              <p className="mt-0.5 text-sm text-cream/80">{pastor.role}</p>
+            )}
+            <p className="mt-3 text-sm leading-relaxed text-cream/90 line-clamp-5">
+              {pastor.bio}
+            </p>
+
+            {/* Social links inside bio overlay */}
+            {hasSocials && (
+              <div className="mt-4 flex gap-2">
+                {pastor.social_links?.facebook && (
+                  <a
+                    href={pastor.social_links.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Facebook de ${pastor.name}`}
+                  >
+                    <Facebook className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.youtube && (
+                  <a
+                    href={pastor.social_links.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`YouTube de ${pastor.name}`}
+                  >
+                    <MonitorPlay className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.email && (
+                  <a
+                    href={`mailto:${pastor.social_links.email}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Email de ${pastor.name}`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -42,15 +137,6 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [pastors, setPastors] = useState<Pastor[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
-      { threshold: 0.1 },
-    );
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-    return () => obs.disconnect();
-  }, [pastors]);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,31 +171,18 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
         if (members.length === 0) return null;
         return (
           <section key={cat.key} className={`py-20 lg:py-28 px-4 ${ci % 2 === 1 ? 'bg-radial-ember' : ''}`}>
-            <div className="mx-auto max-w-6xl">
-              <p className="reveal section-label mb-3 text-center">{cat.label}</p>
+            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+              <div className="animate-fade-up mb-14 text-center">
+                <p className="section-label justify-center">{cat.label}</p>
+              </div>
               {loading ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {Array.from({ length: members.length || 2 }).map((_, i) => <SkeletonCard key={i} />)}
                 </div>
               ) : (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                  {members.map((p, i) => (
-                    <div key={p.id} className={`reveal reveal-delay-${(i % 4) + 1} glass-card card-parallax rounded-2xl overflow-hidden`}>
-                      <div className="relative h-64 overflow-hidden">
-                        <img src={p.photo_url || '/pasteur-kazadi.jpg'} alt={p.name} className="h-full w-full object-cover transition-transform duration-500 hover:scale-105" />
-                        <div className="pastor-overlay absolute inset-0" />
-                      </div>
-                      <div className="p-5">
-                        <p className="text-[10px] font-semibold uppercase tracking-widest text-accent-400">{p.role}</p>
-                        <h3 className="mt-1 font-serif text-lg font-semibold text-cream">{p.name}</h3>
-                        {p.bio && <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-3">{p.bio}</p>}
-                        <div className="mt-4 flex gap-2">
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Globe className="h-4 w-4" /></a>
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Mail className="h-4 w-4" /></a>
-                          <a href="#" className="rounded-lg border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-accent-400"><Phone className="h-4 w-4" /></a>
-                        </div>
-                      </div>
-                    </div>
+                <div className="animate-fade-up grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {members.map((p) => (
+                    <PastorCard key={p.id} pastor={p} />
                   ))}
                 </div>
               )}
@@ -120,7 +193,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
 
       {/* ═══ CTA ═══ */}
       <section className="py-20 px-4 bg-radial-primary">
-        <div className="reveal mx-auto max-w-2xl text-center">
+        <div className="animate-fade-up mx-auto max-w-2xl text-center">
           <p className="section-label mb-4">Rejoignez l'équipe</p>
           <p className="mb-8 text-cream/70">
             Vous sentez l'appel de Dieu sur votre vie ? Contactez-nous pour en discuter.

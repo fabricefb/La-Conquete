@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MapPin, Clock, Users, Calendar, ChevronDown, Image, ArrowRight, Church, Building2 } from '../lib/icons';
+import { MapPin, Clock, Users, Calendar, ChevronDown, Image, Building2, Facebook, MonitorPlay, Mail } from '../lib/icons';
 import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
@@ -8,13 +8,21 @@ import { MobileNav } from '../components/MobileNav';
 
 /* ─── Mock data (à remplacer par Supabase) ─────────────────────── */
 
+interface ExtensionPastor {
+  name: string;
+  role: string;
+  photo: string;
+  bio?: string;
+  social_links?: Record<string, string>;
+}
+
 interface Extension {
   id: string;
   name: string;
   city: string;
   address: string;
   description: string;
-  pastors: { name: string; role: string; photo: string }[];
+  pastors: ExtensionPastor[];
   activities: { title: string; schedule: string; description: string }[];
   photos: string[];
   program: { day: string; time: string; label: string }[];
@@ -28,8 +36,8 @@ const EXTENSIONS: Extension[] = [
     address: '123 Avenue de la Paix, Matonge, Kinshasa',
     description: 'Première extension de l\'Église Évangélique La Conquête dans le quartier de Matonge. Un lieu de prière et de communion au cœur de la capitale.',
     pastors: [
-      { name: 'Pasteur Jean Mukendi', role: 'Responsable d\'extension', photo: 'https://ui-avatars.com/api/?name=Jean+Mukendi&background=0F2147&color=F87171&size=200' },
-      { name: 'Pasteure Marie Lushima', role: 'Co-responsable', photo: 'https://ui-avatars.com/api/?name=Marie+Lushima&background=0F2147&color=F87171&size=200' },
+      { name: 'Pasteur Jean Mukendi', role: 'Responsable d\'extension', photo: 'https://ui-avatars.com/api/?name=Jean+Mukendi&background=0F2147&color=F87171&size=200', bio: 'Homme de Dieu dévoué, il conduit l\'extension de Matonge avec passion et fidélité depuis sa création.' },
+      { name: 'Pasteure Marie Lushima', role: 'Co-responsable', photo: 'https://ui-avatars.com/api/?name=Marie+Lushima&background=0F2147&color=F87171&size=200', bio: 'Diplômée en théologie, elle accompagne les fidèles avec sagesse et bienveillance.' },
     ],
     activities: [
       { title: 'École du dimanche', schedule: 'Chaque dimanche, 08h00', description: 'Enseignement biblique pour enfants et adolescents' },
@@ -54,7 +62,7 @@ const EXTENSIONS: Extension[] = [
     address: '45 Boulevard Lumumba, Lemba, Kinshasa',
     description: 'Notre extension de Lemba sert la communauté locale avec des cultes vibrants et des programmes de développement social.',
     pastors: [
-      { name: 'Pasteur David Kabongo', role: 'Responsable d\'extension', photo: 'https://ui-avatars.com/api/?name=David+Kabongo&background=0F2147&color=F87171&size=200' },
+      { name: 'Pasteur David Kabongo', role: 'Responsable d\'extension', photo: 'https://ui-avatars.com/api/?name=David+Kabongo&background=0F2147&color=F87171&size=200', bio: 'Serviteur zélé, il a planté l\'extension de Lemba avec une vision claire pour la communauté locale.' },
     ],
     activities: [
       { title: 'Culte de jeunesse', schedule: 'Samedi, 15h00', description: 'Culte dédié aux jeunes avec louange et prédication' },
@@ -77,8 +85,8 @@ const EXTENSIONS: Extension[] = [
     address: '78 Avenue Kasongo, Lubumbashi',
     description: 'Première extension provinciale de La Conquête à Lubumbashi, portant la vision de l\'église dans le Katanga.',
     pastors: [
-      { name: 'Pasteur Samuel Ilunga', role: 'Responsable provincial', photo: 'https://ui-avatars.com/api/?name=Samuel+Ilunga&background=0F2147&color=F87171&size=200' },
-      { name: 'Pasteure Grâce Kyungu', role: 'Co-responsable', photo: 'https://ui-avatars.com/api/?name=Grace+Kyungu&background=0F2147&color=F87171&size=200' },
+      { name: 'Pasteur Samuel Ilunga', role: 'Responsable provincial', photo: 'https://ui-avatars.com/api/?name=Samuel+Ilunga&background=0F2147&color=F87171&size=200', bio: 'Visionnaire et bâtisseur, il porte la flamme de La Conquête dans la province du Katanga.' },
+      { name: 'Pasteure Grâce Kyungu', role: 'Co-responsable', photo: 'https://ui-avatars.com/api/?name=Grace+Kyungu&background=0F2147&color=F87171&size=200', bio: 'Passionnée par l\'enseignement biblique, elle forme les nouveaux convertis avec patience et amour.' },
     ],
     activities: [
       { title: 'École biblique', schedule: 'Samedi, 09h00', description: 'Formation théologique de base pour tous les membres' },
@@ -105,7 +113,7 @@ function AccordionSection({ title, children, defaultOpen = false }: { title: str
     <div className="glass rounded-2xl overflow-hidden">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-white/5"
+        className="flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-white/5 cursor-pointer"
       >
         <span className="text-lg font-semibold text-cream">{title}</span>
         <ChevronDown className={`h-5 w-5 text-muted transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
@@ -117,13 +125,115 @@ function AccordionSection({ title, children, defaultOpen = false }: { title: str
   );
 }
 
+/* ─── Extension Pastor Card (hover bio overlay, no border, PNG-ready) ── */
+
+function ExtensionPastorCard({ pastor }: { pastor: ExtensionPastor }) {
+  const hasSocials =
+    pastor.social_links &&
+    Object.values(pastor.social_links).some((v) => v && v.trim() !== '');
+
+  return (
+    <div className="group relative aspect-[3/4] overflow-hidden">
+      {/* Photo — PNG-friendly (object-contain for transparent PNGs) */}
+      {pastor.photo ? (
+        <img
+          src={pastor.photo}
+          alt={pastor.name}
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
+          loading="lazy"
+        />
+      ) : (
+        <div
+          className="absolute inset-0 flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, rgba(227,34,31,0.25) 0%, rgba(15,33,71,0.85) 100%)',
+          }}
+        >
+          <span className="font-serif text-3xl font-bold tracking-wider text-cream/60">
+            {pastor.name.split(' ').filter(Boolean).slice(-1)[0]?.[0]}{pastor.name.split(' ')[0]?.[0]}
+          </span>
+        </div>
+      )}
+
+      {/* Name — always visible at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
+        <h3 className="font-semibold text-lg leading-tight text-cream drop-shadow-lg">
+          {pastor.name}
+        </h3>
+        {pastor.role && (
+          <p className="mt-0.5 text-sm text-cream/80 drop-shadow-md">{pastor.role}</p>
+        )}
+      </div>
+
+      {/* Bio overlay — appears ONLY on hover */}
+      {pastor.bio && (
+        <div
+          className="absolute inset-0 z-20 flex items-end p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: 'linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.85) 40%, rgba(6,13,29,0.6) 70%, transparent 100%)',
+          }}
+        >
+          <div className="w-full">
+            <h3 className="font-semibold text-lg leading-tight text-cream">
+              {pastor.name}
+            </h3>
+            {pastor.role && (
+              <p className="mt-0.5 text-sm text-cream/80">{pastor.role}</p>
+            )}
+            <p className="mt-3 text-sm leading-relaxed text-cream/90 line-clamp-5">
+              {pastor.bio}
+            </p>
+
+            {/* Social links inside bio overlay */}
+            {hasSocials && (
+              <div className="mt-4 flex gap-2">
+                {pastor.social_links?.facebook && (
+                  <a
+                    href={pastor.social_links.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Facebook de ${pastor.name}`}
+                  >
+                    <Facebook className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.youtube && (
+                  <a
+                    href={pastor.social_links.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`YouTube de ${pastor.name}`}
+                  >
+                    <MonitorPlay className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.email && (
+                  <a
+                    href={`mailto:${pastor.social_links.email}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Email de ${pastor.name}`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── Single Extension Card ─────────────────────────────────────── */
 
 function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
   return (
     <div
-      className="reveal evt-reveal evt-reveal-delay-{index % 4} glass rounded-2xl overflow-hidden"
-      style={{ transitionDelay: `${(index % 4) * 0.1}s` }}
+      className="animate-fade-up glass rounded-2xl overflow-hidden"
+      style={{ animationDelay: `${(index % 4) * 0.1}s` }}
     >
       {/* Header */}
       <div className="relative h-48 overflow-hidden">
@@ -151,21 +261,6 @@ function ExtensionCard({ ext, index }: { ext: Extension; index: number }) {
           <Building2 className="h-4 w-4 text-accent-500 mt-0.5 shrink-0" />
           <span className="text-cream/80">{ext.address}</span>
         </div>
-
-        {/* Pastors */}
-        <AccordionSection title="Pasteurs de l'extension">
-          <div className="space-y-4">
-            {ext.pastors.map(p => (
-              <div key={p.name} className="flex items-center gap-4">
-                <img src={p.photo} alt={p.name} className="h-14 w-14 rounded-full object-cover border-2 border-accent-400/30" />
-                <div>
-                  <p className="font-semibold text-cream">{p.name}</p>
-                  <p className="text-sm text-muted">{p.role}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AccordionSection>
 
         {/* Activities */}
         <AccordionSection title="Activités">
@@ -234,23 +329,58 @@ interface ExtensionsPageProps {
 }
 
 export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
+  // Collect all extension pastors
+  const allExtensionPastors = EXTENSIONS.flatMap(ext =>
+    ext.pastors.map(p => ({ ...p, extension: ext.name }))
+  );
+
   return (
     <>
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="extensions" />
-    <div className="min-h-screen bg-bg">
-      {/* Hero */}
-      <UniversalHero pageKey="extensions" defaultBadge="Notre rayonnement" defaultTitle="Nos Extensions" defaultSubtitle="L'Église Évangélique La Conquête s'étend au-delà de son siège principal. Découvrez nos différentes extensions, leurs pasteurs, leurs activités et leurs programmes." />
+      <div className="min-h-screen bg-bg">
+        {/* Hero */}
+        <UniversalHero pageKey="extensions" defaultBadge="Notre rayonnement" defaultTitle="Nos Extensions" defaultSubtitle="L'Église Évangélique La Conquête s'étend au-delà de son siège principal. Découvrez nos différentes extensions, leurs pasteurs, leurs activités et leurs programmes." />
 
-      {/* Extensions Grid */}
-      <section className="mx-auto max-w-5xl px-4 pb-24">
-        <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
-          {EXTENSIONS.map((ext, i) => (
-            <ExtensionCard key={ext.id} ext={ext} index={i} />
-          ))}
-        </div>
-      </section>
-    </div>
+        {/* Extensions Grid */}
+        <section className="mx-auto max-w-5xl px-4 pb-24">
+          <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
+            {EXTENSIONS.map((ext, i) => (
+              <ExtensionCard key={ext.id} ext={ext} index={i} />
+            ))}
+          </div>
+        </section>
+
+        {/* ═══ PASTORS OF EXTENSIONS — Special Section ═══ */}
+        {allExtensionPastors.length > 0 && (
+          <section className="py-24 px-4 bg-radial-primary">
+            <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+              <div className="animate-fade-up mb-14 text-center">
+                <p className="section-label justify-center">Nos pasteurs d'extensions</p>
+                <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+                  Ceux qui portent la vision loin
+                </h2>
+                <p className="mt-4 text-muted max-w-2xl mx-auto">
+                  Des hommes et des femmes appelés par Dieu pour étendre l'Évangile au-delà de notre siège principal.
+                </p>
+              </div>
+
+              {/* Grid: max 4 columns, PNG photos, bio on hover */}
+              <div className="animate-fade-up grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" style={{ animationDelay: '0.15s' }}>
+                {allExtensionPastors.map((pastor) => (
+                  <div key={pastor.name + pastor.extension} className="relative">
+                    <ExtensionPastorCard pastor={pastor} />
+                    {/* Extension label under the card */}
+                    <p className="mt-2 text-xs text-accent-400 text-center font-medium">
+                      {pastor.extension}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+      </div>
       <SiteFooter onNavigate={onNavigate} />
     </>
   );
