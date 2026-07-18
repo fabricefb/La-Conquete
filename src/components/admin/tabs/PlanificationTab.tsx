@@ -14,6 +14,7 @@ import type {
   WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem,
   WorshipOrderItemType, WorshipFormLink,
 } from '../../../types';
+import { openWhatsApp } from '../../../lib/whatsapp';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants
@@ -365,14 +366,9 @@ export function PlanificationTab() {
 
     const message = `Bonjour ${link.recipient_name || ''},\n\nVoici le lien pour remplir le formulaire ${formType} du culte du ${dateStr} :\n\n${url}\n\nCe lien expire dans 7 jours.`;
 
-    const phone = (link.recipient_phone || '').replace(/[^0-9]/g, '');
-    const waUrl = phone
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/?text=${encodeURIComponent(message)}`;
-
     // Mark as sent
     supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
-    window.open(waUrl, '_blank');
+    openWhatsApp(link.recipient_phone, message);
     addToast({ type: 'success', message: 'WhatsApp ouvert' });
   };
 
@@ -462,8 +458,7 @@ export function PlanificationTab() {
       return;
     }
 
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
+    openWhatsApp(null, message);
     addToast({ type: 'success', message: 'Contenu envoyé par WhatsApp' });
   };
 

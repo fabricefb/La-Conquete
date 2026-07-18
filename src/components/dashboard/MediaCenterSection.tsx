@@ -12,6 +12,7 @@ import {
   isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, ORDER_ITEM_TYPES,
 } from '../admin/tabs/PlanificationTab';
 import type { WorshipService, WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem, WorshipFormLink } from '../../types';
+import { openWhatsApp } from '../../lib/whatsapp';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -90,11 +91,7 @@ function ServiceRow({
   const sendLinkWA = (link: WorshipFormLink) => {
     const formType = link.link_type === 'orator' ? 'orateur' : 'président';
     const message = `Bonjour ${link.recipient_name || ''},\n\nVoici le lien pour remplir le formulaire ${formType} du culte du ${formatDate(service.date)} :\n\n${BASE_URL}/#/form-culte/${link.token}\n\nCe lien expire dans 7 jours.`;
-    const phone = (link.recipient_phone || '').replace(/[^0-9]/g, '');
-    const waUrl = phone
-      ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
-      : `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
+    openWhatsApp(link.recipient_phone, message);
     supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
   };
 
@@ -132,7 +129,7 @@ function ServiceRow({
     }
     if (!message) return;
     setSending(true);
-    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    openWhatsApp(null, message);
     setTimeout(() => setSending(false), 1500);
   };
 

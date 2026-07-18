@@ -6,10 +6,13 @@ import {
   Info, ArrowLeft, AlertTriangle, Clock, MessageSquare, Eye,
 } from '../lib/icons';
 import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo } from '../components/admin/tabs/PlanificationTab';
+import { openWhatsApp } from '../lib/whatsapp';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipOrderItemType,
 } from '../types';
+
+const FORM_LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants
@@ -97,8 +100,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       const total = orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0);
       message += `\n*Durée totale:* ${total} min`;
     }
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
+    openWhatsApp(null, message);
   };
 
   /* ── Load data ── */
@@ -416,9 +418,18 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
     return (
       <div className="sticky bottom-0 z-10 bg-bg/90 backdrop-blur-xl border-t border-line/30 pt-3 pb-4 -mx-4 px-4 mt-6">
         {success && (
-          <div className="rounded-xl p-3 mb-3 flex items-center gap-2 text-xs bg-green-500/10 text-green-300 border border-green-500/20">
-            <CheckCircle className="h-4 w-4 shrink-0" />
-            <span>{isOrator ? 'Formulaire orateur soumis avec succès !' : 'Ordre du culte soumis avec succès !'}</span>
+          <div className="space-y-2 mb-3">
+            <div className="rounded-xl p-3 flex items-center gap-2 text-xs bg-green-500/10 text-green-300 border border-green-500/20">
+              <CheckCircle className="h-4 w-4 shrink-0" />
+              <span>{isOrator ? 'Formulaire orateur soumis avec succès !' : 'Ordre du culte soumis avec succès !'}</span>
+            </div>
+            <p className="text-[10px] text-muted text-center">Redirection automatique dans 5 secondes…</p>
+            <button
+              onClick={() => { window.location.hash = '#home'; }}
+              className="w-full py-2.5 text-xs font-medium text-center rounded-xl bg-accent-500/15 text-accent-400 hover:bg-accent-500/25 transition-colors border border-accent-500/20"
+            >
+              Retourner sur le site
+            </button>
           </div>
         )}
         <div className="flex gap-2">
@@ -788,16 +799,32 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   /* ═══════════════════════════════════════════════════════════════
      Main Render
      ═══════════════════════════════════════════════════════════════ */
+  // Auto-redirect after successful submission
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => {
+      window.location.hash = '#home';
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
   return (
     <div className="min-h-screen bg-bg">
-      {/* Top bar */}
-      <div className="sticky top-0 z-10 bg-bg/80 backdrop-blur-xl border-b border-line/30">
+      {/* Branding header with logo */}
+      <div className="sticky top-0 z-10 bg-bg/90 backdrop-blur-xl border-b border-line/30">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          {isOrator ? <Mic className="h-5 w-5 text-amber-400" /> : <User className="h-5 w-5 text-purple-400" />}
-          <h1 className="text-sm font-semibold text-cream flex-1">
-            {isOrator ? 'Formulaire Orateur' : 'Formulaire Président de Culte'}
-          </h1>
-          <span className="text-xs text-muted">
+          <img src={FORM_LOGO} alt="La Conquête" className="h-9 w-9 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-medium tracking-wide lowercase text-cream/50">église évangélique</span>
+              <span className="text-cream/20">·</span>
+              {isOrator ? <Mic className="h-3.5 w-3.5 text-amber-400" /> : <User className="h-3.5 w-3.5 text-purple-400" />}
+            </div>
+            <h1 className="text-sm font-semibold text-cream truncate">
+              {isOrator ? 'Formulaire Orateur' : 'Formulaire Président de Culte'}
+            </h1>
+          </div>
+          <span className="text-xs text-muted shrink-0">
             {service ? formatDate(service.date) : ''}
           </span>
         </div>
@@ -805,6 +832,20 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
       {/* Form content */}
       <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Welcome banner — no account needed */}
+        <div className="rounded-xl p-3.5 mb-5 flex items-start gap-3 bg-accent-400/8 text-cream/80 text-xs border border-accent-400/15">
+          <img src={FORM_LOGO} alt="" className="h-8 w-8 rounded-full object-contain ring-1 ring-accent-500/20 bg-white/5 p-0.5 shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-cream text-sm mb-0.5">
+              Bienvenue — {isOrator ? 'Formulaire Orateur' : 'Formulaire Président'}
+            </p>
+            <p className="leading-relaxed">
+              Vous n'avez pas besoin de compte pour remplir ce formulaire.
+              Remplissez simplement les champs ci-dessous et appuyez sur Soumettre.
+            </p>
+          </div>
+        </div>
+
         {/* Deadline warning banner */}
         {deadlineInfo && !deadlineExpired && deadlineInfo.hoursLeft < 6 && (
           <div className={`rounded-xl p-3 mb-4 flex items-start gap-2 text-xs border ${deadlineInfo.hoursLeft < 3 ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-amber-500/10 text-amber-300 border-amber-500/20'}`}>
