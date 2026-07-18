@@ -1,16 +1,15 @@
 -- ═══════════════════════════════════════════════════════════════
 -- FIX RAPIDE : Supprimer les doublons department_members
--- puis créer la contrainte UNIQUE
 -- Exécuter CE SCRIPT dans le SQL Editor de Supabase
 -- ═══════════════════════════════════════════════════════════════
 
--- 1. Supprimer TOUTES les lignes en doublon (garder celle avec le plus petit id)
+-- Supprimer les doublons en gardant le premier (par id text)
 DELETE FROM department_members
-WHERE id NOT IN (
-  SELECT MIN(id) FROM department_members GROUP BY user_id, department_id
+WHERE id::text NOT IN (
+  SELECT MIN(id::text) FROM department_members GROUP BY user_id, department_id
 );
 
--- 2. Créer la contrainte UNIQUE
+-- Créer la contrainte UNIQUE
 DO $$
 BEGIN
   IF NOT EXISTS (
