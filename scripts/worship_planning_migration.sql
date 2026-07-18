@@ -3,13 +3,19 @@
 -- Tables: worship_services, worship_orator_forms, worship_orator_points,
 --         worship_order_items, worship_form_links
 -- RLS désactivé (même pattern que cult_reports / protocole)
+--
+-- IDÉMPOTENT : peut être ré-exécuté sans erreur.
+-- Si les tables existent déjà, les colonnes manquantes sont ajoutées.
 -- ═══════════════════════════════════════════════════════════════════════════
 
+-- ─── OPTIONNEL : Supprimer et recréer (décommenter pour repartir à zéro) ──
+-- DROP TABLE IF EXISTS worship_form_links CASCADE;
+-- DROP TABLE IF EXISTS worship_order_items CASCADE;
+-- DROP TABLE IF EXISTS worship_orator_points CASCADE;
+-- DROP TABLE IF EXISTS worship_orator_forms CASCADE;
+-- DROP TABLE IF EXISTS worship_services CASCADE;
+
 -- ─── 1. worship_services — Cultes planifiés ──────────────────────────
--- CONTRAINTE CLÉ : Les formulaires doivent être soumis AU PLUS TARD
--- 12 HEURES avant l'heure du culte. Si le culte est en retard,
--- la deadline est repoussée automatiquement.
--- ───────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS worship_services (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   date DATE NOT NULL,
@@ -28,32 +34,80 @@ CREATE TABLE IF NOT EXISTS worship_services (
   )),
   notes TEXT,
   created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-
-  -- ── Gestion des retards de culte ──
-  is_delayed BOOLEAN NOT NULL DEFAULT FALSE,
-  delayed_at TIMESTAMPTZ,                   -- Quand le retard a été signalé
-  delayed_minutes INTEGER DEFAULT 0,        -- Nombre de minutes de retard
-
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-
-  -- ── Deadline calculée : date + heure - 12h (ou -12h + retard si en retard) ──
-  -- Cette colonne GENERATED est recalculée automatiquement à chaque UPDATE.
-  -- Elle sert de référence pour l'expiration des liens de formulaire.
-  form_deadline_at TIMESTAMPTZ GENERATED ALWAYS AS (
-    (date + COALESCE(time, '09:00'::TIME))
-    - INTERVAL '12 hours'
-    + CASE
-        WHEN is_delayed AND delayed_minutes > 0
-        THEN (delayed_minutes || ' minutes')::INTERVAL
-        ELSE INTERVAL '0 minutes'
-      END
-  ) STORED
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- ── Ajouter les colonnes de gestion du retard si manquantes ──
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'worship_services' AND column_name = 'is_delayed') THEN
+    ALTER TABLE worship_services ADD COLUMN is_delayed BOOLEAN NOT NULL DEFAULT FALSE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'worship_services' AND column_name = 'delayed_at') THEN
+    ALTER TABLE worship_services ADD COLUMN delayed_at TIMESTAMPTZ;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'worship_services' AND column_name = 'delayed_minutes') THEN
+    ALTER TABLE worship_services ADD COLUMN delayed_minutes INTEGER DEFAULT 0;
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'Erreur ajout colonnes retard: %', SQLERRM;
+END $$;
+
+-- ── Ajouter la colonne GENERATED form_deadline_at si manquante ──
+-- date + heure - 12h (+ retard si en retard)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'worship_services' AND column_name = 'form_deadline_at') THEN
+    ALTER TABLE worship_services ADD COLUMN form_deadline_at TIMESTAMPTZ GENERATED ALWAYS AS (
+      (date + COALESCE(time, '09:00'::TIME))
+      - INTERVAL '12 hours'
+      + CASE
+          WHEN is_delayed AND delayed_minutes > 0
+          THEN (delayed_minutes || ' minutes')::INTERVAL
+          ELSE INTERVAL '0 minutes'
+        END
+    ) STORED;
+  END IF;
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'Erreur ajout colonne form_deadline_at: %', SQLERRM;
+END $$;
+
+-- ── Mettre à jour le CHECK constraint sur type si ancienne version ──
+DO $$ BEGIN
+  -- Supprimer l'ancienne contrainte si elle existe avec les vieux types
+  IF EXISTS (SELECT 1 FROM information_schema.table_constraints
+    WHERE table_name = 'worship_services' AND constraint_name LIKE '%type%') THEN
+    DECLARE
+      cname TEXT;
+    BEGIN
+      SELECT constraint_name INTO cname FROM information_schema.table_constraints
+        WHERE table_name = 'worship_services' AND constraint_name LIKE '%type%' LIMIT 1;
+      IF cname IS NOT NULL THEN
+        EXECUTE format('ALTER TABLE worship_services DROP CONSTRAINT %I', cname);
+      END IF;
+    END;
+  END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- Recréer le CHECK constraint avec les bons types
+DO $$ BEGIN
+  ALTER TABLE worship_services ADD CONSTRAINT worship_services_type_check CHECK (type IN (
+    'enseignement_priere', 'jeune_priere', 'jeune_gen_espoir', 'adoration_louange',
+    'seminaire', 'veillee', 'culte_special', 'conference', 'exposition', 'retraite', 'autre'
+  ));
+EXCEPTION WHEN DUPLICATE_OBJECT THEN NULL;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_worship_services_date ON worship_services(date DESC);
 CREATE INDEX IF NOT EXISTS idx_worship_services_status ON worship_services(status);
-CREATE INDEX IF NOT EXISTS idx_worship_services_deadline ON worship_services(form_deadline_at);
+DO $$ BEGIN
+  CREATE INDEX idx_worship_services_deadline ON worship_services(form_deadline_at);
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 -- ─── 2. worship_orator_forms — Formulaire Orateur ────────────────────
 CREATE TABLE IF NOT EXISTS worship_orator_forms (
@@ -72,7 +126,6 @@ CREATE TABLE IF NOT EXISTS worship_orator_forms (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 CREATE INDEX IF NOT EXISTS idx_worship_orator_forms_service ON worship_orator_forms(service_id);
 
 -- ─── 3. worship_orator_points — Points du message ────────────────────
@@ -84,7 +137,6 @@ CREATE TABLE IF NOT EXISTS worship_orator_points (
   position INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 CREATE INDEX IF NOT EXISTS idx_worship_orator_points_form ON worship_orator_points(form_id);
 
 -- ─── 4. worship_order_items — Ordre du culte (Président) ─────────────
@@ -102,15 +154,9 @@ CREATE TABLE IF NOT EXISTS worship_order_items (
   position INTEGER NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 CREATE INDEX IF NOT EXISTS idx_worship_order_items_service ON worship_order_items(service_id);
 
 -- ─── 5. worship_form_links — Liens token pour WhatsApp ───────────────
--- L'expires_at est calculé à la création/MAJ via trigger pour
--- pointer vers form_deadline_at du service parent.
--- Si le culte est marqué en retard, un trigger repousse
--- automatiquement l'expiration de tous les liens associés.
--- ───────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS worship_form_links (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   service_id UUID NOT NULL REFERENCES worship_services(id) ON DELETE CASCADE,
@@ -124,7 +170,6 @@ CREATE TABLE IF NOT EXISTS worship_form_links (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
 CREATE INDEX IF NOT EXISTS idx_worship_form_links_token ON worship_form_links(token);
 CREATE INDEX IF NOT EXISTS idx_worship_form_links_service ON worship_form_links(service_id, link_type);
 
@@ -132,7 +177,7 @@ CREATE INDEX IF NOT EXISTS idx_worship_form_links_service ON worship_form_links(
 -- TRIGGERS
 -- ═══════════════════════════════════════════════════════════════════════
 
--- ─── Auto-update updated_at sur les tables qui l'ont ────────────────
+-- ─── Auto-update updated_at ────────────────────────────────────────
 CREATE OR REPLACE FUNCTION fn_worship_update_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -163,7 +208,6 @@ EXCEPTION WHEN DUPLICATE_OBJECT THEN NULL;
 END $$;
 
 -- ─── Trigger : Auto-set expires_at des liens à la création ──────────
--- Quand un lien est créé, son expires_at = form_deadline_at du service
 CREATE OR REPLACE FUNCTION fn_worship_set_link_expiry()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -184,12 +228,9 @@ EXCEPTION WHEN DUPLICATE_OBJECT THEN NULL;
 END $$;
 
 -- ─── Trigger : Repousser expires_at quand le culte est mis en retard ──
--- Quand is_delayed passe à TRUE ou delayed_minutes change,
--- tous les liens NON UTILISÉS du service sont mis à jour.
 CREATE OR REPLACE FUNCTION fn_worship_propagate_delay()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- Ne déclencher que si is_delayed ou delayed_minutes change
   IF (NEW.is_delayed IS DISTINCT FROM OLD.is_delayed)
      OR (NEW.delayed_minutes IS DISTINCT FROM OLD.delayed_minutes) THEN
     UPDATE worship_form_links
@@ -209,32 +250,10 @@ EXCEPTION WHEN DUPLICATE_OBJECT THEN NULL;
 END $$;
 
 -- ═══════════════════════════════════════════════════════════════════════
--- RLS — DÉSACTIVÉ (même pattern que cult_reports / protocole)
--- L'accès est contrôlé au niveau applicatif.
+-- RLS — DÉSACTIVÉ
 -- ═══════════════════════════════════════════════════════════════════════
-
 ALTER TABLE worship_services DISABLE ROW LEVEL SECURITY;
 ALTER TABLE worship_orator_forms DISABLE ROW LEVEL SECURITY;
 ALTER TABLE worship_orator_points DISABLE ROW LEVEL SECURITY;
 ALTER TABLE worship_order_items DISABLE ROW LEVEL SECURITY;
 ALTER TABLE worship_form_links DISABLE ROW LEVEL SECURITY;
-
--- ═══════════════════════════════════════════════════════════════════════
--- RÉCAPITULATIF
--- ═══════════════════════════════════════════════════════════════════════
--- Tables créées :
---   1. worship_services       — Cultes planifiés
---        * form_deadline_at (GENERATED) = date + heure - 12h + retard
---        * is_delayed, delayed_at, delayed_minutes
---   2. worship_orator_forms   — Formulaire orateur (thème, versets, points)
---   3. worship_orator_points  — Points du message de l'orateur
---   4. worship_order_items    — Ordre du culte défini par le président
---   5. worship_form_links     — Liens tokenisés pour WhatsApp
---        * expires_at auto-set à form_deadline_at du service
---        * Repoussé automatiquement si le culte est en retard
--- RLS : désactivé sur toutes les tables
--- Triggers :
---   * fn_worship_update_updated_at — auto updated_at (3 tables)
---   * fn_worship_set_link_expiry   — auto expires_at à la création
---   * fn_worship_propagate_delay   — repousse expires_at si retard
--- ═══════════════════════════════════════════════════════════════════════
