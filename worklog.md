@@ -47,3 +47,34 @@ Stage Summary:
 - La deadline est calculée automatiquement en DB : date + heure du culte - 12 heures
 - Quand un culte est marqué en retard, la deadline est repoussée et les liens WhatsApp non utilisés sont mis à jour via trigger
 
+---
+Task ID: 2
+Agent: Main Agent
+Task: Fix form buttons (Preview/WhatsApp/Submit), prevent page reload, enhance Media Center, fix bugs
+
+Work Log:
+- Removed success screen that hid all form buttons after submission
+- Created shared action bar (renderActionBar) with 3 buttons visible in ALL modes (edit, preview, post-submission)
+- Submit button now always visible in both edit and preview modes
+- After submission, local state updated optimistically (no page reload)
+- Success shown as green banner instead of replacing the entire form
+- Fixed MediaCenterSection: updated WEEKLY_TYPES to use new type values (enseignement_priere, jeune_priere, jeune_gen_espoir, adoration_louange)
+- Fixed MediaCenterSection: removed non-existent `dot` and `className`/`dot` properties from STATUS_CONFIG/WORSHIP_TYPE_CONFIGS
+- Enhanced MediaCenterSection: now fetches orator forms, points, order items, and form links for each service
+- MediaCenterSection now shows: orator form content (theme, bible verse, points), order items, form submission status indicators
+- MediaCenterSection ServiceCard: expandable details section with WhatsApp send program button, copy link, WA link actions
+- Fixed DashboardPage.tsx: wrapped PlanificationSection + MediaCenterSection in React fragment for valid ternary JSX
+- Fixed STATUS_CONFIG crash: added null-safe access with fallback in PlanificationTab, PlanificationSection, MediaCenterSection
+- Fixed SERVICE_TYPE_LABELS: added ?? fallback in all 3 files
+- Fixed clipboard.writeText not awaited (PlanificationSection, MediaCenterSection)
+- Fixed fire-and-forget sent_at update (added .catch())
+- Fixed null bible_chapter/bible_verses rendering stray colon (PlanificationSection, MediaCenterSection)
+- Fixed non-table-not-found Supabase errors silently swallowed in PlanificationSection
+- Fixed null service silently allowing submit (CulteFormPage: added error + disabled state)
+
+Stage Summary:
+- All 3 form action buttons now visible in edit, preview, AND after submission modes
+- No page reload on submit — optimistic local state update
+- Media Center fully functional with real form data display
+- 7 potential bugs fixed across 4 files
+- Build passes (tsc + vite build clean)

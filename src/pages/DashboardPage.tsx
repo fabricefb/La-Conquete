@@ -1836,10 +1836,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     {isProtocole ? (
                       <ProtocolSection accentColor={dept.accent_color} />
                     ) : isMediaPlanif ? (
-                      <PlanificationSection accentColor={dept.accent_color} />
-                      <div className="mt-8">
-                        <MediaCenterSection accentColor={dept.accent_color} />
-                      </div>
+                      <>
+                        <PlanificationSection accentColor={dept.accent_color} />
+                        <div className="mt-8">
+                          <MediaCenterSection accentColor={dept.accent_color} />
+                        </div>
+                      </>
                     ) : (
                       <DepartmentSection
                         departmentId={dept.id}

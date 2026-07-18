@@ -76,8 +76,12 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
           return d >= new Date(new Date().toDateString());
         });
         setServices(svcs);
-      } else if (svcRes.status === 'rejected' && isTableNotFoundError(svcRes.reason)) {
-        setModuleError(true);
+      } else if (svcRes.status === 'rejected') {
+        if (isTableNotFoundError(svcRes.reason)) {
+          setModuleError(true);
+        } else {
+          console.error('[PlanificationSection] fetch error:', svcRes.reason);
+        }
       }
 
       if (linksRes.status === 'fulfilled' && linksRes.value.data) {
@@ -120,9 +124,11 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
   const linksForService = (svcId: string, type: 'orator' | 'president') =>
     formLinks.filter(l => l.service_id === svcId && l.link_type === type);
 
-  const copyLink = (token: string) => {
-    navigator.clipboard.writeText(`${BASE_URL}/#/form-culte/${token}`);
-    addToast({ type: 'success', message: 'Lien copi\u00e9' });
+  const copyLink = async (token: string) => {
+    try {
+      await navigator.clipboard.writeText(`${BASE_URL}/#/form-culte/${token}`);
+      addToast({ type: 'success', message: 'Lien copi\u00e9' });
+    } catch { /* clipboard unavailable */ }
   };
 
   const openWhatsApp = (link: WorshipFormLink) => {
@@ -135,7 +141,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
       ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}`
       : `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(waUrl, '_blank');
-    supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id);
+    supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
   };
 
   /* ═══════════════════════════════════════════════════════════════
@@ -161,7 +167,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
     return (
       <div className="space-y-2">
         {services.map(svc => {
-          const st = STATUS_CONFIG[svc.status];
+          const st = STATUS_CONFIG[svc.status as keyof typeof STATUS_CONFIG];
           const hasOratorForm = !!oratorForms[svc.id];
           const hasOrder = (orderItems[svc.id]?.length || 0) > 0;
           const dlInfo = svc.form_deadline_at ? getDeadlineInfo(svc.form_deadline_at) : null;
@@ -185,10 +191,10 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
                       {dlInfo.label}
                     </span>
                   )}
-                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${st.color}`}>{st.label}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${st?.color || 'bg-gray-500/20 text-gray-300'}`}>{st?.label || svc.status}</span>
                 </div>
               </div>
-              <p className={`text-xs ${WORSHIP_TYPE_CONFIGS[svc.type]?.color || 'text-muted'}`}>{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 ${svc.orator_name}` : ''}</p>
+              <p className={`text-xs ${WORSHIP_TYPE_CONFIGS[svc.type]?.color || 'text-muted'}`}>{SERVICE_TYPE_LABELS[svc.type] ?? svc.type} {svc.orator_name ? `\u00b7 ${svc.orator_name}` : ''}</p>
               <div className="flex gap-3 mt-2">
                 <span className={`text-[10px] flex items-center gap-1 ${hasOratorForm ? 'text-green-400' : 'text-muted'}`}>
                   {hasOratorForm ? <CheckCircle className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
@@ -240,7 +246,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
                       {oratorForms[svc.id].form.bible_book && (
                         <p className="text-[10px] text-muted mt-0.5">
                           <BookOpen className="h-3 w-3 inline mr-0.5" />
-                          {oratorForms[svc.id].form.bible_book} {oratorForms[svc.id].form.bible_chapter}:{oratorForms[svc.id].form.bible_verses}
+                          {oratorForms[svc.id].form.bible_book}{oratorForms[svc.id].form.bible_chapter && oratorForms[svc.id].form.bible_verses ? ` ${oratorForms[svc.id].form.bible_chapter}:${oratorForms[svc.id].form.bible_verses}` : ''}
                         </p>
                       )}
                       {oratorForms[svc.id].points.length > 0 && (
@@ -298,7 +304,7 @@ export function PlanificationSection({ accentColor }: PlanificationSectionProps)
             </div>
             <p className="text-xs text-cream/80 mt-1"><strong>Th\u00e8me:</strong> {form.theme}</p>
             {form.sub_theme && <p className="text-[10px] text-muted">Sous-th\u00e8me: {form.sub_theme}</p>}
-            {form.bible_book && <p className="text-[10px] text-muted">Verset: {form.bible_book} {form.bible_chapter}:{form.bible_verses}</p>}
+            {form.bible_book && <p className="text-[10px] text-muted">Verset: {form.bible_book}{form.bible_chapter && form.bible_verses ? ` ${form.bible_chapter}:${form.bible_verses}` : ''}</p>}
             {points.length > 0 && (
               <div className="mt-1.5 space-y-0.5">
                 {points.map((p, i) => (

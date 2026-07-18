@@ -69,7 +69,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
     if (isOrator) {
       message = `*FORMULAIRE ORATEUR*\n`;
       message += `Culte: ${service ? formatDate(service.date) : ''} ${service ? formatTime(service.time) : ''}\n`;
-      message += `Type: ${service ? SERVICE_TYPE_LABELS[service.type] : ''}\n\n`;
+      message += `Type: ${service ? (SERVICE_TYPE_LABELS[service.type] ?? service.type) : ''}\n\n`;
       message += `*Orateur:* ${oratorName || '-'}\n`;
       message += `*Thème:* ${theme || '-'}\n`;
       if (subTheme) message += `*Sous-thème:* ${subTheme}\n`;
@@ -87,7 +87,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
     } else {
       message = `*ORDRE DU CULTE*\n`;
       message += `Culte: ${service ? formatDate(service.date) : ''} ${service ? formatTime(service.time) : ''}\n`;
-      message += `Type: ${service ? SERVICE_TYPE_LABELS[service.type] : ''}\n`;
+      message += `Type: ${service ? (SERVICE_TYPE_LABELS[service.type] ?? service.type) : ''}\n`;
       message += `Président: ${presidentName || '-'}\n\n`;
       orderItems.forEach((item, i) => {
         const label = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
@@ -150,6 +150,10 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             return;
           }
         }
+      } else {
+        setError('Service introuvable. Contactez le d\u00e9partement m\u00e9dia.');
+        setLoading(false);
+        return;
       }
 
       // 3. Load existing data based on type
@@ -289,7 +293,11 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       // Mark link as used
       await supabase.from('worship_form_links').update({ is_used: true }).eq('id', link.id);
 
+      // Update local state (optimistic — no reload)
+      setExistingForm({ ...formData, status: 'submitted', submitted_at: new Date().toISOString() } as WorshipOratorForm);
+      setExistingPoints(ptsToInsert.map((p, i) => ({ id: `local_${i}`, form_id: formData.id, title: p.title, description: p.description || '', position: i, created_at: '' })) as WorshipOratorPoint[]);
       setSuccess(true);
+      setError(null);
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la soumission');
     } finally {
@@ -333,7 +341,27 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       // Mark link as used
       await supabase.from('worship_form_links').update({ is_used: true }).eq('id', link.id);
 
+      // Update local state (optimistic — no reload)
+      const savedItems = itemsToInsert.map((item, i) => ({
+        id: `local_${i}`,
+        service_id: link.service_id,
+        item_type: item.item_type,
+        custom_label: item.custom_label,
+        notes: item.notes,
+        duration_minutes: item.duration_minutes,
+        position: i,
+        created_at: '',
+      })) as WorshipOrderItem[];
+      setExistingOrder(savedItems);
+      setOrderItems(savedItems.map(i => ({
+        item_type: i.item_type,
+        custom_label: i.custom_label || '',
+        notes: i.notes || '',
+        duration_minutes: i.duration_minutes,
+        position: i.position,
+      })));
       setSuccess(true);
+      setError(null);
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la soumission');
     } finally {
@@ -381,26 +409,44 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   }
 
   /* ═══════════════════════════════════════════════════════════════
-     Success State
+     Shared Action Bar (visible in edit, preview, and after submission)
      ═══════════════════════════════════════════════════════════════ */
-  if (success) {
+  const renderActionBar = () => {
+    const isDisabled = submitting || !service || (isOrator ? (!oratorName.trim() || !theme.trim()) : orderItems.length === 0);
     return (
-      <div className="min-h-screen bg-bg flex items-center justify-center p-4">
-        <div className="glass-card rounded-2xl p-10 text-center max-w-md w-full">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500/15 mx-auto mb-4">
-            <CheckCircle className="h-8 w-8 text-green-400" />
+      <div className="sticky bottom-0 z-10 bg-bg/90 backdrop-blur-xl border-t border-line/30 pt-3 pb-4 -mx-4 px-4 mt-6">
+        {success && (
+          <div className="rounded-xl p-3 mb-3 flex items-center gap-2 text-xs bg-green-500/10 text-green-300 border border-green-500/20">
+            <CheckCircle className="h-4 w-4 shrink-0" />
+            <span>{isOrator ? 'Formulaire orateur soumis avec succ\u00e8s !' : 'Ordre du culte soumis avec succ\u00e8s !'}</span>
           </div>
-          <h2 className="text-xl font-semibold text-cream mb-2">Soumis avec succ\u00e8s !</h2>
-          <p className="text-sm text-muted">
-            {isOrator
-              ? 'Votre formulaire d\'orateur a \u00e9t\u00e9 enregistr\u00e9. Le d\u00e9partement m\u00e9dia en a \u00e9t\u00e9 inform\u00e9.'
-              : 'L\'ordre du culte a \u00e9t\u00e9 enregistr\u00e9. Le d\u00e9partement m\u00e9dia en a \u00e9t\u00e9 inform\u00e9.'}
-          </p>
-          <p className="text-xs text-muted mt-4">Vous pouvez fermer cette page.</p>
+        )}
+        <div className="flex gap-2">
+          <button onClick={() => setShowPreview(!showPreview)}
+            className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
+            <Eye className="h-4 w-4" />
+            {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
+          </button>
+          <button onClick={sendViaWhatsApp}
+            className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
+            <MessageSquare className="h-4 w-4" />
+            WhatsApp
+          </button>
+          <button
+            onClick={isOrator ? submitOratorForm : submitPresidentForm}
+            disabled={isDisabled}
+            className="btn-gold flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
+            {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            {success
+              ? (isOrator ? 'Mettre \u00e0 jour' : 'Mettre \u00e0 jour')
+              : (existingForm || existingOrder.length > 0
+                ? (isOrator ? 'Mettre \u00e0 jour et soumettre' : 'Mettre \u00e0 jour l\u2019ordre')
+                : (isOrator ? 'Soumettre le formulaire' : 'Soumettre l\u2019ordre du culte'))}
+          </button>
         </div>
       </div>
     );
-  }
+  };
 
   /* ═══════════════════════════════════════════════════════════════
      Error State
@@ -535,26 +581,6 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           className="input-surface w-full rounded-xl px-4 py-3 text-sm text-cream placeholder:text-muted/50 resize-none" />
       </div>
 
-      {/* Actions: Preview + WhatsApp + Submit */}
-      <div className="flex gap-2">
-        <button onClick={() => setShowPreview(!showPreview)}
-          className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
-          <Eye className="h-4 w-4" />
-          {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
-        </button>
-        <button onClick={sendViaWhatsApp}
-          className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
-          <MessageSquare className="h-4 w-4" />
-          WhatsApp
-        </button>
-      </div>
-      {!showPreview && (
-        <button onClick={submitOratorForm} disabled={submitting || !oratorName.trim() || !theme.trim()}
-          className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {existingForm ? 'Mettre \u00e0 jour et soumettre' : 'Soumettre le formulaire'}
-        </button>
-      )}
     </div>
   );
 
@@ -658,26 +684,6 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         <span className="text-sm font-medium text-cream">{orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0)} minutes</span>
       </div>
 
-      {/* Actions: Preview + WhatsApp + Submit */}
-      <div className="flex gap-2">
-        <button onClick={() => setShowPreview(!showPreview)}
-          className="flex-1 py-3.5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-white/5 text-cream hover:bg-white/10 transition-colors border border-line/30">
-          <Eye className="h-4 w-4" />
-          {showPreview ? 'Modifier' : 'Pr\u00e9visualiser'}
-        </button>
-        <button onClick={sendViaWhatsApp}
-          className="py-3.5 px-5 text-sm font-medium flex items-center justify-center gap-2 rounded-xl bg-green-500/15 text-green-400 hover:bg-green-500/25 transition-colors border border-green-500/30">
-          <MessageSquare className="h-4 w-4" />
-          WhatsApp
-        </button>
-      </div>
-      {!showPreview && (
-        <button onClick={submitPresidentForm} disabled={submitting || orderItems.length === 0}
-          className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          {existingOrder.length > 0 ? 'Mettre \u00e0 jour l\u2019ordre' : 'Soumettre l\u2019ordre du culte'}
-        </button>
-      )}
     </div>
   );
 
@@ -776,14 +782,6 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         </div>
       )}
 
-      {/* Submit from preview */}
-      <button
-        onClick={isOrator ? submitOratorForm : submitPresidentForm}
-        disabled={submitting || (isOrator ? (!oratorName.trim() || !theme.trim()) : orderItems.length === 0)}
-        className="btn-gold w-full py-3.5 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 rounded-xl">
-        {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-        Confirmer et soumettre
-      </button>
     </div>
   );
 
@@ -841,6 +839,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         )}
 
         {showPreview ? renderPreview() : (isOrator ? renderOratorForm() : renderPresidentForm())}
+        {renderActionBar()}
       </div>
     </div>
   );

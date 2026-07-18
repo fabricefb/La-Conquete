@@ -464,7 +464,7 @@ export function PlanificationTab() {
             {services.map(svc => {
               const oratorLinks = linksForService(svc.id, 'orator');
               const presidentLinks = linksForService(svc.id, 'president');
-              const st = STATUS_CONFIG[svc.status];
+              const st = STATUS_CONFIG[svc.status as keyof typeof STATUS_CONFIG];
               const deadlineInfo = svc.form_deadline_at ? getDeadlineInfo(svc.form_deadline_at) : null;
 
               return (
@@ -487,7 +487,7 @@ export function PlanificationTab() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type]} {svc.orator_name ? `\u00b7 Orateur: ${svc.orator_name}` : ''}</p>
+                        <p className="text-xs text-muted">{SERVICE_TYPE_LABELS[svc.type] ?? svc.type} {svc.orator_name ? `\u00b7 Orateur: ${svc.orator_name}` : ''}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -498,7 +498,7 @@ export function PlanificationTab() {
                           {deadlineInfo.label}
                         </span>
                       )}
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${st.color}`}>{st.label}</span>
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${st?.color || 'bg-gray-500/20 text-gray-300'}`}>{st?.label || svc.status}</span>
                       <div className="flex items-center gap-0.5">
                         <button
                           onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
