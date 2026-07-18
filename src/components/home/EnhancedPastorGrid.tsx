@@ -70,24 +70,13 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
     Object.values(pastor.social_links).some((v) => v && v.trim() !== '');
 
   return (
-    <div
-      className="group relative aspect-[3/4] overflow-hidden rounded-xl transition-all duration-300"
-      style={{
-        border: '1px solid transparent',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = 'rgba(250, 204, 21, 0.5)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = 'transparent';
-      }}
-    >
+    <div className="group relative aspect-[3/4] overflow-hidden">
       {/* Image or Initials fallback */}
       {pastor.photo_url ? (
         <img
           src={pastor.photo_url}
           alt={pastor.full_name}
-          className="blog-img-zoom absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
         />
       ) : (
@@ -106,9 +95,6 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
         </div>
       )}
 
-      {/* Gradient overlay */}
-      <div className="pastor-overlay absolute inset-0" />
-
       {/* Category badge */}
       {category && categoryLabel && (
         <div className="absolute left-3 right-3 top-3 z-10">
@@ -120,80 +106,76 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
         </div>
       )}
 
-      {/* Bottom content — always visible */}
+      {/* Bottom content — always visible (name + title) */}
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
         <h3
-          className="font-semibold text-lg leading-tight transition-transform duration-300 group-hover:-translate-y-1"
-          style={{ color: 'rgb(var(--text-rgb))' }}
+          className="font-semibold text-lg leading-tight text-cream drop-shadow-lg"
         >
           {pastor.full_name}
         </h3>
         {pastor.title && (
-          <p className="text-muted mt-0.5 text-sm">{pastor.title}</p>
-        )}
-
-        {/* Bio — visible on hover (if enabled) */}
-        {showBio && pastor.bio && (
-          <p
-            className="mt-2 line-clamp-2 text-xs leading-relaxed opacity-0 transition-all duration-300 group-hover:opacity-80"
-            style={{ color: 'rgb(var(--text-muted-rgb))' }}
-          >
-            {pastor.bio}
-          </p>
-        )}
-
-        {/* Social links — slide up on hover */}
-        {hasSocials && (
-          <div className="mt-3 flex gap-2 translate-y-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-            {pastor.social_links?.facebook && (
-              <a
-                href={pastor.social_links.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-                style={{
-                  background: 'rgb(var(--glass-bg-rgb) / 0.6)',
-                  border: '1px solid rgb(var(--glass-border-rgb) / 0.3)',
-                  color: 'rgb(var(--text-rgb))',
-                }}
-                aria-label={`Facebook de ${pastor.full_name}`}
-              >
-                <Facebook className="h-3.5 w-3.5" />
-              </a>
-            )}
-            {pastor.social_links?.youtube && (
-              <a
-                href={pastor.social_links.youtube}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-                style={{
-                  background: 'rgb(var(--glass-bg-rgb) / 0.6)',
-                  border: '1px solid rgb(var(--glass-border-rgb) / 0.3)',
-                  color: 'rgb(var(--text-rgb))',
-                }}
-                aria-label={`YouTube de ${pastor.full_name}`}
-              >
-                <MonitorPlay className="h-3.5 w-3.5" />
-              </a>
-            )}
-            {pastor.social_links?.email && (
-              <a
-                href={`mailto:${pastor.social_links.email}`}
-                className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-                style={{
-                  background: 'rgb(var(--glass-bg-rgb) / 0.6)',
-                  border: '1px solid rgb(var(--glass-border-rgb) / 0.3)',
-                  color: 'rgb(var(--text-rgb))',
-                }}
-                aria-label={`Email de ${pastor.full_name}`}
-              >
-                <Mail className="h-3.5 w-3.5" />
-              </a>
-            )}
-          </div>
+          <p className="mt-0.5 text-sm text-cream/80 drop-shadow-md">{pastor.title}</p>
         )}
       </div>
+
+      {/* Bio overlay — appears ONLY on hover, disappears on mouse leave */}
+      {showBio && pastor.bio && (
+        <div
+          className="absolute inset-0 z-20 flex items-end p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background: 'linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.85) 40%, rgba(6,13,29,0.6) 70%, transparent 100%)',
+          }}
+        >
+          <div className="w-full">
+            <h3 className="font-semibold text-lg leading-tight text-cream">
+              {pastor.full_name}
+            </h3>
+            {pastor.title && (
+              <p className="mt-0.5 text-sm text-cream/80">{pastor.title}</p>
+            )}
+            <p className="mt-3 text-sm leading-relaxed text-cream/90 line-clamp-5">
+              {pastor.bio}
+            </p>
+
+            {/* Social links inside bio overlay */}
+            {hasSocials && (
+              <div className="mt-4 flex gap-2">
+                {pastor.social_links?.facebook && (
+                  <a
+                    href={pastor.social_links.facebook}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Facebook de ${pastor.full_name}`}
+                  >
+                    <Facebook className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.youtube && (
+                  <a
+                    href={pastor.social_links.youtube}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`YouTube de ${pastor.full_name}`}
+                  >
+                    <MonitorPlay className="h-3.5 w-3.5" />
+                  </a>
+                )}
+                {pastor.social_links?.email && (
+                  <a
+                    href={`mailto:${pastor.social_links.email}`}
+                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    aria-label={`Email de ${pastor.full_name}`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

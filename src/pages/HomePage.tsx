@@ -784,7 +784,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {isSectionVisible('quote') && (
       <section
         className="py-28"
-        style={{ ...getSectionStyle('quote'), backgroundColor: 'rgb(var(--bg-rgb))' }}
+        style={{ backgroundColor: 'rgb(var(--bg-rgb))', ...getSectionStyle('quote') }}
       >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
           <RevealSection>
@@ -795,10 +795,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
 
-            <p className="font-serif text-2xl italic leading-relaxed text-cream sm:text-3xl">
+            <p className="font-serif text-2xl italic leading-relaxed sm:text-3xl" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : { color: 'var(--cream)' }}>
               &laquo; {quoteText} &raquo;
             </p>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-accent-400">
+            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-accent-400" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : undefined}>
               &mdash; {quoteRef}
             </p>
 
@@ -819,7 +819,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : undefined}>{pastorsLabel}</p>
-              <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+              <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : { color: 'var(--cream)' }}>
                 {pastorsTitle}
               </h2>
             </RevealSection>
