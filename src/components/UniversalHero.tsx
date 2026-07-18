@@ -38,8 +38,6 @@ export function UniversalHero({
     return () => { cancelled = true; };
   }, [pageKey]);
 
-  useReveal();
-
   const badge = getContent(cm, 'hero', 'badge', defaultBadge);
   const title = getContent(cm, 'hero', 'title', defaultTitle);
   const subtitle = getContent(cm, 'hero', 'subtitle', defaultSubtitle);
@@ -105,17 +103,23 @@ export function UniversalHero({
       {heroBg && <div className="absolute inset-0 bg-black/50" />}
       <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
         {badge && (
-          <span className="reveal mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
-            {badge}
-          </span>
+          <div className="animate-fade-up">
+            <span className="mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
+              {badge}
+            </span>
+          </div>
         )}
-        <h1 className="reveal reveal-delay-1 font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
-          {title}
-        </h1>
+        <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <h1 className="font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
+            {title}
+          </h1>
+        </div>
         {subtitle && (
-          <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted sm:text-xl">
-            {subtitle}
-          </p>
+          <div className="animate-fade-up mt-6" style={{ animationDelay: '0.2s' }}>
+            <p className="text-lg leading-relaxed text-muted sm:text-xl">
+              {subtitle}
+            </p>
+          </div>
         )}
         {children}
       </div>
