@@ -353,6 +353,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const pastorWordQuoteRef = getContent(cm, 'pastor_word', 'bible_ref', 'Jérémie 29:11');
   const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', 'https://snvmythqboaeakzcqkpy.supabase.co/storage/v1/object/public/media/home/about/1784289838638-pkobgo.jpg');
   const pastorSignature = getContent(cm, 'pastor_word', 'signature_image', '');
+  const portraitScale = parseFloat(getContent(cm, 'pastor_word', 'portrait_scale', '1')) || 1;
+  const portraitPosX = getContent(cm, 'pastor_word', 'portrait_pos_x', 'center'); // left | center | right
+  const portraitPosY = getContent(cm, 'pastor_word', 'portrait_pos_y', 'center'); // top | center | bottom
+  const signaturePosX = getContent(cm, 'pastor_word', 'signature_pos_x', 'center'); // left | center | right
+  const signatureScale = parseFloat(getContent(cm, 'pastor_word', 'signature_scale', '1')) || 1;
 
   // News section
   const newsTitle = getContent(cm, 'news', 'title', 'Dernières nouvelles');
@@ -558,20 +563,37 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             {/* Left: PNG portrait (no frame) + signature */}
             <RevealSection>
-              <div className="relative flex flex-col items-center lg:items-start">
-                <img
-                  src={pastorPortrait}
-                  alt="Pasteur"
-                  className="h-[420px] w-auto max-w-full object-contain drop-shadow-2xl"
-                  loading="lazy"
-                />
-                {pastorSignature && (
+              <div className="relative flex flex-col items-center lg:items-start h-[460px] overflow-visible">
+                <div
+                  className="relative flex items-center justify-center overflow-visible"
+                  style={{
+                    height: '100%',
+                    width: '100%',
+                    alignItems: portraitPosY === 'top' ? 'flex-start' : portraitPosY === 'bottom' ? 'flex-end' : 'center',
+                    justifyContent: portraitPosX === 'left' ? 'flex-start' : portraitPosX === 'right' ? 'flex-end' : 'center',
+                  }}
+                >
                   <img
-                    src={pastorSignature}
-                    alt="Signature"
-                    className="mt-4 h-12 w-auto object-contain opacity-80"
+                    src={pastorPortrait}
+                    alt="Pasteur"
+                    className="h-[420px] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300"
+                    style={{ transform: `scale(${portraitScale})` }}
                     loading="lazy"
                   />
+                </div>
+                {pastorSignature && (
+                  <div
+                    className="mt-2 w-full flex"
+                    style={{ justifyContent: signaturePosX === 'left' ? 'flex-start' : signaturePosX === 'right' ? 'flex-end' : 'center' }}
+                  >
+                    <img
+                      src={pastorSignature}
+                      alt="Signature"
+                      className="h-12 w-auto object-contain opacity-80 transition-transform duration-300"
+                      style={{ transform: `scale(${signatureScale})` }}
+                      loading="lazy"
+                    />
+                  </div>
                 )}
               </div>
             </RevealSection>

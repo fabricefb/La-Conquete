@@ -305,7 +305,12 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
       { field_key: 'bible_ref', label: 'Référence biblique', type: 'text', value: '' },
       { field_key: 'portrait_image', label: 'Photo portrait (PNG sans fond)', type: 'image_url', value: '' },
+      { field_key: 'portrait_scale', label: 'Échelle du portrait (ex: 1, 1.2, 0.8)', type: 'text', value: '1' },
+      { field_key: 'portrait_pos_x', label: 'Position horizontale (left / center / right)', type: 'text', value: 'center' },
+      { field_key: 'portrait_pos_y', label: 'Position verticale (top / center / bottom)', type: 'text', value: 'center' },
       { field_key: 'signature_image', label: 'Image signature (PNG)', type: 'image_url', value: '' },
+      { field_key: 'signature_scale', label: 'Échelle de la signature (ex: 1, 1.5, 0.7)', type: 'text', value: '1' },
+      { field_key: 'signature_pos_x', label: 'Position signature (left / center / right)', type: 'text', value: 'center' },
     ],
     news: [
       { field_key: 'title', label: 'Titre de la section', type: 'text', value: 'Dernières nouvelles' },
