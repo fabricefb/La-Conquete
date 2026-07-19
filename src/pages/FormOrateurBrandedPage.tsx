@@ -33,6 +33,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
   const [link, setLink] = useState<WorshipFormLink | null>(null);
   const [service, setService] = useState<WorshipService | null>(null);
   const [serviceNotes, setServiceNotes] = useState<string | null>(null);
+  const [existingFormId, setExistingFormId] = useState<string | null>(null);
 
   // Form fields
   const [firstName, setFirstName] = useState('');
@@ -104,6 +105,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
         .maybeSingle();
 
       if (formData) {
+        setExistingFormId(formData.id);
         if (formData.orator_name) {
           const parts = formData.orator_name.split(' ');
           if (parts.length > 1) {
@@ -198,22 +200,27 @@ export function FormOrateurBrandedPage({ token }: Props) {
         }
       }
 
-      // 1. Upsert orator form
+      // 1. Upsert orator form — use existing ID to avoid duplicates
+      const formPayload: Record<string, any> = {
+        service_id: link!.service_id,
+        orator_name: oratorName,
+        theme: theme.trim(),
+        sub_theme: subTheme.trim() || null,
+        bible_book,
+        bible_chapter,
+        bible_verses,
+        summary: summary.trim() || null,
+        remarks: remarks.trim() || null,
+        status: 'submitted',
+        submitted_at: new Date().toISOString(),
+      };
+      if (existingFormId) {
+        formPayload.id = existingFormId;
+      }
+
       const { data: formData, error: formErr } = await supabase
         .from('worship_orator_forms')
-        .upsert({
-          service_id: link!.service_id,
-          orator_name: oratorName,
-          theme: theme.trim(),
-          sub_theme: subTheme.trim() || null,
-          bible_book,
-          bible_chapter,
-          bible_verses,
-          summary: summary.trim() || null,
-          remarks: remarks.trim() || null,
-          status: 'submitted',
-          submitted_at: new Date().toISOString(),
-        })
+        .upsert(formPayload, { onConflict: 'id' })
         .select()
         .single();
 

@@ -270,6 +270,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           status: 'submitted',
           submitted_at: new Date().toISOString(),
         })
+        .upsert({ onConflict: 'id' })
         .select()
         .single();
 

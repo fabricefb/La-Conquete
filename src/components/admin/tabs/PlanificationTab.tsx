@@ -354,7 +354,7 @@ export function PlanificationTab() {
     setSelectedServiceId(serviceId);
     try {
       const { data: formData, error: formErr } = await supabase
-        .from('worship_orator_forms').select('*').eq('service_id', serviceId).single();
+        .from('worship_orator_forms').select('*').eq('service_id', serviceId).order('submitted_at', { ascending: false }).limit(1).maybeSingle();
 
       if (formErr || !formData) {
         setOratorForm(null);
@@ -471,7 +471,7 @@ export function PlanificationTab() {
     setPreviewOrder([]);
     try {
       const [formRes, orderRes] = await Promise.allSettled([
-        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).maybeSingle(),
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
       ]);
       if (formRes.status === 'fulfilled' && formRes.value.data) {
@@ -499,7 +499,7 @@ export function PlanificationTab() {
 
     if (!form || (previewService?.id !== svc.id)) {
       const [formRes, orderRes] = await Promise.allSettled([
-        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).maybeSingle(),
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle(),
         supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
       ]);
       if (formRes.status === 'fulfilled' && formRes.value.data) {
