@@ -271,7 +271,7 @@ export type AdminTab =
   | 'departments'
   | 'assignments'
   | 'ministries'
-  | 'media'
+  | 'media_communication'
   | 'testimonials'
   | 'messages'
   | 'pastors'
@@ -288,7 +288,6 @@ export type AdminTab =
   | 'animations'
   | 'live_stream'
   | 'audio'
-  | 'planification_culte'
   | 'evangelism';
 
 // ─── ERP Role System ──────────────────────────────────────────────

@@ -9,7 +9,7 @@ import { LocationsTab } from '../components/admin/tabs/LocationsTab';
 import { EventsTab } from '../components/admin/tabs/EventsTab';
 import { DepartmentsTab } from '../components/admin/tabs/DepartmentsTab';
 import { MinistriesTab } from '../components/admin/tabs/MinistriesTab';
-import { MediaTab } from '../components/admin/tabs/MediaTab';
+import { MediaCommunicationTab } from '../components/admin/tabs/MediaCommunicationTab';
 import { TestimonialsTab } from '../components/admin/tabs/TestimonialsTab';
 import { MessagesTab } from '../components/admin/tabs/MessagesTab';
 import { ThemeTab } from '../components/admin/tabs/ThemeTab';
@@ -27,7 +27,6 @@ import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
 import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
 import { AudioTab } from '../components/admin/tabs/AudioTab';
 import { GuideTab } from '../components/admin/tabs/GuideTab';
-import { PlanificationTab } from '../components/admin/tabs/PlanificationTab';
 import { EvangelismTab } from '../components/admin/tabs/EvangelismTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
@@ -106,7 +105,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'ministries': return <MinistriesTab />;
       case 'alerts': return <AlertsTab />;
       case 'pipeline': return <PipelineTab />;
-      case 'media': return <MediaTab />;
+      case 'media_communication': return <MediaCommunicationTab />;
       case 'testimonials': return <TestimonialsTab />;
       case 'messages': return <MessagesTab />;
       case 'pastors': return <PastorsTab />;
@@ -120,7 +119,6 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'animations': return <AnimationsTab />;
       case 'live_stream': return <LiveStreamTab />;
       case 'audio': return <AudioTab />;
-      case 'planification_culte': return <PlanificationTab />;
       case 'evangelism': return <EvangelismTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }

@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, LayoutGrid, BookOpen, Zap, Radio, CalendarCheck,
+  UserCheck, LayoutGrid, BookOpen, Zap, Radio, MonitorPlay,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -37,7 +37,6 @@ const tabGroups: TabGroup[] = [
     tabs: [
       { id: 'contents', label: 'Contenus', Icon: FileText },
       { id: 'audio', label: 'Audio', Icon: Radio },
-      { id: 'media', label: 'Médias', Icon: Image },
       { id: 'theme', label: 'Thème', Icon: Palette },
       { id: 'animations', label: 'Animations', Icon: Zap },
       { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
@@ -53,6 +52,7 @@ const tabGroups: TabGroup[] = [
       { id: 'creneaux', label: 'Créneaux', Icon: Clock },
       { id: 'events', label: 'Événements', Icon: Calendar },
       { id: 'locations', label: 'Lieux', Icon: MapPin },
+      { id: 'media_communication', label: 'Média & Communication', Icon: MonitorPlay },
     ],
   },
   {
@@ -62,7 +62,6 @@ const tabGroups: TabGroup[] = [
       { id: 'pipeline', label: 'Pipeline Âmes', Icon: Heart },
       { id: 'onboarding', label: 'Onboarding', Icon: ClipboardList },
       { id: 'protocol', label: 'Protocole', Icon: UserCheck },
-      { id: 'planification_culte', label: 'Planification Culte', Icon: CalendarCheck },
       { id: 'evangelism', label: 'Évangélisation', Icon: Heart },
     ],
   },
@@ -85,13 +84,13 @@ interface AdminLayoutProps {
 
 // Onglets masqués pour le pasteur principal (consultation uniquement)
 const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>([
-  'theme', 'settings', 'media',
+  'theme', 'settings',
   'pipeline', 'onboarding', 'protocol', 'creneaux',
 ]);
 
 // Onglets masqués pour les utilisateurs niveau 4 (diacre, collaborateur, etc.)
 const HIDDEN_TABS_FOR_LEVEL4 = new Set<AdminTab>([
-  'theme', 'settings', 'media',
+  'theme', 'settings',
   'pipeline', 'creneaux',
 ]);
 

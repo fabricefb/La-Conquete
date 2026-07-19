@@ -7,7 +7,7 @@ import {
   Calendar, Plus, Send, Eye, Trash2, ChevronUp, ChevronDown,
   Copy, MessageSquare, CheckCircle, Clock, AlertCircle,
   Loader2, X, RefreshCw, Church, Mic, User, Info,
-  AlertTriangle, Timer, Play, FileText,
+  AlertTriangle, Timer, Play, FileText, Download,
 } from '../../../lib/icons';
 import type {
   WorshipService, WorshipServiceType, WorshipServiceStatus,
