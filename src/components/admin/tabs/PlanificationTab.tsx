@@ -278,16 +278,17 @@ export function PlanificationTab() {
     setModuleError(false);
     try {
       const [svcRes, linksRes] = await Promise.allSettled([
-        supabase.from('worship_services').select('*').order('date', { ascending: false }).limit(50),
+        supabase.from('worship_services').select('id,date,time,type,orator_name,president_name,status,notes,created_by,is_delayed,delayed_at,delayed_minutes,created_at,updated_at').order('date', { ascending: false }).limit(50),
         supabase.from('worship_form_links').select('*').order('created_at', { ascending: false }).limit(100),
       ]);
 
-      const svcs = (svcRes.status === 'fulfilled' && svcRes.value.data)
+      const rawSvcs = (svcRes.status === 'fulfilled' && svcRes.value.data)
         ? (svcRes.value.data as WorshipService[]) : [];
 
       if (svcRes.status === 'rejected' && isTableNotFoundError(svcRes.reason)) {
         setModuleError(true);
       }
+      const svcs = enrichServicesWithDeadlines(rawSvcs);
       setServices(svcs);
 
       if (linksRes.status === 'fulfilled' && linksRes.value.data) {

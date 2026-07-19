@@ -5,7 +5,7 @@ import {
   ChevronUp, ChevronDown, Send, BookOpen, Mic, User,
   Info, ArrowLeft, AlertTriangle, Clock, MessageSquare, Eye,
 } from '../lib/icons';
-import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo } from '../components/admin/tabs/PlanificationTab';
+import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, enrichWithDeadline } from '../components/admin/tabs/PlanificationTab';
 import { openWhatsApp } from '../lib/whatsapp';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
@@ -133,12 +133,12 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       // 2. Get service
       const { data: svcData } = await supabase
         .from('worship_services')
-        .select('*')
+        .select('id,date,time,type,orator_name,president_name,status,notes,created_by,is_delayed,delayed_at,delayed_minutes,created_at,updated_at')
         .eq('id', linkData.service_id)
         .single();
 
       if (svcData) {
-        const svc = svcData as WorshipService;
+        const svc = enrichWithDeadline(svcData as WorshipService);
         setService(svc);
 
         // Check 12h deadline
