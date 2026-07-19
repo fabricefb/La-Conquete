@@ -231,6 +231,10 @@ export function PlanificationTab() {
   const [orderItems, setOrderItems] = useState<WorshipOrderItem[]>([]);
   const [selectedServiceForOrder, setSelectedServiceForOrder] = useState<string | null>(null);
 
+  /* ── State: Submission status per service ── */
+  const [submittedForms, setSubmittedForms] = useState<Record<string, string>>({});
+  const [submittedOrders, setSubmittedOrders] = useState<Set<string>>(new Set());
+
   /* ── State: Form links ── */
   const [formLinks, setFormLinks] = useState<WorshipFormLink[]>([]);
 
@@ -251,14 +255,34 @@ export function PlanificationTab() {
         supabase.from('worship_form_links').select('*').order('created_at', { ascending: false }).limit(100),
       ]);
 
-      if (svcRes.status === 'fulfilled' && svcRes.value.data) {
-        setServices(svcRes.value.data as WorshipService[]);
-      } else if (svcRes.status === 'rejected' && isTableNotFoundError(svcRes.reason)) {
+      const svcs = (svcRes.status === 'fulfilled' && svcRes.value.data)
+        ? (svcRes.value.data as WorshipService[]) : [];
+
+      if (svcRes.status === 'rejected' && isTableNotFoundError(svcRes.reason)) {
         setModuleError(true);
       }
+      setServices(svcs);
 
       if (linksRes.status === 'fulfilled' && linksRes.value.data) {
         setFormLinks(linksRes.value.data as WorshipFormLink[]);
+      }
+
+      // Charger le statut de soumission pour chaque service (orator + order)
+      if (svcs.length > 0) {
+        const svcIds = svcs.map(s => s.id);
+        const [formsRes, ordersRes] = await Promise.allSettled([
+          supabase.from('worship_orator_forms').select('id,service_id,status').in('service_id', svcIds),
+          supabase.from('worship_order_items').select('service_id').in('service_id', svcIds),
+        ]);
+        const forms = (formsRes.status === 'fulfilled' && formsRes.value.data)
+          ? (formsRes.value.data as { id: string; service_id: string; status: string }[]) : [];
+        const orders = (ordersRes.status === 'fulfilled' && ordersRes.value.data)
+          ? (ordersRes.value.data as { service_id: string }[]) : [];
+        setSubmittedForms(Object.fromEntries(forms.map(f => [f.service_id, f.status])));
+        setSubmittedOrders(new Set(orders.map(o => o.service_id)));
+      } else {
+        setSubmittedForms({});
+        setSubmittedOrders(new Set());
       }
     } catch (err) {
       if (isTableNotFoundError(err)) { setModuleError(true); }
@@ -383,7 +407,7 @@ export function PlanificationTab() {
     setPreviewOrder([]);
     try {
       const [formRes, orderRes] = await Promise.allSettled([
-        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).single(),
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).maybeSingle(),
         supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
       ]);
       if (formRes.status === 'fulfilled' && formRes.value.data) {
@@ -411,7 +435,7 @@ export function PlanificationTab() {
 
     if (!form || (previewService?.id !== svc.id)) {
       const [formRes, orderRes] = await Promise.allSettled([
-        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).single(),
+        supabase.from('worship_orator_forms').select('*').eq('service_id', svc.id).maybeSingle(),
         supabase.from('worship_order_items').select('*').eq('service_id', svc.id).order('position'),
       ]);
       if (formRes.status === 'fulfilled' && formRes.value.data) {
@@ -456,7 +480,7 @@ export function PlanificationTab() {
     }
 
     if (!message) {
-      addToast({ type: 'error', message: 'Aucun formulaire soumis pour ce culte.' });
+      addToast({ type: 'info', message: 'En attente : l\'orateur ou le président n\'a pas encore soumis son formulaire. Envoyez d\'abord le lien via WhatsApp.' });
       return;
     }
 
@@ -637,6 +661,9 @@ export function PlanificationTab() {
                     <div className="flex items-center gap-2">
                       <Mic className="h-4 w-4 text-amber-400 shrink-0" />
                       <span className="text-xs text-muted flex-1">Formulaire orateur</span>
+                      {submittedForms[svc.id] && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-green-500/20 text-green-400">Soumis</span>
+                      )}
                       {oratorLinks.length > 0 && oratorLinks[0] && (
                         <>
                           <button onClick={() => copyLink(oratorLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
@@ -659,6 +686,9 @@ export function PlanificationTab() {
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-purple-400 shrink-0" />
                       <span className="text-xs text-muted flex-1">Formulaire président</span>
+                      {submittedOrders.has(svc.id) && (
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-green-500/20 text-green-400">Soumis</span>
+                      )}
                       {presidentLinks.length > 0 && presidentLinks[0] && (
                         <>
                           <button onClick={() => copyLink(presidentLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
@@ -700,9 +730,15 @@ export function PlanificationTab() {
                     </button>
                     <button
                       onClick={() => handleSendContentWhatsApp(svc)}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-green-500/10 text-green-300 hover:bg-green-500/20 transition-colors flex items-center gap-1"
+                      disabled={!submittedForms[svc.id] && !submittedOrders.has(svc.id)}
+                      title={!submittedForms[svc.id] && !submittedOrders.has(svc.id) ? 'En attente de soumission du formulaire' : 'Envoyer le programme par WhatsApp'}
+                      className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors ${
+                        !submittedForms[svc.id] && !submittedOrders.has(svc.id)
+                          ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed opacity-50'
+                          : 'bg-green-500/10 text-green-300 hover:bg-green-500/20'
+                      }`}
                     >
-                      <MessageSquare className="h-3 w-3" /> Envoyer par WhatsApp
+                      <MessageSquare className="h-3 w-3" /> Programme WhatsApp
                     </button>
                   </div>
                 </div>
@@ -977,8 +1013,9 @@ export function PlanificationTab() {
               <div className="space-y-4">
                 {!previewForm && previewOrder.length === 0 && (
                   <div className="text-center py-8">
-                    <Info className="h-10 w-10 text-muted mx-auto mb-3" />
-                    <p className="text-muted">Aucun formulaire soumis pour ce culte.</p>
+                    <Clock className="h-10 w-10 text-muted/40 mx-auto mb-3" />
+                    <p className="text-muted text-sm">En attente de soumission</p>
+                    <p className="text-xs text-muted/60 mt-1">L'orateur ou le président n'a pas encore rempli son formulaire. Envoyez d'abord le lien via WhatsApp.</p>
                   </div>
                 )}
 
