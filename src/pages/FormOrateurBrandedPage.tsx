@@ -337,18 +337,19 @@ export function FormOrateurBrandedPage({ token }: Props) {
     );
   }
 
+  /* ── Redirect to homepage after successful submit ── */
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => {
+      window.location.href = window.location.origin + '/';
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
   /* ═══════════════════════════════════════════════════════════════
      SUCCESS
      ═══════════════════════════════════════════════════════════════ */
   if (success) {
-    // Redirect to homepage after 3 seconds
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        window.location.hash = '#home';
-      }, 3000);
-      return () => clearTimeout(timer);
-    }, []);
-
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'rgba(6,13,29,0.95)' }}>
         <div className="text-center max-w-md w-full p-10 rounded-2xl" style={{ background: '#0F2147', border: '1px solid rgba(37,211,102,0.2)' }}>
@@ -361,7 +362,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
           </p>
           <p className="text-xs mt-4" style={{ color: 'rgba(160,170,195,0.6)' }}>Redirection vers la page d'accueil…</p>
           <button
-            onClick={() => { window.location.hash = '#home'; }}
+            onClick={() => { window.location.href = window.location.origin + '/'; }}
             className="mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all"
             style={{ background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.3)', color: '#D4A843', cursor: 'pointer' }}
           >
