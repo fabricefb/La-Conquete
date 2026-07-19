@@ -7,7 +7,7 @@ import {
   Calendar, Plus, Send, Eye, Trash2, ChevronUp, ChevronDown,
   Copy, MessageSquare, CheckCircle, Clock, AlertCircle,
   Loader2, X, RefreshCw, Church, Mic, User, Info,
-  AlertTriangle, Timer, Play,
+  AlertTriangle, Timer, Play, Download, FileText,
 } from '../../../lib/icons';
 import type {
   WorshipService, WorshipServiceType, WorshipServiceStatus,
@@ -15,6 +15,7 @@ import type {
   WorshipOrderItemType, WorshipFormLink,
 } from '../../../types';
 import { openWhatsApp } from '../../../lib/whatsapp';
+import { generateOratorFormHTML } from '../../../lib/orator-form-html';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants
@@ -516,6 +517,87 @@ export function PlanificationTab() {
     addToast({ type: 'success', message: 'Contenu envoyé par WhatsApp' });
   };
 
+  /* ── Download branded HTML form ── */
+  const handleDownloadHTMLForm = (svc: WorshipService, linkType: 'orator' | 'president') => {
+    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
+    const link = formLinks.find(l => l.service_id === svc.id && l.link_type === linkType);
+    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+    const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      addToast({ type: 'error', message: 'Configuration Supabase manquante' });
+      return;
+    }
+
+    if (linkType === 'orator') {
+      const html = generateOratorFormHTML({
+        serviceId: svc.id,
+        serviceDate: svc.date,
+        serviceTime: svc.time || '08:00',
+        serviceType: typeLabel,
+        oratorName: svc.orator_name || undefined,
+        token: link?.token,
+        supabaseUrl,
+        supabaseAnonKey,
+        siteUrl: BASE_URL,
+      });
+
+      // Download as .html file
+      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const dateSlug = svc.date.replace(/-/g, '');
+      a.download = `formulaire-orateur-${dateSlug}.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      addToast({ type: 'success', message: 'Formulaire HTML téléchargé. Envoyez-le à l\'orateur via WhatsApp.' });
+
+      // Mark link as sent
+      if (link) {
+        supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
+      }
+    } else {
+      // For president, send the SPA link (HTML form for president is complex)
+      if (link) {
+        handleSendWhatsApp(link);
+      } else {
+        addToast({ type: 'info', message: 'Générez d\'abord le lien pour le président de culte.' });
+      }
+    }
+  };
+
+  /* ── Preview HTML form in new tab ── */
+  const handlePreviewHTMLForm = (svc: WorshipService) => {
+    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
+    const link = formLinks.find(l => l.service_id === svc.id && l.link_type === 'orator');
+    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
+    const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      addToast({ type: 'error', message: 'Configuration Supabase manquante' });
+      return;
+    }
+
+    const html = generateOratorFormHTML({
+      serviceId: svc.id,
+      serviceDate: svc.date,
+      serviceTime: svc.time || '08:00',
+      serviceType: typeLabel,
+      oratorName: svc.orator_name || undefined,
+      token: link?.token,
+      supabaseUrl,
+      supabaseAnonKey,
+      siteUrl: BASE_URL,
+    });
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+  };
+
   /* ── Toggle delay on a service ── */
   const [delayModal, setDelayModal] = useState<{ serviceId: string; currentMinutes: number } | null>(null);
   const [delayMinutes, setDelayMinutes] = useState(30);
@@ -697,11 +779,14 @@ export function PlanificationTab() {
                           <button onClick={() => copyLink(oratorLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
                             <Copy className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleSendWhatsApp(oratorLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer par WhatsApp">
+                          <button onClick={() => handleSendWhatsApp(oratorLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le lien par WhatsApp">
                             <Send className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => window.open(`/#/form-culte/${oratorLinks[0].token}`, '_blank')} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Ouvrir">
-                            <Eye className="h-3.5 w-3.5" />
+                          <button onClick={() => handlePreviewHTMLForm(svc)} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Aperçu du formulaire HTML">
+                            <FileText className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => handleDownloadHTMLForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Télécharger le formulaire HTML à envoyer">
+                            <Download className="h-3.5 w-3.5" />
                           </button>
                         </>
                       )}
@@ -755,6 +840,13 @@ export function PlanificationTab() {
                       className="text-xs px-3 py-1.5 rounded-lg bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 transition-colors flex items-center gap-1"
                     >
                       <Eye className="h-3 w-3" /> Prévisualiser
+                    </button>
+                    <button
+                      onClick={() => handleDownloadHTMLForm(svc, 'orator')}
+                      className="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors flex items-center gap-1"
+                      title="Télécharge le formulaire HTML brandingé pour l'envoyer à l'orateur"
+                    >
+                      <Download className="h-3 w-3" /> Formulaire HTML
                     </button>
                     <button
                       onClick={() => handleSendContentWhatsApp(svc)}

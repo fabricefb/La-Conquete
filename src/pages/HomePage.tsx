@@ -47,6 +47,8 @@ const DEFAULT_MINISTRY_IMG =
   'https://images.pexels.com/photos/8465180/pexels-photo-8465180.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_MEDIA_IMG =
   'https://images.pexels.com/photos/196656/pexels-photo-196656.jpeg?auto=compress&cs=tinysrgb&w=800';
+const DEFAULT_NEWS_IMG =
+  'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=800';
 /* ═══════════════════════════════════════════════════════════════════
    RevealSection helper
    ═══════════════════════════════════════════════════════════════════ */
@@ -648,7 +650,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </h2>
           </RevealSection>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {[
               {
                 img: DEFAULT_SERMON_IMG,
@@ -677,6 +679,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 title: 'Médias',
                 stat: 'Vidéos & podcasts',
                 page: 'media' as Page,
+              },
+              {
+                img: DEFAULT_NEWS_IMG,
+                Icon: Newspaper,
+                title: 'Actualités',
+                stat: 'Dernières nouvelles',
+                page: 'blog' as Page,
               },
             ].map(({ img, Icon, title, stat, page }, i) => (
               <RevealSection key={title} className={`reveal-delay-${i + 1}`}>
