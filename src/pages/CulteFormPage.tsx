@@ -227,6 +227,15 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Auto-redirect after successful submission (MUST be before any conditional return)
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => {
+      window.location.href = window.location.origin + '/';
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
   /* ── Submit orator form ── */
   const submitOratorForm = async () => {
     if (!link || !service) return;
@@ -799,15 +808,6 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   /* ═══════════════════════════════════════════════════════════════
      Main Render
      ═══════════════════════════════════════════════════════════════ */
-  // Auto-redirect after successful submission
-  useEffect(() => {
-    if (!success) return;
-    const timer = setTimeout(() => {
-      window.location.hash = '#home';
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [success]);
-
   return (
     <div className="min-h-screen bg-bg">
       {/* Branding header with logo */}
