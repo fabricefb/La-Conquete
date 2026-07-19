@@ -1244,6 +1244,67 @@ export type EvangelismDecision =
 export type EvangelismContactStatus =
   | 'a_contacter' | 'contacte' | 'en_suivi' | 'integre_eglise' | 'perdu_de_vue';
 
+// Pipeline des Âmes — Étapes du cheminement spirituel
+export type EvangelismPipelineStage =
+  | 'nouveau_contact' | 'premier_contact' | 'rdv_planifie' | 'en_suivi'
+  | 'venu_culte' | 'etude_biblique' | 'affermi' | 'integre_eglise' | 'baptise' | 'perdu_de_vue';
+
+export const EVANGELISM_PIPELINE_STAGES: { key: EvangelismPipelineStage; label: string; color: string; bg: string }[] = [
+  { key: 'nouveau_contact', label: 'Nouveau', color: 'text-blue-400', bg: 'bg-blue-500' },
+  { key: 'premier_contact', label: '1er contact', color: 'text-cyan-400', bg: 'bg-cyan-500' },
+  { key: 'rdv_planifie', label: 'RDV planifié', color: 'text-purple-400', bg: 'bg-purple-500' },
+  { key: 'en_suivi', label: 'En suivi', color: 'text-amber-400', bg: 'bg-amber-500' },
+  { key: 'venu_culte', label: 'Venu au culte', color: 'text-emerald-400', bg: 'bg-emerald-500' },
+  { key: 'etude_biblique', label: 'Étude biblique', color: 'text-teal-400', bg: 'bg-teal-500' },
+  { key: 'affermi', label: 'Affermi', color: 'text-orange-400', bg: 'bg-orange-500' },
+  { key: 'integre_eglise', label: 'Intégré', color: 'text-green-400', bg: 'bg-green-500' },
+  { key: 'baptise', label: 'Baptisé', color: 'text-yellow-400', bg: 'bg-yellow-500' },
+  { key: 'perdu_de_vue', label: 'Perdu de vue', color: 'text-gray-400', bg: 'bg-gray-500' },
+];
+
+export const EVANGELISM_PIPELINE_STAGE_LABELS: Record<EvangelismPipelineStage, string> = {
+  nouveau_contact: 'Nouveau contact',
+  premier_contact: 'Premier contact',
+  rdv_planifie: 'RDV planifié',
+  en_suivi: 'En suivi',
+  venu_culte: 'Venu au culte',
+  etude_biblique: 'Étude biblique',
+  affermi: 'Affermi',
+  integre_eglise: 'Intégré à l\'église',
+  baptise: 'Baptisé',
+  perdu_de_vue: 'Perdu de vue',
+};
+
+export type EvangelismRdvType = 'visite' | 'appel' | 'etude_biblique' | 'prie_domicile' | 'cafe_chretien' | 'autre';
+export type EvangelismRdvStatus = 'planifie' | 'confirme' | 'realise' | 'annule' | 'reporte';
+export type EvangelismContactSource = 'evangelisme' | 'culte' | 'evenement' | 'recommandation' | 'internet' | 'autre';
+
+export const EVANGELISM_RDV_TYPE_LABELS: Record<EvangelismRdvType, string> = {
+  visite: 'Visite à domicile',
+  appel: 'Appel téléphonique',
+  etude_biblique: 'Étude biblique',
+  prie_domicile: 'Prière à domicile',
+  cafe_chretien: 'Café chrétien',
+  autre: 'Autre',
+};
+
+export const EVANGELISM_RDV_STATUS_LABELS: Record<EvangelismRdvStatus, string> = {
+  planifie: 'Planifié',
+  confirme: 'Confirmé',
+  realise: 'Réalisé',
+  annule: 'Annulé',
+  reporte: 'Reporté',
+};
+
+export const EVANGELISM_SOURCE_LABELS: Record<EvangelismContactSource, string> = {
+  evangelisme: 'Sortie d\'évangélisation',
+  culte: 'Culte',
+  evenement: 'Événement',
+  recommandation: 'Recommandation',
+  internet: 'Internet',
+  autre: 'Autre',
+};
+
 export const EVANGELISM_DECISION_LABELS: Record<EvangelismDecision, string> = {
   interesse: 'Intéressé',
   en_savoir_plus: 'Veut en savoir plus',
@@ -1297,6 +1358,21 @@ export interface EvangelismContact {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  // Pipeline des Âmes (v2)
+  pipeline_stage: EvangelismPipelineStage;
+  // Rendez-vous
+  rdv_date: string | null;
+  rdv_time: string | null;
+  rdv_type: EvangelismRdvType;
+  rdv_notes: string | null;
+  rdv_status: EvangelismRdvStatus;
+  // Source du contact
+  source: EvangelismContactSource;
+  source_culte_id: string | null;
+  is_new_visitor: boolean;
+  // Affermissement
+  discipleship_start_date: string | null;
+  discipleship_notes: string | null;
 }
 
 export type EvangelismFollowupType =
@@ -1345,4 +1421,8 @@ export interface EvangelismStats {
   followups_done: number;
   active_followups: number;
   baptized: number;
+  new_visitors: number;
+  rdv_pending: number;
+  in_discipleship: number;
+  rdv_completed: number;
 }

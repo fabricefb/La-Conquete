@@ -15,12 +15,19 @@ import {
   EVANGELISM_OUTING_STATUS_COLORS, EVANGELISM_DECISION_LABELS,
   EVANGELISM_CONTACT_STATUS_LABELS, EVANGELISM_CONTACT_STATUS_COLORS,
   EVANGELISM_FOLLOWUP_TYPE_LABELS, EVANGELISM_FOLLOWUP_RESULT_LABELS,
+  EVANGELISM_PIPELINE_STAGES, EVANGELISM_PIPELINE_STAGE_LABELS,
+  EVANGELISM_RDV_STATUS_LABELS, EVANGELISM_SOURCE_LABELS,
+} from '../../../types';
+import type {
+  EvangelismPipelineStage, EvangelismRdvType, EvangelismRdvStatus,
+  EvangelismContactSource,
 } from '../../../types';
 import {
   MapPin, Users, Phone, Plus, Trash2, Save, X, Loader2,
   ChevronDown, ChevronUp, Check, Search, Filter,
   MessageCircle, Calendar, Clock, UserPlus, Activity,
-  Heart, BookOpen, Eye, AlertTriangle,
+  Heart, BookOpen, Eye, AlertTriangle, Zap, UserCheck,
+  ChevronRight, ArrowRight, TrendingUp, BarChart3,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -28,8 +35,10 @@ import {
 // ---------------------------------------------------------------------------
 
 const SUB_TABS = [
+  { key: 'pipeline', label: 'Pipeline des Âmes', Icon: Activity },
   { key: 'sorties', label: 'Sorties', Icon: MapPin },
   { key: 'contacts', label: 'Contacts', Icon: Users },
+  { key: 'rdv', label: 'Rendez-vous', Icon: Calendar },
   { key: 'suivi', label: 'Suivi', Icon: Phone },
 ] as const;
 type SubTab = typeof SUB_TABS[number]['key'];
@@ -41,6 +50,24 @@ const FOLLOWUP_RESULT_COLORS: Record<EvangelismFollowupResult, string> = {
   a_reporter: 'bg-amber-500/15 text-amber-300 border-amber-500/20',
   en_attente: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
 };
+
+const RDV_TYPES: { value: string; label: string }[] = [
+  { value: 'visite', label: 'Visite à domicile' },
+  { value: 'appel', label: 'Appel téléphonique' },
+  { value: 'etude_biblique', label: 'Étude biblique' },
+  { value: 'prie_domicile', label: 'Prière à domicile' },
+  { value: 'cafe_chretien', label: 'Café chrétien' },
+  { value: 'autre', label: 'Autre' },
+];
+
+const CONTACT_SOURCES: { value: string; label: string }[] = [
+  { value: 'evangelisme', label: 'Sortie d\'évangélisation' },
+  { value: 'culte', label: 'Culte' },
+  { value: 'evenement', label: 'Événement' },
+  { value: 'recommandation', label: 'Recommandation' },
+  { value: 'internet', label: 'Internet' },
+  { value: 'autre', label: 'Autre' },
+];
 
 const OBJECTIVES: EvangelismObjective[] = [
   'porte_a_porte', 'marche', 'campagne', 'rue',
@@ -180,11 +207,32 @@ export function EvangelismTab() {
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [completeResult, setCompleteResult] = useState<EvangelismFollowupResult>('positif');
 
+  // ── Pipeline state ────────────────────────────────────────────
+  const [pipelineAdvancing, setPipelineAdvancing] = useState<string | null>(null);
+
+  // ── Rendez-vous state ─────────────────────────────────────────
+  const [rdvSaving, setRdvSaving] = useState(false);
+  const [rdvFormOpen, setRdvFormOpen] = useState(false);
+  const [rdvForm, setRdvForm] = useState({
+    contact_id: '', rdv_date: todayISO(), rdv_time: '10:00',
+    rdv_type: 'visite' as EvangelismRdvType, rdv_notes: '',
+  });
+  const [rdvFilterStatus, setRdvFilterStatus] = useState<EvangelismRdvStatus | ''>('');
+
+  // ── Nouveaux venus (from culte) ───────────────────────────────
+  const [nvFormOpen, setNvFormOpen] = useState(false);
+  const [nvSaving, setNvSaving] = useState(false);
+  const [nvForm, setNvForm] = useState({
+    full_name: '', phone: '', whatsapp: '', quartier: '',
+    source_culte_id: '', notes: '',
+  });
+
   // ── Stats ────────────────────────────────────────────────────────
   const [stats, setStats] = useState<EvangelismStats>({
     total_outings: 0, total_contacts: 0, decisions: 0,
     integrated: 0, came_to_culte: 0, followups_done: 0,
-    active_followups: 0, baptized: 0,
+    active_followups: 0, baptized: 0, new_visitors: 0,
+    rdv_pending: 0, in_discipleship: 0, rdv_completed: 0,
   });
 
   // ── Unique quartiers ─────────────────────────────────────────────
@@ -225,13 +273,17 @@ export function EvangelismTab() {
       const monthContacts = c.filter((ct) => ct.created_at >= start);
       setStats({
         total_outings: o.length,
-        total_contacts: monthContacts.length,
+        total_contacts: c.length,
         decisions: c.filter((ct) => ct.decision === 'accepte_christ').length,
         integrated: c.filter((ct) => ct.status === 'integre_eglise').length,
         came_to_culte: c.filter((ct) => ct.came_to_culte === true).length,
         followups_done: f.filter((fw) => fw.completed_at !== null).length,
         active_followups: f.filter((fw) => fw.completed_at === null).length,
         baptized: c.filter((ct) => ct.baptized === true).length,
+        new_visitors: c.filter((ct) => ct.is_new_visitor).length,
+        rdv_pending: c.filter((ct) => ct.rdv_status === 'planifie').length,
+        in_discipleship: c.filter((ct) => (ct.pipeline_stage || 'nouveau_contact') === 'affermi').length,
+        rdv_completed: c.filter((ct) => ct.rdv_status === 'realise').length,
       });
     } catch (err: any) {
       console.error('Evangelism module error:', err);
@@ -549,6 +601,176 @@ export function EvangelismTab() {
   }, [filteredFollowups, contacts]);
 
   // ═══════════════════════════════════════════════════════════════════
+  // Pipeline des Âmes
+  // ═══════════════════════════════════════════════════════════════════
+
+  const handlePipelineAdvance = async (contactId: string) => {
+    const contact = contacts.find((c) => c.id === contactId);
+    if (!contact) return;
+    const stages = EVANGELISM_PIPELINE_STAGES.map((s) => s.key);
+    const currentStage = contact.pipeline_stage || 'nouveau_contact';
+    const currentIdx = stages.indexOf(currentStage);
+    if (currentIdx >= stages.length - 2) return; // Don't advance past integre or to perdu_de_vue
+    const nextStage = stages[currentIdx + 1];
+    setPipelineAdvancing(contactId);
+    try {
+      const updatePayload: any = { pipeline_stage: nextStage };
+      if (nextStage === 'premier_contact' && !contact.first_call_at) {
+        updatePayload.first_call_at = new Date().toISOString();
+      }
+      if (nextStage === 'en_suivi' && !contact.first_contact_at) {
+        updatePayload.first_contact_at = new Date().toISOString();
+      }
+      if (nextStage === 'integre_eglise') {
+        updatePayload.status = 'integre_eglise';
+      }
+      const { error } = await supabase
+        .from('evangelism_contacts')
+        .update(updatePayload)
+        .eq('id', contactId);
+      if (error) throw error;
+      const label = EVANGELISM_PIPELINE_STAGE_LABELS[nextStage as EvangelismPipelineStage] || nextStage;
+      addToast(`${contact.full_name} → ${label}`, 'success');
+      fetchAll();
+    } catch {
+      addToast('Erreur lors de la mise à jour du pipeline', 'error');
+    }
+    setPipelineAdvancing(null);
+  };
+
+  const handlePipelineSetStage = async (contactId: string, stage: EvangelismPipelineStage) => {
+    try {
+      const updatePayload: any = { pipeline_stage: stage };
+      if (stage === 'integre_eglise') updatePayload.status = 'integre_eglise';
+      if (stage === 'perdu_de_vue') updatePayload.status = 'perdu_de_vue';
+      const { error } = await supabase
+        .from('evangelism_contacts')
+        .update(updatePayload)
+        .eq('id', contactId);
+      if (error) throw error;
+      addToast('Pipeline mis à jour', 'success');
+      fetchAll();
+    } catch {
+      addToast('Erreur', 'error');
+    }
+  };
+
+  // Pipeline contacts grouped by stage
+  const pipelineGrouped = useMemo(() => {
+    return EVANGELISM_PIPELINE_STAGES.map((stage) => ({
+      ...stage,
+      contacts: contacts.filter((c) => (c.pipeline_stage || 'nouveau_contact') === stage.key),
+    }));
+  }, [contacts]);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Rendez-vous CRUD
+  // ═══════════════════════════════════════════════════════════════════
+
+  const handleCreateRdv = async () => {
+    if (!rdvForm.contact_id || !rdvForm.rdv_date) {
+      addToast('Sélectionnez un contact et une date', 'error');
+      return;
+    }
+    setRdvSaving(true);
+    try {
+      const { error } = await supabase
+        .from('evangelism_contacts')
+        .update({
+          rdv_date: rdvForm.rdv_date,
+          rdv_time: rdvForm.rdv_time || null,
+          rdv_type: rdvForm.rdv_type,
+          rdv_notes: rdvForm.rdv_notes.trim() || null,
+          rdv_status: 'planifie',
+        })
+        .eq('id', rdvForm.contact_id);
+      if (error) throw error;
+      addToast('Rendez-vous programmé', 'success');
+      setRdvFormOpen(false);
+      setRdvForm({ contact_id: '', rdv_date: todayISO(), rdv_time: '10:00', rdv_type: 'visite', rdv_notes: '' });
+      fetchAll();
+    } catch {
+      addToast('Erreur lors de la programmation du RDV', 'error');
+    }
+    setRdvSaving(false);
+  };
+
+  const handleUpdateRdvStatus = async (contactId: string, newStatus: EvangelismRdvStatus) => {
+    try {
+      const updatePayload: any = { rdv_status: newStatus };
+      if (newStatus === 'realise') {
+        updatePayload.rdv_status = 'realise';
+        // Auto advance pipeline if RDV was realized
+        const contact = contacts.find((c) => c.id === contactId);
+        if (contact && (contact.pipeline_stage || 'nouveau_contact') === 'rdv_planifie') {
+          updatePayload.pipeline_stage = 'en_suivi';
+        }
+      }
+      const { error } = await supabase
+        .from('evangelism_contacts')
+        .update(updatePayload)
+        .eq('id', contactId);
+      if (error) throw error;
+      addToast('Statut RDV mis à jour', 'success');
+      fetchAll();
+    } catch {
+      addToast('Erreur', 'error');
+    }
+  };
+
+  // RDV list filtered
+  const rdvContacts = useMemo(() => {
+    return contacts.filter((c) => c.rdv_date).filter((c) => {
+      if (rdvFilterStatus && c.rdv_status !== rdvFilterStatus) return false;
+      return true;
+    }).sort((a, b) => a.rdv_date!.localeCompare(b.rdv_date!));
+  }, [contacts, rdvFilterStatus]);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Nouveau Venu (from culte) registration
+  // ═══════════════════════════════════════════════════════════════════
+
+  const handleCreateNouveauVenu = async () => {
+    if (!nvForm.full_name.trim()) {
+      addToast('Le nom est obligatoire', 'error');
+      return;
+    }
+    setNvSaving(true);
+    try {
+      const { error } = await supabase.from('evangelism_contacts').insert({
+        full_name: nvForm.full_name.trim(),
+        phone: nvForm.phone.trim() || null,
+        whatsapp: nvForm.whatsapp.trim() || null,
+        quartier: nvForm.quartier.trim() || null,
+        notes: nvForm.notes.trim() || null,
+        decision: 'a_suivre' as EvangelismDecision,
+        status: 'a_contacter' as EvangelismContactStatus,
+        pipeline_stage: 'nouveau_contact' as EvangelismPipelineStage,
+        source: 'culte' as EvangelismContactSource,
+        source_culte_id: nvForm.source_culte_id || null,
+        is_new_visitor: true,
+        first_contact_at: new Date().toISOString(),
+        created_by: user?.id ?? null,
+      });
+      if (error) throw error;
+      addToast('Nouveau venu enregistré dans le pipeline', 'success');
+      setNvFormOpen(false);
+      setNvForm({ full_name: '', phone: '', whatsapp: '', quartier: '', source_culte_id: '', notes: '' });
+      fetchAll();
+    } catch {
+      addToast("Erreur lors de l'enregistrement", 'error');
+    }
+    setNvSaving(false);
+  };
+
+  // Pipeline counts for stats
+  const pipelineStats = useMemo(() => {
+    const total = contacts.length || 1;
+    const convRate = Math.round(((stats.integrated + stats.baptized) / total) * 100);
+    return { total, convRate };
+  }, [contacts, stats]);
+
+  // ═══════════════════════════════════════════════════════════════════
   // Render
   // ═══════════════════════════════════════════════════════════════════
 
@@ -586,9 +808,13 @@ export function EvangelismTab() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total sorties', value: stats.total_outings, icon: MapPin, color: 'text-accent-400' },
-          { label: 'Contacts ce mois', value: stats.total_contacts, icon: Users, color: 'text-blue-400' },
+          { label: 'Contacts', value: stats.total_contacts, icon: Users, color: 'text-blue-400' },
           { label: 'Décisions pour Christ', value: stats.decisions, icon: Heart, color: 'text-pink-400' },
+          { label: 'RDV en attente', value: stats.rdv_pending, icon: Calendar, color: 'text-purple-400' },
           { label: 'Intégrés', value: stats.integrated, icon: Check, color: 'text-green-400' },
+          { label: 'Baptisés', value: stats.baptized, icon: BookOpen, color: 'text-yellow-400' },
+          { label: 'Nouveaux venus', value: stats.new_visitors, icon: UserCheck, color: 'text-emerald-400' },
+          { label: `Rétention (${pipelineStats.convRate}%)`, value: stats.integrated + stats.baptized, icon: TrendingUp, color: 'text-amber-400' },
         ].map((s) => (
           <div key={s.label} className="glass-card rounded-xl p-4 flex items-center gap-3">
             <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/5 ${s.color}`}>
@@ -619,6 +845,328 @@ export function EvangelismTab() {
           </button>
         ))}
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SUB-TAB: PIPELINE DES ÂMES
+          ═══════════════════════════════════════════════════════════════ */}
+      {subTab === 'pipeline' && (
+        <div className="space-y-4">
+          {/* Nouveau venu quick-add */}
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setNvFormOpen(!nvFormOpen)}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {nvFormOpen ? <X className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+              {nvFormOpen ? 'Annuler' : 'Enregistrer un nouveau venu'}
+            </button>
+          </div>
+
+          {nvFormOpen && (
+            <div className="glass-card rounded-xl p-5 space-y-4 border border-emerald-500/20">
+              <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-emerald-400" />
+                Nouveau venu (venu au culte)
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Nom complet <span className="text-red-400">*</span></label>
+                  <input type="text" value={nvForm.full_name} onChange={(e) => setNvForm((p) => ({ ...p, full_name: e.target.value }))} placeholder="Prénom et nom" className={INPUT_CLASS} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Téléphone</label>
+                  <input type="tel" value={nvForm.phone} onChange={(e) => setNvForm((p) => ({ ...p, phone: e.target.value }))} placeholder="+243 ..." className={INPUT_CLASS} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">WhatsApp</label>
+                  <input type="tel" value={nvForm.whatsapp} onChange={(e) => setNvForm((p) => ({ ...p, whatsapp: e.target.value }))} placeholder="+243 ..." className={INPUT_CLASS} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Quartier</label>
+                  <input type="text" value={nvForm.quartier} onChange={(e) => setNvForm((p) => ({ ...p, quartier: e.target.value }))} placeholder="Quartier" className={INPUT_CLASS} />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Notes</label>
+                  <textarea rows={2} value={nvForm.notes} onChange={(e) => setNvForm((p) => ({ ...p, notes: e.target.value }))} placeholder="Observations..." className={INPUT_CLASS + ' resize-none'} />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => setNvFormOpen(false)} className="bg-white/5 hover:bg-white/10 text-cream border border-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                  <X className="h-4 w-4" /> Annuler
+                </button>
+                <button onClick={handleCreateNouveauVenu} disabled={nvSaving} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
+                  {nvSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Enregistrer dans le pipeline
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Pipeline Kanban */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-accent-400" />
+              <h3 className="font-serif text-lg font-semibold text-cream">Pipeline des Âmes</h3>
+              <span className="text-xs text-muted">Glissez les contacts dans les étapes</span>
+            </div>
+
+            {/* Funnel bar */}
+            <div className="flex rounded-lg overflow-hidden h-4">
+              {EVANGELISM_PIPELINE_STAGES.map((s) => {
+                const count = contacts.filter((c) => (c.pipeline_stage || 'nouveau_contact') === s.key).length;
+                const total = contacts.length || 1;
+                return count > 0 ? (
+                  <div key={s.key} className={`${s.bg} transition-all duration-500`} style={{ width: `${(count / total) * 100}%`, minWidth: '8px' }} title={`${s.label}: ${count}`} />
+                ) : null;
+              })}
+            </div>
+
+            {/* Kanban columns */}
+            <div className="flex gap-3 overflow-x-auto pb-4">
+              {pipelineGrouped.map((stage) => (
+                <div key={stage.key} className="shrink-0 w-56 space-y-2">
+                  {/* Column header */}
+                  <div className="flex items-center gap-2 rounded-t-lg px-3 py-2 bg-white/5">
+                    <div className={`h-2.5 w-2.5 rounded-full ${stage.bg}`} />
+                    <span className="text-xs font-medium text-cream flex-1">{stage.label}</span>
+                    <span className={`text-xs font-bold ${stage.color}`}>{stage.contacts.length}</span>
+                  </div>
+
+                  {/* Contact cards */}
+                  <div className="space-y-1.5 max-h-[400px] overflow-y-auto px-0.5">
+                    {stage.contacts.map((contact) => {
+                      const phone = contact.whatsapp || contact.phone;
+                      return (
+                        <div key={contact.id} className="glass-card rounded-lg p-2.5 space-y-1.5 hover:bg-white/[0.04] transition-colors group">
+                          <div className="flex items-start justify-between gap-1">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-xs font-medium text-cream truncate">{contact.full_name}</p>
+                              {phone && <p className="text-[10px] text-muted truncate">{phone}</p>}
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {phone && (
+                                <button
+                                  onClick={() => openWhatsApp(phone, `Bonjour ${contact.full_name}, c'est l'équipe d'évangélisation. Comment allez-vous ?`)}
+                                  className="flex h-6 w-6 items-center justify-center rounded text-green-400 hover:bg-green-500/15 transition-colors"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle className="h-3 w-3" />
+                                </button>
+                              )}
+                              <button
+                                onClick={() => handlePipelineAdvance(contact.id)}
+                                disabled={pipelineAdvancing === contact.id}
+                                className="flex h-6 w-6 items-center justify-center rounded text-muted hover:text-accent-400 hover:bg-white/5 transition-colors"
+                                title="Avancer dans le pipeline"
+                              >
+                                {pipelineAdvancing === contact.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ChevronRight className="h-3 w-3" />}
+                              </button>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <span className={`${BADGE_BASE} ${EVANGELISM_DECISION_LABELS[contact.decision] ? 'bg-pink-500/15 text-pink-300 border-pink-500/20' : ''} text-[9px]`}>
+                              {EVANGELISM_DECISION_LABELS[contact.decision]}
+                            </span>
+                            {contact.is_new_visitor && (
+                              <span className="rounded-md bg-emerald-500/15 border border-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-300">Nouveau venu</span>
+                            )}
+                            {contact.rdv_date && (
+                              <span className="rounded-md bg-purple-500/15 border border-purple-500/20 px-1.5 py-0.5 text-[9px] text-purple-300 flex items-center gap-0.5">
+                                <Calendar className="h-2.5 w-2.5" />
+                                {formatDate(contact.rdv_date)}
+                              </span>
+                            )}
+                          </div>
+                          {/* Stage dropdown */}
+                          <select
+                            value={contact.pipeline_stage || 'nouveau_contact'}
+                            onChange={(e) => handlePipelineSetStage(contact.id, e.target.value as EvangelismPipelineStage)}
+                            className="w-full rounded px-2 py-1 text-[10px] bg-white/5 border border-white/5 text-muted focus:outline-none focus:border-accent-500/30"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {EVANGELISM_PIPELINE_STAGES.map((s) => (
+                              <option key={s.key} value={s.key}>{s.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                    {stage.contacts.length === 0 && (
+                      <div className="text-center py-4 text-[10px] text-muted/50">Aucun contact</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════
+          SUB-TAB: RENDEZ-VOUS
+          ═══════════════════════════════════════════════════════════════ */}
+      {subTab === 'rdv' && (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={() => setRdvFormOpen(!rdvFormOpen)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            >
+              {rdvFormOpen ? <X className="h-4 w-4" /> : <Calendar className="h-4 w-4" />}
+              {rdvFormOpen ? 'Annuler' : 'Programmer un RDV'}
+            </button>
+          </div>
+
+          {rdvFormOpen && (
+            <div className="glass-card rounded-xl p-5 space-y-4 border border-purple-500/20">
+              <h3 className="font-serif text-lg font-semibold text-cream flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-purple-400" />
+                Programmer un rendez-vous de suivi
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Contact <span className="text-red-400">*</span></label>
+                  <select value={rdvForm.contact_id} onChange={(e) => setRdvForm((p) => ({ ...p, contact_id: e.target.value }))} className={SELECT_CLASS}>
+                    <option value="">— Sélectionner un contact —</option>
+                    {contacts.map((c) => (
+                      <option key={c.id} value={c.id}>{c.full_name}{c.phone ? ` (${c.phone})` : ''}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Date <span className="text-red-400">*</span></label>
+                  <input type="date" value={rdvForm.rdv_date} onChange={(e) => setRdvForm((p) => ({ ...p, rdv_date: e.target.value }))} className={INPUT_CLASS} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Heure</label>
+                  <input type="time" value={rdvForm.rdv_time} onChange={(e) => setRdvForm((p) => ({ ...p, rdv_time: e.target.value }))} className={INPUT_CLASS} />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Type de RDV</label>
+                  <select value={rdvForm.rdv_type} onChange={(e) => setRdvForm((p) => ({ ...p, rdv_type: e.target.value as EvangelismRdvType }))} className={SELECT_CLASS}>
+                    {RDV_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+                  </select>
+                </div>
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-xs font-medium text-muted">Notes</label>
+                  <textarea rows={2} value={rdvForm.rdv_notes} onChange={(e) => setRdvForm((p) => ({ ...p, rdv_notes: e.target.value }))} placeholder="Détails du rendez-vous..." className={INPUT_CLASS + ' resize-none'} />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-2">
+                <button onClick={() => setRdvFormOpen(false)} className="bg-white/5 hover:bg-white/10 text-cream border border-white/10 px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                  <X className="h-4 w-4" /> Annuler
+                </button>
+                <button onClick={handleCreateRdv} disabled={rdvSaving} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
+                  {rdvSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Programmer le RDV
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Filter */}
+          <div className="glass-card rounded-xl p-3 flex flex-wrap items-center gap-3">
+            <span className="text-xs text-muted flex items-center gap-1"><Filter className="h-3.5 w-3.5" /> Statut :</span>
+            <select value={rdvFilterStatus} onChange={(e) => setRdvFilterStatus(e.target.value as EvangelismRdvStatus | '')} className={SELECT_CLASS + ' w-auto min-w-[150px]'}>
+              <option value="">Tous les RDV</option>
+              <option value="planifie">Planifié</option>
+              <option value="confirme">Confirmé</option>
+              <option value="realise">Réalisé</option>
+              <option value="annule">Annulé</option>
+              <option value="reporte">Reporté</option>
+            </select>
+          </div>
+
+          {/* RDV list */}
+          {rdvContacts.length === 0 ? (
+            <div className="glass-card rounded-xl p-12 text-center">
+              <Calendar className="h-10 w-10 mx-auto text-muted/40 mb-3" />
+              <p className="text-sm text-muted">Aucun rendez-vous programmé.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {rdvContacts.map((contact) => {
+                const phone = contact.whatsapp || contact.phone;
+                const rdvStatus = contact.rdv_status || 'planifie';
+                const statusColors: Record<string, string> = {
+                  planifie: 'bg-blue-500/15 text-blue-300 border-blue-500/20',
+                  confirme: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/20',
+                  realise: 'bg-green-500/15 text-green-300 border-green-500/20',
+                  annule: 'bg-red-500/15 text-red-300 border-red-500/20',
+                  reporte: 'bg-amber-500/15 text-amber-300 border-amber-500/20',
+                };
+                return (
+                  <div key={contact.id} className="glass-card rounded-xl p-4 hover:bg-white/[0.04] transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-500/20 text-purple-400 text-sm font-bold">
+                        {contact.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-medium text-cream">{contact.full_name}</span>
+                          <span className={`${BADGE_BASE} ${statusColors[rdvStatus] || statusColors.planifie}`}>
+                            {EVANGELISM_RDV_STATUS_LABELS[rdvStatus as EvangelismRdvStatus] || rdvStatus}
+                          </span>
+                          {contact.is_new_visitor && (
+                            <span className="rounded-md bg-emerald-500/15 border border-emerald-500/20 px-1.5 py-0.5 text-[9px] text-emerald-300">Nouveau venu</span>
+                          )}
+                        </div>
+                        <div className="mt-1 flex items-center gap-3 text-xs text-muted flex-wrap">
+                          <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {formatDate(contact.rdv_date!)} {contact.rdv_time || ''}</span>
+                          {contact.rdv_type && <span>{RDV_TYPES.find((t) => t.value === contact.rdv_type)?.label || contact.rdv_type}</span>}
+                          {contact.quartier && <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" /> {contact.quartier}</span>}
+                          {contact.rdv_notes && <span className="italic text-cream/50">"{contact.rdv_notes}"</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {phone && (
+                          <button
+                            onClick={() => openWhatsApp(phone, `Bonjour ${contact.full_name}, je vous confirme notre rendez-vous du ${formatDate(contact.rdv_date!)} ${contact.rdv_time || ''}. À bientôt !`)}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-green-400 hover:bg-green-500/15 hover:border-green-500/20 transition-colors"
+                            title="Rappeler / Confirmer par WhatsApp"
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {/* Quick status buttons */}
+                        {rdvStatus === 'planifie' && (
+                          <button
+                            onClick={() => handleUpdateRdvStatus(contact.id, 'confirme')}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-cyan-400 hover:bg-cyan-500/15 hover:border-cyan-500/20 transition-colors"
+                            title="Confirmer"
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        )}
+                        {rdvStatus === 'confirme' && (
+                          <button
+                            onClick={() => handleUpdateRdvStatus(contact.id, 'realise')}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 text-green-400 hover:bg-green-500/15 hover:border-green-500/20 transition-colors"
+                            title="Marquer comme réalisé"
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        )}
+                        <select
+                          value={rdvStatus}
+                          onChange={(e) => handleUpdateRdvStatus(contact.id, e.target.value as EvangelismRdvStatus)}
+                          className="rounded-lg px-2 py-1.5 text-xs bg-white/5 border border-white/10 text-muted focus:outline-none focus:border-accent-500/30"
+                        >
+                          <option value="planifie">Planifié</option>
+                          <option value="confirme">Confirmé</option>
+                          <option value="realise">Réalisé</option>
+                          <option value="annule">Annulé</option>
+                          <option value="reporte">Reporté</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════════
           SUB-TAB: SORTIES
@@ -1167,6 +1715,23 @@ export function EvangelismTab() {
                             <span className="text-xs text-muted">Premier contact : </span>
                             <span className="text-cream">{formatDateTime(contact.first_contact_at)}</span>
                           </div>
+                          <div>
+                            <span className="text-xs text-muted">Pipeline : </span>
+                            <span className="text-cream font-medium">{EVANGELISM_PIPELINE_STAGE_LABELS[contact.pipeline_stage || 'nouveau_contact'] || 'Nouveau'}</span>
+                          </div>
+                          {contact.rdv_date && (
+                            <div>
+                              <span className="text-xs text-muted">RDV : </span>
+                              <span className="text-purple-300">{formatDate(contact.rdv_date)} {contact.rdv_time || ''}</span>
+                              <span className="text-xs text-muted ml-1">({EVANGELISM_RDV_STATUS_LABELS[contact.rdv_status || 'planifie']})</span>
+                            </div>
+                          )}
+                          {contact.is_new_visitor && (
+                            <div className="flex items-center gap-1">
+                              <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
+                              <span className="text-sm text-emerald-300">Nouveau venu (culte)</span>
+                            </div>
+                          )}
                           {contact.came_to_culte && (
                             <div className="flex items-center gap-1">
                               <Check className="h-3.5 w-3.5 text-green-400" />
