@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -280,6 +280,11 @@ export function PlanificationTab() {
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setModuleError(false);
+    // Safety timeout: if queries hang, force loading off after 12s
+    const safetyTimer = setTimeout(() => {
+      console.warn('[PlanificationTab] fetchAll safety timeout — forcing loading=false');
+      setLoading(false);
+    }, 12000);
     try {
       const [svcRes, linksRes] = await Promise.allSettled([
         supabase.from('worship_services').select('id,date,time,type,orator_name,president_name,status,notes,created_by,is_delayed,delayed_at,delayed_minutes,created_at,updated_at').order('date', { ascending: false }).limit(50),
@@ -296,14 +301,16 @@ export function PlanificationTab() {
 
       // Check if user is a department leader (chef de département)
       if (user && !isFullAdmin) {
-        const { data: leaderCheck } = await supabase
-          .from('department_members')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('role_in_dept', 'leader')
-          .eq('is_active', true)
-          .limit(1);
-        setIsDeptLeader((leaderCheck?.length ?? 0) > 0);
+        try {
+          const { data: leaderCheck } = await supabase
+            .from('department_members')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('role_in_dept', 'leader')
+            .eq('is_active', true)
+            .limit(1);
+          setIsDeptLeader((leaderCheck?.length ?? 0) > 0);
+        } catch { /* non-critical, default to false */ }
       }
       setServices(svcs);
 
@@ -331,11 +338,19 @@ export function PlanificationTab() {
     } catch (err) {
       if (isTableNotFoundError(err)) { setModuleError(true); }
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
-  }, []);
+  }, [user, isFullAdmin]);
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  // Only run fetchAll once on mount (avoid double-fire when deps change)
+  const didInitialFetch = useRef(false);
+  useEffect(() => {
+    if (!didInitialFetch.current) {
+      didInitialFetch.current = true;
+      fetchAll();
+    }
+  }, [fetchAll]);
 
   /* ── Fetch orator form + points for a service ── */
   const fetchOratorForm = useCallback(async (serviceId: string) => {
@@ -653,8 +668,11 @@ export function PlanificationTab() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
         <Loader2 className="h-8 w-8 animate-spin text-accent-400" />
+        <button onClick={() => fetchAll()} className="text-xs text-muted hover:text-cream transition-colors">
+          Chargement… Cliquer pour réessayer
+        </button>
       </div>
     );
   }
