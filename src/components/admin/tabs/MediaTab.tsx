@@ -322,14 +322,42 @@ export function MediaTab() {
 
           {/* Thumbnail URL */}
           <div>
-            <label className="mb-1.5 block text-xs font-medium text-muted">URL de la miniature</label>
-            <input
-              type="text"
-              className="input-surface w-full px-4 py-2.5 text-sm"
-              value={form.thumbnail_url ?? ''}
-              onChange={e => updateForm('thumbnail_url', e.target.value)}
-              placeholder="https://... (optionnel)"
-            />
+            <label className="mb-1.5 block text-xs font-medium text-muted">Miniature</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                className="input-surface flex-1 px-4 py-2.5 text-sm"
+                value={form.thumbnail_url ?? ''}
+                onChange={e => updateForm('thumbnail_url', e.target.value)}
+                placeholder="https://... (optionnel)"
+              />
+              <label className="btn-ghost inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium cursor-pointer">
+                <Plus className="h-4 w-4" />
+                Parcourir
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                      const { data, error } = await supabase.storage
+                        .from('media')
+                        .upload(`thumbnails/${Date.now()}_${file.name}`, formData);
+                      if (error) throw error;
+                      const { data: urlData } = supabase.storage.from('media').getPublicUrl(data.path);
+                      updateForm('thumbnail_url', urlData.publicUrl);
+                      addToast('Miniature uploadée', 'success');
+                    } catch (err: any) {
+                      addToast('Erreur upload: ' + (err?.message || ''), 'error');
+                    }
+                  }}
+                />
+              </label>
+            </div>
           </div>
 
           {/* Sort order & Active row */}

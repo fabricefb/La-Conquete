@@ -500,17 +500,14 @@ export function HomePage({ onNavigate }: HomePageProps) {
             />
           </div>
 
-          {/* CTA buttons */}
+          {/* CTA button — single, prominent */}
           <div
-            className="animate-fade-up mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            className="animate-fade-up mt-12 flex flex-col items-center justify-center gap-4"
             style={{ animationDelay: '0.3s' }}
           >
-            <button onClick={() => onNavigate('activities')} className="btn-primary">
+            <button onClick={() => onNavigate('activities')} className="btn-primary text-lg px-8 py-3">
               {heroCtaPrimary}
               <ArrowRight className="h-4 w-4" />
-            </button>
-            <button onClick={() => onNavigate('about')} className="btn-ghost">
-              {heroCtaSecondary}
             </button>
           </div>
         </div>
@@ -894,7 +891,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <button onClick={() => onNavigate('contact')} className="btn-gold">
-                  Rejoindre
+                  {ctaTitle === 'Rejoignez notre famille' ? 'Rejoindre' : ctaTitle}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <button onClick={() => onNavigate('about')} className="btn-ghost border-white/30 text-white hover:bg-white/10">

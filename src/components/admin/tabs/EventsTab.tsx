@@ -225,8 +225,9 @@ export function EventsTab() {
     const payload = {
       ...form,
       event_date: new Date(form.event_date).toISOString(),
-      youtube_url: form.youtube_url || null,
-      facebook_url: form.facebook_url || null,
+      image_url: form.image_url?.trim() || null,
+      youtube_url: form.youtube_url?.trim() || null,
+      facebook_url: form.facebook_url?.trim() || null,
     };
 
     try {
@@ -241,8 +242,8 @@ export function EventsTab() {
       }
       closeForm();
       fetchEvents();
-    } catch {
-      addToast('Erreur lors de la sauvegarde', 'error');
+    } catch (err: any) {
+      addToast('Erreur lors de la sauvegarde: ' + (err?.message || 'Erreur inconnue'), 'error');
     }
     setSaving(false);
   };

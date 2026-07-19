@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useDynamicTheme } from '../../../contexts/DynamicTheme';
 import { Save, RotateCcw, Palette, Type, RectangleHorizontal, Square, Minus, Maximize, Loader2, Sparkles } from 'lucide-react';
 import type { ThemeSettings, ButtonStyle, CardStyle, BorderRadius } from '../../../types';
 
@@ -233,6 +234,7 @@ function getCardPreviewClasses(style: CardStyle): string {
 // ─── Component ──────────────────────────────────────────────────
 export function ThemeTab() {
   const { addToast } = useToast();
+  const { applyTheme, resetTheme } = useDynamicTheme();
 
   const [localSettings, setLocalSettings] = useState<ThemeSettings>(DEFAULT_THEME);
   const [loading, setLoading] = useState(true);
@@ -299,29 +301,31 @@ export function ThemeTab() {
     setSaving(true);
     try {
       await db.updateThemeSettings(localSettings);
+      // Apply immediately to the shared DynamicTheme context so all pages reflect changes
+      applyTheme(localSettings);
       addToast('Thème sauvegardé avec succès', 'success');
     } catch {
       addToast('Erreur lors de la sauvegarde du thème', 'error');
     } finally {
       setSaving(false);
     }
-  }, [localSettings, addToast]);
+  }, [localSettings, addToast, applyTheme]);
 
   // ── Reset handler ─────────────────────────────────────────────
   const handleReset = useCallback(async () => {
     setSaving(true);
     try {
-      clearThemeFromDOM();
       await db.updateThemeSettings(DEFAULT_THEME);
       setLocalSettings(DEFAULT_THEME);
-      applyThemeToDOM(DEFAULT_THEME);
+      applyTheme(DEFAULT_THEME);
+      resetTheme();
       addToast('Thème réinitialisé aux valeurs par défaut', 'info');
     } catch {
       addToast('Erreur lors de la réinitialisation', 'error');
     } finally {
       setSaving(false);
     }
-  }, [addToast]);
+  }, [addToast, applyTheme, resetTheme]);
 
   // ── Loading state ─────────────────────────────────────────────
   if (loading) {

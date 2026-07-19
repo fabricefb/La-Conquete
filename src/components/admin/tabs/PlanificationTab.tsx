@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
@@ -343,14 +343,11 @@ export function PlanificationTab() {
     }
   }, [user, isFullAdmin]);
 
-  // Only run fetchAll once on mount (avoid double-fire when deps change)
-  const didInitialFetch = useRef(false);
+  // Fetch on mount and whenever user/isFullAdmin changes
   useEffect(() => {
-    if (!didInitialFetch.current) {
-      didInitialFetch.current = true;
-      fetchAll();
-    }
-  }, [fetchAll]);
+    fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* ── Fetch orator form + points for a service ── */
   const fetchOratorForm = useCallback(async (serviceId: string) => {
