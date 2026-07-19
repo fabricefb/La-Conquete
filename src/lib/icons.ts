@@ -20,6 +20,8 @@ export {
   Smartphone, CreditCard, Copy, ClipboardList,
   // Protocol module
   UserCheck, Shirt, UsersRound, FileBarChart, AlertCircle, Info, Timer, CalendarClock,
+  // Evangelism pipeline
+  Zap, Activity,
   // Homepage redesign
   Clock3, MapPinned, Cross, Volume2, MonitorPlay, Newspaper, Megaphone,
   GripVertical, Palette as PaletteIcon, SlidersHorizontal, ToggleLeft, ToggleRight,
