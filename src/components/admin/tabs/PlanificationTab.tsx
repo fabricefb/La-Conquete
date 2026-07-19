@@ -7,7 +7,7 @@ import {
   Calendar, Plus, Send, Eye, Trash2, ChevronUp, ChevronDown,
   Copy, MessageSquare, CheckCircle, Clock, AlertCircle,
   Loader2, X, RefreshCw, Church, Mic, User, Info,
-  AlertTriangle, Timer, Play, Download, FileText,
+  AlertTriangle, Timer, Play, FileText,
 } from '../../../lib/icons';
 import type {
   WorshipService, WorshipServiceType, WorshipServiceStatus,
@@ -15,7 +15,6 @@ import type {
   WorshipOrderItemType, WorshipFormLink,
 } from '../../../types';
 import { openWhatsApp } from '../../../lib/whatsapp';
-import { generateOratorFormHTML } from '../../../lib/orator-form-html';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants
@@ -517,85 +516,38 @@ export function PlanificationTab() {
     addToast({ type: 'success', message: 'Contenu envoyé par WhatsApp' });
   };
 
-  /* ── Download branded HTML form ── */
-  const handleDownloadHTMLForm = (svc: WorshipService, linkType: 'orator' | 'president') => {
-    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
+  /* ── Send branded orator form link via WhatsApp ── */
+  const handleSendBrandedForm = (svc: WorshipService, linkType: 'orator' | 'president') => {
     const link = formLinks.find(l => l.service_id === svc.id && l.link_type === linkType);
-    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-    const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
 
-    if (!supabaseUrl || !supabaseAnonKey) {
-      addToast({ type: 'error', message: 'Configuration Supabase manquante' });
+    if (!link) {
+      // Auto-generate link first
+      handleGenerateLink(svc.id, linkType, linkType === 'orator' ? svc.orator_name : svc.president_name || undefined);
+      addToast({ type: 'info', message: 'Lien généré. Cliquez à nouveau sur l\'icône 📄 pour envoyer.' });
       return;
     }
 
-    if (linkType === 'orator') {
-      const html = generateOratorFormHTML({
-        serviceId: svc.id,
-        serviceDate: svc.date,
-        serviceTime: svc.time || '08:00',
-        serviceType: typeLabel,
-        oratorName: svc.orator_name || undefined,
-        token: link?.token,
-        supabaseUrl,
-        supabaseAnonKey,
-        siteUrl: BASE_URL,
-      });
+    const dateStr = formatDate(svc.date);
+    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
+    const formType = linkType === 'orator' ? 'orateur' : 'président';
+    const brandedUrl = `${BASE_URL}/#/form-orateur/${link.token}`;
 
-      // Download as .html file
-      const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const dateSlug = svc.date.replace(/-/g, '');
-      a.download = `formulaire-orateur-${dateSlug}.html`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      addToast({ type: 'success', message: 'Formulaire HTML téléchargé. Envoyez-le à l\'orateur via WhatsApp.' });
+    const message = `Bonjour ${link.recipient_name || ''},\n\nVoici le formulaire ${formType} du culte du ${dateStr} (${typeLabel}) :\n\n${brandedUrl}\n\n📄 Ouvrez ce lien dans votre navigateur, remplissez le formulaire en ligne et cliquez sur "Confirmer et envoyer". Les données seront transmises automatiquement au département média.\n\nCe lien expire dans 7 jours.`;
 
-      // Mark link as sent
-      if (link) {
-        supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
-      }
-    } else {
-      // For president, send the SPA link (HTML form for president is complex)
-      if (link) {
-        handleSendWhatsApp(link);
-      } else {
-        addToast({ type: 'info', message: 'Générez d\'abord le lien pour le président de culte.' });
-      }
-    }
+    // Mark as sent
+    supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});
+    openWhatsApp(link.recipient_phone, message);
+    addToast({ type: 'success', message: `Lien du formulaire ${formType} envoyé par WhatsApp` });
   };
 
-  /* ── Preview HTML form in new tab ── */
+  /* ── Preview branded form in new tab ── */
   const handlePreviewHTMLForm = (svc: WorshipService) => {
-    const typeLabel = SERVICE_TYPE_LABELS[svc.type] ?? svc.type;
     const link = formLinks.find(l => l.service_id === svc.id && l.link_type === 'orator');
-    const supabaseUrl = (import.meta as any).env?.VITE_SUPABASE_URL || '';
-    const supabaseAnonKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '';
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      addToast({ type: 'error', message: 'Configuration Supabase manquante' });
+    if (!link) {
+      addToast({ type: 'info', message: 'Générez d\'abord le lien pour l\'orateur.' });
       return;
     }
-
-    const html = generateOratorFormHTML({
-      serviceId: svc.id,
-      serviceDate: svc.date,
-      serviceTime: svc.time || '08:00',
-      serviceType: typeLabel,
-      oratorName: svc.orator_name || undefined,
-      token: link?.token,
-      supabaseUrl,
-      supabaseAnonKey,
-      siteUrl: BASE_URL,
-    });
-
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
+    window.open(`/#/form-orateur/${link.token}`, '_blank');
   };
 
   /* ── Toggle delay on a service ── */
@@ -785,7 +737,7 @@ export function PlanificationTab() {
                           <button onClick={() => handlePreviewHTMLForm(svc)} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Aperçu du formulaire HTML">
                             <FileText className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleDownloadHTMLForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Télécharger le formulaire HTML à envoyer">
+                          <button onClick={() => handleSendBrandedForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Envoyer le formulaire brandingé par WhatsApp">
                             <Download className="h-3.5 w-3.5" />
                           </button>
                         </>
@@ -842,11 +794,11 @@ export function PlanificationTab() {
                       <Eye className="h-3 w-3" /> Prévisualiser
                     </button>
                     <button
-                      onClick={() => handleDownloadHTMLForm(svc, 'orator')}
+                      onClick={() => handleSendBrandedForm(svc, 'orator')}
                       className="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors flex items-center gap-1"
-                      title="Télécharge le formulaire HTML brandingé pour l'envoyer à l'orateur"
+                      title="Envoie le formulaire brandingé à l'orateur via WhatsApp (lien en ligne)"
                     >
-                      <Download className="h-3 w-3" /> Formulaire HTML
+                      <Send className="h-3 w-3" /> Formulaire brandingé
                     </button>
                     <button
                       onClick={() => handleSendContentWhatsApp(svc)}

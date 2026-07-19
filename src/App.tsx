@@ -38,6 +38,7 @@ const JeunessePage = lazy(() => import('./pages/JeunessePage').then(m => ({ defa
 const EnseignementsPage = lazy(() => import('./pages/EnseignementsPage').then(m => ({ default: m.EnseignementsPage })));
 const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
+const FormOrateurBrandedPage = lazy(() => import('./pages/FormOrateurBrandedPage').then(m => ({ default: m.FormOrateurBrandedPage })));
 const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(m => ({ default: m.EvangelisationPage })));
 
 const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
@@ -55,11 +56,18 @@ function PageLoader() {
   );
 }
 
-/* ─── Check if current route is a form-culte link ─── */
+/* ─── Check if current route is a form-culte or form-orateur link ─── */
 function getFormCulteToken(): string | null {
   const h = window.location.hash.replace('#', '');
   if (h.startsWith('form-culte/')) {
     return h.replace('form-culte/', '');
+  }
+  return null;
+}
+function getFormOrateurToken(): string | null {
+  const h = window.location.hash.replace('#', '');
+  if (h.startsWith('form-orateur/')) {
+    return h.replace('form-orateur/', '');
   }
   return null;
 }
@@ -83,6 +91,7 @@ function AppRouter() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [bibleOpen, setBibleOpen] = useState(false);
   const [formToken, setFormToken] = useState<string | null>(getFormCulteToken);
+  const [formOrateurToken, setFormOrateurToken] = useState<string | null>(getFormOrateurToken);
 
   // ── Redirect admin/pastor to #admin after login ──
   useEffect(() => {
@@ -114,10 +123,16 @@ function AppRouter() {
   useEffect(() => {
     const fn = () => {
       const token = getFormCulteToken();
+      const orateurToken = getFormOrateurToken();
       if (token) {
         setFormToken(token);
+        setFormOrateurToken(null);
+      } else if (orateurToken) {
+        setFormOrateurToken(orateurToken);
+        setFormToken(null);
       } else {
         setFormToken(null);
+        setFormOrateurToken(null);
         setPage(getPage());
       }
     };
@@ -133,6 +148,8 @@ function AppRouter() {
       <Suspense fallback={<PageLoader />}>
         {formToken ? (
           <CulteFormPage token={formToken} />
+        ) : formOrateurToken ? (
+          <FormOrateurBrandedPage token={formOrateurToken} />
         ) : (
           (() => {
             switch (page) {
