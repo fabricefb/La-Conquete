@@ -245,6 +245,10 @@ export function PlanificationTab() {
   const [loading, setLoading] = useState(true);
   const [moduleError, setModuleError] = useState(false);
 
+  /* ── Permissions : admin + chef de dept peuvent planifier, membres voient en lecture seule ── */
+  const [isDeptLeader, setIsDeptLeader] = useState(false);
+  const canPlan = isFullAdmin || isDeptLeader;
+
   /* ── State: Cultes ── */
   const [services, setServices] = useState<WorshipService[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -289,6 +293,18 @@ export function PlanificationTab() {
         setModuleError(true);
       }
       const svcs = enrichServicesWithDeadlines(rawSvcs);
+
+      // Check if user is a department leader (chef de département)
+      if (user && !isFullAdmin) {
+        const { data: leaderCheck } = await supabase
+          .from('department_members')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('role_in_dept', 'leader')
+          .eq('is_active', true)
+          .limit(1);
+        setIsDeptLeader((leaderCheck?.length ?? 0) > 0);
+      }
       setServices(svcs);
 
       if (linksRes.status === 'fulfilled' && linksRes.value.data) {
@@ -654,10 +670,18 @@ export function PlanificationTab() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-cream">Planification des cultes</h3>
-          <button onClick={() => setShowCreateModal(true)} className="btn-gold text-sm flex items-center gap-2">
-            <Plus className="h-4 w-4" /> Nouveau culte
-          </button>
+          {canPlan && (
+            <button onClick={() => setShowCreateModal(true)} className="btn-gold text-sm flex items-center gap-2">
+              <Plus className="h-4 w-4" /> Nouveau culte
+            </button>
+          )}
         </div>
+        {!canPlan && (
+          <div className="bg-blue-500/8 border border-blue-500/15 rounded-xl px-4 py-3 flex items-center gap-3">
+            <Eye className="h-5 w-5 text-blue-400 shrink-0" />
+            <p className="text-sm text-blue-200">Mode consultation — Vous pouvez voir la planification et les formulaires remplis. Seuls l'admin et les chefs de département peuvent planifier des cultes.</p>
+          </div>
+        )}
 
         {services.length === 0 ? (
           <div className="glass-card rounded-xl p-8 text-center">
@@ -705,14 +729,16 @@ export function PlanificationTab() {
                       )}
                       <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${st?.color || 'bg-gray-500/20 text-gray-300'}`}>{st?.label || svc.status}</span>
                       <div className="flex items-center gap-0.5">
-                        <button
-                          onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
-                          className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
-                          title={svc.is_delayed ? 'Gérer le retard' : 'Signaler un retard'}
-                        >
-                          <AlertTriangle className="h-4 w-4" />
-                        </button>
-                        {isFullAdmin && (
+                        {canPlan && (
+                          <button
+                            onClick={() => setDelayModal({ serviceId: svc.id, currentMinutes: svc.delayed_minutes || 0 })}
+                            className={`p-1.5 rounded-lg transition-colors ${svc.is_delayed ? 'hover:bg-red-500/10 text-red-400/70 hover:text-red-400' : 'hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400'}`}
+                            title={svc.is_delayed ? 'Gérer le retard' : 'Signaler un retard'}
+                          >
+                            <AlertTriangle className="h-4 w-4" />
+                          </button>
+                        )}
+                        {canPlan && (
                           <button onClick={() => handleDeleteService(svc.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400/70 hover:text-red-400 transition-colors">
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -733,7 +759,7 @@ export function PlanificationTab() {
                         <p className="text-xs text-red-300 font-medium">Culte programmé en retard de {svc.delayed_minutes || 0} minutes</p>
                         <p className="text-[10px] text-red-400/70">La deadline des formulaires a été repoussée automatiquement de {svc.delayed_minutes || 0} min. Les liens WhatsApp non utilisés sont mis à jour.</p>
                       </div>
-                      {isFullAdmin && (
+                      {canPlan && (
                         <button onClick={() => handleToggleDelay(svc.id, false)} className="text-[10px] px-2 py-1 rounded bg-red-500/15 text-red-300 hover:bg-red-500/25 transition-colors shrink-0">
                           Annuler le retard
                         </button>
@@ -755,20 +781,26 @@ export function PlanificationTab() {
                           <button onClick={() => copyLink(oratorLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
                             <Copy className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleSendWhatsApp(oratorLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le lien par WhatsApp">
-                            <Send className="h-3.5 w-3.5" />
-                          </button>
+                          {canPlan && (
+                            <button onClick={() => handleSendWhatsApp(oratorLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le lien par WhatsApp">
+                              <Send className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           <button onClick={() => handlePreviewHTMLForm(svc)} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Aperçu du formulaire HTML">
                             <FileText className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleSendBrandedForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Envoyer le formulaire brandingé par WhatsApp">
-                            <Download className="h-3.5 w-3.5" />
-                          </button>
+                          {canPlan && (
+                            <button onClick={() => handleSendBrandedForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Envoyer le formulaire brandingé par WhatsApp">
+                              <Download className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </>
                       )}
-                      <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </button>
+                      {canPlan && (
+                        <button onClick={() => handleGenerateLink(svc.id, 'orator', svc.orator_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
 
                     {/* President link */}
@@ -783,17 +815,21 @@ export function PlanificationTab() {
                           <button onClick={() => copyLink(presidentLinks[0].token)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Copier le lien">
                             <Copy className="h-3.5 w-3.5" />
                           </button>
-                          <button onClick={() => handleSendWhatsApp(presidentLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer par WhatsApp">
-                            <Send className="h-3.5 w-3.5" />
-                          </button>
+                          {canPlan && (
+                            <button onClick={() => handleSendWhatsApp(presidentLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer par WhatsApp">
+                              <Send className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           <button onClick={() => window.open(`/#/form-culte/${presidentLinks[0].token}`, '_blank')} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Ouvrir">
                             <Eye className="h-3.5 w-3.5" />
                           </button>
                         </>
                       )}
-                      <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
-                        <RefreshCw className="h-3.5 w-3.5" />
-                      </button>
+                      {canPlan && (
+                        <button onClick={() => handleGenerateLink(svc.id, 'president', svc.president_name || undefined)} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Régénérer le lien">
+                          <RefreshCw className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -817,25 +853,29 @@ export function PlanificationTab() {
                     >
                       <Eye className="h-3 w-3" /> Prévisualiser
                     </button>
-                    <button
-                      onClick={() => handleSendBrandedForm(svc, 'orator')}
-                      className="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors flex items-center gap-1"
-                      title="Envoie le formulaire brandingé à l'orateur via WhatsApp (lien en ligne)"
-                    >
-                      <Send className="h-3 w-3" /> Formulaire brandingé
-                    </button>
-                    <button
-                      onClick={() => handleSendContentWhatsApp(svc)}
-                      disabled={!submittedForms[svc.id] && !submittedOrders.has(svc.id)}
-                      title={!submittedForms[svc.id] && !submittedOrders.has(svc.id) ? 'En attente de soumission du formulaire' : 'Envoyer le programme par WhatsApp'}
-                      className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors ${
-                        !submittedForms[svc.id] && !submittedOrders.has(svc.id)
-                          ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed opacity-50'
-                          : 'bg-green-500/10 text-green-300 hover:bg-green-500/20'
-                      }`}
-                    >
-                      <MessageSquare className="h-3 w-3" /> Programme WhatsApp
-                    </button>
+                    {canPlan && (
+                      <button
+                        onClick={() => handleSendBrandedForm(svc, 'orator')}
+                        className="text-xs px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors flex items-center gap-1"
+                        title="Envoie le formulaire brandingé à l'orateur via WhatsApp (lien en ligne)"
+                      >
+                        <Send className="h-3 w-3" /> Formulaire brandingé
+                      </button>
+                    )}
+                    {canPlan && (
+                      <button
+                        onClick={() => handleSendContentWhatsApp(svc)}
+                        disabled={!submittedForms[svc.id] && !submittedOrders.has(svc.id)}
+                        title={!submittedForms[svc.id] && !submittedOrders.has(svc.id) ? 'En attente de soumission du formulaire' : 'Envoyer le programme par WhatsApp'}
+                        className={`text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors ${
+                          !submittedForms[svc.id] && !submittedOrders.has(svc.id)
+                            ? 'bg-gray-500/10 text-gray-500 cursor-not-allowed opacity-50'
+                            : 'bg-green-500/10 text-green-300 hover:bg-green-500/20'
+                        }`}
+                      >
+                        <MessageSquare className="h-3 w-3" /> Programme WhatsApp
+                      </button>
+                    )}
                   </div>
                 </div>
               );
