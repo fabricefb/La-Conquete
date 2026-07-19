@@ -644,9 +644,9 @@ export function PlanificationTab() {
 
   /* ── Copy link ── */
   const copyLink = (token: string) => {
-    const url = `${BASE_URL}/#/form-culte/${token}`;
+    const url = `${BASE_URL}/#/form-orateur/${token}`;
     navigator.clipboard.writeText(url);
-    addToast({ type: 'success', message: 'Lien copié' });
+    addToast({ type: 'success', message: 'Lien du formulaire brandé copié' });
   };
 
   /* ═══════════════════════════════════════════════════════════════
@@ -797,18 +797,13 @@ export function PlanificationTab() {
                             <Copy className="h-3.5 w-3.5" />
                           </button>
                           {canPlan && (
-                            <button onClick={() => handleSendWhatsApp(oratorLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le lien par WhatsApp">
+                            <button onClick={() => handleSendBrandedForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le formulaire orateur par WhatsApp">
                               <Send className="h-3.5 w-3.5" />
                             </button>
                           )}
-                          <button onClick={() => handlePreviewHTMLForm(svc)} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Voir le formulaire orateur brandé">
-                            <FileText className="h-3.5 w-3.5" />
+                          <button onClick={() => window.open(`/#/form-orateur/${oratorLinks[0].token}`, '_blank')} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Voir le formulaire orateur brandé">
+                            <Eye className="h-3.5 w-3.5" />
                           </button>
-                          {canPlan && (
-                            <button onClick={() => handleSendBrandedForm(svc, 'orator')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Envoyer le formulaire brandingé par WhatsApp">
-                              <Download className="h-3.5 w-3.5" />
-                            </button>
-                          )}
                         </>
                       )}
                       {canPlan && (
@@ -831,14 +826,11 @@ export function PlanificationTab() {
                             <Copy className="h-3.5 w-3.5" />
                           </button>
                           {canPlan && (
-                            <button onClick={() => handleSendWhatsApp(presidentLinks[0])} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer par WhatsApp">
+                            <button onClick={() => handleSendBrandedForm(svc, 'president')} className="p-1.5 rounded-lg hover:bg-green-500/10 text-green-400/70 hover:text-green-400 transition-colors" title="Envoyer le formulaire président par WhatsApp">
                               <Send className="h-3.5 w-3.5" />
                             </button>
                           )}
-                          <button onClick={() => handleSendBrandedForm(svc, 'president')} className="p-1.5 rounded-lg hover:bg-blue-500/10 text-blue-400/70 hover:text-blue-400 transition-colors" title="Envoyer le formulaire président brandé par WhatsApp">
-                            <Download className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => window.open(`/#/form-orateur/${presidentLinks[0].token}`, '_blank')} className="p-1.5 rounded-lg hover:bg-white/5 text-muted hover:text-cream transition-colors" title="Ouvrir le formulaire président">
+                          <button onClick={() => window.open(`/#/form-orateur/${presidentLinks[0].token}`, '_blank')} className="p-1.5 rounded-lg hover:bg-amber-500/10 text-amber-400/70 hover:text-amber-400 transition-colors" title="Voir le formulaire président brandé">
                             <Eye className="h-3.5 w-3.5" />
                           </button>
                         </>

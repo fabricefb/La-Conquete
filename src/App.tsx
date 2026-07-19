@@ -43,7 +43,7 @@ const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(
 
 const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
 function getPage(): Page {
-  const h = window.location.hash.replace('#', '');
+  const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
 }
 
@@ -58,14 +58,14 @@ function PageLoader() {
 
 /* ─── Check if current route is a form-culte or form-orateur link ─── */
 function getFormCulteToken(): string | null {
-  const h = window.location.hash.replace('#', '');
+  const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   if (h.startsWith('form-culte/')) {
     return h.replace('form-culte/', '');
   }
   return null;
 }
 function getFormOrateurToken(): string | null {
-  const h = window.location.hash.replace('#', '');
+  const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   if (h.startsWith('form-orateur/')) {
     return h.replace('form-orateur/', '');
   }
