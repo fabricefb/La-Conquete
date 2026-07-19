@@ -568,7 +568,11 @@ export function PlanificationTab() {
     const formType = linkType === 'orator' ? 'orateur' : 'président';
     const brandedUrl = `${BASE_URL}/#/form-orateur/${link.token}`;
 
-    const message = `Bonjour ${link.recipient_name || ''},\n\nVoici le formulaire ${formType} du culte du ${dateStr} (${typeLabel}) :\n\n${brandedUrl}\n\n📄 Ouvrez ce lien dans votre navigateur, remplissez le formulaire en ligne et cliquez sur "Confirmer et envoyer". Les données seront transmises automatiquement au département média.\n\nCe lien expire dans 7 jours.`;
+    let message = `Bonjour ${link.recipient_name || ''},\n\nVoici le formulaire ${formType} du culte du ${dateStr} (${typeLabel}) :\n\n${brandedUrl}\n\n`;
+    if (svc.notes && svc.notes.trim()) {
+      message += `📝 *${svc.notes.trim()}*\n\n`;
+    }
+    message += `📄 Ouvrez ce lien dans votre navigateur, remplissez le formulaire en ligne et cliquez sur "Confirmer et envoyer". Les données seront transmises automatiquement au département média.\n\nCe lien expire dans 7 jours.`;
 
     // Mark as sent
     supabase.from('worship_form_links').update({ sent_at: new Date().toISOString() }).eq('id', link.id).then(() => {}).catch(() => {});

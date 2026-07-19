@@ -28,9 +28,11 @@ export function FormOrateurBrandedPage({ token }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [loadTimedOut, setLoadTimedOut] = useState(false);
 
   const [link, setLink] = useState<WorshipFormLink | null>(null);
   const [service, setService] = useState<WorshipService | null>(null);
+  const [serviceNotes, setServiceNotes] = useState<string | null>(null);
 
   // Form fields
   const [firstName, setFirstName] = useState('');
@@ -69,12 +71,13 @@ export function FormOrateurBrandedPage({ token }: Props) {
 
       const { data: svcData } = await supabase
         .from('worship_services')
-        .select('id,date,time,type,orator_name,president_name,status')
+        .select('id,date,time,type,orator_name,president_name,status,notes')
         .eq('id', linkData.service_id)
         .single();
 
       if (svcData) {
         setService(svcData as WorshipService);
+        setServiceNotes(svcData.notes || null);
         // Pre-fill name based on link_type
         const isPresident = linkData.link_type === 'president';
         const nameToPreFill = isPresident ? svcData.president_name : svcData.orator_name;
@@ -140,6 +143,14 @@ export function FormOrateurBrandedPage({ token }: Props) {
       setLoading(false);
     }
   }, [token]);
+
+  /* ── Loading timeout — avoid infinite blue screen on slow connections ── */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loading) setLoadTimedOut(true);
+    }, 12000);
+    return () => clearTimeout(timer);
+  }, [loading]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -292,6 +303,18 @@ export function FormOrateurBrandedPage({ token }: Props) {
         <div className="text-center">
           <div className="w-10 h-10 border-3 border-amber-500/30 border-t-amber-500 rounded-full animate-spin mx-auto mb-4" style={{ borderWidth: '3px' }} />
           <p className="text-sm" style={{ color: '#A0AAC3' }}>Chargement du formulaire…</p>
+          {loadTimedOut && (
+            <div className="mt-4">
+              <p className="text-xs mb-3" style={{ color: 'rgba(247,243,238,0.5)' }}>Le chargement est lent. Vérifiez votre connexion.</p>
+              <button
+                onClick={() => { setLoadTimedOut(false); loadData(); }}
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all"
+                style={{ background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.3)', color: '#D4A843', cursor: 'pointer' }}
+              >
+                Réessayer
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -399,6 +422,12 @@ export function FormOrateurBrandedPage({ token }: Props) {
               <span className="text-sm font-semibold" style={{ color: '#6A96E8' }}>{dateStr} — {timeStr}</span>
             </div>
             <p className="text-xs ml-6" style={{ color: '#A0AAC3' }}>{service.type}</p>
+            {serviceNotes && (
+              <div className="mt-3 ml-6 pl-3" style={{ borderLeft: '2px solid rgba(212,168,67,0.3)' }}>
+                <p className="text-xs font-medium mb-0.5" style={{ color: '#D4A843' }}>Message du département :</p>
+                <p className="text-sm" style={{ color: 'rgba(247,243,238,0.8)', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{serviceNotes}</p>
+              </div>
+            )}
           </div>
         )}
 
