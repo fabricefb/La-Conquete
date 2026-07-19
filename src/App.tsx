@@ -111,6 +111,8 @@ function AppRouter() {
   }, [authLoading, user, isAdmin, page, setPage]);
 
   useEffect(() => {
+    // Do NOT overwrite hash if we're showing a form — form URLs must stay intact
+    if (formToken || formOrateurToken) return;
     // Handle #connexion route → open auth modal
     if (page === 'connexion') {
       openAuth('login');
@@ -118,7 +120,7 @@ function AppRouter() {
       return;
     }
     window.location.hash = page;
-  }, [page, openAuth]);
+  }, [page, openAuth, formToken, formOrateurToken]);
 
   useEffect(() => {
     const fn = () => {

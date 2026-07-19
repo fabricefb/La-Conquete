@@ -75,14 +75,16 @@ export function FormOrateurBrandedPage({ token }: Props) {
 
       if (svcData) {
         setService(svcData as WorshipService);
-        // Pre-fill name if available
-        if (svcData.orator_name) {
-          const parts = svcData.orator_name.split(' ');
+        // Pre-fill name based on link_type
+        const isPresident = linkData.link_type === 'president';
+        const nameToPreFill = isPresident ? svcData.president_name : svcData.orator_name;
+        if (nameToPreFill) {
+          const parts = nameToPreFill.split(' ');
           if (parts.length > 1) {
             setFirstName(parts[0]);
             setLastName(parts.slice(1).join(' '));
           } else {
-            setLastName(svcData.orator_name);
+            setLastName(nameToPreFill);
           }
         }
       } else {
@@ -316,6 +318,14 @@ export function FormOrateurBrandedPage({ token }: Props) {
      SUCCESS
      ═══════════════════════════════════════════════════════════════ */
   if (success) {
+    // Redirect to homepage after 3 seconds
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        window.location.hash = '#home';
+      }, 3000);
+      return () => clearTimeout(timer);
+    }, []);
+
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'rgba(6,13,29,0.95)' }}>
         <div className="text-center max-w-md w-full p-10 rounded-2xl" style={{ background: '#0F2147', border: '1px solid rgba(37,211,102,0.2)' }}>
@@ -326,7 +336,14 @@ export function FormOrateurBrandedPage({ token }: Props) {
           <p className="text-sm mb-1" style={{ color: '#A0AAC3', lineHeight: 1.6 }}>
             Merci ! Votre formulaire a été soumis avec succès au département de média de la {CHURCH_NAME}.
           </p>
-          <p className="text-xs mt-4" style={{ color: 'rgba(160,170,195,0.6)' }}>Vous pouvez fermer cette page.</p>
+          <p className="text-xs mt-4" style={{ color: 'rgba(160,170,195,0.6)' }}>Redirection vers la page d'accueil…</p>
+          <button
+            onClick={() => { window.location.hash = '#home'; }}
+            className="mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            style={{ background: 'rgba(212,168,67,0.15)', border: '1px solid rgba(212,168,67,0.3)', color: '#D4A843', cursor: 'pointer' }}
+          >
+            Retour à l'accueil
+          </button>
         </div>
       </div>
     );
@@ -346,7 +363,9 @@ export function FormOrateurBrandedPage({ token }: Props) {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
           <img src={LOGO_URL} alt={CHURCH_NAME} className="rounded-full object-contain" style={{ width: 48, height: 48, border: '2px solid rgba(212,168,67,0.3)', background: 'rgba(255,255,255,0.05)', padding: 3 }} />
           <div className="flex-1 min-w-0">
-            <h1 className="text-base font-bold truncate" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Formulaire Orateur</h1>
+            <h1 className="text-base font-bold truncate" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>
+              {link?.link_type === 'president' ? 'Formulaire Président' : 'Formulaire Orateur'}
+            </h1>
             <div className="flex items-center gap-2 mt-0.5">
               <span className="text-xs lowercase tracking-wide" style={{ color: 'rgba(247,243,238,0.5)', fontWeight: 500 }}>{CHURCH_NAME}</span>
               <span style={{ color: 'rgba(247,243,238,0.2)' }}>·</span>
