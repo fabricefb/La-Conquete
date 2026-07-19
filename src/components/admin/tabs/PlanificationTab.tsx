@@ -204,6 +204,33 @@ function getDeadlineInfo(deadlineStr: string): { label: string; cls: string; isE
   return { label: `${Math.ceil(hoursLeft)}h restantes`, cls: 'bg-emerald-500/20 text-emerald-300', isExpired: false, hoursLeft };
 }
 
+/* ── Compute form_deadline_at client-side (mirrors DB GENERATED column) ──
+ * date + heure - 12h (+ retard si culte en retard)
+ * Use this when the DB column does not yet exist. */
+function computeFormDeadline(svc: { date: string; time: string | null; is_delayed: boolean; delayed_minutes: number }): string {
+  const [y, m, d] = svc.date.split('-').map(Number);
+  const tParts = (svc.time || '09:00').split(':').map(Number);
+  const deadline = new Date(y, m - 1, d, tParts[0], tParts[1], 0, 0);
+  deadline.setHours(deadline.getHours() - 12);
+  if (svc.is_delayed && svc.delayed_minutes > 0) {
+    deadline.setMinutes(deadline.getMinutes() + svc.delayed_minutes);
+  }
+  return deadline.toISOString();
+}
+
+/** Enrich a single WorshipService with form_deadline_at if missing (DB column not created yet) */
+function enrichWithDeadline<T extends { form_deadline_at?: string; date: string; time: string | null; is_delayed: boolean; delayed_minutes: number }>(svc: T): T & { form_deadline_at: string } {
+  if (!svc.form_deadline_at) {
+    return { ...svc, form_deadline_at: computeFormDeadline(svc) };
+  }
+  return svc as T & { form_deadline_at: string };
+}
+
+/** Enrich an array of WorshipService objects */
+function enrichServicesWithDeadlines<T extends { form_deadline_at?: string; date: string; time: string | null; is_delayed: boolean; delayed_minutes: number }>(services: T[]): (T & { form_deadline_at: string })[] {
+  return services.map(enrichWithDeadline);
+}
+
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : '';
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -1229,4 +1256,4 @@ function CreateServiceModal({ onClose, onSubmit }: {
 }
 
 // Re-export for public form page & dashboard section
-export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, CULTE_TYPE_GROUPS, generateToken, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo };
+export { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, STATUS_CONFIG, WORSHIP_TYPE_CONFIGS, CULTE_TYPE_GROUPS, generateToken, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, computeFormDeadline, enrichWithDeadline, enrichServicesWithDeadlines };
