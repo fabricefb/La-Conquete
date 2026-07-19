@@ -415,11 +415,13 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   const handleGenerateLink = async (serviceId: string, linkType: 'orator' | 'president', name?: string) => {
     try {
       const token = generateToken();
-      const { error } = await supabase.from('worship_form_links').upsert({
+      // Supprimer d'abord tout lien existant pour ce service/type, puis inserer
+      await supabase.from('worship_form_links').delete().eq('service_id', serviceId).eq('link_type', linkType);
+      const { error } = await supabase.from('worship_form_links').insert({
         service_id: serviceId, link_type: linkType, token,
         recipient_name: name || null, recipient_phone: null,
         is_used: false, sent_at: null,
-      }, { onConflict: 'service_id,link_type' });
+      });
 
       if (error) throw error;
       addToast?.({ type: 'success', message: `Lien ${linkType === 'orator' ? 'orateur' : 'président'} généré` });

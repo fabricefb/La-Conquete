@@ -135,7 +135,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           data: {
             full_name: fullName.trim(),
             phone: phone.trim(),
-            gender: gender || undefined,
+            ...(gender ? { gender } : {}),
             church_status: churchStatus || 'visitor',
           },
         },
@@ -157,8 +157,9 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           email: finalEmail,
           full_name: fullName.trim(),
           phone: phone.trim(),
-          gender: gender || null,
         };
+        // Ne pas envoyer gender si vide — la contrainte CHECK n'accepte que 'homme'/'femme'
+        if (gender) baseProfileData.gender = gender;
 
         try {
           await supabase

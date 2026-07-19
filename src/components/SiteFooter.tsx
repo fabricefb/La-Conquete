@@ -21,8 +21,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     const checkPwa = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches
         || (window.navigator as any).standalone === true;
-      const isMobile = window.innerWidth < 768;
-      setIsPwaMobile(isStandalone && isMobile);
+      setIsPwaMobile(isStandalone);
     };
     checkPwa();
     window.addEventListener('resize', checkPwa);

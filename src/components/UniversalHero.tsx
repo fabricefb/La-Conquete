@@ -14,8 +14,12 @@ interface UniversalHeroProps {
 
 /**
  * UniversalHero — hero section réutilisable pour TOUTES les pages.
- * Lit badge/title/subtitle depuis page_contents, avec fallbacks.
+ * Lit badge/title/subtitle/bg_image depuis page_contents, avec fallbacks.
  * L'admin peut tout modifier via ContentsTab.
+ *
+ * Fix: le bg-radial-primary utilise le shorthand CSS 'background:' qui peut
+ * entrer en conflit avec le style inline backgroundImage. Solution: utiliser
+ * des divs séparés pour le fond image et le gradient radial.
  */
 export function UniversalHero({
   pageKey,
@@ -90,17 +94,21 @@ export function UniversalHero({
     );
   }
 
-  // Standard hero
+  // Standard hero — image et gradient sur des divs séparés pour éviter les conflits CSS
   return (
-    <section
-      className={`relative flex min-h-[70vh] items-center justify-center overflow-hidden bg-radial-primary`}
-      style={heroBg ? {
-        backgroundImage: `url(${heroBg})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-      } : undefined}
-    >
+    <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
+      {/* Image de fond (si fournie) */}
+      {heroBg && (
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url(${heroBg})` }}
+        />
+      )}
+      {/* Overlay sombre quand il y a une image */}
       {heroBg && <div className="absolute inset-0 bg-black/50" />}
+      {/* Gradient radial par défaut (visible si pas d'image) */}
+      {!heroBg && <div className="absolute inset-0 bg-radial-primary" />}
+      {/* Contenu */}
       <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 pt-28 text-center">
         {badge && (
           <div className="animate-fade-up">

@@ -973,6 +973,58 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
+               1c. DÉPARTEMENT-SPECIFIC SECTIONS (reordered: Mon dept > Media > autres)
+               ═══════════════════════════════════════════════════════ */}
+            {!dataLoading && (() => {
+              const renderedSpecial = new Set<string>();
+              const deptSections: { dept: typeof departments[0]; isProtocole: boolean; isMediaPlanif: boolean; isEvangelism: boolean; isGeneric: boolean; specialKey: string | null }[] = [];
+
+              for (const dept of departments) {
+                if (shouldHideDeptSection(dept)) continue;
+                const deptName = dept.department_name.toLowerCase();
+                const isProtocole = deptName.includes('protocole');
+                const isMediaPlanif = deptName.includes('média') ||
+                  deptName.includes('media') ||
+                  deptName.includes('presse') ||
+                  deptName.includes('communication') ||
+                  deptName.includes('planification');
+                const isEvangelism = deptName.includes('evangelis') ||
+                  deptName.includes('évangélis');
+                const specialKey = isProtocole ? 'protocole' : isMediaPlanif ? 'media_planif' : isEvangelism ? 'evangelism' : null;
+                if (specialKey && renderedSpecial.has(specialKey)) continue;
+                if (specialKey) renderedSpecial.add(specialKey);
+                deptSections.push({ dept, isProtocole, isMediaPlanif, isEvangelism, isGeneric: !isProtocole && !isMediaPlanif && !isEvangelism, specialKey });
+              }
+
+              // Trier : Mon département (générique) en premier, puis Media/Communication, puis le reste
+              const sorted = [...deptSections].sort((a, b) => {
+                const aPrio = a.isGeneric ? 0 : a.isMediaPlanif ? 1 : 2;
+                const bPrio = b.isGeneric ? 0 : b.isMediaPlanif ? 1 : 2;
+                return aPrio - bPrio;
+              });
+
+              return sorted.map(({ dept, isProtocole, isMediaPlanif, isEvangelism, isGeneric }, idx) => (
+                <EvtReveal key={dept.id} delay={idx + 1}>
+                  <section className="mb-10">
+                    {isProtocole ? (
+                      <ProtocolSection accentColor={dept.accent_color} />
+                    ) : isMediaPlanif ? (
+                      <MediaCenterSection accentColor={dept.accent_color} />
+                    ) : isEvangelism ? (
+                      <EvangelismDashboardSection accentColor={dept.accent_color} />
+                    ) : (
+                      <DepartmentSection
+                        departmentId={dept.id}
+                        departmentName={dept.department_name}
+                        accentColor={dept.accent_color}
+                      />
+                    )}
+                  </section>
+                </EvtReveal>
+              ));
+            })()}
+
+            {/* ═══════════════════════════════════════════════════════
                2. STATS ROW
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={1}>
@@ -1777,55 +1829,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
-               8. DÉPARTEMENT-SPECIFIC SECTIONS (role-filtered)
-               ═══════════════════════════════════════════════════════ */}
-            {!dataLoading && (() => {
-              /* Track which special sections were already rendered to avoid duplicates
-                 (e.g. user in both "Multimédia" and "Communication" should see MediaCenter only once) */
-              const renderedSpecial = new Set<string>();
-              return departments
-                .filter((dept) => !shouldHideDeptSection(dept))
-                .map((dept, idx) => {
-                  const deptName = dept.department_name.toLowerCase();
-                  const isProtocole = deptName.includes('protocole');
-                  const isMediaPlanif = deptName.includes('média') ||
-                    deptName.includes('media') ||
-                    deptName.includes('presse') ||
-                    deptName.includes('communication') ||
-                    deptName.includes('planification');
-
-                  const isEvangelism = deptName.includes('evangelis') ||
-                    deptName.includes('évangélis');
-
-                  /* Skip duplicate special sections */
-                  const specialKey = isProtocole ? 'protocole' : isMediaPlanif ? 'media_planif' : isEvangelism ? 'evangelism' : null;
-                  if (specialKey && renderedSpecial.has(specialKey)) return null;
-                  if (specialKey) renderedSpecial.add(specialKey);
-
-                  return (
-                    <EvtReveal key={dept.id} delay={7 + idx}>
-                      <section className="mb-10">
-                        {isProtocole ? (
-                          <ProtocolSection accentColor={dept.accent_color} />
-                        ) : isMediaPlanif ? (
-                          <MediaCenterSection accentColor={dept.accent_color} />
-                        ) : isEvangelism ? (
-                          <EvangelismDashboardSection accentColor={dept.accent_color} />
-                        ) : (
-                          <DepartmentSection
-                            departmentId={dept.id}
-                            departmentName={dept.department_name}
-                            accentColor={dept.accent_color}
-                          />
-                        )}
-                      </section>
-                    </EvtReveal>
-                  );
-                }).filter(Boolean);
-            })()}
-
-            {/* ═══════════════════════════════════════════════════════
-               8.5 TÉMOIGNAGE
+               7. TÉMOIGNAGE
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={8}>
               <section className="mb-10">
