@@ -362,23 +362,27 @@ export function PlanificationTab() {
     try {
       const { data, error } = await supabase.from('worship_services').insert({
         ...svc, status: 'planned', created_by: user?.id,
-      }).select().single();
+      }).select('id,date,time,type,orator_name,president_name,status,notes,created_by,is_delayed,delayed_at,delayed_minutes,created_at,updated_at').single();
 
       if (error) throw error;
       addToast({ type: 'success', message: 'Culte créé avec succès' });
 
-      // Auto-generate form links (expires_at is set by DB trigger to form_deadline_at)
+      // Auto-generate form links — compute expires_at client-side (DB trigger references missing column)
       if (data) {
+        const enriched = enrichWithDeadline(data as any);
+        const expiresAt = enriched.form_deadline_at;
         const oratorToken = generateToken();
         const presidentToken = generateToken();
         await Promise.allSettled([
           supabase.from('worship_form_links').insert({
             service_id: data.id, link_type: 'orator', token: oratorToken,
             recipient_name: svc.orator_name || null,
+            expires_at: expiresAt,
           }),
           supabase.from('worship_form_links').insert({
             service_id: data.id, link_type: 'president', token: presidentToken,
             recipient_name: svc.president_name || null,
+            expires_at: expiresAt,
           }),
         ]);
       }
@@ -394,6 +398,9 @@ export function PlanificationTab() {
   const handleGenerateLink = async (serviceId: string, linkType: 'orator' | 'president', recipientName?: string, recipientPhone?: string) => {
     try {
       const token = generateToken();
+      // Compute expires_at client-side (DB trigger broken — references missing form_deadline_at column)
+      const svc = services.find(s => s.id === serviceId);
+      const expiresAt = svc?.form_deadline_at || null;
       // Supprimer d'abord tout lien existant pour ce service/type, puis inserer
       await supabase.from('worship_form_links').delete().eq('service_id', serviceId).eq('link_type', linkType);
       const { error } = await supabase.from('worship_form_links').insert({
@@ -401,6 +408,7 @@ export function PlanificationTab() {
         recipient_name: recipientName || null,
         recipient_phone: recipientPhone || null,
         is_used: false, sent_at: null,
+        expires_at: expiresAt,
       });
 
       if (error) throw error;
@@ -562,6 +570,14 @@ export function PlanificationTab() {
           delayed_at: new Date().toISOString(),
           delayed_minutes: minutes || 30,
         }).eq('id', serviceId);
+        // Update link expires_at client-side (DB trigger broken — references missing form_deadline_at column)
+        const svc = services.find(s => s.id === serviceId);
+        if (svc) {
+          const newDeadline = computeFormDeadline({ ...svc, is_delayed: true, delayed_minutes: minutes || 30 });
+          await supabase.from('worship_form_links')
+            .update({ expires_at: newDeadline })
+            .eq('service_id', serviceId).eq('is_used', false);
+        }
         addToast({ type: 'success', message: `Culte signalé en retard de ${minutes || 30} min — les liens sont repoussés` });
       } else {
         await supabase.from('worship_services').update({
@@ -569,6 +585,14 @@ export function PlanificationTab() {
           delayed_at: null,
           delayed_minutes: 0,
         }).eq('id', serviceId);
+        // Reset link expires_at client-side
+        const svc = services.find(s => s.id === serviceId);
+        if (svc) {
+          const newDeadline = computeFormDeadline({ ...svc, is_delayed: false, delayed_minutes: 0 });
+          await supabase.from('worship_form_links')
+            .update({ expires_at: newDeadline })
+            .eq('service_id', serviceId).eq('is_used', false);
+        }
         addToast({ type: 'success', message: 'Retard annulé — les liens sont remis à la deadline initiale' });
       }
       setDelayModal(null);

@@ -1121,7 +1121,7 @@ export interface WorshipService {
   is_delayed: boolean;
   delayed_at: string | null;
   delayed_minutes: number;
-  form_deadline_at: string;
+  form_deadline_at?: string;
   created_at: string;
   updated_at: string;
 }
