@@ -60,7 +60,14 @@ export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
           .order('published_at', { ascending: false });
         if (!cancelled) {
           if (error) console.warn('Communiques fetch error:', error.message);
-          setCommuniques((data && data.length > 0 ? data : FALLBACK_COMMUNIQUES) as Communique[]);
+          const mapped = (data ?? []).map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            date: r.published_at,
+            excerpt: r.excerpt,
+            category: r.category,
+          }));
+          setCommuniques(mapped.length > 0 ? mapped : FALLBACK_COMMUNIQUES);
         }
       } catch {
         if (!cancelled) setCommuniques(FALLBACK_COMMUNIQUES);

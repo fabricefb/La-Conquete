@@ -292,7 +292,19 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
           .order('sort_order');
 
         if (!cancelled && data && data.length > 0) {
-          setEmissions(data as Emission[]);
+          const mapped: Emission[] = data.map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            description: r.description,
+            platform: r.platform || 'youtube',
+            schedule: r.schedule || '',
+            thumbnailUrl: r.thumbnail_url || '',
+            videoUrl: r.video_url || '',
+            isLive: !!r.is_live,
+            isFeatured: !!r.is_featured,
+            host: r.host || '',
+          }));
+          setEmissions(mapped);
           setLoading(false);
           return;
         }
@@ -316,6 +328,16 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
 
   const featured = emissions.find((e) => e.isFeatured) ?? emissions[0];
   const grid = emissions.filter((e) => !e.isFeatured);
+  // Dynamic next live: pick the first live emission, fallback to hardcoded
+  const nextLiveEmission = emissions.find((e) => e.isLive);
+  const nextLive = nextLiveEmission
+    ? {
+        title: nextLiveEmission.title,
+        date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(), // admin can add a specific next_live_date later
+        platform: nextLiveEmission.platform,
+        description: nextLiveEmission.description,
+      }
+    : NEXT_LIVE;
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
@@ -441,13 +463,13 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
                 </span>
                 <span className="text-sm font-semibold uppercase tracking-widest">Prochain direct</span>
               </div>
-              <h2 className="font-serif text-3xl font-semibold text-cream sm:text-4xl">{NEXT_LIVE.title}</h2>
-              <p className="mt-3 text-muted max-w-xl">{NEXT_LIVE.description}</p>
+              <h2 className="font-serif text-3xl font-semibold text-cream sm:text-4xl">{nextLive.title}</h2>
+              <p className="mt-3 text-muted max-w-xl">{nextLive.description}</p>
               <div className="mt-3">
-                <PlatformBadge platform={NEXT_LIVE.platform} />
+                <PlatformBadge platform={nextLive.platform} />
               </div>
               <div className="mt-8">
-                <CountdownDisplay targetDate={NEXT_LIVE.date} />
+                <CountdownDisplay targetDate={nextLive.date} />
               </div>
             </div>
           </RevealSection>

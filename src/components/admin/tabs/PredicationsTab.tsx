@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
-import { ImageUpload } from '../ImageUpload';
+import ImageUpload from '../ImageUpload';
 import {
   Plus, Trash2, Edit3, X, Save, Loader2, Star, GripVertical,
   ChevronUp, ChevronDown, Play, Radio, Mic, Calendar,

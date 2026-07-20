@@ -67,7 +67,14 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
           .order('published_at', { ascending: false });
         if (!cancelled) {
           if (error) console.warn('Annonces fetch error:', error.message);
-          setAnnonces((data && data.length > 0 ? data : FALLBACK_ANNONCES) as Annonce[]);
+          const mapped = (data ?? []).map((r: any) => ({
+            id: r.id,
+            title: r.title,
+            content: r.content,
+            date: r.published_at,
+            urgent: r.is_urgent,
+          }));
+          setAnnonces(mapped.length > 0 ? mapped : FALLBACK_ANNONCES);
         }
       } catch {
         if (!cancelled) setAnnonces(FALLBACK_ANNONCES);
