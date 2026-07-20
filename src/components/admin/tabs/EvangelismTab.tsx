@@ -503,7 +503,7 @@ export function EvangelismTab() {
     return contacts.filter((c) => {
       if (contactSearch) {
         const q = contactSearch.toLowerCase();
-        const matchName = c.full_name.toLowerCase().includes(q);
+        const matchName = (c.full_name || '').toLowerCase().includes(q);
         const matchPhone = (c.phone || '').includes(q);
         if (!matchName && !matchPhone) return false;
       }

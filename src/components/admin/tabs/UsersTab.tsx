@@ -387,7 +387,7 @@ export function UsersTab() {
   const filtered = users.filter(u => {
     const matchSearch = !search ||
       (u.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase());
+      (u.email || '').toLowerCase().includes(search.toLowerCase());
     const matchRole = filterRole === 'all' ||
       (filterRole === 'admin' && u.is_admin) ||
       (filterRole === 'blocked' && u.is_blocked) ||

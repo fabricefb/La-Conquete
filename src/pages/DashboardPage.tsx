@@ -164,7 +164,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     if (!isPrincipalPastor && !isLevel4Plus) return false;
 
     const hiddenSet = isPrincipalPastor ? PASTOR_HIDDEN_SECTIONS : LEVEL4_HIDDEN_SECTIONS;
-    const deptName = dept.department_name.toLowerCase();
+    const deptName = (dept.department_name || '').toLowerCase();
 
     const isProtocole = deptName.includes('protocole');
     if (isProtocole) return hiddenSet.has('protocol_report');
@@ -968,7 +968,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
               for (const dept of departments) {
                 if (shouldHideDeptSection(dept)) continue;
-                const deptName = dept.department_name.toLowerCase();
+                const deptName = (dept.department_name || '').toLowerCase();
                 const isProtocole = deptName.includes('protocole');
                 const isMediaPlanif = deptName.includes('média') ||
                   deptName.includes('media') ||

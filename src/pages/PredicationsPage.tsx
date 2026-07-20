@@ -258,7 +258,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
       if (selectedSeries !== 'Toutes' && s.series !== selectedSeries) return false;
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
-        if (!s.title.toLowerCase().includes(q) && !s.preacher.toLowerCase().includes(q) && !s.description.toLowerCase().includes(q)) return false;
+        if (!(s.title || '').toLowerCase().includes(q) && !(s.preacher || '').toLowerCase().includes(q) && !(s.description || '').toLowerCase().includes(q)) return false;
       }
       return true;
     });

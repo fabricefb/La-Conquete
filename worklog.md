@@ -93,3 +93,25 @@ Stage Summary:
 - Files modified: VisionPage.tsx, JeunessePage.tsx, CultePage.tsx, ExtensionsPage.tsx
 - All visual structure, CSS classes, animations, and component hierarchy preserved exactly
 - Build: tsc clean; vite build has pre-existing unrelated error (PredicationsTab ImageUpload)
+
+---
+Task ID: 2
+Agent: main
+Task: Fix SQL migration view column rename error + fix toLowerCase crash
+
+Work Log:
+- Diagnosed `42P16: cannot change name of view column` error in 20260721000000_all_missing_tables.sql
+- Root cause: v_evangelism_stats view had columns in different order than existing view (rdv_completed/in_discipleship swapped)
+- Fixed by swapping column order to match existing view definition
+- Diagnosed `TypeError: Cannot read properties of undefined (reading 'toLowerCase')` runtime crash
+- Root cause: activity_cards DB table has NO icon_name column, but ActivityCard TypeScript interface expected it
+- When Supabase returned activity_cards rows, card.icon_name was undefined → .toLowerCase() crash
+- Fixed by mapping DB columns (card_key→icon_name, stat_label→description, target_page→link)
+- Added defensive (field || '').toLowerCase() guards across 10 files to prevent similar crashes
+- Files fixed: HomePage, EventsPage, BlogPage, EnseignementsPage, PredicationsPage, CommunicationPage (3 places), DashboardPage (2 places), DepartmentsPage, EvangelismTab, UsersTab
+
+Stage Summary:
+- Fixed SQL migration view column order mismatch in 20260721000000_all_missing_tables.sql
+- Fixed activity_cards field mapping mismatch (DB schema vs TypeScript interface)
+- Added defensive toLowerCase() guards across entire codebase (10 files, 13 locations)
+- Build passes successfully

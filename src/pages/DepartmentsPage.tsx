@@ -391,7 +391,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
     return () => { cancelled = true; };
   }, []);
 
-  const evangDept = departments.find((d) => d.slug === 'evangelisation') ?? departments.find((d) => d.name.toLowerCase().includes('evang')) ?? departments[0];
+  const evangDept = departments.find((d) => d.slug === 'evangelisation') ?? departments.find((d) => (d.name || '').toLowerCase().includes('evang')) ?? departments[0];
   const otherDepts = departments.filter((d) => d.id !== evangDept?.id);
   // Impact stats
   const zonesCouvertes = zones.length;

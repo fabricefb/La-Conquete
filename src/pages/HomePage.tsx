@@ -248,7 +248,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
             .sort((a: any, b: any) => (b.role_level ?? 0) - (a.role_level ?? 0)),
         );
         setEvents((eventData || []) as ChurchEvent[]);
-        setActivityCards((activityCardsData?.data || []) as ActivityCard[]);
+        // Map DB columns (card_key, stat_label, target_page) to interface fields
+        const CARD_KEY_TO_ICON: Record<string, string> = {
+          predications: 'radio', events: 'calendar', ministries: 'users',
+          medias: 'monitor_play', actualites: 'newspaper',
+        };
+        setActivityCards(
+          (activityCardsData?.data || []).map((row: any) => ({
+            id: row.id,
+            title: row.title || '',
+            description: row.stat_label || '',
+            icon_name: CARD_KEY_TO_ICON[row.card_key] || 'eye',
+            image_url: row.image_url || '',
+            link: row.target_page || 'activities',
+            sort_order: row.sort_order ?? 0,
+            is_active: row.is_active ?? true,
+          })) as ActivityCard[],
+        );
       } catch (err) {
         console.warn('[HomePage] data fetch failed:', err);
       } finally {
@@ -693,7 +709,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {displayCards.map((card, i) => {
-              const IconComponent = iconMap[card.icon_name.toLowerCase()] || Eye;
+              const IconComponent = iconMap[(card.icon_name || 'eye').toLowerCase()] || Eye;
               const imgUrl = card.image_url || DEFAULT_SERMON_IMG;
               const navigateTo = card.link || 'activities';
               return (

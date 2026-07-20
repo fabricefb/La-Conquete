@@ -211,7 +211,7 @@ function PrayerTab({ profile, addToast, userDepts }: { profile: any; addToast: (
   }
 
   const filtered = requests.filter(r =>
-    r.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (r.content || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
     (r as any).title?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
@@ -531,7 +531,7 @@ function CommunicationTab({ profile, addToast, userDepts }: { profile: any; addT
   const needsEdgeFunction = form.channel === 'sms' || form.channel === 'whatsapp';
 
   const filtered = messages.filter(m =>
-    m.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    (m.title || '').toLowerCase().includes(searchQuery.toLowerCase()),
   ).filter(m => {
     // Users see messages sent to "all" OR to a department they belong to
     if (m.target_type === 'all') return true;
@@ -817,7 +817,7 @@ function MediasTab({ profile, addToast, userDepts }: { profile: any; addToast: (
 
   const filtered = items
     .filter(m => categoryFilter === 'all' || m.category === categoryFilter)
-    .filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    .filter(m => (m.title || '').toLowerCase().includes(searchQuery.toLowerCase()))
     .filter(m => {
       // Media tagged with a department_id only visible to members of that dept
       // (unless access_role is 'public')

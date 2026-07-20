@@ -86,7 +86,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
   const filtered = events.filter((e) => {
     const matchCat = activeCategory === 'Tous' || e.category === activeCategory;
-    const matchSearch = !search || e.title.toLowerCase().includes(search.toLowerCase()) || e.description.toLowerCase().includes(search.toLowerCase());
+    const matchSearch = !search || (e.title || '').toLowerCase().includes(search.toLowerCase()) || (e.description || '').toLowerCase().includes(search.toLowerCase());
     return matchCat && matchSearch;
   });
 

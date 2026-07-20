@@ -85,7 +85,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
   const filtered = useMemo(() => {
     let list = items;
     if (activeFilter !== 'Tous') list = list.filter(i => i.category === activeFilter);
-    if (search) list = list.filter(i => i.title.toLowerCase().includes(search.toLowerCase()) || i.speaker.toLowerCase().includes(search.toLowerCase()));
+    if (search) list = list.filter(i => (i.title || '').toLowerCase().includes(search.toLowerCase()) || (i.speaker || '').toLowerCase().includes(search.toLowerCase()));
     return list;
   }, [items, activeFilter, search]);
 

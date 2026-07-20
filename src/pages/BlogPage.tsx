@@ -74,7 +74,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const filtered = useMemo(() => {
     let list = articles;
     if (activeCat !== 'Tous') list = list.filter(a => a.category === activeCat);
-    if (search) list = list.filter(a => a.title.toLowerCase().includes(search.toLowerCase()));
+    if (search) list = list.filter(a => (a.title || '').toLowerCase().includes(search.toLowerCase()));
     return list;
   }, [articles, activeCat, search]);
 
