@@ -1,10 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
-import { Play, Clock, Search, Calendar, Headphones, Mic, ArrowRight, BookOpen, Filter } from '../lib/icons';
+import { Play, Clock, Search, Calendar, Headphones, Mic, ArrowRight, BookOpen, Filter, Loader2 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import { UniversalHero } from '../components/UniversalHero';
 
@@ -25,6 +26,7 @@ interface Sermon {
   duration: string;
   thumbnailUrl: string;
   videoUrl: string;
+  audioUrl: string;
   description: string;
   isFeatured: boolean;
 }
@@ -36,172 +38,6 @@ interface SermonSeries {
   count: number;
   coverUrl: string;
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// YOUTUBE API INTEGRATION
-// To enable: Set VITE_YOUTUBE_API_KEY in .env
-// Set VITE_YOUTUBE_CHANNEL_ID to your channel ID
-// The fetchYoutubeSermons() function below will auto-populate
-// ═══════════════════════════════════════════════════════════════════
-
-// Placeholder: Replace with actual YouTube Data API v3 call
-// GET https://www.googleapis.com/youtube/v3/search?part=snippet&channelId={VITE_YOUTUBE_CHANNEL_ID}&type=video&order=date&maxResults=12&key={VITE_YOUTUBE_API_KEY}
-
-async function fetchYoutubeSermons(): Promise<Sermon[]> {
-  // ─── YouTube Data API v3 Integration ─────────────────────────────
-  // const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
-  // const channelId = import.meta.env.VITE_YOUTUBE_CHANNEL_ID;
-  //
-  // if (apiKey && channelId) {
-  //   const res = await fetch(
-  //     `https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelId}&type=video&order=date&maxResults=12&key=${apiKey}`
-  //   );
-  //   const data = await res.json();
-  //   return (data.items ?? []).map((item: any) => ({
-  //     id: item.id.videoId,
-  //     title: item.snippet.title,
-  //     preacher: '',
-  //     date: item.snippet.publishedAt,
-  //     series: '',
-  //     duration: '',
-  //     thumbnailUrl: item.snippet.thumbnails.high?.url ?? item.snippet.thumbnails.medium?.url,
-  //     videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-  //     description: item.snippet.description,
-  //     isFeatured: false,
-  //   }));
-  // }
-
-  // Fallback: return empty (hardcoded data used below)
-  return [];
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// HARDCODED SAMPLE DATA (fallback)
-// ═══════════════════════════════════════════════════════════════════
-
-const PREACHERS = [
-  'Tous',
-  'Pasteur Emmanuel Kayumba',
-  'Pasteur Jean-Pierre Kalume',
-  'Pasteur Marie Mwamba',
-  'Ancien David Kibwe',
-];
-
-const SERIES_LIST = [
-  'Toutes',
-  'Marcher par la foi',
-  'La puissance de la prière',
-  'Vie de disciple',
-  'Les fondements',
-  'Renaissance spirituelle',
-];
-
-const SAMPLE_SERMONS: Sermon[] = [
-  {
-    id: 's-1',
-    title: 'La foi qui déplace les montagnes',
-    preacher: 'Pasteur Emmanuel Kayumba',
-    date: '2025-01-12',
-    series: 'Marcher par la foi',
-    duration: '1h 15min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Un enseignement puissant sur la nature de la foi et comment elle peut transformer les circonstances impossibles de votre vie.',
-    isFeatured: true,
-  },
-  {
-    id: 's-2',
-    title: 'Les secrets d\'une prière efficace',
-    preacher: 'Pasteur Jean-Pierre Kalume',
-    date: '2025-01-08',
-    series: 'La puissance de la prière',
-    duration: '55min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Découvrez les principes bibliques pour une vie de prière qui produit des résultats.',
-    isFeatured: false,
-  },
-  {
-    id: 's-3',
-    title: 'L\'importance de la communion fraternelle',
-    preacher: 'Pasteur Marie Mwamba',
-    date: '2025-01-05',
-    series: 'Vie de disciple',
-    duration: '48min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Pourquoi l\'église locale est essentielle pour la croissance spirituelle de chaque croyant.',
-    isFeatured: false,
-  },
-  {
-    id: 's-4',
-    title: 'Le fondement de la grâce',
-    preacher: 'Pasteur Emmanuel Kayumba',
-    date: '2024-12-29',
-    series: 'Les fondements',
-    duration: '1h 05min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Retour aux bases de la foi chrétienne : comprendre la grâce souveraine de Dieu.',
-    isFeatured: false,
-  },
-  {
-    id: 's-5',
-    title: 'Renaître de nouveau en Christ',
-    preacher: 'Ancien David Kibwe',
-    date: '2024-12-22',
-    series: 'Renaissance spirituelle',
-    duration: '42min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'La nouvelle naissance : ce que cela signifie et comment vivre dans la nouveauté de vie.',
-    isFeatured: false,
-  },
-  {
-    id: 's-6',
-    title: 'Persévérer dans la foi au milieu de l\'épreuve',
-    preacher: 'Pasteur Jean-Pierre Kalume',
-    date: '2024-12-15',
-    series: 'Marcher par la foi',
-    duration: '1h 10min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Comment garder la foi quand tout va mal ? Un message d\'espérance et de persévérance.',
-    isFeatured: false,
-  },
-  {
-    id: 's-7',
-    title: 'La personne du Saint-Esprit',
-    preacher: 'Pasteur Emmanuel Kayumba',
-    date: '2024-12-08',
-    series: 'Les fondements',
-    duration: '1h 20min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Connaître le Saint-Esprit non pas comme une force, mais comme une Personne qui habite en nous.',
-    isFeatured: false,
-  },
-  {
-    id: 's-8',
-    title: 'L\'armure de Dieu',
-    preacher: 'Pasteur Marie Mwamba',
-    date: '2024-12-01',
-    series: 'Vie de disciple',
-    duration: '58min',
-    thumbnailUrl: '',
-    videoUrl: '',
-    description: 'Éphésiens 6 : comment revêtir l\'armure complète de Dieu pour tenir ferme face à l\'adversaire.',
-    isFeatured: false,
-  },
-];
-
-const SAMPLE_SERIES: SermonSeries[] = [
-  { id: 'series-1', title: 'Marcher par la foi', description: 'Série sur la foi vivante et agissante', count: 4, coverUrl: '' },
-  { id: 'series-2', title: 'La puissance de la prière', description: 'Enseignements sur la vie de prière', count: 3, coverUrl: '' },
-  { id: 'series-3', title: 'Vie de disciple', description: 'La croissance spirituelle au quotidien', count: 5, coverUrl: '' },
-  { id: 'series-4', title: 'Les fondements', description: 'Retour aux fondamentaux de la foi', count: 6, coverUrl: '' },
-  { id: 'series-5', title: 'Renaissance spirituelle', description: 'Série sur la nouvelle naissance et le renouveau', count: 3, coverUrl: '' },
-];
 
 // ═══════════════════════════════════════════════════════════════════
 // COMPONENTS
@@ -216,23 +52,20 @@ function RevealSection({ children, className = '' }: { children: React.ReactNode
   );
 }
 
-function VideoPlayerPlaceholder({ title, large = false }: { title: string; large?: boolean }) {
-  const size = large ? 'h-20 w-20' : 'h-12 w-12';
-  const iconSize = large ? 'h-8 w-8' : 'h-5 w-5';
-  return (
-    <div className="relative flex aspect-video w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-navy-800 via-navy-900 to-black">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)]" />
-      <div className={`relative flex ${size} items-center justify-center rounded-full border-2 border-accent-400/40 bg-accent-400/10 backdrop-blur-sm transition-all duration-300 hover:scale-110 hover:border-accent-500/60 hover:bg-accent-400/20`}>
-        <Play className={`ml-${large ? '1' : '0.5'} ${iconSize} text-accent-400`} />
-      </div>
-      <p className="absolute bottom-4 left-4 text-xs text-muted/60">{title}</p>
-    </div>
-  );
-}
+function SermonCard({ sermon, onNavigate }: { sermon: Sermon; onNavigate?: () => void }) {
+  const handleClick = () => {
+    if (sermon.videoUrl) {
+      window.open(sermon.videoUrl, '_blank', 'noopener,noreferrer');
+    } else if (onNavigate) {
+      onNavigate();
+    }
+  };
 
-function SermonCard({ sermon }: { sermon: Sermon }) {
   return (
-    <div className="glass rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] group h-full">
+    <div
+      onClick={handleClick}
+      className={`glass rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] group h-full ${sermon.videoUrl ? 'cursor-pointer' : ''}`}
+    >
       {/* Thumbnail with play overlay */}
       <div className="relative aspect-video overflow-hidden">
         {sermon.thumbnailUrl ? (
@@ -243,11 +76,29 @@ function SermonCard({ sermon }: { sermon: Sermon }) {
           </div>
         )}
         {/* Play icon overlay */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity group-hover:bg-black/40">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/50 bg-white/15 backdrop-blur-sm transition-transform group-hover:scale-110">
-            <Play className="ml-0.5 h-6 w-6 text-white" />
+        {sermon.videoUrl && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/20 transition-opacity group-hover:bg-black/40">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/50 bg-white/15 backdrop-blur-sm transition-transform group-hover:scale-110">
+              <Play className="ml-0.5 h-6 w-6 text-white" />
+            </div>
           </div>
-        </div>
+        )}
+        {/* Audio badge */}
+        {sermon.audioUrl && !sermon.videoUrl && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-accent-400/50 bg-accent-400/10 backdrop-blur-sm">
+              <Headphones className="h-6 w-6 text-accent-400" />
+            </div>
+          </div>
+        )}
+        {/* Featured badge */}
+        {sermon.isFeatured && (
+          <div className="absolute left-3 top-3 z-10">
+            <span className="inline-flex items-center gap-1 rounded-full bg-accent-400/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-navy-900 backdrop-blur-sm">
+              À la une
+            </span>
+          </div>
+        )}
         {/* Duration badge */}
         {sermon.duration && (
           <div className="absolute bottom-3 right-3 rounded-md bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-sm">
@@ -269,10 +120,12 @@ function SermonCard({ sermon }: { sermon: Sermon }) {
             <Mic className="h-3.5 w-3.5 text-accent-400" />
             {sermon.preacher}
           </span>
-          <span className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5 text-accent-400" />
-            {new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
-          </span>
+          {sermon.date && (
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-accent-400" />
+              {new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -313,25 +166,90 @@ function SeriesCard({ series, onSelect }: { series: SermonSeries; onSelect: (s: 
 
 export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [sermons, setSermons] = useState<Sermon[]>(SAMPLE_SERMONS);
+  const [sermons, setSermons] = useState<Sermon[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPreacher, setSelectedPreacher] = useState('Tous');
   const [selectedSeries, setSelectedSeries] = useState('Toutes');
 
-  // ── Attempt YouTube fetch on mount ──────────────────────────────
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const ytSermons = await fetchYoutubeSermons();
-        if (!cancelled && ytSermons.length > 0) {
-          setSermons(ytSermons);
-        }
-      } catch { /* keep sample data */ }
+  // ── Fetch sermons from Supabase ─────────────────────────────────
+  const fetchSermons = useCallback(async () => {
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
     }
-    load();
-    return () => { cancelled = true; };
+    try {
+      const { data, error } = await supabase
+        .from('sermons')
+        .select('*')
+        .eq('is_active', true)
+        .order('sort_order', { ascending: true })
+        .order('preached_on', { ascending: false });
+
+      if (error) throw error;
+
+      // Map DB fields (snake_case) to component fields (camelCase)
+      const mapped: Sermon[] = (data ?? []).map((row: any) => ({
+        id: row.id,
+        title: row.title || '',
+        preacher: row.preacher || '',
+        date: row.preached_on || row.created_at || '',
+        series: row.series || '',
+        duration: row.duration || '',
+        thumbnailUrl: row.thumbnail_url || '',
+        videoUrl: row.video_url || '',
+        audioUrl: row.audio_url || '',
+        description: row.description || '',
+        isFeatured: row.is_featured || false,
+      }));
+      setSermons(mapped);
+    } catch (err) {
+      console.error('[PredicationsPage] fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchSermons();
+  }, [fetchSermons]);
+
+  // ── Dynamic filter lists ───────────────────────────────────────
+  const preachers = useMemo(() => {
+    const set = Array.from(new Set(sermons.map(s => s.preacher).filter(Boolean)));
+    return ['Tous', ...set];
+  }, [sermons]);
+
+  const seriesList = useMemo(() => {
+    const set = Array.from(new Set(sermons.map(s => s.series).filter(Boolean)));
+    return ['Toutes', ...set];
+  }, [sermons]);
+
+  const seriesListForCards = useMemo(() => {
+    const map = new Map<string, { count: number; description: string; coverUrl: string }>();
+    for (const s of sermons) {
+      if (!s.series) continue;
+      const existing = map.get(s.series);
+      if (existing) {
+        existing.count++;
+        if (!existing.description && s.description) existing.description = s.description;
+        if (!existing.coverUrl && s.thumbnailUrl) existing.coverUrl = s.thumbnailUrl;
+      } else {
+        map.set(s.series, {
+          count: 1,
+          description: s.description || `Série : ${s.series}`,
+          coverUrl: s.thumbnailUrl || '',
+        });
+      }
+    }
+    return Array.from(map.entries()).map(([title, info]) => ({
+      id: `series-${title}`,
+      title,
+      description: info.description,
+      count: info.count,
+      coverUrl: info.coverUrl,
+    }));
+  }, [sermons]);
 
   // ── Filter sermons ──────────────────────────────────────────────
   const filteredSermons = useMemo(() => {
@@ -348,6 +266,22 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
 
   const featured = sermons.find((s) => s.isFeatured) ?? sermons[0];
   const gridSermons = filteredSermons.filter((s) => s.id !== featured?.id);
+
+  // ── Loading state ───────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-bg text-cream font-sans">
+        <SiteHeader onNavigate={onNavigate} activePage="predications" />
+        <div className="flex items-center justify-center py-40">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-accent-400" />
+            <p className="text-sm text-muted">Chargement des prédications...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader onNavigate={onNavigate} activePage="predications" />
@@ -377,46 +311,52 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
       </UniversalHero>
 
       {/* ─── FILTER BAR (sticky) ─── */}
-      <section className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
-            {/* Search */}
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Rechercher une prédication..."
-                className="input-surface w-full !rounded-full py-2 pl-10 pr-4 text-sm"
-              />
+      {sermons.length > 0 && (
+        <section className="sticky top-16 z-30 border-b border-line bg-bg/90 backdrop-blur-xl">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
+              {/* Search */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Rechercher une prédication..."
+                  className="input-surface w-full !rounded-full py-2 pl-10 pr-4 text-sm"
+                />
+              </div>
+              {/* Preacher filter */}
+              {preachers.length > 2 && (
+                <div className="relative">
+                  <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
+                  <select
+                    value={selectedPreacher}
+                    onChange={(e) => setSelectedPreacher(e.target.value)}
+                    className="input-surface appearance-none !rounded-full py-2 pl-10 pr-8 text-sm cursor-pointer"
+                  >
+                    {preachers.map((p) => (
+                      <option key={p} value={p} className="bg-navy-900 text-cream">{p}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {/* Series filter */}
+              {seriesList.length > 2 && (
+                <select
+                  value={selectedSeries}
+                  onChange={(e) => setSelectedSeries(e.target.value)}
+                  className="input-surface appearance-none !rounded-full py-2 px-4 text-sm cursor-pointer"
+                >
+                  {seriesList.map((s) => (
+                    <option key={s} value={s} className="bg-navy-900 text-cream">{s}</option>
+                  ))}
+                </select>
+              )}
             </div>
-            {/* Preacher filter */}
-            <div className="relative">
-              <Filter className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted/50" />
-              <select
-                value={selectedPreacher}
-                onChange={(e) => setSelectedPreacher(e.target.value)}
-                className="input-surface appearance-none !rounded-full py-2 pl-10 pr-8 text-sm cursor-pointer"
-              >
-                {PREACHERS.map((p) => (
-                  <option key={p} value={p} className="bg-navy-900 text-cream">{p}</option>
-                ))}
-              </select>
-            </div>
-            {/* Series filter */}
-            <select
-              value={selectedSeries}
-              onChange={(e) => setSelectedSeries(e.target.value)}
-              className="input-surface appearance-none !rounded-full py-2 px-4 text-sm cursor-pointer"
-            >
-              {SERIES_LIST.map((s) => (
-                <option key={s} value={s} className="bg-navy-900 text-cream">{s}</option>
-              ))}
-            </select>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ─── LIENS EXTERNES : YouTube & Facebook ─── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
@@ -487,92 +427,140 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
         </RevealSection>
       </section>
 
-      {/* ─── DERNIÈRES PRÉDICATIONS (liens externes) ─── */}
-      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
-        <RevealSection>
-          <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Dernières prédications</h2>
-        </RevealSection>
-        <div className="space-y-3">
-          {SAMPLE_SERMONS.slice(0, 6).map((sermon, i) => (
-            <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
-              <a
-                href="https://www.youtube.com/@EgliseEvangeliqueLaConquete/videos"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="glass group rounded-2xl flex items-center gap-4 p-4 transition-all duration-200 hover:bg-white/[0.03] cursor-pointer block"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-red-500/20 bg-red-500/10 transition-all group-hover:border-red-500/40 group-hover:bg-red-500/20">
-                  <Play className="ml-0.5 h-5 w-5 text-red-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-serif text-base font-semibold text-cream truncate">{sermon.title}</h3>
-                  <div className="flex items-center gap-3 text-sm text-muted mt-0.5">
-                    <span>{sermon.preacher}</span>
-                    <span className="text-muted/40">·</span>
-                    <span>{new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                </div>
-                {sermon.duration && (
-                  <span className="shrink-0 text-sm text-muted hidden sm:block">{sermon.duration}</span>
-                )}
-                <ArrowRight className="h-4 w-4 text-muted/40 transition-transform group-hover:translate-x-1 group-hover:text-accent-400 shrink-0" />
-              </a>
-            </RevealSection>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── SERIES / COLLECTIONS ─── */}
-      <section className="border-y border-line bg-navy-900/50">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      {/* ─── FEATURED SERMON ─── */}
+      {featured && sermons.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
           <RevealSection>
-            <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Nos séries de prédications</h2>
+            <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Prédication à la une</h2>
           </RevealSection>
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-none">
-            {SAMPLE_SERIES.map((series) => (
-              <SeriesCard key={series.id} series={series} onSelect={setSelectedSeries} />
+          <RevealSection>
+            <SermonCard sermon={featured} />
+          </RevealSection>
+        </section>
+      )}
+
+      {/* ─── ALL SERMONS GRID ─── */}
+      {gridSermons.length > 0 && (
+        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+          <RevealSection>
+            <h2 className="font-serif text-3xl font-semibold text-cream mb-8">
+              {selectedSeries !== 'Toutes' ? `Série : ${selectedSeries}` : 'Toutes les prédications'}
+              <span className="ml-3 text-lg font-normal text-muted">({filteredSermons.length})</span>
+            </h2>
+          </RevealSection>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {gridSermons.map((sermon, i) => (
+              <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
+                <SermonCard sermon={sermon} onNavigate={() => {
+                  if (sermon.videoUrl) {
+                    window.open(sermon.videoUrl, '_blank', 'noopener,noreferrer');
+                  } else if (sermon.audioUrl) {
+                    window.open(sermon.audioUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }} />
+              </RevealSection>
             ))}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* ─── ÉCOUTER LES PLUS RÉCENTES ─── */}
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-        <RevealSection>
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="font-serif text-3xl font-semibold text-cream">Écouter les plus récentes</h2>
-            <button onClick={() => onNavigate('media')} className="flex items-center gap-2 text-sm font-medium text-accent-400 transition-colors hover:text-accent-300">
-              Voir tous les médias
-              <ArrowRight className="h-4 w-4" />
-            </button>
+      {/* ─── EMPTY STATE ─── */}
+      {!loading && sermons.length === 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="glass rounded-3xl p-16 text-center">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-accent-400/10">
+              <BookOpen className="h-10 w-10 text-accent-400/40" />
+            </div>
+            <h3 className="font-serif text-2xl font-semibold text-cream mb-2">Aucune prédication disponible</h3>
+            <p className="text-muted max-w-md mx-auto">
+              Les prédications seront bientôt disponibles. Consultez notre chaîne YouTube en attendant.
+            </p>
+            <a
+              href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent-400 px-6 py-3 text-sm font-bold text-navy-900 transition-all duration-300 hover:bg-accent-300 hover:scale-[1.03]"
+            >
+              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+              Voir sur YouTube
+            </a>
           </div>
-        </RevealSection>
-        <div className="space-y-3">
-          {sermons.slice(0, 5).map((sermon, i) => (
-            <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
-              <div className="glass rounded-2xl flex items-center gap-4 p-4 transition-all duration-200 hover:bg-white/[0.03] group cursor-pointer">
-                {/* Play button */}
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent-400/20 bg-accent-400/10 transition-all group-hover:border-accent-400/40 group-hover:bg-accent-400/20">
-                  <Headphones className="h-5 w-5 text-accent-400" />
-                </div>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-serif text-base font-semibold text-cream truncate">{sermon.title}</h3>
-                  <div className="flex items-center gap-3 text-sm text-muted mt-0.5">
-                    <span>{sermon.preacher}</span>
-                    <span className="text-muted/40">·</span>
-                    <span>{new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                  </div>
-                </div>
-                {/* Duration */}
-                {sermon.duration && (
-                  <span className="shrink-0 text-sm text-muted">{sermon.duration}</span>
-                )}
-              </div>
+        </section>
+      )}
+
+      {/* ─── NO FILTER RESULTS ─── */}
+      {!loading && sermons.length > 0 && filteredSermons.length === 0 && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 text-center">
+          <p className="text-muted">
+            Aucune prédication ne correspond à vos filtres.
+            <button onClick={() => { setSearchQuery(''); setSelectedPreacher('Tous'); setSelectedSeries('Toutes'); }} className="ml-2 text-accent-400 hover:underline">
+              Réinitialiser les filtres
+            </button>
+          </p>
+        </section>
+      )}
+
+      {/* ─── SERIES / COLLECTIONS ─── */}
+      {seriesListForCards.length > 0 && (
+        <section className="border-y border-line bg-navy-900/50">
+          <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <RevealSection>
+              <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Nos séries de prédications</h2>
             </RevealSection>
-          ))}
-        </div>
-      </section>
+            <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-none">
+              {seriesListForCards.map((series) => (
+                <SeriesCard key={series.id} series={series} onSelect={setSelectedSeries} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ─── ÉCOUTER LES PLUS RÉCENTES (audio) ─── */}
+      {sermons.some(s => s.audioUrl) && (
+        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <RevealSection>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="font-serif text-3xl font-semibold text-cream">Écouter les plus récentes</h2>
+              <button onClick={() => onNavigate('media')} className="flex items-center gap-2 text-sm font-medium text-accent-400 transition-colors hover:text-accent-300">
+                Voir tous les médias
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          </RevealSection>
+          <div className="space-y-3">
+            {sermons.filter(s => s.audioUrl).slice(0, 5).map((sermon, i) => (
+              <RevealSection key={sermon.id} className={`reveal-delay-${Math.min(i + 1, 3)}`}>
+                <a
+                  href={sermon.audioUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="glass rounded-2xl flex items-center gap-4 p-4 transition-all duration-200 hover:bg-white/[0.03] group cursor-pointer block"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-accent-400/20 bg-accent-400/10 transition-all group-hover:border-accent-400/40 group-hover:bg-accent-400/20">
+                    <Headphones className="h-5 w-5 text-accent-400" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-serif text-base font-semibold text-cream truncate">{sermon.title}</h3>
+                    <div className="flex items-center gap-3 text-sm text-muted mt-0.5">
+                      <span>{sermon.preacher}</span>
+                      {sermon.date && (
+                        <>
+                          <span className="text-muted/40">·</span>
+                          <span>{new Date(sermon.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  {sermon.duration && (
+                    <span className="shrink-0 text-sm text-muted hidden sm:block">{sermon.duration}</span>
+                  )}
+                </a>
+              </RevealSection>
+            ))}
+          </div>
+        </section>
+      )}
 
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="predications" />

@@ -28,6 +28,7 @@ import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
 import { AudioTab } from '../components/admin/tabs/AudioTab';
 import { GuideTab } from '../components/admin/tabs/GuideTab';
 import { EvangelismTab } from '../components/admin/tabs/EvangelismTab';
+import { PredicationsTab } from '../components/admin/tabs/PredicationsTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
 import type { AdminTab } from '../types';
@@ -120,6 +121,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'live_stream': return <LiveStreamTab />;
       case 'audio': return <AudioTab />;
       case 'evangelism': return <EvangelismTab />;
+      case 'predications': return <PredicationsTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

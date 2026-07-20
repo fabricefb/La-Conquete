@@ -288,7 +288,8 @@ export type AdminTab =
   | 'animations'
   | 'live_stream'
   | 'audio'
-  | 'evangelism';
+  | 'evangelism'
+  | 'predications';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';

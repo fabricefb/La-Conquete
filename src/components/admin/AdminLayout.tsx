@@ -6,7 +6,7 @@ import {
   Image, MessageSquare, Palette, LogOut, ChevronRight,
   Menu, X, Landmark, Crown, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, LayoutGrid, BookOpen, Zap, Radio, MonitorPlay,
+  UserCheck, LayoutGrid, BookOpen, Zap, Radio, MonitorPlay, Headphones,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -36,7 +36,8 @@ const tabGroups: TabGroup[] = [
     title: 'Contenu',
     tabs: [
       { id: 'contents', label: 'Contenus', Icon: FileText },
-      { id: 'audio', label: 'Audio', Icon: Radio },
+      { id: 'predications', label: 'Prédications', Icon: Radio },
+      { id: 'audio', label: 'Audio', Icon: Headphones },
       { id: 'theme', label: 'Thème', Icon: Palette },
       { id: 'animations', label: 'Animations', Icon: Zap },
       { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
