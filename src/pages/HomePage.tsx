@@ -32,6 +32,20 @@ import type { Page } from '../lib/navigation';
 import type { ChurchEvent } from '../types';
 
 /* ═══════════════════════════════════════════════════════════════════
+   Activity Card type (matches activity_cards table)
+   ═══════════════════════════════════════════════════════════════════ */
+interface ActivityCard {
+  id: string;
+  title: string;
+  description: string;
+  icon_name: string;
+  image_url: string;
+  link: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    Constants & defaults
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -174,6 +188,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [liveModalOpen, setLiveModalOpen] = useState(false);
   const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
   const [sectionColors, setSectionColors] = useState<SectionColorMap>({});
+  const [activityCards, setActivityCards] = useState<ActivityCard[]>([]);
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
@@ -181,7 +196,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
     async function loadData() {
       try {
-        const [contents, settings, testimonialData, pastorData, builderData, colorsData, eventData] = await Promise.all([
+        const [contents, settings, testimonialData, pastorData, builderData, colorsData, eventData, activityCardsData] = await Promise.all([
           db.getPageContents('home'),
           db.getSettings(),
           db.getActiveTestimonials(),
@@ -189,6 +204,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
           supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
           db.getEvents().catch(() => []),
+          supabase.from('activity_cards').select('*').eq('is_active', true).order('sort_order'),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
@@ -232,6 +248,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             .sort((a: any, b: any) => (b.role_level ?? 0) - (a.role_level ?? 0)),
         );
         setEvents((eventData || []) as ChurchEvent[]);
+        setActivityCards((activityCardsData?.data || []) as ActivityCard[]);
       } catch {
         // Silently fall back to defaults
       } finally {
@@ -247,6 +264,33 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   /* ── Derived content ─────────────────────────────────────────── */
   const cm = contentMap;
+
+  // Icon name → component mapping for activity cards
+  const iconMap: Record<string, React.FC<{ className?: string }>> = {
+    radio: Radio,
+    calendar: Calendar,
+    users: Users,
+    monitor_play: MonitorPlay,
+    monitorplay: MonitorPlay,
+    newspaper: Newspaper,
+    eye: Eye,
+    crown: Crown,
+    flame: Flame,
+    compass: Compass,
+    heart: Heart,
+    clock: Clock,
+    headphones: Radio,
+  };
+
+  // Fallback cards if Supabase returns nothing
+  const fallbackCards: ActivityCard[] = [
+    { id: 'fb-1', title: 'Prédications', description: '12+ messages', icon_name: 'radio', image_url: DEFAULT_SERMON_IMG, link: 'predications', sort_order: 1, is_active: true },
+    { id: 'fb-2', title: 'Événements', description: 'Prochains événements', icon_name: 'calendar', image_url: DEFAULT_EVENT_IMG, link: 'events', sort_order: 2, is_active: true },
+    { id: 'fb-3', title: 'Ministères', description: '8 départements', icon_name: 'users', image_url: DEFAULT_MINISTRY_IMG, link: 'departments', sort_order: 3, is_active: true },
+    { id: 'fb-4', title: 'Médias', description: 'Vidéos & podcasts', icon_name: 'monitor_play', image_url: DEFAULT_MEDIA_IMG, link: 'media', sort_order: 4, is_active: true },
+    { id: 'fb-5', title: 'Actualités', description: 'Dernières nouvelles', icon_name: 'newspaper', image_url: DEFAULT_NEWS_IMG, link: 'blog', sort_order: 5, is_active: true },
+  ];
+  const displayCards = activityCards.length > 0 ? activityCards : fallbackCards;
 
   // Helper: check if a section is visible via builder config (default: visible)
   const isSectionVisible = (sectionId: string): boolean => {
@@ -397,12 +441,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
      RENDER
      ════════════════════════════════════════════════════════════════ */
   return (
-    <>
+    <div className="min-h-screen">
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="home" />
 
-      {/* ═══════ HERO (full-screen immersive) ═══════ */}
-      <section className="relative h-screen spirit-breath flex items-center justify-center overflow-hidden">
+      {/* ═══════ HERO (full-screen immersive — 100vh, full-width, no gaps) ═══════ */}
+      <section className="relative w-full h-[100vh] m-0 p-0 spirit-breath flex items-center justify-center overflow-hidden" style={{ marginTop: 0 }}>
         {/* Parallax background wrapper */}
         <div
           ref={bgRef}
@@ -414,7 +458,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             heroImages.map((img: string, i: number) => (
               <div
                 key={i}
-                className="absolute inset-[15%] bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
                 style={{
                   backgroundImage: `url(${img})`,
                   opacity: i === heroIndex ? 1 : 0,
@@ -423,7 +467,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             ))
           ) : (
             <div
-              className="absolute inset-[15%] bg-cover bg-center bg-no-repeat"
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImg})` }}
             />
           )}
@@ -476,7 +520,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="particle" style={{ width: 2, height: 2, left: '85%', bottom: -10, animationDuration: '13s', animationDelay: '1.5s' }} />
 
         {/* Hero content */}
-        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-28 pb-20 text-center">
+        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
           {/* Main heading */}
           <div className="animate-fade-up">
             <h1 className="font-headline font-bold leading-tight">
@@ -648,78 +692,49 @@ export function HomePage({ onNavigate }: HomePageProps) {
           </RevealSection>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-            {[
-              {
-                img: DEFAULT_SERMON_IMG,
-                Icon: Radio,
-                title: 'Prédications',
-                stat: '12+ messages',
-                page: 'predications' as Page,
-              },
-              {
-                img: DEFAULT_EVENT_IMG,
-                Icon: Calendar,
-                title: 'Événements',
-                stat: 'Prochains événements',
-                page: 'events' as Page,
-              },
-              {
-                img: DEFAULT_MINISTRY_IMG,
-                Icon: Users,
-                title: 'Ministères',
-                stat: '8 départements',
-                page: 'departments' as Page,
-              },
-              {
-                img: DEFAULT_MEDIA_IMG,
-                Icon: MonitorPlay,
-                title: 'Médias',
-                stat: 'Vidéos & podcasts',
-                page: 'media' as Page,
-              },
-              {
-                img: DEFAULT_NEWS_IMG,
-                Icon: Newspaper,
-                title: 'Actualités',
-                stat: 'Dernières nouvelles',
-                page: 'blog' as Page,
-              },
-            ].map(({ img, Icon, title, stat, page }, i) => (
-              <RevealSection key={title} className={`reveal-delay-${i + 1}`}>
-                <button
-                  onClick={() => onNavigate(page)}
-                  className="group relative w-full overflow-hidden rounded-2xl text-left"
-                >
-                  <img
-                    src={img}
-                    alt={title}
-                    className="blog-img-zoom h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            {displayCards.map((card, i) => {
+              const IconComponent = iconMap[card.icon_name.toLowerCase()] || Eye;
+              const imgUrl = card.image_url || DEFAULT_SERMON_IMG;
+              const navigateTo = card.link || 'activities';
+              return (
+                <RevealSection key={card.id} className={`reveal-delay-${(i % 5) + 1}`}>
+                  <button
+                    onClick={() => onNavigate(navigateTo as Page)}
+                    className="group relative w-full overflow-hidden rounded-2xl text-left"
+                  >
+                    <img
+                      src={imgUrl}
+                      alt={card.title}
+                      className="blog-img-zoom h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
 
-                  {/* Stat badge */}
-                  <div className="absolute right-3 top-3 z-10">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
-                      <Eye className="h-3 w-3" />
-                      {stat}
-                    </span>
-                  </div>
+                    {/* Description badge (was "stat") */}
+                    {card.description && (
+                      <div className="absolute right-3 top-3 z-10">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
+                          <Eye className="h-3 w-3" />
+                          {card.description}
+                        </span>
+                      </div>
+                    )}
 
-                  {/* Bottom content */}
-                  <div className="absolute bottom-0 left-0 right-0 p-5">
-                    <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/20 text-accent-400">
-                      <Icon className="h-5 w-5" />
+                    {/* Bottom content */}
+                    <div className="absolute bottom-0 left-0 right-0 p-5">
+                      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/20 text-accent-400">
+                        <IconComponent className="h-5 w-5" />
+                      </div>
+                      <h3 className="font-serif text-lg font-semibold text-white">{card.title}</h3>
+                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+                        <span>Découvrir</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
+                      </div>
                     </div>
-                    <h3 className="font-serif text-lg font-semibold text-white">{title}</h3>
-                    <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
-                      <span>Découvrir</span>
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </div>
-                  </div>
-                </button>
-              </RevealSection>
-            ))}
+                  </button>
+                </RevealSection>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -916,6 +931,6 @@ export function HomePage({ onNavigate }: HomePageProps) {
         open={liveModalOpen}
         onClose={() => setLiveModalOpen(false)}
       />
-    </>
+    </div>
   );
 }
