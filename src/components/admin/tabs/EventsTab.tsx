@@ -19,8 +19,6 @@ interface Event {
   location: string;
   is_live: boolean;
   is_featured: boolean;
-  youtube_url: string;
-  facebook_url: string;
   created_at: string;
 }
 
@@ -44,8 +42,6 @@ const EMPTY_FORM: EventFormData = {
   location: '',
   is_live: false,
   is_featured: false,
-  youtube_url: '',
-  facebook_url: '',
 };
 
 const CATEGORIES = ['Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'] as const;
@@ -197,8 +193,6 @@ export function EventsTab() {
       location: event.location,
       is_live: event.is_live,
       is_featured: event.is_featured,
-      youtube_url: event.youtube_url || '',
-      facebook_url: event.facebook_url || '',
     });
     setFormOpen(true);
   };
@@ -226,8 +220,6 @@ export function EventsTab() {
       ...form,
       event_date: new Date(form.event_date).toISOString(),
       image_url: form.image_url?.trim() || null,
-      youtube_url: form.youtube_url?.trim() || null,
-      facebook_url: form.facebook_url?.trim() || null,
     };
 
     try {
@@ -318,20 +310,6 @@ export function EventsTab() {
             <div>
               <label className="mb-1.5 block text-xs font-medium text-muted">Lieu <span className="text-red-400">*</span></label>
               <input type="text" value={form.location} onChange={(e) => handleField('location', e.target.value)} placeholder="Adresse ou salle" className="input-surface w-full px-4 py-2.5 text-sm" />
-            </div>
-
-            {/* YouTube / Facebook links */}
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted flex items-center gap-1.5">
-                <Youtube className="h-3.5 w-3.5 text-red-400" /> Lien YouTube
-              </label>
-              <input type="url" value={form.youtube_url} onChange={(e) => handleField('youtube_url', e.target.value)} placeholder="https://youtube.com/watch?v=..." className="input-surface w-full px-4 py-2.5 text-sm" />
-            </div>
-            <div>
-              <label className="mb-1.5 block text-xs font-medium text-muted flex items-center gap-1.5">
-                <Facebook className="h-3.5 w-3.5 text-blue-400" /> Lien Facebook
-              </label>
-              <input type="url" value={form.facebook_url} onChange={(e) => handleField('facebook_url', e.target.value)} placeholder="https://facebook.com/..." className="input-surface w-full px-4 py-2.5 text-sm" />
             </div>
 
             <div className="md:col-span-2">
