@@ -645,20 +645,43 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
           </button>
 
           {/* RIGHT: Desktop Navigation + Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <nav className="hidden items-center gap-0.5 xl:flex">
               {NAV_ITEMS.map(renderDesktopItem)}
             </nav>
 
-            <div className="hidden sm:block w-px h-6 bg-line/50 mx-1" />
+            <div className="hidden lg:block w-px h-6 bg-line/50 mx-0.5" />
 
             <ThemeToggle theme={colorMode} onToggle={toggleColorMode} className="hidden sm:flex" />
+
+            {/* Mobile: compact connexion icon always visible */}
             {user && profile ? (
-              <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} />
+              <button
+                onClick={() => handleNav('dashboard')}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 lg:hidden"
+                aria-label="Mon profil"
+              >
+                <User className="h-4 w-4" />
+              </button>
             ) : (
               <button
                 onClick={() => handleNav('connexion')}
-                className="flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 lg:flex"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 lg:hidden"
+                aria-label="Connexion"
+              >
+                <LogIn className="h-4 w-4" />
+              </button>
+            )}
+
+            {/* Desktop: full connexion button or user menu (lg+) */}
+            {user && profile ? (
+              <div className="hidden lg:block">
+                <DesktopUserMenu profile={profile} onNavigate={handleNav} onSignOut={signOut} />
+              </div>
+            ) : (
+              <button
+                onClick={() => handleNav('connexion')}
+                className="hidden lg:flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden xl:inline">Connexion</span>
