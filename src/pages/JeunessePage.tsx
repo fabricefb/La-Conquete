@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
@@ -8,9 +8,10 @@ import { IconBox } from '../components/IconBox';
 import { Music, BookOpen, Heart, Users } from '../lib/icons';
 import { PartyPopper, Dumbbell, Gamepad2 } from 'lucide-react';
 import type { Page } from '../lib/navigation';
+import { db, buildContentMap, getContent } from '../lib/supabase';
 
-// ─── Data ─────────────────────────────────────────────────────────
-const ACTIVITIES = [
+// ─── Fallback Data ──────────────────────────────────────────────
+const FALLBACK_ACTIVITIES = [
   { Icon: Music, title: 'Louange Jeunesse', desc: 'Un moment de louange dynamique et authentique chaque jeudi.' },
   { Icon: BookOpen, title: 'Étude biblique', desc: 'Enseignement de la Parole adapté aux réalités des jeunes.' },
   { Icon: PartyPopper, title: 'Événements spéciaux', desc: 'Concerts, conférences, sorties et journées thématiques.' },
@@ -19,7 +20,7 @@ const ACTIVITIES = [
   { Icon: Heart, title: 'Impact social', desc: 'Actions caritatives et visites dans la communauté.' },
 ] as const;
 
-const PROGRAM = [
+const FALLBACK_PROGRAM = [
   { date: 'Jeudi 18h00', title: 'Réunion hebdomadaire', desc: 'Louange, enseignement et partage en petits groupes.' },
   { date: 'Samedi 14h00', title: 'Formation leadership', desc: 'Module de formation pour les jeunes leaders de demain.' },
   { date: '1er Dimanche', title: 'Culte jeunesse', desc: 'Culte dédié avec une prédication adaptée aux jeunes.' },
@@ -31,7 +32,7 @@ const GALLERY = [
   '/predication-1.jpg', '/priere.jpg', '/bible.jpg',
 ] as const;
 
-const TESTIMONIALS = [
+const FALLBACK_TESTIMONIALS = [
   { name: 'Grace M.', text: 'Le ministère de la jeunesse m\'a permis de trouver ma place dans l\'église et de grandir dans ma foi.' },
   { name: 'Joël K.', text: 'Grâce aux formations, j\'ai découvert mon appel et je sers maintenant avec assurance.' },
 ] as const;
@@ -39,6 +40,15 @@ const TESTIMONIALS = [
 // ─── Component ─────────────────────────────────────────────────────
 export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
+  const [cm, setCm] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    db.getPageContents('jeunesse')
+      .then(contents => setCm(buildContentMap(contents)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -48,6 +58,34 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-bg min-h-screen flex items-center justify-center">
+        <div className="text-muted animate-pulse text-lg">Chargement…</div>
+      </div>
+    );
+  }
+
+  const activities = FALLBACK_ACTIVITIES.map((a, i) => ({
+    ...a,
+    title: getContent(cm, 'activities', `title_${i + 1}`, a.title),
+    desc: getContent(cm, 'activities', `desc_${i + 1}`, a.desc),
+  }));
+
+  const program = FALLBACK_PROGRAM.map((p, i) => ({
+    ...p,
+    title: getContent(cm, 'program', `title_${i + 1}`, p.title),
+    desc: getContent(cm, 'program', `desc_${i + 1}`, p.desc),
+  }));
+
+  const testimonials = FALLBACK_TESTIMONIALS.map((t, i) => ({
+    ...t,
+    name: getContent(cm, 'testimonials', `name_${i + 1}`, t.name),
+    text: getContent(cm, 'testimonials', `text_${i + 1}`, t.text),
+  }));
+
+  const introText = getContent(cm, 'intro', 'text', "Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className=\"text-accent-400 font-semibold\">présent</span>.");
 
   return (
     <div className="bg-bg min-h-screen">
@@ -62,9 +100,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
         <div className="mx-auto max-w-4xl text-center">
           <p className="reveal section-label justify-center">À propos</p>
           <h2 className="reveal reveal-delay-1 mt-4 font-serif text-3xl font-semibold text-cream sm:text-4xl">Qui sommes-nous ?</h2>
-          <p className="reveal reveal-delay-2 mt-6 text-base leading-relaxed text-muted sm:text-lg">
-            Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className="text-accent-400 font-semibold">présent</span>.
-          </p>
+          <p className="reveal reveal-delay-2 mt-6 text-base leading-relaxed text-muted sm:text-lg" dangerouslySetInnerHTML={{ __html: introText }} />
         </div>
       </section>
 
@@ -74,7 +110,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <p className="reveal section-label mb-3 text-center">Ce que nous faisons</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Nos Activités</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {ACTIVITIES.map((a, i) => (
+            {activities.map((a, i) => (
               <div key={a.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card card-parallax rounded-2xl p-6 transition-all duration-300`}>
                 <IconBox pageKey="jeunesse" elementId={`activity-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-accent-400/10 text-accent-400">
                   <a.Icon className="h-6 w-6" />
@@ -93,7 +129,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <p className="reveal section-label mb-3 text-center">Calendrier</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Programme</h2>
           <div className="space-y-4">
-            {PROGRAM.map((p, i) => (
+            {program.map((p, i) => (
               <div key={p.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-5 flex items-start gap-4 transition-all duration-300 hover:scale-[1.01]`}>
                 <div className="flex-shrink-0 rounded-xl bg-accent-400/10 px-3 py-1.5 text-center">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-accent-400">{p.date}</p>
@@ -129,7 +165,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <p className="reveal section-label mb-3 text-center">Ils témoignent</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Témoignages</h2>
           <div className="grid gap-6 sm:grid-cols-2">
-            {TESTIMONIALS.map((t, i) => (
+            {testimonials.map((t, i) => (
               <div key={t.name} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6`}>
                 <div className="mb-3 flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-400/10 text-accent-400 font-bold text-sm">

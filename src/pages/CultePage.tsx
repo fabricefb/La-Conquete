@@ -8,9 +8,10 @@ import { Clock, MonitorPlay, Navigation, Phone } from '../lib/icons';
 import { Car, Bus, Baby } from 'lucide-react';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
+import { supabase, db, buildContentMap, getContent } from '../lib/supabase';
 
-// ─── Data ─────────────────────────────────────────────────────────
-const SCHEDULES = [
+// ─── Fallback Data ──────────────────────────────────────────────
+const FALLBACK_SCHEDULES = [
   { day: 'Dimanche', time: '09h00', label: 'Culte du matin', desc: 'Louange, adoration et prédication' },
   { day: 'Dimanche', time: '11h00', label: 'Culte principal', desc: 'Enseignement approfondi et ministère' },
   { day: 'Mercredi', time: '18h00', label: 'Étude biblique', desc: 'Enseignement de la Parole pour tous' },
@@ -28,6 +29,29 @@ const PRACTICALS = [
 export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [isLive, setIsLive] = useState(false);
+  const [schedules, setSchedules] = useState(FALLBACK_SCHEDULES);
+  const [cm, setCm] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      supabase.from('worship_schedules').select('*').eq('is_active', true).order('sort_order'),
+      db.getPageContents('culte'),
+    ])
+      .then(([schedRes, contents]) => {
+        if (schedRes.data && schedRes.data.length > 0) {
+          setSchedules(schedRes.data.map((s: any) => ({
+            day: s.day ?? '',
+            time: s.time ?? '',
+            label: s.label ?? '',
+            desc: s.description ?? '',
+          })));
+        }
+        setCm(buildContentMap(contents));
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     // Simulated live check — replace with real API
@@ -43,6 +67,16 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
     return () => obs.disconnect();
   }, []);
 
+  const liveUrl = getContent(cm, 'culte', 'live_url', '');
+
+  if (loading) {
+    return (
+      <div className="bg-bg min-h-screen flex items-center justify-center">
+        <div className="text-muted animate-pulse text-lg">Chargement…</div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-bg min-h-screen">
       <SiteHeader activePage="culte" onNavigate={onNavigate} />
@@ -57,7 +91,7 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           <p className="reveal section-label mb-3 text-center">Programme hebdomadaire</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Horaires des Cultes</h2>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {SCHEDULES.map((s, i) => (
+            {schedules.map((s, i) => (
               <div key={i} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.03]`}>
                 <IconBox pageKey="culte" elementId={`schedule-clock-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                   <Clock className="h-5 w-5" />
@@ -85,13 +119,25 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           </div>
           <h2 className="reveal reveal-delay-1 mb-8 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Live Streaming</h2>
           <div className="reveal reveal-delay-2 glass-card rounded-2xl overflow-hidden">
-            <div className="relative aspect-video bg-conquete-700/60 flex items-center justify-center">
-              <div className="text-center">
-                <MonitorPlay className="mx-auto mb-3 h-12 w-12 text-accent-400/60" />
-                <p className="text-sm text-muted">Le direct sera disponible pendant les cultes</p>
-                <p className="mt-1 text-xs text-muted/60">Dimanche 09h00 & 11h00</p>
+            {liveUrl ? (
+              <div className="relative aspect-video">
+                <iframe
+                  src={liveUrl}
+                  className="h-full w-full border-0"
+                  allowFullScreen
+                  allow="autoplay; encrypted-media"
+                  title="Live streaming"
+                />
               </div>
-            </div>
+            ) : (
+              <div className="relative aspect-video bg-conquete-700/60 flex items-center justify-center">
+                <div className="text-center">
+                  <MonitorPlay className="mx-auto mb-3 h-12 w-12 text-accent-400/60" />
+                  <p className="text-sm text-muted">Le direct sera disponible pendant les cultes</p>
+                  <p className="mt-1 text-xs text-muted/60">Dimanche 09h00 & 11h00</p>
+                </div>
+              </div>
+            )}
           </div>
           <p className="reveal mt-4 text-center text-xs text-muted/60">
             Rejoignez-nous sur{' '}

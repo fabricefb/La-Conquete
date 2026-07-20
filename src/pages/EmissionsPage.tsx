@@ -8,6 +8,7 @@ import { Radio, Play, Clock, ArrowRight, Star, Send, Mail, CheckCircle } from '.
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 import { UniversalHero } from '../components/UniversalHero';
+import { supabase } from '../lib/supabase';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -274,19 +275,40 @@ function CountdownDisplay({ targetDate }: { targetDate: string }) {
 export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [emissions, setEmissions] = useState<Emission[]>(SAMPLE_EMISSIONS);
+  const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
 
-  // ── Attempt YouTube fetch on mount ──────────────────────────────
+  // ── Attempt Supabase → YouTube fetch on mount ──────────────────
   useEffect(() => {
     let cancelled = false;
     async function load() {
       try {
+        // 1) Try Supabase first
+        const { data, error } = await supabase
+          .from('emissions')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order');
+
+        if (!cancelled && data && data.length > 0) {
+          setEmissions(data as Emission[]);
+          setLoading(false);
+          return;
+        }
+        if (error) console.warn('Emissions Supabase fetch error:', error.message);
+
+        // 2) Fallback to YouTube API
         const ytVideos = await fetchYoutubeVideos();
         if (!cancelled && ytVideos.length > 0) {
           setEmissions(ytVideos);
         }
-      } catch { /* keep sample data */ }
+        // 3) If both empty, SAMPLE_EMISSIONS remains (set as initial state)
+      } catch {
+        // keep sample data
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     }
     load();
     return () => { cancelled = true; };
@@ -348,40 +370,63 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
         <RevealSection>
           <h2 className="font-serif text-3xl font-semibold text-cream mb-8">Toutes nos émissions</h2>
         </RevealSection>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {grid.map((emission, i) => (
-            <RevealSection key={emission.id} className={`reveal-delay-${(i % 3) + 1}`}>
-              <div className="glass rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] group h-full">
-                {/* Thumbnail */}
-                <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-navy-800 to-black">
-                  {emission.thumbnailUrl ? (
-                    <img src={emission.thumbnailUrl} alt={emission.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06),transparent_70%)]">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full border border-accent-400/20 bg-accent-400/10 transition-transform group-hover:scale-110">
-                        <Play className="ml-0.5 h-5 w-5 text-accent-400" />
-                      </div>
-                    </div>
-                  )}
-                  {/* Badges */}
-                  <div className="absolute top-3 left-3 flex flex-wrap gap-2">
-                    <PlatformBadge platform={emission.platform} />
-                    {emission.isLive && <LiveBadge />}
-                  </div>
-                </div>
-                {/* Info */}
-                <div className="flex flex-col gap-2 p-5 flex-1">
-                  <h3 className="font-serif text-lg font-semibold text-cream leading-snug">{emission.title}</h3>
-                  <p className="text-sm text-muted line-clamp-2 flex-1">{emission.description}</p>
-                  <div className="mt-2 flex items-center gap-2 text-sm text-muted">
-                    <Clock className="h-4 w-4 text-accent-400" />
-                    <span>{emission.schedule}</span>
-                  </div>
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="glass rounded-3xl overflow-hidden animate-pulse">
+                <div className="aspect-video bg-white/5" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 w-2/3 rounded bg-white/5" />
+                  <div className="h-3 w-full rounded bg-white/5" />
+                  <div className="h-3 w-1/2 rounded bg-white/5" />
                 </div>
               </div>
-            </RevealSection>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : grid.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <IconBox pageKey="emissions" elementId="radio-icon" className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent-400/10">
+              <Radio className="h-7 w-7 text-accent-500" />
+            </IconBox>
+            <p className="mt-4 text-lg font-semibold text-cream">Aucune émission</p>
+            <p className="mt-1 text-sm text-muted">Il n'y a pas d'émissions disponibles pour le moment.</p>
+          </div>
+        ) : (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {grid.map((emission, i) => (
+              <RevealSection key={emission.id} className={`reveal-delay-${(i % 3) + 1}`}>
+                <div className="glass rounded-3xl overflow-hidden flex flex-col transition-all duration-300 hover:scale-[1.02] group h-full">
+                  {/* Thumbnail */}
+                  <div className="relative aspect-video overflow-hidden bg-gradient-to-br from-navy-800 to-black">
+                    {emission.thumbnailUrl ? (
+                      <img src={emission.thumbnailUrl} alt={emission.title} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.06),transparent_70%)]">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full border border-accent-400/20 bg-accent-400/10 transition-transform group-hover:scale-110">
+                          <Play className="ml-0.5 h-5 w-5 text-accent-400" />
+                        </div>
+                      </div>
+                    )}
+                    {/* Badges */}
+                    <div className="absolute top-3 left-3 flex flex-wrap gap-2">
+                      <PlatformBadge platform={emission.platform} />
+                      {emission.isLive && <LiveBadge />}
+                    </div>
+                  </div>
+                  {/* Info */}
+                  <div className="flex flex-col gap-2 p-5 flex-1">
+                    <h3 className="font-serif text-lg font-semibold text-cream leading-snug">{emission.title}</h3>
+                    <p className="text-sm text-muted line-clamp-2 flex-1">{emission.description}</p>
+                    <div className="mt-2 flex items-center gap-2 text-sm text-muted">
+                      <Clock className="h-4 w-4 text-accent-400" />
+                      <span>{emission.schedule}</span>
+                    </div>
+                  </div>
+                </div>
+              </RevealSection>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ─── PROCHAIN DIRECT ─── */}

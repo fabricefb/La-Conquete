@@ -7,6 +7,7 @@ import {
   Menu, X, Landmark, Crown, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
   UserCheck, LayoutGrid, BookOpen, Zap, Radio, MonitorPlay, Headphones,
+  Megaphone, Tv, ScrollText,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -42,6 +43,9 @@ const tabGroups: TabGroup[] = [
       { id: 'animations', label: 'Animations', Icon: Zap },
       { id: 'testimonials', label: 'Témoignages', Icon: MessageSquare },
       { id: 'messages', label: 'Messages', Icon: MessageSquare },
+      { id: 'annonces', label: 'Annonces', Icon: Megaphone },
+      { id: 'communiques', label: 'Communiqués', Icon: ScrollText },
+      { id: 'emissions', label: 'Émissions', Icon: Tv },
     ],
   },
   {

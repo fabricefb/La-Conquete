@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
@@ -7,15 +7,16 @@ import { MobileNav } from '../components/MobileNav';
 import { Cross, Users, Send, Flame, Star, Heart, Shield, BookOpen, Crown, ArrowRight } from '../lib/icons';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
+import { db, buildContentMap, getContent } from '../lib/supabase';
 
-// ─── Data ─────────────────────────────────────────────────────────
-const MISSION = [
+// ─── Fallback Data ──────────────────────────────────────────────
+const FALLBACK_MISSION = [
   { Icon: Cross, title: 'Adorer', desc: 'Cultiver une vie d\'adoration authentique en esprit et en vérité, individuelle et communautaire.' },
   { Icon: BookOpen, title: 'Équiper', desc: 'Former et discipler chaque croyant afin qu\'il devienne un disciple mature et productif.' },
   { Icon: Send, title: 'Envoyer', desc: 'Dépêcher des hommes et des femmes transformés pour impacter les nations avec l\'Évangile.' },
 ] as const;
 
-const VALUES = [
+const FALLBACK_VALUES = [
   { Icon: Flame, title: 'Foi', desc: 'Nous croyons que rien n\'est impossible à celui qui croit.' },
   { Icon: Star, title: 'Excellence', desc: 'Nous servons Dieu avec le meilleur de nous-mêmes.' },
   { Icon: Users, title: 'Unité', desc: 'L\'unité est notre force — un seul corps, un seul Esprit.' },
@@ -24,7 +25,7 @@ const VALUES = [
   { Icon: Heart, title: 'Amour', desc: 'L\'amour de Christ est le fondement de tout ce que nous faisons.' },
 ] as const;
 
-const TIMELINE = [
+const FALLBACK_TIMELINE = [
   { year: '2010', event: 'Fondation de l\'Église Évangélique La Conquête par le Pst Josué Romain KAZADI.' },
   { year: '2013', event: 'Première campagne d\'évangélisation de quartier avec plus de 200 personnes touchées.' },
   { year: '2016', event: 'Ouverture du département Jeunesse et lancement des cellules de maison.' },
@@ -36,6 +37,15 @@ const TIMELINE = [
 // ─── Component ─────────────────────────────────────────────────────
 export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
+  const [cm, setCm] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    db.getPageContents('vision')
+      .then(contents => setCm(buildContentMap(contents)))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -45,6 +55,31 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     return () => obs.disconnect();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-bg min-h-screen flex items-center justify-center">
+        <div className="text-muted animate-pulse text-lg">Chargement…</div>
+      </div>
+    );
+  }
+
+  const mission = FALLBACK_MISSION.map((m, i) => ({
+    ...m,
+    title: getContent(cm, 'mission', `title_${i + 1}`, m.title),
+    desc: getContent(cm, 'mission', `desc_${i + 1}`, m.desc),
+  }));
+
+  const values = FALLBACK_VALUES.map((v, i) => ({
+    ...v,
+    title: getContent(cm, 'values', `title_${i + 1}`, v.title),
+    desc: getContent(cm, 'values', `desc_${i + 1}`, v.desc),
+  }));
+
+  const timeline = FALLBACK_TIMELINE.map((t, i) => ({
+    year: getContent(cm, 'timeline', `year_${i + 1}`, t.year),
+    event: getContent(cm, 'timeline', `event_${i + 1}`, t.event),
+  }));
 
   return (
     <div className="bg-bg min-h-screen">
@@ -63,7 +98,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
             <span className="brand-text">Conquête</span> des terres habitables et cultivables.
           </h2>
           <p className="reveal reveal-delay-2 mt-6 text-base leading-relaxed text-muted sm:text-lg max-w-3xl mx-auto">
-            Notre vision est ancrée dans la Parole de Dieu. Nous croyons que chaque âme a une valeur éternelle et que chaque terrain de vie peut être transformé par la puissance de l'Évangile.
+            {getContent(cm, 'vision', 'text', 'Notre vision est ancrée dans la Parole de Dieu. Nous croyons que chaque âme a une valeur éternelle et que chaque terrain de vie peut être transformé par la puissance de l\'Évangile.')}
           </p>
         </div>
       </section>
@@ -76,7 +111,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
             Trois piliers pour un seul but
           </h2>
           <div className="grid gap-8 sm:grid-cols-3">
-            {MISSION.map((m, i) => (
+            {mission.map((m, i) => (
               <div key={m.title} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-8 text-center transition-all duration-300 hover:scale-[1.03]`}>
                 <IconBox pageKey="vision" elementId={`mission-icon-${i}`} className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
                   <m.Icon className="h-7 w-7" />
@@ -95,7 +130,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
           <p className="reveal section-label mb-3 text-center">Ce qui nous guide</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Nos Valeurs</h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {VALUES.map((v, i) => (
+            {values.map((v, i) => (
               <div key={v.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]`}>
                 <IconBox pageKey="vision" elementId={`values-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
                   <v.Icon className="h-5 w-5" />
@@ -124,7 +159,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
           <p className="reveal section-label mb-3 text-center">Notre parcours</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Notre Histoire</h2>
           <div className="relative border-l-2 border-accent-400/20 pl-8 space-y-10">
-            {TIMELINE.map((t, i) => (
+            {timeline.map((t, i) => (
               <div key={t.year} className={`reveal reveal-delay-${(i % 4) + 1} relative`}>
                 <div className="absolute -left-[41px] top-1 h-4 w-4 rounded-full border-2 border-evangile-600 bg-bg" />
                 <p className="text-xs font-bold uppercase tracking-widest text-accent-400">{t.year}</p>

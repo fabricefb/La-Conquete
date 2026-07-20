@@ -29,6 +29,9 @@ import { AudioTab } from '../components/admin/tabs/AudioTab';
 import { GuideTab } from '../components/admin/tabs/GuideTab';
 import { EvangelismTab } from '../components/admin/tabs/EvangelismTab';
 import { PredicationsTab } from '../components/admin/tabs/PredicationsTab';
+import { AnnoncesTab } from '../components/admin/tabs/AnnoncesTab';
+import { CommuniquesTab } from '../components/admin/tabs/CommuniquesTab';
+import { EmissionsTab } from '../components/admin/tabs/EmissionsTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
 import type { AdminTab } from '../types';
@@ -122,6 +125,9 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'audio': return <AudioTab />;
       case 'evangelism': return <EvangelismTab />;
       case 'predications': return <PredicationsTab />;
+      case 'annonces': return <AnnoncesTab />;
+      case 'communiques': return <CommuniquesTab />;
+      case 'emissions': return <EmissionsTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

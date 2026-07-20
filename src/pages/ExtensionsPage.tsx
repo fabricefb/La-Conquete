@@ -1,12 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Clock, Users, Calendar, ChevronDown, Image, Building2, Facebook, MonitorPlay, Mail } from '../lib/icons';
 import { UniversalHero } from '../components/UniversalHero';
 import type { Page } from '../lib/navigation';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { supabase } from '../lib/supabase';
 
-/* ─── Mock data (à remplacer par Supabase) ─────────────────────── */
+/* ─── Types ────────────────────────────────────────────────────── */
 
 interface ExtensionPastor {
   name: string;
@@ -14,6 +15,7 @@ interface ExtensionPastor {
   photo: string;
   bio?: string;
   social_links?: Record<string, string>;
+  extension?: string;
 }
 
 interface Extension {
@@ -28,7 +30,9 @@ interface Extension {
   program: { day: string; time: string; label: string }[];
 }
 
-const EXTENSIONS: Extension[] = [
+/* ─── Fallback Data ────────────────────────────────────────────── */
+
+const FALLBACK_EXTENSIONS: Extension[] = [
   {
     id: 'ext-1',
     name: 'La Conquête — Matonge',
@@ -104,6 +108,36 @@ const EXTENSIONS: Extension[] = [
     ],
   },
 ];
+
+/* ─── Map DB row → Extension ─────────────────────────────────── */
+
+function mapDbToExtension(row: Record<string, any>): Extension {
+  const photo = row.image_url || '';
+  const fallbackPhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(row.pastor_name || 'Pasteur')}&background=0F2147&color=F87171&size=200`;
+  return {
+    id: row.id,
+    name: row.name || '',
+    city: row.city || '',
+    address: row.address || '',
+    description: row.description || '',
+    pastors: [
+      {
+        name: row.pastor_name || '',
+        role: row.pastor_role || '',
+        photo: row.pastor_photo || fallbackPhoto,
+      },
+    ],
+    activities: row.schedule
+      ? [{ title: 'Programme', schedule: row.schedule, description: row.contact || '' }]
+      : [],
+    photos: photo
+      ? [photo]
+      : ['https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=600&h=400&fit=crop'],
+    program: row.schedule
+      ? [{ day: 'Dimanche', time: row.schedule, label: 'Culte' }]
+      : [],
+  };
+}
 
 /* ─── Accordion Section ─────────────────────────────────────────── */
 
@@ -329,8 +363,34 @@ interface ExtensionsPageProps {
 }
 
 export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
+  const [extensions, setExtensions] = useState<Extension[]>(FALLBACK_EXTENSIONS);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from('extensions')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setExtensions(data.map(mapDbToExtension));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-bg min-h-screen flex items-center justify-center">
+        <div className="text-muted animate-pulse text-lg">Chargement…</div>
+      </div>
+    );
+  }
+
   // Collect all extension pastors
-  const allExtensionPastors = EXTENSIONS.flatMap(ext =>
+  const allExtensionPastors = extensions.flatMap(ext =>
     ext.pastors.map(p => ({ ...p, extension: ext.name }))
   );
 
@@ -345,7 +405,7 @@ export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
         {/* Extensions Grid */}
         <section className="mx-auto max-w-5xl px-4 pb-24">
           <div className="grid gap-8 md:grid-cols-1 lg:grid-cols-2">
-            {EXTENSIONS.map((ext, i) => (
+            {extensions.map((ext, i) => (
               <ExtensionCard key={ext.id} ext={ext} index={i} />
             ))}
           </div>
