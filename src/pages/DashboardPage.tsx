@@ -253,7 +253,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           .select('department_id, position_id, is_active')
           .eq('user_id', userId);
         if (dmError) console.error('[DASHBOARD] dept_members query error:', dmError);
-        console.log('[DASHBOARD] dept_members for user', userId, ':', deptMembers?.length ?? 0, 'rows');
 
         // Récupérer les infos départements et positions séparément
         let deptMap: Record<string, any> = {};
@@ -300,17 +299,14 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         // ── Auto-réparation : demandes acceptées sans department_members actif ──
         if (userDepts.length === 0) {
           try {
-            console.log('[DASHBOARD] Aucun dept actif trouvé, démarrage auto-réparation...');
             const { data: acceptedReqs, error: reqErr } = await supabase
               .from('department_requests')
               .select('id, department_id, status')
               .eq('user_id', userId)
               .in('status', ['accepte', 'accepted', 'approuve', 'approved']);
-            console.log('[DASHBOARD] demandes acceptées:', acceptedReqs, 'erreur:', reqErr);
 
             if (acceptedReqs && acceptedReqs.length > 0) {
               for (const req of acceptedReqs) {
-                console.log('[DASHBOARD] Réparation pour dept', req.department_id);
                 // Stratégie 1: upsert
                 const r1 = await supabase.from('department_members').upsert({
                   user_id: userId,
@@ -318,7 +314,6 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   role_in_dept: 'member',
                   is_active: true,
                 }, { onConflict: 'user_id,department_id' });
-                console.log('[DASHBOARD] upsert résultat:', r1.error ? 'ÉCHEC: ' + r1.error.message : 'OK');
 
                 if (r1.error) {
                   // Stratégie 2: insert simple
@@ -328,14 +323,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     role_in_dept: 'member',
                     is_active: true,
                   });
-                  console.log('[DASHBOARD] insert résultat:', r2.error ? 'ÉCHEC: ' + r2.error.message : 'OK');
                   if (r2.error) {
                     // Stratégie 3: forcer is_active = true
                     const r3 = await supabase.from('department_members')
                       .update({ is_active: true })
                       .eq('user_id', userId)
                       .eq('department_id', req.department_id);
-                    console.log('[DASHBOARD] update résultat:', r3.error ? 'ÉCHEC: ' + r3.error.message : 'OK');
                   }
                 }
               }
@@ -345,9 +338,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 .from('department_members')
                 .select('department_id, position_id, is_active')
                 .eq('user_id', userId);
-              console.log('[DASHBOARD] re-fetch après réparation:', repairedDepts?.length ?? 0, 'rows, err:', repErr);
               const activeRepaired = (repairedDepts || []).filter((dm: any) => dm.is_active !== false);
-              console.log('[DASHBOARD] actifs après réparation:', activeRepaired.length);
               if (activeRepaired.length > 0) {
                 const rDeptIds = [...new Set(activeRepaired.map((d: any) => d.department_id))];
                 const rPosIds = [...new Set(activeRepaired.map((d: any) => d.position_id).filter(Boolean))];
@@ -364,13 +355,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   accent_color: rDeptMap[dm.department_id]?.accent_color || 'gold',
                   icon_name: rDeptMap[dm.department_id]?.icon_name || 'Star',
                 }));
-                console.log('[DASHBOARD] RÉPARATION RÉUSSIE, départements:', repairedUserDepts.map(d => d.department_name));
                 setDepartments(repairedUserDepts);
               } else {
                 console.error('[DASHBOARD] RÉPARATION ÉCHOUÉE — aucun membre actif trouvé après toutes les tentatives');
 
                 // ── FILET DE SÉCURITÉ : utiliser directement les demandes acceptées ──
-                console.log('[DASHBOARD] Filet de sécurité : construction des départements depuis les demandes acceptées...');
                 const fbDeptIds = [...new Set(acceptedReqs.map((r: any) => r.department_id))];
                 const { data: fbDepts } = await supabase
                   .from('departments')
@@ -384,14 +373,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     accent_color: d.accent_color || 'gold',
                     icon_name: d.icon_name || 'Star',
                   }));
-                  console.log('[DASHBOARD] Filet de sécurité OK — départements:', fallbackDepts.map(d => d.department_name));
                   setDepartments(fallbackDepts);
                 } else {
                   console.error('[DASHBOARD] Filet de sécurité échoué aussi — départements introuvables pour IDs:', fbDeptIds);
                 }
               }
             } else {
-              console.log('[DASHBOARD] Aucune demande acceptée trouvée pour cet utilisateur');
             }
           } catch (repairErr) {
             console.error('[DASHBOARD] Exception pendant auto-réparation:', repairErr);

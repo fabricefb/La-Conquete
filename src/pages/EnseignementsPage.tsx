@@ -66,8 +66,9 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
       try {
         const { data } = await supabase.from('contents').select('*').eq('type', 'enseignement').order('created_at', { ascending: false }).limit(20);
         if (!cancelled && data && data.length > 0) {
-          setItems(data.map((d: Record<string, string>) => ({
+          setItems(data.map((d: any) => ({
             id: d.id, title: d.title || d.value || '', speaker: d.speaker || '', date: d.created_at, category: d.category || 'Enseignement', description: d.description || d.value || '',
+            audioUrl: d.audio_url || '', pdfUrl: d.pdf_url || '',
           })));
         } else {
           if (!cancelled) setItems(FALLBACK);

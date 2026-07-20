@@ -14,15 +14,13 @@ function UserPendingCounts({ userId }: { userId: string }) {
     let cancelled = false;
     async function load() {
       try {
-        const [prayers, visits, deptReqs, contactMsgs] = await Promise.all([
+        const [prayers, visits, deptReqs] = await Promise.all([
           supabase.from('prayer_requests').select('id', { count: 'exact', head: true })
             .eq('user_id', userId).neq('status', 'answered'),
           supabase.from('visit_requests').select('id', { count: 'exact', head: true })
             .eq('user_id', userId).eq('status', 'en_attente'),
           supabase.from('department_requests').select('id', { count: 'exact', head: true })
             .eq('user_id', userId).eq('status', 'en_attente'),
-          supabase.from('contact_messages').select('id', { count: 'exact', head: true })
-            .eq('phone', '').limit(0), // fallback — we count by phone later
         ]);
         if (!cancelled) {
           setCounts({

@@ -104,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           created_at: p.created_at,
           updated_at: p.updated_at,
         }));
-        console.log('Profile loaded:', { id: p.id, is_admin: p.is_admin, role_level: p.role_level });
       } else if (error?.code === 'TIMEOUT') {
         console.error('Profile fetch timed out — possible RLS issue:', error.message);
         // Fallback: créer un profil minimal depuis la session auth
@@ -118,7 +117,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }));
         }
       } else {
-        console.log('No profile found, auto-creating...');
         await autoCreateProfile(userId);
       }
     } catch (err) {

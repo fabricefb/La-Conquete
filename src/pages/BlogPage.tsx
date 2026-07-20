@@ -61,7 +61,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
         if (!cancelled && data && data.length > 0) {
           setArticles(data.map((d: Record<string, string>) => ({
             id: d.id, title: d.title || '', excerpt: d.description || d.value || '', category: d.category || 'Enseignement',
-            date: d.created_at, readTime: `${Math.max(2, Math.ceil((d.value || '').length / 200))} min`, imageUrl: d.image_url || '/church-photo-1.jpg', isFeatured: d.is_featured === 'true',
+            date: d.created_at, readTime: `${Math.max(2, Math.ceil((d.value || '').length / 200))} min`, imageUrl: d.image_url || '/church-photo-1.jpg', isFeatured: d.is_featured === true || d.is_featured === 'true',
           })));
         } else { if (!cancelled) setArticles(FALLBACK); }
       } catch { if (!cancelled) setArticles(FALLBACK); }

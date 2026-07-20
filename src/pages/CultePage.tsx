@@ -34,11 +34,13 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
       supabase.from('worship_schedules').select('*').eq('is_active', true).order('sort_order'),
       db.getPageContents('culte'),
     ])
       .then(([schedRes, contents]) => {
+        if (cancelled) return;
         if (schedRes.data && schedRes.data.length > 0) {
           setSchedules(schedRes.data.map((s: any) => ({
             day: s.day ?? '',
@@ -50,7 +52,8 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
         setCm(buildContentMap(contents));
       })
       .catch(() => {})
-      .finally(() => setLoading(false));
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {

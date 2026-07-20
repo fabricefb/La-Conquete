@@ -249,8 +249,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         );
         setEvents((eventData || []) as ChurchEvent[]);
         setActivityCards((activityCardsData?.data || []) as ActivityCard[]);
-      } catch {
-        // Silently fall back to defaults
+      } catch (err) {
+        console.warn('[HomePage] data fetch failed:', err);
       } finally {
         if (!cancelled) setLoading(false);
       }
