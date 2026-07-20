@@ -43,7 +43,8 @@ const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(
 
 const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
 function getPage(): Page {
-  const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
+  let h = window.location.hash.replace('#', '').replace(/^\/+/, '');
+  if (h === 'emision') h = 'emissions';
   return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
 }
 

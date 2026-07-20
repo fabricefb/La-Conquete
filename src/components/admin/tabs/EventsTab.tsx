@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, Youtube, Facebook, MessageCircle } from 'lucide-react';
+import { Plus, Trash2, Save, X, Edit3, Loader2, Star, Eye, EyeOff, MessageCircle } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
 
 // ---------------------------------------------------------------------------
@@ -381,21 +381,6 @@ export function EventsTab() {
                             )}
                           </div>
                           <p className="mt-1 text-xs text-muted line-clamp-1">{formatDate(event.event_date)} &middot; {event.location}</p>
-                          {/* YouTube / Facebook links */}
-                          {(event.youtube_url || event.facebook_url) && (
-                            <div className="flex items-center gap-3 mt-1.5">
-                              {event.youtube_url && (
-                                <a href={event.youtube_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-red-400 hover:text-red-300 transition">
-                                  <Youtube className="h-3 w-3" /> YouTube
-                                </a>
-                              )}
-                              {event.facebook_url && (
-                                <a href={event.facebook_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 transition">
-                                  <Facebook className="h-3 w-3" /> Facebook
-                                </a>
-                              )}
-                            </div>
-                          )}
                         </div>
 
                         <div className="flex items-center gap-1.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
@@ -7,11 +8,25 @@ import { MobileNav } from '../components/MobileNav';
 import { IconBox } from '../components/IconBox';
 import {
   Music, BookOpen, Compass, HandHeart, Users, Star, Heart,
-  Shield, Sparkles, Send, Video, Flame, type LucideIcon,
+  Shield, Sparkles, Send, Video, Flame, Crown, type LucideIcon,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
-// ─── Ministries data ──────────────────────────────────────────────
+// ─── DB-backed ministry ─────────────────────────────────────────
+interface MinistryDB {
+  id: string;
+  title: string;
+  description: string;
+  icon_name: string;
+  schedule: string;
+  contact?: string;
+  image_url?: string;
+  accent_color?: string;
+  is_active: boolean;
+  sort_order: number;
+}
+
+// ─── Fallback (used when DB is empty or fails) ──────────────────
 interface MinistryItem {
   Icon: LucideIcon;
   title: string;
@@ -20,7 +35,7 @@ interface MinistryItem {
   contact: string;
 }
 
-const MINISTRIES: MinistryItem[] = [
+const MINISTRIES_FALLBACK: MinistryItem[] = [
   { Icon: Music, title: 'Louange & Adoration', description: 'Mener l\'assemblée dans la présence de Dieu par la louange et l\'adoration authentique.', schedule: 'Dimanche — Répétition le samedi 15h', contact: 'louange@laconquete.org' },
   { Icon: BookOpen, title: 'Enseignement', description: 'Approfondir la connaissance de la Parole de Dieu à travers des études structurées et accessibles.', schedule: 'Mercredi 18h00', contact: 'enseignement@laconquete.org' },
   { Icon: Compass, title: 'Évangélisation', description: 'Proclamer l\'Évangile dans les quartiers, les marchés et les lieux publics de Lubumbashi.', schedule: 'Samedi 08h00', contact: 'evangelisation@laconquete.org' },
@@ -35,9 +50,29 @@ const MINISTRIES: MinistryItem[] = [
   { Icon: Flame, title: 'Intercession', description: 'Porter les charges de l\'église, de la nation et des nations dans la prière fervente.', schedule: 'Vendredi 19h00', contact: 'intercession@laconquete.org' },
 ];
 
+const ICON_MAP: Record<string, LucideIcon> = {
+  Music, BookOpen, Compass, HandHeart, Users, Star, Heart,
+  Shield, Sparkles, Send, Video, Flame, Crown,
+};
+
 // ─── Component ─────────────────────────────────────────────────────
 export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
+  const [dbMinistries, setDbMinistries] = useState<MinistryDB[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    supabase
+      .from('ministries')
+      .select('*')
+      .eq('is_active', true)
+      .order('sort_order')
+      .then(({ data }) => {
+        if (data && data.length > 0) setDbMinistries(data as MinistryDB[]);
+      })
+      .catch(() => {})
+      .finally(() => setLoaded(true));
+  }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -46,20 +81,19 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
     );
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [loaded]);
+
+  const useDB = dbMinistries.length > 0;
 
   return (
     <div className="bg-bg min-h-screen">
       <SiteHeader activePage="ministeres" onNavigate={onNavigate} />
       <MobileNav active="ministeres" onNavigate={onNavigate} />
 
-      {/* ═══ HERO ═══ */}
       <UniversalHero pageKey="ministeres" defaultBadge="Servir ensemble" defaultTitle="Nos Ministères" defaultSubtitle="Chaque membre est un ministre. Découvrez les différents espaces de service où vous pouvez vous investir." />
 
-      {/* ═══ MINISTRIES GRID ═══ */}
       <section className="py-20 lg:py-28 px-4">
         <div className="mx-auto max-w-7xl">
-          {/* Radial glow behind title */}
           <div className="relative mb-16 text-center">
             <div className="absolute inset-0 -z-10 bg-radial-primary" style={{ minHeight: 200 }} />
             <p className="reveal section-label justify-center">Découvrir</p>
@@ -69,31 +103,52 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
           </div>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {MINISTRIES.map((m, i) => (
-              <div
-                key={m.title}
-                className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
-              >
-                <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
-                  <m.Icon className="h-6 w-6" />
-                </IconBox>
-                <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
-                <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
-                  <p className="flex items-center gap-2 text-xs text-muted">
-                    <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
-                  </p>
-                  <p className="flex items-center gap-2 text-xs text-muted">
-                    <span className="font-semibold text-accent-400">Contact :</span> {m.contact}
-                  </p>
-                </div>
-              </div>
-            ))}
+            {useDB
+              ? dbMinistries.map((m, i) => {
+                  const IconComponent = ICON_MAP[m.icon_name] || Star;
+                  return (
+                    <div
+                      key={m.id}
+                      className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
+                    >
+                      <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
+                        <IconComponent className="h-6 w-6" />
+                      </IconBox>
+                      <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
+                      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
+                      <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
+                        <p className="flex items-center gap-2 text-xs text-muted">
+                          <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })
+              : MINISTRIES_FALLBACK.map((m, i) => (
+                  <div
+                    key={m.title}
+                    className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
+                  >
+                    <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
+                      <m.Icon className="h-6 w-6" />
+                    </IconBox>
+                    <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
+                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
+                    <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
+                      <p className="flex items-center gap-2 text-xs text-muted">
+                        <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
+                      </p>
+                      <p className="flex items-center gap-2 text-xs text-muted">
+                        <span className="font-semibold text-accent-400">Contact :</span> {m.contact}
+                      </p>
+                    </div>
+                  </div>
+                ))
+            }
           </div>
         </div>
       </section>
 
-      {/* ═══ CTA ═══ */}
       <section className="py-20 px-4 bg-radial-ember">
         <div className="reveal mx-auto max-w-2xl text-center">
           <p className="section-label mb-4">Impliquez-vous</p>
