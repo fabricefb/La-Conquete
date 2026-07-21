@@ -71,6 +71,8 @@ export function TestimonialsTab() {
   const { addToast } = useToast();
   const { profile } = useAuth();
   const { isFullAdmin } = useAdminAccess();
+  const isPastor = (profile?.role_level ?? 0) >= 4;
+  const canReview = isFullAdmin || isPastor;
   const [items, setItems] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -448,7 +450,7 @@ export function TestimonialsTab() {
 
                       {/* Actions */}
                       <div className="flex shrink-0 items-center gap-1.5">
-                        {item.status === 'pending' && isFullAdmin && (
+                        {item.status === 'pending' && canReview && (
                           <>
                             <button onClick={() => { setReviewModal({ item, action: 'approve' }); setReviewNotes(''); }} title="Approuver et publier" className="flex h-9 w-9 items-center justify-center rounded-xl border border-green-500/40 text-green-400 hover:bg-green-500/10 transition">
                               <CheckCircle2 className="h-4 w-4" />

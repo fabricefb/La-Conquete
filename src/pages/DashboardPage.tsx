@@ -41,6 +41,7 @@ interface UserDepartment {
   position_name: string | null;
   accent_color: string;
   icon_name: string;
+  meeting_schedule: string | null;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -261,7 +262,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           const deptIds = [...new Set(deptMembers.map((d: any) => d.department_id))];
           const posIds = [...new Set((deptMembers as any[]).map((d: any) => d.position_id).filter(Boolean))];
           const [deptsRes, posRes] = await Promise.all([
-            supabase.from('departments').select('id, name, accent_color, icon_name').in('id', deptIds),
+            supabase.from('departments').select('id, name, accent_color, icon_name, meeting_schedule').in('id', deptIds),
             posIds.length > 0 ? supabase.from('positions').select('id, name').in('id', posIds) : Promise.resolve({ data: [] }),
           ]);
           deptMap = Object.fromEntries((deptsRes.data || []).map((d: any) => [d.id, d]));
@@ -290,6 +291,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           position_name: posMap[dm.position_id]?.name || null,
           accent_color: deptMap[dm.department_id]?.accent_color || 'gold',
           icon_name: deptMap[dm.department_id]?.icon_name || 'Star',
+          meeting_schedule: deptMap[dm.department_id]?.meeting_schedule || null,
         }));
 
         setEvents((eventData || []) as ChurchEvent[]);
@@ -457,7 +459,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       const [visitRes, prayerRes, deptRes] = await Promise.all([
         supabase.from('visit_requests').select('id, reason, status, created_at, response, responded_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
         supabase.from('prayer_requests').select('id, content, status, created_at, visibility, is_confidential').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
-        supabase.from('department_requests').select('id, department_id, status, created_at, departments(name)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        supabase.from('department_requests').select('id, department_id, status, created_at, departments(name)').eq('user_id', user.id).neq('status', 'accepte').order('created_at', { ascending: false }).limit(5),
       ]);
 
       const items: any[] = [];
@@ -1481,13 +1483,13 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                           </div>
                         </div>
                         <DeptMemberCount departmentId={dept.id} />
-                        <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
-                          <Clock className="h-3.5 w-3.5 shrink-0 text-accent-400/70" />
-                          <span>Réunion hebdomadaire —</span>
-                          <span className="text-cream/70 font-medium">
-                            À confirmer
-                          </span>
-                        </div>
+                        {dept.meeting_schedule ? (
+                          <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
+                            <Clock className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
+                            <span>Réunion hebdomadaire —</span>
+                            <span className="text-cream/70 font-medium">{dept.meeting_schedule}</span>
+                          </div>
+                        ) : null}
                       </div>
                     ))}
                   </div>
