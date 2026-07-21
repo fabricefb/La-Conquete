@@ -5,8 +5,6 @@
 --              constraints matching the TypeScript type definitions.
 -- ═══════════════════════════════════════════════════════════════════════════════
 
-BEGIN;
-
 -- ═══════════════════════════════════════════════════════════════════════════
 -- SECTION 1 — WORSHIP / CULT PLANNING (Planification de Culte)
 -- ═══════════════════════════════════════════════════════════════════════════
@@ -37,8 +35,10 @@ CREATE TABLE IF NOT EXISTS worship_services (
 CREATE INDEX IF NOT EXISTS idx_ws_date ON worship_services(date);
 CREATE INDEX IF NOT EXISTS idx_ws_type ON worship_services(type);
 CREATE INDEX IF NOT EXISTS idx_ws_status ON worship_services(status);
-ALTER TABLE worship_services ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE worship_services ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ws_public_select" ON worship_services;
 CREATE POLICY "ws_public_select" ON worship_services FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ws_admin_all" ON worship_services;
 CREATE POLICY "ws_admin_all" ON worship_services FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -59,8 +59,10 @@ CREATE TABLE IF NOT EXISTS worship_form_links (
 );
 CREATE INDEX IF NOT EXISTS idx_wfl_service ON worship_form_links(service_id);
 CREATE INDEX IF NOT EXISTS idx_wfl_token  ON worship_form_links(token);
-ALTER TABLE worship_form_links ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE worship_form_links ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "wfl_public_select" ON worship_form_links;
 CREATE POLICY "wfl_public_select" ON worship_form_links FOR SELECT USING (true);
+DROP POLICY IF EXISTS "wfl_admin_all" ON worship_form_links;
 CREATE POLICY "wfl_admin_all" ON worship_form_links FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -83,8 +85,10 @@ CREATE TABLE IF NOT EXISTS worship_orator_forms (
   updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_wof_service ON worship_orator_forms(service_id);
-ALTER TABLE worship_orator_forms ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE worship_orator_forms ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "wof_public_select" ON worship_orator_forms;
 CREATE POLICY "wof_public_select" ON worship_orator_forms FOR SELECT USING (true);
+DROP POLICY IF EXISTS "wof_admin_all" ON worship_orator_forms;
 CREATE POLICY "wof_admin_all" ON worship_orator_forms FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -106,8 +110,10 @@ CREATE TABLE IF NOT EXISTS worship_order_items (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_woi_service ON worship_order_items(service_id);
-ALTER TABLE worship_order_items ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE worship_order_items ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "woi_public_select" ON worship_order_items;
 CREATE POLICY "woi_public_select" ON worship_order_items FOR SELECT USING (true);
+DROP POLICY IF EXISTS "woi_admin_all" ON worship_order_items;
 CREATE POLICY "woi_admin_all" ON worship_order_items FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -122,8 +128,10 @@ CREATE TABLE IF NOT EXISTS worship_orator_points (
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_wop_form ON worship_orator_points(form_id);
-ALTER TABLE worship_orator_points ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE worship_orator_points ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "wop_public_select" ON worship_orator_points;
 CREATE POLICY "wop_public_select" ON worship_orator_points FOR SELECT USING (true);
+DROP POLICY IF EXISTS "wop_admin_all" ON worship_orator_points;
 CREATE POLICY "wop_admin_all" ON worship_orator_points FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -143,8 +151,10 @@ CREATE TABLE IF NOT EXISTS protocol_teams (
   sort_order  INTEGER NOT NULL DEFAULT 0,
   created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-ALTER TABLE protocol_teams ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE protocol_teams ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "pt_public_select" ON protocol_teams;
 CREATE POLICY "pt_public_select" ON protocol_teams FOR SELECT USING (true);
+DROP POLICY IF EXISTS "pt_admin_all" ON protocol_teams;
 CREATE POLICY "pt_admin_all" ON protocol_teams FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -161,8 +171,10 @@ CREATE TABLE IF NOT EXISTS protocol_team_members (
 );
 CREATE INDEX IF NOT EXISTS idx_ptm_team ON protocol_team_members(team_id);
 CREATE INDEX IF NOT EXISTS idx_ptm_user ON protocol_team_members(user_id);
-ALTER TABLE protocol_team_members ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE protocol_team_members ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ptm_public_select" ON protocol_team_members;
 CREATE POLICY "ptm_public_select" ON protocol_team_members FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ptm_admin_all" ON protocol_team_members;
 CREATE POLICY "ptm_admin_all" ON protocol_team_members FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -180,8 +192,10 @@ CREATE TABLE IF NOT EXISTS protocol_dress_code (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(cult_day)
 );
-ALTER TABLE protocol_dress_code ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE protocol_dress_code ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "pdc_public_select" ON protocol_dress_code;
 CREATE POLICY "pdc_public_select" ON protocol_dress_code FOR SELECT USING (true);
+DROP POLICY IF EXISTS "pdc_admin_all" ON protocol_dress_code;
 CREATE POLICY "pdc_admin_all" ON protocol_dress_code FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -200,8 +214,10 @@ CREATE TABLE IF NOT EXISTS protocol_schedules (
 );
 CREATE INDEX IF NOT EXISTS idx_psch_team ON protocol_schedules(team_id);
 CREATE INDEX IF NOT EXISTS idx_psch_day_year ON protocol_schedules(cult_day, year);
-ALTER TABLE protocol_schedules ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE protocol_schedules ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "psch_public_select" ON protocol_schedules;
 CREATE POLICY "psch_public_select" ON protocol_schedules FOR SELECT USING (true);
+DROP POLICY IF EXISTS "psch_admin_all" ON protocol_schedules;
 CREATE POLICY "psch_admin_all" ON protocol_schedules FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -234,8 +250,10 @@ CREATE INDEX IF NOT EXISTS idx_cr_date ON cult_reports(cult_date);
 CREATE INDEX IF NOT EXISTS idx_cr_day  ON cult_reports(cult_day);
 CREATE INDEX IF NOT EXISTS idx_cr_status ON cult_reports(status);
 CREATE INDEX IF NOT EXISTS idx_cr_user ON cult_reports(user_id);
-ALTER TABLE cult_reports ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE cult_reports ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "cr_authenticated_select" ON cult_reports;
 CREATE POLICY "cr_authenticated_select" ON cult_reports FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "cr_admin_all" ON cult_reports;
 CREATE POLICY "cr_admin_all" ON cult_reports FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -275,8 +293,10 @@ CREATE TABLE IF NOT EXISTS evangelism_outings (
 CREATE INDEX IF NOT EXISTS idx_eo_date   ON evangelism_outings(outing_date);
 CREATE INDEX IF NOT EXISTS idx_eo_status ON evangelism_outings(status);
 CREATE INDEX IF NOT EXISTS idx_eo_resp  ON evangelism_outings(responsible_id);
-ALTER TABLE evangelism_outings ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE evangelism_outings ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "eo_public_select" ON evangelism_outings;
 CREATE POLICY "eo_public_select" ON evangelism_outings FOR SELECT USING (true);
+DROP POLICY IF EXISTS "eo_admin_all" ON evangelism_outings;
 CREATE POLICY "eo_admin_all" ON evangelism_outings FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -338,8 +358,10 @@ CREATE INDEX IF NOT EXISTS idx_ec_status   ON evangelism_contacts(status);
 CREATE INDEX IF NOT EXISTS idx_ec_assigned ON evangelism_contacts(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_ec_pipeline ON evangelism_contacts(pipeline_stage);
 CREATE INDEX IF NOT EXISTS idx_ec_baptized ON evangelism_contacts(baptized);
-ALTER TABLE evangelism_contacts ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE evangelism_contacts ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ec_public_select" ON evangelism_contacts;
 CREATE POLICY "ec_public_select" ON evangelism_contacts FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ec_admin_all" ON evangelism_contacts;
 CREATE POLICY "ec_admin_all" ON evangelism_contacts FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -364,8 +386,10 @@ CREATE TABLE IF NOT EXISTS evangelism_followups (
 CREATE INDEX IF NOT EXISTS idx_ef_contact ON evangelism_followups(contact_id);
 CREATE INDEX IF NOT EXISTS idx_ef_date    ON evangelism_followups(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_ef_result  ON evangelism_followups(result);
-ALTER TABLE evangelism_followups ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE evangelism_followups ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ef_public_select" ON evangelism_followups;
 CREATE POLICY "ef_public_select" ON evangelism_followups FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ef_admin_all" ON evangelism_followups;
 CREATE POLICY "ef_admin_all" ON evangelism_followups FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -385,8 +409,10 @@ CREATE TABLE IF NOT EXISTS zones_evangelisation (
   updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_ze_active ON zones_evangelisation(is_active);
-ALTER TABLE zones_evangelisation ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE zones_evangelisation ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ze_public_select" ON zones_evangelisation;
 CREATE POLICY "ze_public_select" ON zones_evangelisation FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ze_admin_all" ON zones_evangelisation;
 CREATE POLICY "ze_admin_all" ON zones_evangelisation FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -420,8 +446,10 @@ CREATE TABLE IF NOT EXISTS cellules_maison (
 CREATE INDEX IF NOT EXISTS idx_cmaison_leader ON cellules_maison(leader_id);
 CREATE INDEX IF NOT EXISTS idx_cmaison_active ON cellules_maison(is_active);
 CREATE INDEX IF NOT EXISTS idx_cmaison_day    ON cellules_maison(meeting_day);
-ALTER TABLE cellules_maison ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE cellules_maison ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "cmaison_public_select" ON cellules_maison;
 CREATE POLICY "cmaison_public_select" ON cellules_maison FOR SELECT USING (true);
+DROP POLICY IF EXISTS "cmaison_admin_all" ON cellules_maison;
 CREATE POLICY "cmaison_admin_all" ON cellules_maison FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -471,8 +499,10 @@ CREATE INDEX IF NOT EXISTS idx_conv_stage     ON convertis(pipeline_stage);
 CREATE INDEX IF NOT EXISTS idx_conv_evangelist ON convertis(evangelist_id);
 CREATE INDEX IF NOT EXISTS idx_conv_mentor    ON convertis(mentor_id);
 CREATE INDEX IF NOT EXISTS idx_conv_source    ON convertis(source);
-ALTER TABLE convertis ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE convertis ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "conv_authenticated_select" ON convertis;
 CREATE POLICY "conv_authenticated_select" ON convertis FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "conv_admin_all" ON convertis;
 CREATE POLICY "conv_admin_all" ON convertis FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -495,8 +525,10 @@ CREATE TABLE IF NOT EXISTS converti_timeline (
 );
 CREATE INDEX IF NOT EXISTS idx_ct_converti ON converti_timeline(converti_id);
 CREATE INDEX IF NOT EXISTS idx_ct_date     ON converti_timeline(created_at);
-ALTER TABLE converti_timeline ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE converti_timeline ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ct_authenticated_select" ON converti_timeline;
 CREATE POLICY "ct_authenticated_select" ON converti_timeline FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "ct_admin_all" ON converti_timeline;
 CREATE POLICY "ct_admin_all" ON converti_timeline FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -529,8 +561,10 @@ CREATE TABLE IF NOT EXISTS new_visitors (
 CREATE INDEX IF NOT EXISTS idx_nv_date   ON new_visitors(cult_date);
 CREATE INDEX IF NOT EXISTS idx_nv_status ON new_visitors(status);
 CREATE INDEX IF NOT EXISTS idx_nv_rec    ON new_visitors(recorded_by);
-ALTER TABLE new_visitors ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE new_visitors ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "nv_authenticated_select" ON new_visitors;
 CREATE POLICY "nv_authenticated_select" ON new_visitors FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "nv_admin_all" ON new_visitors;
 CREATE POLICY "nv_admin_all" ON new_visitors FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -546,8 +580,10 @@ CREATE TABLE IF NOT EXISTS department_notes (
   UNIQUE(user_id, department_id)
 );
 CREATE INDEX IF NOT EXISTS idx_dn_user_dept ON department_notes(user_id, department_id);
-ALTER TABLE department_notes ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE department_notes ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "dn_owner_all" ON department_notes;
 CREATE POLICY "dn_owner_all" ON department_notes FOR ALL USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "dn_admin_all" ON department_notes;
 CREATE POLICY "dn_admin_all" ON department_notes FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -573,8 +609,10 @@ CREATE TABLE IF NOT EXISTS daily_verses (
   UNIQUE(verse_date)
 );
 CREATE INDEX IF NOT EXISTS idx_dv_date ON daily_verses(verse_date);
-ALTER TABLE daily_verses ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE daily_verses ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "dv_public_select" ON daily_verses;
 CREATE POLICY "dv_public_select" ON daily_verses FOR SELECT USING (true);
+DROP POLICY IF EXISTS "dv_admin_all" ON daily_verses;
 CREATE POLICY "dv_admin_all" ON daily_verses FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -618,12 +656,15 @@ CREATE INDEX IF NOT EXISTS idx_vr_status    ON visit_requests(status);
 CREATE INDEX IF NOT EXISTS idx_vr_requester ON visit_requests(requester_id);
 CREATE INDEX IF NOT EXISTS idx_vr_assigned  ON visit_requests(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_vr_urgency   ON visit_requests(urgency);
-ALTER TABLE visit_requests ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE visit_requests ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "vr_owner_select" ON visit_requests;
 CREATE POLICY "vr_owner_select" ON visit_requests FOR SELECT USING (
   requester_id = auth.uid() OR
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
+DROP POLICY IF EXISTS "vr_authenticated_insert" ON visit_requests;
 CREATE POLICY "vr_authenticated_insert" ON visit_requests FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "vr_admin_all" ON visit_requests;
 CREATE POLICY "vr_admin_all" ON visit_requests FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -655,8 +696,10 @@ CREATE TABLE IF NOT EXISTS pastor_schedule (
 CREATE INDEX IF NOT EXISTS idx_ps_pastor ON pastor_schedule(pastor_id);
 CREATE INDEX IF NOT EXISTS idx_ps_date   ON pastor_schedule(date);
 CREATE INDEX IF NOT EXISTS idx_ps_status ON pastor_schedule(status);
-ALTER TABLE pastor_schedule ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE pastor_schedule ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ps_authenticated_select" ON pastor_schedule;
 CREATE POLICY "ps_authenticated_select" ON pastor_schedule FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "ps_admin_all" ON pastor_schedule;
 CREATE POLICY "ps_admin_all" ON pastor_schedule FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -685,10 +728,12 @@ CREATE INDEX IF NOT EXISTS idx_pa_status   ON pastoral_alerts(status);
 CREATE INDEX IF NOT EXISTS idx_pa_severity ON pastoral_alerts(severity);
 CREATE INDEX IF NOT EXISTS idx_pa_assigned ON pastoral_alerts(assigned_to);
 CREATE INDEX IF NOT EXISTS idx_pa_converti ON pastoral_alerts(converti_id);
-ALTER TABLE pastoral_alerts ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE pastoral_alerts ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "pa_pastor_select" ON pastoral_alerts;
 CREATE POLICY "pa_pastor_select" ON pastoral_alerts FOR SELECT USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 4)
 );
+DROP POLICY IF EXISTS "pa_admin_all" ON pastoral_alerts;
 CREATE POLICY "pa_admin_all" ON pastoral_alerts FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -713,8 +758,10 @@ CREATE TABLE IF NOT EXISTS spiritual_assessments (
 );
 CREATE INDEX IF NOT EXISTS idx_sa_user   ON spiritual_assessments(user_id);
 CREATE INDEX IF NOT EXISTS idx_sa_period ON spiritual_assessments(period);
-ALTER TABLE spiritual_assessments ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE spiritual_assessments ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "sa_owner_select" ON spiritual_assessments;
 CREATE POLICY "sa_owner_select" ON spiritual_assessments FOR SELECT USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "sa_admin_all" ON spiritual_assessments;
 CREATE POLICY "sa_admin_all" ON spiritual_assessments FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -732,8 +779,10 @@ CREATE TABLE IF NOT EXISTS spiritual_evaluations (
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_se_user ON spiritual_evaluations(user_id);
-ALTER TABLE spiritual_evaluations ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE spiritual_evaluations ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "se_owner_all" ON spiritual_evaluations;
 CREATE POLICY "se_owner_all" ON spiritual_evaluations FOR ALL USING (user_id = auth.uid());
+DROP POLICY IF EXISTS "se_admin_all" ON spiritual_evaluations;
 CREATE POLICY "se_admin_all" ON spiritual_evaluations FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -761,8 +810,10 @@ CREATE TABLE IF NOT EXISTS impact_counters (
   created_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_ic_period ON impact_counters(period, period_value);
-ALTER TABLE impact_counters ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE impact_counters ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ic_public_select" ON impact_counters;
 CREATE POLICY "ic_public_select" ON impact_counters FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ic_admin_all" ON impact_counters;
 CREATE POLICY "ic_admin_all" ON impact_counters FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -795,8 +846,10 @@ CREATE TABLE IF NOT EXISTS mission_reports (
 );
 CREATE INDEX IF NOT EXISTS idx_mr_date   ON mission_reports(report_date);
 CREATE INDEX IF NOT EXISTS idx_mr_status ON mission_reports(status);
-ALTER TABLE mission_reports ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE mission_reports ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "mr_public_select" ON mission_reports;
 CREATE POLICY "mr_public_select" ON mission_reports FOR SELECT USING (true);
+DROP POLICY IF EXISTS "mr_admin_all" ON mission_reports;
 CREATE POLICY "mr_admin_all" ON mission_reports FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -821,8 +874,10 @@ CREATE TABLE IF NOT EXISTS mission_finances (
 );
 CREATE INDEX IF NOT EXISTS idx_mf_report ON mission_finances(mission_report_id);
 CREATE INDEX IF NOT EXISTS idx_mf_event  ON mission_finances(event_id);
-ALTER TABLE mission_finances ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE mission_finances ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "mf_public_select" ON mission_finances;
 CREATE POLICY "mf_public_select" ON mission_finances FOR SELECT USING (true);
+DROP POLICY IF EXISTS "mf_admin_all" ON mission_finances;
 CREATE POLICY "mf_admin_all" ON mission_finances FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -849,8 +904,10 @@ CREATE TABLE IF NOT EXISTS event_assignments (
 );
 CREATE INDEX IF NOT EXISTS idx_ea_event ON event_assignments(event_id);
 CREATE INDEX IF NOT EXISTS idx_ea_user  ON event_assignments(user_id);
-ALTER TABLE event_assignments ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE event_assignments ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ea_public_select" ON event_assignments;
 CREATE POLICY "ea_public_select" ON event_assignments FOR SELECT USING (true);
+DROP POLICY IF EXISTS "ea_admin_all" ON event_assignments;
 CREATE POLICY "ea_admin_all" ON event_assignments FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -869,8 +926,10 @@ CREATE TABLE IF NOT EXISTS event_minutes (
   created_at       TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_emin_event ON event_minutes(event_id);
-ALTER TABLE event_minutes ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE event_minutes ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "emin_public_select" ON event_minutes;
 CREATE POLICY "emin_public_select" ON event_minutes FOR SELECT USING (true);
+DROP POLICY IF EXISTS "emin_admin_all" ON event_minutes;
 CREATE POLICY "emin_admin_all" ON event_minutes FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -889,8 +948,10 @@ CREATE TABLE IF NOT EXISTS event_reminders (
   created_at            TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_er_event ON event_reminders(event_id);
-ALTER TABLE event_reminders ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE event_reminders ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "er_public_select" ON event_reminders;
 CREATE POLICY "er_public_select" ON event_reminders FOR SELECT USING (true);
+DROP POLICY IF EXISTS "er_admin_all" ON event_reminders;
 CREATE POLICY "er_admin_all" ON event_reminders FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -917,8 +978,10 @@ CREATE TABLE IF NOT EXISTS newsletters (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_nl_status ON newsletters(status);
-ALTER TABLE newsletters ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE newsletters ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "nl_public_select" ON newsletters;
 CREATE POLICY "nl_public_select" ON newsletters FOR SELECT USING (status = 'sent');
+DROP POLICY IF EXISTS "nl_admin_all" ON newsletters;
 CREATE POLICY "nl_admin_all" ON newsletters FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -945,9 +1008,12 @@ CREATE TABLE IF NOT EXISTS member_testimonies (
 );
 CREATE INDEX IF NOT EXISTS idx_mt_user   ON member_testimonies(user_id);
 CREATE INDEX IF NOT EXISTS idx_mt_status ON member_testimonies(status);
-ALTER TABLE member_testimonies ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE member_testimonies ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "mt_public_select" ON member_testimonies;
 CREATE POLICY "mt_public_select" ON member_testimonies FOR SELECT USING (status = 'published');
+DROP POLICY IF EXISTS "mt_owner_insert" ON member_testimonies;
 CREATE POLICY "mt_owner_insert" ON member_testimonies FOR INSERT WITH CHECK (user_id = auth.uid());
+DROP POLICY IF EXISTS "mt_admin_all" ON member_testimonies;
 CREATE POLICY "mt_admin_all" ON member_testimonies FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -961,9 +1027,12 @@ CREATE TABLE IF NOT EXISTS chat_messages (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_cmsg_chat_created ON chat_messages(created_at);
-ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "chat_authenticated_select" ON chat_messages;
 CREATE POLICY "chat_authenticated_select" ON chat_messages FOR SELECT USING (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "chat_authenticated_insert" ON chat_messages;
 CREATE POLICY "chat_authenticated_insert" ON chat_messages FOR INSERT WITH CHECK (auth.uid() IS NOT NULL);
+DROP POLICY IF EXISTS "chat_admin_all" ON chat_messages;
 CREATE POLICY "chat_admin_all" ON chat_messages FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -992,7 +1061,8 @@ CREATE TABLE IF NOT EXISTS communication_messages (
 );
 CREATE INDEX IF NOT EXISTS idx_commmsg_status ON communication_messages(status);
 CREATE INDEX IF NOT EXISTS idx_commmsg_sent_by ON communication_messages(sent_by);
-ALTER TABLE communication_messages ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE communication_messages ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "commmsg_admin_all" ON communication_messages;
 CREATE POLICY "commmsg_admin_all" ON communication_messages FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -1019,10 +1089,12 @@ CREATE TABLE IF NOT EXISTS media_library (
 );
 CREATE INDEX IF NOT EXISTS idx_ml_category ON media_library(category);
 CREATE INDEX IF NOT EXISTS idx_ml_access  ON media_library(access_role);
-ALTER TABLE media_library ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN ALTER TABLE media_library ENABLE ROW LEVEL SECURITY; EXCEPTION WHEN OTHERS THEN NULL; END $$;
+DROP POLICY IF EXISTS "ml_public_select" ON media_library;
 CREATE POLICY "ml_public_select" ON media_library FOR SELECT USING (
   access_role = 'public' OR auth.uid() IS NOT NULL
 );
+DROP POLICY IF EXISTS "ml_admin_all" ON media_library;
 CREATE POLICY "ml_admin_all" ON media_library FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
@@ -1067,6 +1139,3 @@ DO $$ BEGIN
   ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
 EXCEPTION WHEN OTHERS THEN NULL;
 END $$;
-
-
-COMMIT;
