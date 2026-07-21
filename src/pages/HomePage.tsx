@@ -54,15 +54,15 @@ const DEFAULT_HERO_IMG =
 const DEFAULT_ABOUT_IMG =
   'https://images.pexels.com/photos/290468/pexels-photo-290468.jpeg?auto=compress&cs=tinysrgb&w=1200';
 const DEFAULT_SERMON_IMG =
-  'https://images.pexels.com/photos/261763/pexels-photo-261763.jpeg?auto=compress&cs=tinysrgb&w=800';
+  'https://images.pexels.com/photos/6044266/pexels-photo-6044266.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_EVENT_IMG =
-  'https://images.pexels.com/photos/2774557/pexels-photo-2774557.jpeg?auto=compress&cs=tinysrgb&w=800';
+  'https://images.pexels.com/photos/4484077/pexels-photo-4484077.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_MINISTRY_IMG =
-  'https://images.pexels.com/photos/8465180/pexels-photo-8465180.jpeg?auto=compress&cs=tinysrgb&w=800';
+  'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_MEDIA_IMG =
-  'https://images.pexels.com/photos/196656/pexels-photo-196656.jpeg?auto=compress&cs=tinysrgb&w=800';
+  'https://images.pexels.com/photos/3811945/pexels-photo-3811945.jpeg?auto=compress&cs=tinysrgb&w=800';
 const DEFAULT_NEWS_IMG =
-  'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=800';
+  'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=800';
 /* ═══════════════════════════════════════════════════════════════════
    RevealSection helper
    ═══════════════════════════════════════════════════════════════════ */

@@ -396,6 +396,37 @@ CREATE POLICY "ze_admin_all" ON zones_evangelisation FOR ALL USING (
 -- SECTION 4 — CONVERTI PIPELINE (CRM Spirituel)
 -- ═══════════════════════════════════════════════════════════════════════════
 
+
+-- 33. cellules_maison (House cells / small groups)
+CREATE TABLE IF NOT EXISTS cellules_maison (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name         TEXT NOT NULL,
+  description  TEXT,
+  leader_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  leader_name  TEXT,
+  zone         TEXT,
+  quartier     TEXT,
+  address      TEXT,
+  meeting_day  TEXT NOT NULL
+    CHECK (meeting_day IN (
+      'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'
+    )),
+  meeting_time TEXT NOT NULL,
+  member_count INTEGER NOT NULL DEFAULT 0,
+  is_active    BOOLEAN NOT NULL DEFAULT true,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_cmaison_leader ON cellules_maison(leader_id);
+CREATE INDEX IF NOT EXISTS idx_cmaison_active ON cellules_maison(is_active);
+CREATE INDEX IF NOT EXISTS idx_cmaison_day    ON cellules_maison(meeting_day);
+ALTER TABLE cellules_maison ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "cmaison_public_select" ON cellules_maison FOR SELECT USING (true);
+CREATE POLICY "cmaison_admin_all" ON cellules_maison FOR ALL USING (
+  EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
+);
+
+
 -- 15. convertis
 CREATE TABLE IF NOT EXISTS convertis (
   id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -921,35 +952,6 @@ CREATE POLICY "mt_admin_all" ON member_testimonies FOR ALL USING (
   EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
 );
 
--- 33. cellules_maison (House cells / small groups)
-CREATE TABLE IF NOT EXISTS cellules_maison (
-  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name         TEXT NOT NULL,
-  description  TEXT,
-  leader_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  leader_name  TEXT,
-  zone         TEXT,
-  quartier     TEXT,
-  address      TEXT,
-  meeting_day  TEXT NOT NULL
-    CHECK (meeting_day IN (
-      'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'
-    )),
-  meeting_time TEXT NOT NULL,
-  member_count INTEGER NOT NULL DEFAULT 0,
-  is_active    BOOLEAN NOT NULL DEFAULT true,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS idx_cmaison_leader ON cellules_maison(leader_id);
-CREATE INDEX IF NOT EXISTS idx_cmaison_active ON cellules_maison(is_active);
-CREATE INDEX IF NOT EXISTS idx_cmaison_day    ON cellules_maison(meeting_day);
-ALTER TABLE cellules_maison ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "cmaison_public_select" ON cellules_maison FOR SELECT USING (true);
-CREATE POLICY "cmaison_admin_all" ON cellules_maison FOR ALL USING (
-  EXISTS (SELECT 1 FROM user_profiles WHERE id = auth.uid() AND role_level >= 6)
-);
-
 -- 34. chat_messages (Community chat)
 CREATE TABLE IF NOT EXISTS chat_messages (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1061,7 +1063,10 @@ SELECT
 -- SECTION 13 — REALTIME: Enable realtime for chat_messages
 -- ═══════════════════════════════════════════════════════════════════════════
 
-ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
+DO $$ BEGIN
+  ALTER PUBLICATION supabase_realtime ADD TABLE chat_messages;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
 
 
 COMMIT;
