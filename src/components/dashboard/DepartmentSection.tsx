@@ -22,9 +22,12 @@ import {
   BookOpen,
   UserPlus,
   Phone,
+  Send,
   MapPin,
   CheckCircle,
   Eye,
+  Plus,
+  Edit3,
 } from '../../lib/icons';
 import type { LucideIcon } from '../../lib/icons';
 
@@ -38,7 +41,7 @@ interface DepartmentSectionProps {
   accentColor?: string;
 }
 
-type SubAccordion = 'overview' | 'members' | 'activity' | 'notes' | 'visitors';
+type SubAccordion = 'overview' | 'members' | 'meetings' | 'activity' | 'notes' | 'visitors';
 
 interface VisitorRow {
   id: string;
@@ -151,6 +154,7 @@ const DEPARTMENT_CONFIGS: { keyword: string; config: DepartmentConfig }[] = [
 
 const SUB_SECTIONS_BASE: { key: SubAccordion; icon: LucideIcon; label: string }[] = [
   { key: 'overview', icon: Info, label: 'Aperçu' },
+  { key: 'meetings', icon: CalendarClock, label: 'Réunions' },
   { key: 'members', icon: Users, label: 'Membres du département' },
   { key: 'activity', icon: Clock, label: 'Activité récente' },
   { key: 'notes', icon: FileText, label: 'Mes notes' },
@@ -262,6 +266,26 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesFallback, setNotesFallback] = useState(false);
 
+  /* ── Leader detection ───────────────────────────────────────── */
+  const [isLeader, setIsLeader] = useState(false);
+  const [leaderLoading, setLeaderLoading] = useState(true);
+
+  /* ── Meeting schedule state ───────────────────────────────────── */
+  const [editingSchedule, setEditingSchedule] = useState(false);
+  const [scheduleText, setScheduleText] = useState('');
+  const [savingSchedule, setSavingSchedule] = useState(false);
+
+  /* ── Department meetings state ─────────────────────────────────── */
+  const [meetings, setMeetings] = useState<any[]>([]);
+  const [showNewMeeting, setShowNewMeeting] = useState(false);
+  const [newMeeting, setNewMeeting] = useState({ title: '', date: '', time: '', location: '', agenda: '' });
+  const [savingMeeting, setSavingMeeting] = useState(false);
+
+  /* ── Send to Media state ──────────────────────────────────────── */
+  const [showSendToMedia, setShowSendToMedia] = useState(false);
+  const [mediaMsg, setMediaMsg] = useState({ title: '', content: '', priority: 'normal' as string });
+  const [sendingMedia, setSendingMedia] = useState(false);
+
   /* ── Visitors state (évangélisation only) ─────────────────────── */
   const [visitors, setVisitors] = useState<VisitorRow[]>([]);
   const [visitorsLoading, setVisitorsLoading] = useState(false);
@@ -341,6 +365,36 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
         }
       } else {
         setNotes((notesRes.data as any).content || '');
+      }
+
+      // Check if user is a department leader
+      const { data: leaderCheck } = await supabase
+        .from('department_members')
+        .select('id, role_in_dept')
+        .eq('user_id', user.id)
+        .eq('department_id', departmentId)
+        .eq('is_active', true)
+        .limit(1);
+      const memberRole = leaderCheck?.[0]?.role_in_dept;
+      setIsLeader(memberRole === 'leader' || memberRole === 'chef');
+      setLeaderLoading(false);
+
+      // Fetch upcoming department meetings (from events table)
+      try {
+        const now = new Date().toISOString().split('T')[0];
+        const meetingsRes = await supabase
+          .from('department_meetings')
+          .select('*')
+          .eq('department_id', departmentId)
+          .gte('meeting_date', now)
+          .order('meeting_date', { ascending: true })
+          .limit(10);
+        setMeetings(meetingsRes.data || []);
+      } catch {
+        // Table may not exist yet
+        try {
+          await supabase.rpc('create_department_meetings_if_not_exists');
+        } catch { /* ignore */ }
       }
 
       if (isTableNotFoundError(deptRes.error) || isTableNotFoundError(membersRes.error)) {
@@ -435,6 +489,128 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
      Section renderers
      ═══════════════════════════════════════════════════════════════════ */
 
+  /* ── Meeting schedule editing ───────────────────────────────── */
+  const handleSaveSchedule = async () => {
+    setSavingSchedule(true);
+    try {
+      const { error } = await supabase
+        .from('departments')
+        .update({ meeting_schedule: scheduleText })
+        .eq('id', departmentId);
+      if (error) throw error;
+      setDeptRecord(prev => prev ? { ...prev, meeting_schedule: scheduleText } : null);
+      setEditingSchedule(false);
+      addToast('Horaire de réunion mis à jour', 'success');
+    } catch {
+      addToast('Erreur de sauvegarde', 'error');
+    } finally {
+      setSavingSchedule(false);
+    }
+  };
+
+  const handleCreateMeeting = async () => {
+    if (!newMeeting.title || !newMeeting.date) {
+      addToast('Titre et date obligatoires', 'error');
+      return;
+    }
+    setSavingMeeting(true);
+    try {
+      const { error } = await supabase
+        .from('department_meetings')
+        .insert({
+          department_id: departmentId,
+          title: newMeeting.title,
+          meeting_date: newMeeting.date,
+          meeting_time: newMeeting.time || null,
+          location: newMeeting.location || null,
+          agenda: newMeeting.agenda || null,
+          created_by: user?.id,
+        });
+      if (error) {
+        // If table doesn't exist, try creating it
+        if (error.message?.includes('does not exist') || error.code === '42P01') {
+          addToast('Table des réunions en cours de création. Réessayez.', 'error');
+        } else throw error;
+      } else {
+        addToast('Réunion programmée', 'success');
+        setNewMeeting({ title: '', date: '', time: '', location: '', agenda: '' });
+        setShowNewMeeting(false);
+        // Refresh meetings
+        const now = new Date().toISOString().split('T')[0];
+        const { data } = await supabase
+          .from('department_meetings')
+          .select('*')
+          .eq('department_id', departmentId)
+          .gte('meeting_date', now)
+          .order('meeting_date', { ascending: true })
+          .limit(10);
+        setMeetings(data || []);
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    } finally {
+      setSavingMeeting(false);
+    }
+  };
+
+  const handleDeleteMeeting = async (id: string) => {
+    if (!confirm('Supprimer cette réunion ?')) return;
+    try {
+      await supabase.from('department_meetings').delete().eq('id', id);
+      setMeetings(prev => prev.filter(m => m.id !== id));
+      addToast('Réunion supprimée', 'success');
+    } catch {
+      addToast('Erreur', 'error');
+    }
+  }
+
+  const handleSendToMedia = async () => {
+    if (!mediaMsg.title.trim() || !mediaMsg.content.trim()) {
+      addToast('Titre et contenu obligatoires', 'error');
+      return;
+    }
+    setSendingMedia(true);
+    try {
+      // Find the media/communication department ID
+      const { data: mediaDepts } = await supabase
+        .from('departments')
+        .select('id')
+        .or('name.ilike.%média%,name.ilike.%communication%,name.ilike.%planification%')
+        .limit(1);
+
+      if (!mediaDepts || mediaDepts.length === 0) {
+        addToast('Département Média non trouvé', 'error');
+        setSendingMedia(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from('department_communications')
+        .insert({
+          sender_department_id: departmentId,
+          recipient_department_id: mediaDepts[0].id,
+          title: mediaMsg.title.trim(),
+          content: mediaMsg.content.trim(),
+          priority: mediaMsg.priority,
+        });
+
+      if (error) {
+        if ((error as any).message?.includes('does not exist') || (error as any).code === '42P01') {
+          addToast('Module de communication en cours de configuration', 'error');
+        } else throw error;
+      } else {
+        addToast('Message envoyé au département Média', 'success');
+        setMediaMsg({ title: '', content: '', priority: 'normal' });
+        setShowSendToMedia(false);
+      }
+    } catch (err: any) {
+      addToast(err.message || 'Erreur', 'error');
+    } finally {
+      setSendingMedia(false);
+    }
+  };
+;
+
   const renderOverview = () => (
     <div className="space-y-5">
       {/* Department icon & name */}
@@ -447,10 +623,31 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
         </div>
         <div>
           <h3 className="text-cream font-display text-headline-md">{departmentName}</h3>
-          {displaySchedule && (
+          {editingSchedule ? (
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="text"
+                value={scheduleText}
+                onChange={e => setScheduleText(e.target.value)}
+                className="input-surface rounded-lg px-3 py-1.5 text-xs text-cream flex-1"
+                placeholder="Ex: Chaque mercredi à 16h30"
+              />
+              <button onClick={handleSaveSchedule} disabled={savingSchedule} className="px-2 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50">
+                <Save className="w-3.5 h-3.5" />
+              </button>
+              <button onClick={() => setEditingSchedule(false)} className="px-2 py-1.5 rounded-lg bg-white/5 text-muted hover:text-cream transition-colors">
+                <AlertCircle className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
             <span className="text-xs text-muted flex items-center gap-1 mt-0.5">
               <CalendarClock className="w-3 h-3" />
-              {displaySchedule}
+              {displaySchedule || 'Non défini'}
+              {isLeader && (
+                <button onClick={() => { setScheduleText(displaySchedule || ''); setEditingSchedule(true); }} className="ml-1 p-0.5 rounded hover:bg-white/10 text-accent-400 transition-colors" title="Modifier l'horaire">
+                  <Edit3 className="w-3 h-3" />
+                </button>
+              )}
             </span>
           )}
         </div>
@@ -492,6 +689,211 @@ export function DepartmentSection({ departmentId, departmentName, accentColor }:
               </li>
             ))}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+
+  const renderMeetings = () => (
+    <div className="space-y-4">
+      {/* Meeting schedule */}
+      <div className="glass rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted font-medium uppercase tracking-wider">Horaire hebdomadaire</p>
+          {isLeader && !editingSchedule && (
+            <button
+              onClick={() => { setScheduleText(displaySchedule || ''); setEditingSchedule(true); }}
+              className="text-xs px-2.5 py-1 rounded-lg bg-accent-400/10 text-accent-400 hover:bg-accent-400/20 transition-colors flex items-center gap-1"
+            >
+              <Edit3 className="w-3 h-3" /> Modifier
+            </button>
+          )}
+        </div>
+        {editingSchedule ? (
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={scheduleText}
+              onChange={e => setScheduleText(e.target.value)}
+              className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream"
+              placeholder="Ex: Chaque mercredi à 16h30"
+            />
+            <button onClick={handleSaveSchedule} disabled={savingSchedule} className="px-3 py-2 rounded-lg bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 shrink-0">
+              <Save className="w-4 h-4" />
+            </button>
+            <button onClick={() => setEditingSchedule(false)} className="px-3 py-2 rounded-lg bg-white/5 text-muted hover:text-cream transition-colors shrink-0">
+              Annuler
+            </button>
+          </div>
+        ) : (
+          <p className={`text-sm ${displaySchedule ? 'text-cream' : 'text-muted/60'}`}>
+            {displaySchedule || 'Aucun horaire défini. Le chef de département peut le configurer.'}
+          </p>
+        )}
+      </div>
+
+      {/* Upcoming meetings */}
+      <div className="glass rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs text-muted font-medium uppercase tracking-wider">Prochaines réunions programmées</p>
+          {isLeader && (
+            <button
+              onClick={() => setShowNewMeeting(!showNewMeeting)}
+              className="text-xs px-2.5 py-1 rounded-lg bg-accent-400/10 text-accent-400 hover:bg-accent-400/20 transition-colors flex items-center gap-1"
+            >
+              <Plus className={`w-3 h-3 transition-transform ${showNewMeeting ? 'rotate-45' : ''}`} />
+              Programmer une réunion
+            </button>
+          )}
+        </div>
+
+        {showNewMeeting && isLeader && (
+          <div className="space-y-3 mb-4 p-3 rounded-xl bg-white/3 border border-line/30">
+            <input
+              type="text"
+              value={newMeeting.title}
+              onChange={e => setNewMeeting({ ...newMeeting, title: e.target.value })}
+              className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream"
+              placeholder="Titre de la réunion *"
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                type="date"
+                value={newMeeting.date}
+                onChange={e => setNewMeeting({ ...newMeeting, date: e.target.value })}
+                className="input-surface rounded-lg px-3 py-2 text-sm text-cream"
+              />
+              <input
+                type="time"
+                value={newMeeting.time}
+                onChange={e => setNewMeeting({ ...newMeeting, time: e.target.value })}
+                className="input-surface rounded-lg px-3 py-2 text-sm text-cream"
+              />
+            </div>
+            <input
+              type="text"
+              value={newMeeting.location}
+              onChange={e => setNewMeeting({ ...newMeeting, location: e.target.value })}
+              className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream"
+              placeholder="Lieu (optionnel)"
+            />
+            <textarea
+              value={newMeeting.agenda}
+              onChange={e => setNewMeeting({ ...newMeeting, agenda: e.target.value })}
+              className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream min-h-[60px] resize-y"
+              placeholder="Ordre du jour / Agenda (optionnel)"
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleCreateMeeting}
+                disabled={!newMeeting.title || !newMeeting.date || savingMeeting}
+                className="flex-1 py-2 rounded-lg text-sm font-medium bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+              >
+                {savingMeeting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                Enregistrer
+              </button>
+              <button
+                onClick={() => { setShowNewMeeting(false); setNewMeeting({ title: '', date: '', time: '', location: '', agenda: '' }); }}
+                className="px-4 py-2 rounded-lg text-sm text-muted hover:text-cream bg-white/5 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
+
+        {meetings.length === 0 && !showNewMeeting ? (
+          <div className="text-center py-6">
+            <CalendarClock className="w-8 h-8 mx-auto mb-2 text-muted/40" />
+            <p className="text-muted text-sm">Aucune réunion programmée</p>
+            {isLeader && <p className="text-muted/60 text-xs mt-1">Cliquez sur "Programmer une réunion" pour planifier.</p>}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {meetings.map((m: any) => (
+              <div key={m.id} className="rounded-xl bg-white/3 border border-line/20 p-3 hover:bg-white/[0.04] transition-colors">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-cream">{m.title}</p>
+                    <div className="flex items-center gap-3 mt-1 text-xs text-muted">
+                      <span className="flex items-center gap-1">
+                        <CalendarClock className="w-3 h-3" />
+                        {new Date(m.meeting_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                      {m.meeting_time && <span>{m.meeting_time}</span>}
+                      {m.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{m.location}</span>}
+                    </div>
+                    {m.agenda && <p className="text-xs text-cream/60 mt-1.5 line-clamp-2">{m.agenda}</p>}
+                  </div>
+                  {isLeader && (
+                    <button onClick={() => handleDeleteMeeting(m.id)} className="p-1.5 rounded-lg hover:bg-red-500/10 text-red-400/60 hover:text-red-400 transition-colors shrink-0">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+
+  /* ── Send to Media Department ── */
+  const renderSendToMedia = () => (
+    <div className="glass rounded-xl p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-xs text-muted font-medium uppercase tracking-wider">Envoyer au département Média</p>
+        <button
+          onClick={() => setShowSendToMedia(!showSendToMedia)}
+          className="text-xs px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition-colors flex items-center gap-1"
+        >
+          <Send className={`w-3 h-3`} /> {showSendToMedia ? 'Fermer' : 'Nouveau message'}
+        </button>
+      </div>
+      <p className="text-xs text-muted">Envoyez des informations, annonces ou demandes au département Média et Communication.</p>
+
+      {showSendToMedia && (
+        <div className="space-y-3 p-3 rounded-xl bg-white/3 border border-line/30">
+          <input
+            type="text"
+            value={mediaMsg.title}
+            onChange={e => setMediaMsg({ ...mediaMsg, title: e.target.value })}
+            className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream"
+            placeholder="Titre du message *"
+          />
+          <select
+            value={mediaMsg.priority}
+            onChange={e => setMediaMsg({ ...mediaMsg, priority: e.target.value })}
+            className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream"
+          >
+            <option value="normal">Priorité normale</option>
+            <option value="high">Priorité haute</option>
+            <option value="urgent">Urgent</option>
+          </select>
+          <textarea
+            value={mediaMsg.content}
+            onChange={e => setMediaMsg({ ...mediaMsg, content: e.target.value })}
+            className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream min-h-[80px] resize-y"
+            placeholder="Contenu du message *"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={handleSendToMedia}
+              disabled={!mediaMsg.title.trim() || !mediaMsg.content.trim() || sendingMedia}
+              className="flex-1 py-2 rounded-lg text-sm font-medium bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 transition-colors disabled:opacity-50 flex items-center justify-center gap-1"
+            >
+              {sendingMedia ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+              Envoyer
+            </button>
+            <button
+              onClick={() => { setShowSendToMedia(false); setMediaMsg({ title: '', content: '', priority: 'normal' }); }}
+              className="px-4 py-2 rounded-lg text-sm text-muted hover:text-cream bg-white/5 transition-colors"
+            >
+              Annuler
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -133,6 +133,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [testimonyAnonymous, setTestimonyAnonymous] = useState(false);
   const [testimonySubmitting, setTestimonySubmitting] = useState(false);
   const [testimonySubmitted, setTestimonySubmitted] = useState(false);
+  const [userTestimonies, setUserTestimonies] = useState<any[]>([]);
 
   // ── Daily verse / Hero state ────────────────────────────────
   const [dailyVerse, setDailyVerse] = useState<any>(null);
@@ -462,10 +463,23 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         supabase.from('department_requests').select('id, department_id, status, created_at, departments(name)').eq('user_id', user.id).neq('status', 'accepte').order('created_at', { ascending: false }).limit(5),
       ]);
 
+      const ACCEPTED_STATUSES = ['accepte', 'accepted', 'termine', 'repondu', 'answered', 'traite', 'ferme'];
       const items: any[] = [];
-      (visitRes.data || []).forEach((r: any) => items.push({ type: 'visit', id: r.id, label: `Visite: ${r.reason || 'Demande pastorale'}`, status: r.status, date: r.created_at, response: r.response, responded_at: r.responded_at }));
-      (prayerRes.data || []).forEach((r: any) => items.push({ type: 'prayer', id: r.id, label: r.content?.slice(0, 60) + '...', status: r.status, date: r.created_at, visibility: r.visibility }));
-      (deptRes.data || []).forEach((r: any) => items.push({ type: 'department', id: r.id, label: `Département: ${r.departments?.name || 'N/A'}`, status: r.status, date: r.created_at }));
+      (visitRes.data || []).forEach((r: any) => {
+        if (!ACCEPTED_STATUSES.includes(r.status)) {
+          items.push({ type: 'visit', id: r.id, label: `Visite: ${r.reason || 'Demande pastorale'}`, status: r.status, date: r.created_at, response: r.response, responded_at: r.responded_at });
+        }
+      });
+      (prayerRes.data || []).forEach((r: any) => {
+        if (!ACCEPTED_STATUSES.includes(r.status)) {
+          items.push({ type: 'prayer', id: r.id, label: r.content?.slice(0, 60) + '...', status: r.status, date: r.created_at, visibility: r.visibility });
+        }
+      });
+      (deptRes.data || []).forEach((r: any) => {
+        if (!ACCEPTED_STATUSES.includes(r.status)) {
+          items.push({ type: 'department', id: r.id, label: `Departement: ${r.departments?.name || 'N/A'}`, status: r.status, date: r.created_at });
+        }
+      });
 
       items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMyRequests(items.slice(0, 8));
@@ -565,6 +579,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       setTestimonyCategory('general');
       setTestimonyAnonymous(false);
       setTestimonySubmitted(true);
+      fetchUserTestimonies();
       setShowTestimonyForm(false);
     } catch {
       addToast('Erreur lors de la soumission du témoignage.', 'error');
@@ -572,6 +587,24 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
       setTestimonySubmitting(false);
     }
   };
+
+  const fetchUserTestimonies = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('member_testimonies')
+        .select('id, content, category, is_anonymous, status, published_at, created_at, reviewed_by, reviewer_profiles:user_profiles!reviewed_by(full_name, role_level)')
+        .eq('user_id', user.id)
+        .in('status', ['published', 'approved'])
+        .order('published_at', { ascending: false })
+        .limit(10);
+      setUserTestimonies(data || []);
+    } catch {
+      console.error('Error fetching user testimonies');
+    }
+  }, [user]);
+
+  useEffect(() => { fetchUserTestimonies(); }, [fetchUserTestimonies]);
 
   const TESTIMONY_CATEGORIES = [
     { val: 'general', label: 'Général' },
@@ -1847,7 +1880,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <CheckCircle className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
                     <p className="text-sm font-medium text-cream">Merci pour votre témoignage !</p>
                     <p className="text-xs text-muted mt-1">Il sera examiné par le pasteur puis publié sur le site.</p>
-                    <button onClick={() => setTestimonySubmitted(false)} className="btn-ghost text-sm px-4 py-2 mt-4">
+                    <button onClick={() => { setTestimonySubmitted(false); fetchUserTestimonies(); }} className="btn-ghost text-sm px-4 py-2 mt-4">
                       Partager un autre témoignage
                     </button>
                   </div>
@@ -1900,11 +1933,48 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                       </button>
                     </div>
                   </div>
-                ) : (
+                ) : userTestimonies.length === 0 ? (
                   <div className="glass-card flex flex-col items-center justify-center py-10 text-center">
                     <Quote className="mb-3 h-10 w-10 text-accent-400/30" />
                     <p className="text-muted text-sm mb-1">Aucun témoignage partagé</p>
                     <p className="text-xs text-muted/60">Partagez ce que Dieu a fait dans votre vie pour encourager l'église.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {userTestimonies.map((t: any) => (
+                      <div key={t.id} className="glass-card p-5">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                          <span className={`text-[10px] font-medium px-2.5 py-1 rounded-full bg-accent-400/10 text-accent-400 border border-accent-400/20`}>
+                            {t.category === 'general' ? 'Général' : t.category === 'guerison' ? 'Guérison' : t.category === 'finance' ? 'Finance' : t.category === 'miracle' ? 'Miracle' : t.category === 'salut' ? 'Salut' : t.category === 'famille' ? 'Famille' : t.category === 'delivrance' ? 'Délivrance' : 'Autre'}
+                          </span>
+                          <div className="flex items-center gap-1.5 text-[10px] text-emerald-400">
+                            <CheckCircle className="h-3 w-3" />
+                            <span>Publié</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-cream/90 leading-relaxed whitespace-pre-wrap">{t.content}</p>
+                        {t.reviewer_profiles && (
+                          <div className="mt-3 pt-3 border-t border-white/5 flex items-center gap-2">
+                            <div className="h-6 w-6 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                              <Shield className="h-3 w-3 text-emerald-400" />
+                            </div>
+                            <div>
+                              <p className="text-[11px] text-cream/70">
+                                Validé par <span className="font-medium text-cream">{t.reviewer_profiles.full_name || 'Un pasteur'}</span>
+                              </p>
+                              <p className="text-[10px] text-muted/60">
+                                {t.published_at ? new Date(t.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {!t.is_anonymous && (
+                          <p className="mt-2 text-[10px] text-muted/50">
+                            Partagé le {new Date(t.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
               </section>

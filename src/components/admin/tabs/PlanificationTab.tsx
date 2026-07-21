@@ -249,7 +249,9 @@ export function PlanificationTab() {
   /* ── Permissions : admin + chef de dept peuvent planifier, membres voient en lecture seule ── */
   const [isDeptLeader, setIsDeptLeader] = useState(false);
     const isPrincipalPastor = profile?.is_principal_pastor === true;
-  const canPlan = isFullAdmin || isDeptLeader || isPrincipalPastor;
+  const isPastor = (profile?.role_level ?? 0) >= 4;
+  const canPlan = isFullAdmin || isDeptLeader || isPrincipalPastor || isPastor;
+  const canEditForm = isFullAdmin || isDeptLeader || isPrincipalPastor || isPastor;
 
   /* ── State: Cultes ── */
   const [services, setServices] = useState<WorshipService[]>([]);
@@ -259,6 +261,8 @@ export function PlanificationTab() {
   const [oratorForm, setOratorForm] = useState<WorshipOratorForm | null>(null);
   const [oratorPoints, setOratorPoints] = useState<WorshipOratorPoint[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [editingForm, setEditingForm] = useState(false);
+  const [editFormData, setEditFormData] = useState<any>({});
 
   /* ── State: Ordre du culte ── */
   const [orderItems, setOrderItems] = useState<WorshipOrderItem[]>([]);
@@ -769,7 +773,55 @@ export function PlanificationTab() {
   /* ═══════════════════════════════════════════════════════════════
      Render: Cultes Tab
      ═══════════════════════════════════════════════════════════════ */
-  const renderCultes = () => {
+  /* ── Save edited orator form ── */
+  const handleSaveForm = async () => {
+    if (!oratorForm || !selectedServiceId) return;
+    try {
+      const { error } = await supabase.from('worship_orator_forms').update({
+        theme: editFormData.theme ?? oratorForm.theme,
+        sub_theme: editFormData.sub_theme ?? oratorForm.sub_theme,
+        bible_book: editFormData.bible_book ?? oratorForm.bible_book,
+        bible_chapter: editFormData.bible_chapter ?? oratorForm.bible_chapter,
+        bible_verses: editFormData.bible_verses ?? oratorForm.bible_verses,
+        summary: editFormData.summary ?? oratorForm.summary,
+        remarks: editFormData.remarks ?? oratorForm.remarks,
+      }).eq('id', oratorForm.id);
+      if (error) throw error;
+
+      // Update points if changed
+      if (editFormData.points && Array.isArray(editFormData.points)) {
+        for (const pt of editFormData.points) {
+          await supabase.from('worship_orator_points').update({
+            title: pt.title,
+            description: pt.description || null,
+          }).eq('id', pt.id);
+        }
+      }
+
+      addToast({ type: 'success', message: 'Formulaire mis à jour' });
+      setEditingForm(false);
+      fetchOratorForm(selectedServiceId);
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || 'Erreur de sauvegarde' });
+    }
+  };
+
+  const handleStartEditing = () => {
+    if (!oratorForm) return;
+    setEditFormData({
+      theme: oratorForm.theme,
+      sub_theme: oratorForm.sub_theme || '',
+      bible_book: oratorForm.bible_book || '',
+      bible_chapter: oratorForm.bible_chapter || '',
+      bible_verses: oratorForm.bible_verses || '',
+      summary: oratorForm.summary || '',
+      remarks: oratorForm.remarks || '',
+      points: oratorPoints.map(p => ({ id: p.id, title: p.title, description: p.description || '' })),
+    });
+    setEditingForm(true);
+  };
+
+    const renderCultes = () => {
     const linksForService = (svcId: string, type: 'orator' | 'president') =>
       formLinks.filter(l => l.service_id === svcId && l.link_type === type);
 
@@ -1045,9 +1097,26 @@ export function PlanificationTab() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-cream">Formulaire Orateur</h3>
-              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${oratorForm.status === 'submitted' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>
-                {oratorForm.status === 'submitted' ? 'Soumis' : 'Brouillon'}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${oratorForm.status === 'submitted' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>
+                  {oratorForm.status === 'submitted' ? 'Soumis' : 'Brouillon'}
+                </span>
+                {canEditForm && !editingForm && (
+                  <button onClick={handleStartEditing} className="px-3 py-1 rounded-lg text-xs font-medium bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors flex items-center gap-1">
+                    <FileText className="h-3 w-3" /> Modifier
+                  </button>
+                )}
+                {editingForm && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={handleSaveForm} className="px-3 py-1 rounded-lg text-xs font-medium bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-colors flex items-center gap-1">
+                      <CheckCircle className="h-3 w-3" /> Sauvegarder
+                    </button>
+                    <button onClick={() => setEditingForm(false)} className="px-3 py-1 rounded-lg text-xs font-medium bg-white/5 text-muted hover:text-cream transition-colors">
+                      Annuler
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="glass-card rounded-xl p-5 space-y-4">
@@ -1058,7 +1127,11 @@ export function PlanificationTab() {
                 </div>
                 <div>
                   <label className="text-xs text-muted block mb-1">Thème principal</label>
-                  <p className="text-sm font-medium text-cream">{oratorForm.theme}</p>
+                  {editingForm ? (
+                    <input type="text" value={editFormData.theme || ''} onChange={e => setEditFormData({...editFormData, theme: e.target.value})} className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream" />
+                  ) : (
+                    <p className="text-sm font-medium text-cream">{oratorForm.theme}</p>
+                  )}
                 </div>
                 {oratorForm.sub_theme && (
                   <div>
@@ -1066,25 +1139,50 @@ export function PlanificationTab() {
                     <p className="text-sm text-cream/80">{oratorForm.sub_theme}</p>
                   </div>
                 )}
-                {oratorForm.bible_book && (
-                  <div>
+                <div>
                     <label className="text-xs text-muted block mb-1">Verset biblique</label>
-                    <p className="text-sm text-cream/80">{oratorForm.bible_book} {oratorForm.bible_chapter || ""}:{oratorForm.bible_verses || ""}</p>
+                    {editingForm ? (
+                      <div className="flex gap-2">
+                        <select value={editFormData.bible_book || ''} onChange={e => setEditFormData({...editFormData, bible_book: e.target.value})} className="input-surface rounded-lg px-3 py-2 text-sm text-cream flex-1">
+                          <option value="">-- Livre --</option>
+                          {BIBLE_BOOKS.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                        <input type="text" value={editFormData.bible_chapter || ''} onChange={e => setEditFormData({...editFormData, bible_chapter: e.target.value})} className="input-surface rounded-lg px-3 py-2 text-sm text-cream w-20" placeholder="Ch." />
+                        <input type="text" value={editFormData.bible_verses || ''} onChange={e => setEditFormData({...editFormData, bible_verses: e.target.value})} className="input-surface rounded-lg px-3 py-2 text-sm text-cream w-20" placeholder="Vv." />
+                      </div>
+                    ) : (
+                      <p className="text-sm text-cream/80">{oratorForm.bible_book ? `${oratorForm.bible_book} ${oratorForm.bible_chapter || ''}:${oratorForm.bible_verses || ''}` : '-'}</p>
+                    )}
                   </div>
-                )}
               </div>
 
               {oratorPoints.length > 0 && (
                 <div>
                   <label className="text-xs text-muted block mb-2">Grands points du message</label>
                   <div className="space-y-2">
-                    {oratorPoints.sort((a, b) => a.position - b.position).map((pt, i) => (
+                    {(editingForm ? (editFormData.points || oratorPoints) : oratorPoints).sort((a: any, b: any) => a.position - b.position).map((pt: any, i: number) => (
                       <div key={pt.id} className="bg-white/3 rounded-lg p-3 border border-line/20">
                         <div className="flex items-start gap-2">
                           <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{i + 1}</span>
-                          <div>
-                            <p className="text-sm font-medium text-cream">{pt.title}</p>
-                            {pt.description && <p className="text-xs text-muted mt-1">{pt.description}</p>}
+                          <div className="flex-1">
+                            {editingForm ? (
+                              <input type="text" value={pt.title || ''} onChange={e => {
+                                const pts = [...(editFormData.points || oratorPoints)];
+                                const idx = pts.findIndex((p: any) => p.id === pt.id);
+                                if (idx >= 0) { pts[idx] = { ...pts[idx], title: e.target.value }; setEditFormData({ ...editFormData, points: pts }); }
+                              }} className="input-surface w-full rounded-lg px-3 py-1.5 text-sm text-cream mb-1" />
+                            ) : (
+                              <p className="text-sm font-medium text-cream">{pt.title}</p>
+                            )}
+                            {editingForm ? (
+                              <input type="text" value={pt.description || ''} onChange={e => {
+                                const pts = [...(editFormData.points || oratorPoints)];
+                                const idx = pts.findIndex((p: any) => p.id === pt.id);
+                                if (idx >= 0) { pts[idx] = { ...pts[idx], description: e.target.value }; setEditFormData({ ...editFormData, points: pts }); }
+                              }} className="input-surface w-full rounded-lg px-3 py-1.5 text-xs text-cream" placeholder="Description..." />
+                            ) : (
+                              pt.description && <p className="text-xs text-muted mt-1">{pt.description}</p>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1093,19 +1191,23 @@ export function PlanificationTab() {
                 </div>
               )}
 
-              {oratorForm.summary && (
-                <div>
+              <div>
                   <label className="text-xs text-muted block mb-1">Résumé du message</label>
-                  <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.summary}</p>
+                  {editingForm ? (
+                    <textarea value={editFormData.summary || ''} onChange={e => setEditFormData({...editFormData, summary: e.target.value})} className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream min-h-[100px] resize-y" />
+                  ) : (
+                    <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.summary || '-'}</p>
+                  )}
                 </div>
-              )}
 
-              {oratorForm.remarks && (
-                <div>
+              <div>
                   <label className="text-xs text-muted block mb-1">Remarques</label>
-                  <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.remarks}</p>
+                  {editingForm ? (
+                    <textarea value={editFormData.remarks || ''} onChange={e => setEditFormData({...editFormData, remarks: e.target.value})} className="input-surface w-full rounded-lg px-3 py-2 text-sm text-cream min-h-[60px] resize-y" />
+                  ) : (
+                    <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.remarks || '-'}</p>
+                  )}
                 </div>
-              )}
 
               {oratorForm.submitted_at && (
                 <p className="text-xs text-muted text-right">Soumis le {new Date(oratorForm.submitted_at).toLocaleString('fr-FR')}</p>

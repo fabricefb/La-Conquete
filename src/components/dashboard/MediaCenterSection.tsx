@@ -595,6 +595,10 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   const [loading, setLoading] = useState(true);
   const [tableMissing, setTableMissing] = useState(false);
 
+  // ── Department communications inbox ──
+  const [deptMessages, setDeptMessages] = useState<any[]>([]);
+  const [showInbox, setShowInbox] = useState(false);
+
   // -----------------------------------------------------------------------
   // Fetch — optimized: batch links, parallel forms/orders per service
   // -----------------------------------------------------------------------
@@ -681,6 +685,18 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
       setServices([]);
     } finally {
       setLoading(false);
+    }
+
+    // Fetch department communications sent to media/communication
+    try {
+      const { data: commData } = await supabase
+        .from('department_communications')
+        .select('id, title, content, priority, sender_dept:departments!sender_department_id(name), created_at, is_read')
+        .order('created_at', { ascending: false })
+        .limit(20);
+      setDeptMessages(commData || []);
+    } catch {
+      // Table may not exist yet - that's OK
     }
   }, [addToast]);
 
@@ -827,6 +843,62 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
           {groupedSpecial.map(renderGroup)}
         </div>
       )}
+
+      {/* Department Communications Inbox */}
+      <div className="glass-card rounded-xl overflow-hidden">
+        <button
+          onClick={() => setShowInbox(!showInbox)}
+          className="w-full p-4 flex items-center justify-between hover:bg-white/3 transition-colors"
+        >
+          <div className="flex items-center gap-2.5">
+            <MessageSquare className="h-4.5 w-4.5 text-cyan-400" />
+            <span className="text-sm font-medium text-cream">Communications des d\u00e9partements</span>
+            {deptMessages.filter(m => !m.is_read).length > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300">
+                {deptMessages.filter(m => !m.is_read).length} nouveau{deptMessages.filter(m => !m.is_read).length > 1 ? 'x' : ''}
+              </span>
+            )}
+          </div>
+          <ChevronDown className={`h-4 w-4 text-muted transition-transform ${showInbox ? 'rotate-180' : ''}`} />
+        </button>
+        {showInbox && (
+          <div className="border-t border-line/30 p-4 space-y-3 max-h-96 overflow-y-auto">
+            {deptMessages.length === 0 ? (
+              <div className="text-center py-6">
+                <MessageSquare className="w-8 h-8 mx-auto mb-2 text-muted/40" />
+                <p className="text-muted text-sm">Aucune communication re\u00e7ue</p>
+                <p className="text-muted/60 text-xs mt-1">Les messages des autres d\u00e9partements appara\u00eetront ici.</p>
+              </div>
+            ) : (
+              deptMessages.map((msg: any) => (
+                <div
+                  key={msg.id}
+                  className={`rounded-xl p-3 border transition-colors ${!msg.is_read ? 'bg-cyan-500/5 border-cyan-500/20' : 'bg-white/2 border-line/20'}`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2">
+                      {!msg.is_read && <span className="h-2 w-2 rounded-full bg-cyan-400 shrink-0" />}
+                      <p className="text-sm font-medium text-cream">{msg.title}</p>
+                    </div>
+                    <span className="text-[10px] text-muted shrink-0">
+                      {new Date(msg.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  {msg.sender_dept && (
+                    <p className="text-[10px] text-cyan-400/70 mb-1">De: {msg.sender_dept.name}</p>
+                  )}
+                  <p className="text-xs text-cream/70 line-clamp-3">{msg.content}</p>
+                  {msg.priority === 'urgent' && (
+                    <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] text-red-400 font-medium">
+                      <AlertTriangle className="w-3 h-3" /> Urgent
+                    </span>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
