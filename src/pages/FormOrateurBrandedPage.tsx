@@ -77,8 +77,19 @@ export function FormOrateurBrandedPage({ token }: Props) {
         .single();
 
       if (svcData) {
-        setService(svcData as WorshipService);
-        setServiceNotes(svcData.notes || null);
+        // Defensive: ensure all fields are primitives
+        const safeSvc = {
+          ...svcData,
+          date: String(svcData.date ?? ''),
+          time: String(svcData.time ?? ''),
+          type: String(svcData.type ?? ''),
+          orator_name: svcData.orator_name ? String(svcData.orator_name) : null,
+          president_name: svcData.president_name ? String(svcData.president_name) : null,
+          status: String(svcData.status ?? ''),
+          notes: svcData.notes ? String(svcData.notes) : null,
+        };
+        setService(safeSvc as WorshipService);
+        setServiceNotes(safeSvc.notes);
         // Pre-fill name based on link_type
         const isPresident = linkData.link_type === 'president';
         const nameToPreFill = isPresident ? svcData.president_name : svcData.orator_name;
@@ -380,8 +391,14 @@ export function FormOrateurBrandedPage({ token }: Props) {
     );
   }
 
-  const dateStr = service ? formatDateFr(service.date) : '';
-  const timeStr = service?.time || '';
+  const safeService = service ? {
+    ...service,
+    date: typeof service.date === 'string' ? service.date : String(service.date ?? ''),
+    time: typeof service.time === 'string' ? service.time : String(service.time ?? ''),
+    type: typeof service.type === 'string' ? service.type : String(service.type ?? ''),
+  } as WorshipService : null;
+  const dateStr = safeService ? formatDateFr(safeService.date) : '';
+  const timeStr = safeService?.time || '';
 
   /* ═══════════════════════════════════════════════════════════════
      FORM
