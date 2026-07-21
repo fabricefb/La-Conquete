@@ -904,156 +904,180 @@ export function PlanificationTab() {
      Render: Formulaires Tab (Read-only view of orator form)
      ═══════════════════════════════════════════════════════════════ */
   const renderFormulaires = () => {
-    if (!selectedServiceId) {
-      return (
-        <div className="glass-card rounded-xl p-8 text-center">
-          <MessageSquare className="h-10 w-10 text-muted mx-auto mb-3" />
-          <p className="text-muted">Sélectionnez un culte dans l'onglet "Cultes" pour voir le formulaire orateur</p>
-        </div>
-      );
-    }
-
-    if (!oratorForm) {
-      return (
-        <div className="glass-card rounded-xl p-8 text-center">
-          <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-          <p className="text-muted">Aucun formulaire orateur soumis pour ce culte</p>
-          <p className="text-xs text-muted mt-1">Le lien n'a pas encore été rempli par l'orateur.</p>
-        </div>
-      );
-    }
-
     return (
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h3 className="text-lg font-semibold text-cream">Formulaire Orateur</h3>
-          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${oratorForm.status === 'submitted' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>
-            {oratorForm.status === 'submitted' ? 'Soumis' : 'Brouillon'}
-          </span>
+          <select
+            value={selectedServiceId || ""}
+            onChange={e => { if (e.target.value) fetchOratorForm(e.target.value); }}
+            className="input-surface rounded-lg px-3 py-2 text-sm text-cream min-w-[220px]"
+          >
+            <option value="">-- Choisir un culte --</option>
+            {services.map(svc => (
+              <option key={svc.id} value={svc.id}>
+                {formatDate(svc.date)} {formatTime(svc.time)} — {SERVICE_TYPE_LABELS[svc.type] ?? svc.type}{svc.orator_name ? ` (${svc.orator_name})` : ""}
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="glass-card rounded-xl p-5 space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs text-muted block mb-1">Orateur</label>
-              <p className="text-sm font-medium text-cream">{oratorForm.orator_name}</p>
-            </div>
-            <div>
-              <label className="text-xs text-muted block mb-1">Thème principal</label>
-              <p className="text-sm font-medium text-cream">{oratorForm.theme}</p>
-            </div>
-            {oratorForm.sub_theme && (
-              <div>
-                <label className="text-xs text-muted block mb-1">Sous-thème</label>
-                <p className="text-sm text-cream/80">{oratorForm.sub_theme}</p>
-              </div>
-            )}
-            {oratorForm.bible_book && (
-              <div>
-                <label className="text-xs text-muted block mb-1">Verset biblique</label>
-                <p className="text-sm text-cream/80">{oratorForm.bible_book} {oratorForm.bible_chapter || ''}:{oratorForm.bible_verses || ''}</p>
-              </div>
-            )}
+        {!selectedServiceId && (
+          <div className="glass-card rounded-xl p-8 text-center">
+            <MessageSquare className="h-10 w-10 text-muted mx-auto mb-3" />
+            <p className="text-muted">Sélectionnez un culte ci-dessus pour voir le formulaire orateur</p>
           </div>
+        )}
 
-            {oratorPoints.length > 0 && (
-              <div>
-                <label className="text-xs text-muted block mb-2">Grands points du message</label>
-                <div className="space-y-2">
-                  {oratorPoints.sort((a, b) => a.position - b.position).map((pt, i) => (
-                    <div key={pt.id} className="bg-white/3 rounded-lg p-3 border border-line/20">
-                      <div className="flex items-start gap-2">
-                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{i + 1}</span>
-                        <div>
-                          <p className="text-sm font-medium text-cream">{pt.title}</p>
-                          {pt.description && <p className="text-xs text-muted mt-1">{pt.description}</p>}
+        {selectedServiceId && !oratorForm && (
+          <div className="glass-card rounded-xl p-8 text-center">
+            <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
+            <p className="text-muted">Aucun formulaire orateur soumis pour ce culte</p>
+            <p className="text-xs text-muted mt-1">Le lien n\'a pas encore été rempli par l\'orateur.</p>
+          </div>
+        )}
+
+        {oratorForm && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-cream">Formulaire Orateur</h3>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${oratorForm.status === 'submitted' ? 'bg-green-500/20 text-green-300' : 'bg-gray-500/20 text-gray-300'}`}>
+                {oratorForm.status === 'submitted' ? 'Soumis' : 'Brouillon'}
+              </span>
+            </div>
+
+            <div className="glass-card rounded-xl p-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs text-muted block mb-1">Orateur</label>
+                  <p className="text-sm font-medium text-cream">{oratorForm.orator_name}</p>
+                </div>
+                <div>
+                  <label className="text-xs text-muted block mb-1">Thème principal</label>
+                  <p className="text-sm font-medium text-cream">{oratorForm.theme}</p>
+                </div>
+                {oratorForm.sub_theme && (
+                  <div>
+                    <label className="text-xs text-muted block mb-1">Sous-thème</label>
+                    <p className="text-sm text-cream/80">{oratorForm.sub_theme}</p>
+                  </div>
+                )}
+                {oratorForm.bible_book && (
+                  <div>
+                    <label className="text-xs text-muted block mb-1">Verset biblique</label>
+                    <p className="text-sm text-cream/80">{oratorForm.bible_book} {oratorForm.bible_chapter || ""}:{oratorForm.bible_verses || ""}</p>
+                  </div>
+                )}
+              </div>
+
+              {oratorPoints.length > 0 && (
+                <div>
+                  <label className="text-xs text-muted block mb-2">Grands points du message</label>
+                  <div className="space-y-2">
+                    {oratorPoints.sort((a, b) => a.position - b.position).map((pt, i) => (
+                      <div key={pt.id} className="bg-white/3 rounded-lg p-3 border border-line/20">
+                        <div className="flex items-start gap-2">
+                          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{i + 1}</span>
+                          <div>
+                            <p className="text-sm font-medium text-cream">{pt.title}</p>
+                            {pt.description && <p className="text-xs text-muted mt-1">{pt.description}</p>}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {oratorForm.summary && (
-              <div>
-                <label className="text-xs text-muted block mb-1">Résumé du message</label>
-                <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.summary}</p>
-              </div>
-            )}
+              {oratorForm.summary && (
+                <div>
+                  <label className="text-xs text-muted block mb-1">Résumé du message</label>
+                  <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.summary}</p>
+                </div>
+              )}
 
-            {oratorForm.remarks && (
-              <div>
-                <label className="text-xs text-muted block mb-1">Remarques</label>
-                <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.remarks}</p>
-              </div>
-            )}
+              {oratorForm.remarks && (
+                <div>
+                  <label className="text-xs text-muted block mb-1">Remarques</label>
+                  <p className="text-sm text-cream/80 whitespace-pre-wrap bg-white/3 rounded-lg p-3 border border-line/20">{oratorForm.remarks}</p>
+                </div>
+              )}
 
-            {oratorForm.submitted_at && (
-              <p className="text-xs text-muted text-right">Soumis le {new Date(oratorForm.submitted_at).toLocaleString('fr-FR')}</p>
-            )}
+              {oratorForm.submitted_at && (
+                <p className="text-xs text-muted text-right">Soumis le {new Date(oratorForm.submitted_at).toLocaleString('fr-FR')}</p>
+              )}
+            </div>
           </div>
-        </div>
-    );
-  };
-
-  /* ═══════════════════════════════════════════════════════════════
-     Render: Ordre du Culte Tab
-     ═══════════════════════════════════════════════════════════════ */
-  const renderOrdre = () => {
-    if (!selectedServiceForOrder) {
-      return (
-        <div className="glass-card rounded-xl p-8 text-center">
-          <Clock className="h-10 w-10 text-muted mx-auto mb-3" />
-          <p className="text-muted">Sélectionnez un culte dans l'onglet "Cultes" pour voir l'ordre du culte</p>
-        </div>
-      );
-    }
-
-    if (orderItems.length === 0) {
-      return (
-        <div className="glass-card rounded-xl p-8 text-center">
-          <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
-          <p className="text-muted">Aucun ordre du culte défini pour ce culte</p>
-          <p className="text-xs text-muted mt-1">Le président n'a pas encore rempli le formulaire.</p>
-        </div>
-      );
-    }
-
-    const totalMinutes = orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0);
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-cream">Ordre du culte</h3>
-          <span className="text-xs text-muted">Durée totale estimée: {totalMinutes} min</span>
-        </div>
-
-        <div className="glass-card rounded-xl divide-y divide-line/20 overflow-hidden">
-          {orderItems.sort((a, b) => a.position - b.position).map((item, idx) => {
-            const typeLabel = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
-            const isFirst = idx === 0;
-            const isLast = idx === orderItems.length - 1;
-
-            return (
-              <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/3 transition-colors">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{idx + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-cream">{item.custom_label || typeLabel}</p>
-                  {item.notes && <p className="text-xs text-muted mt-0.5 truncate">{item.notes}</p>}
-                </div>
-                <span className="text-xs text-muted shrink-0">{item.duration_minutes} min</span>
-              </div>
-            );
-          })}
-        </div>
+        )}
       </div>
     );
   };
 
-  /* ═══════════════════════════════════════════════════════════════
-     Create Service Modal
-     ═══════════════════════════════════════════════════════════════ */
+
+  const renderOrdre = () => {
+    return (
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold text-cream">Ordre du culte</h3>
+          <select
+            value={selectedServiceForOrder || ""}
+            onChange={e => { if (e.target.value) fetchOrderItems(e.target.value); }}
+            className="input-surface rounded-lg px-3 py-2 text-sm text-cream min-w-[220px]"
+          >
+            <option value="">-- Choisir un culte --</option>
+            {services.map(svc => (
+              <option key={svc.id} value={svc.id}>
+                {formatDate(svc.date)} {formatTime(svc.time)} — {SERVICE_TYPE_LABELS[svc.type] ?? svc.type}{svc.president_name ? ` (${svc.president_name})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {!selectedServiceForOrder && (
+          <div className="glass-card rounded-xl p-8 text-center">
+            <Clock className="h-10 w-10 text-muted mx-auto mb-3" />
+            <p className="text-muted">Sélectionnez un culte ci-dessus pour voir l\'ordre du culte</p>
+          </div>
+        )}
+
+        {selectedServiceForOrder && orderItems.length === 0 && (
+          <div className="glass-card rounded-xl p-8 text-center">
+            <AlertCircle className="h-10 w-10 text-amber-400 mx-auto mb-3" />
+            <p className="text-muted">Aucun ordre du culte défini pour ce culte</p>
+            <p className="text-xs text-muted mt-1">Le président n\'a pas encore rempli le formulaire.</p>
+          </div>
+        )}
+
+        {selectedServiceForOrder && orderItems.length > 0 && (() => {
+          const totalMinutes = orderItems.reduce((s, i) => s + (i.duration_minutes || 0), 0);
+          return (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted">Durée totale estimée: {totalMinutes} min</span>
+              </div>
+              <div className="glass-card rounded-xl divide-y divide-line/20 overflow-hidden">
+                {orderItems.sort((a, b) => a.position - b.position).map((item, idx) => {
+                  const typeLabel = ORDER_ITEM_TYPES.find(t => t.value === item.item_type)?.label || item.item_type;
+                  return (
+                    <div key={item.id} className="flex items-center gap-3 px-4 py-3 hover:bg-white/3 transition-colors">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent-400/15 text-accent-400 text-xs font-bold shrink-0">{idx + 1}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-cream">{item.custom_label || typeLabel}</p>
+                        {item.notes && <p className="text-xs text-muted mt-0.5 truncate">{item.notes}</p>}
+                      </div>
+                      <span className="text-xs text-muted shrink-0">{item.duration_minutes} min</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          );
+        })()}
+      </div>
+    );
+  };
+
+
   const renderCreateModal = () => {
     if (!showCreateModal) return null;
     return <CreateServiceModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateService} />;

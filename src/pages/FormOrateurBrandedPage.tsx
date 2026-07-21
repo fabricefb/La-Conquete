@@ -430,6 +430,14 @@ export function FormOrateurBrandedPage({ token }: Props) {
       {/* ── CONTENT ── */}
       <div className="max-w-2xl mx-auto px-4 py-6" style={{ paddingBottom: 110 }}>
 
+        {/* Deadline notice */}
+        <div className="p-3.5 rounded-xl mb-4 flex items-start gap-2.5" style={{ background: 'rgba(212,168,67,0.08)', border: '1px solid rgba(212,168,67,0.18)' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A843" strokeWidth="2" className="shrink-0 mt-0.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/></svg>
+          <div className="text-sm" style={{ color: 'rgba(247,243,238,0.85)', lineHeight: 1.6 }}>
+            <strong style={{ color: '#D4A843' }}>Important</strong> — Ce formulaire doit être rempli et envoyé au moins <strong>une heure avant le culte</strong>, avec respect et diligence. Merci pour votre collaboration avec le département de média.
+          </div>
+        </div>
+
         {/* Welcome banner */}
         <div className="flex items-start gap-3 p-4 rounded-xl mb-5" style={{ background: 'rgba(106,150,232,0.08)', border: '1px solid rgba(106,150,232,0.15)' }}>
           <img src={LOGO_URL} alt="" className="rounded-full object-contain shrink-0 mt-0.5" style={{ width: 36, height: 36, border: '1px solid rgba(106,150,232,0.2)', background: 'rgba(255,255,255,0.05)', padding: 3 }} />
