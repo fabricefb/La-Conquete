@@ -167,6 +167,15 @@ export function FormOrateurBrandedPage({ token }: Props) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  /* ── Redirect to homepage after successful submit ── */
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => {
+      window.location.href = window.location.origin + '/';
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
   /* ── Points management ── */
   const addPoint = () => setPoints([...points, { title: '', description: '' }]);
   const removePoint = (idx: number) => {
@@ -354,15 +363,6 @@ export function FormOrateurBrandedPage({ token }: Props) {
       </div>
     );
   }
-
-  /* ── Redirect to homepage after successful submit ── */
-  useEffect(() => {
-    if (!success) return;
-    const timer = setTimeout(() => {
-      window.location.href = window.location.origin + '/';
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [success]);
 
   /* ═══════════════════════════════════════════════════════════════
      SUCCESS
