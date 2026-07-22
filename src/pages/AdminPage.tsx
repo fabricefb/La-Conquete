@@ -32,6 +32,7 @@ import { PredicationsTab } from '../components/admin/tabs/PredicationsTab';
 import { AnnoncesTab } from '../components/admin/tabs/AnnoncesTab';
 import { CommuniquesTab } from '../components/admin/tabs/CommuniquesTab';
 import { EmissionsTab } from '../components/admin/tabs/EmissionsTab';
+import { ActivityCardsTab } from '../components/admin/tabs/ActivityCardsTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
 import type { AdminTab } from '../types';
@@ -128,6 +129,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'annonces': return <AnnoncesTab />;
       case 'communiques': return <CommuniquesTab />;
       case 'emissions': return <EmissionsTab />;
+      case 'activity_cards': return <ActivityCardsTab />;
       default: return <DashboardTab onTabChange={setActiveTab} />;
     }
   }

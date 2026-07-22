@@ -27,6 +27,7 @@ import {
   ChevronDown,
   Newspaper,
   Clock,
+  Hash,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { ChurchEvent } from '../types';
@@ -705,6 +706,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
             <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
               Découvrez nos activités
             </h2>
+            <p className="mt-3 text-sm text-muted max-w-2xl mx-auto">
+              Gérez les prédications affichées sur la page <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-xs font-semibold text-amber-400 mx-1"><Hash className="h-3 w-3" />predications</span>              et modifiez chaque carte depuis le back-office.
+            </p>
           </RevealSection>
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

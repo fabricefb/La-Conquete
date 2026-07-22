@@ -52,12 +52,13 @@ const PAGES: PageDef[] = [
     description: 'Hero, Piliers, À propos, Citation, CTA',
     sections: [
       { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email, texte défilant' },
-      { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond, diaporama, titre, verset biblique' },
+      { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond (photo modifiable), diaporama, titre, verset biblique' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
-      { key: 'pastor_word', label: 'Mot du pasteur', icon: Users, description: 'Portrait, signature, textes et citation' },
+      { key: 'pastor_word', label: 'Mot du pasteur', icon: Users, description: 'Portrait (photo modifiable), signature (image modifiable), textes et citation' },
       { key: 'news', label: 'Dernières nouvelles', icon: Newspaper, description: 'Titre et sous-titre de la section actualités' },
       { key: 'cta_map', label: 'CTA & Carte', icon: MapPin, description: 'Texte du CTA en superposition sur la carte' },
-      { key: 'about', label: 'Qui sommes-nous (ancien)', icon: Info, description: 'Textes, image et citation' },
+      { key: 'explore', label: 'Explorer — Découvrez nos activités', icon: Eye, description: 'Titre, sous-titre et description de la section Explorer. Pour modifier les cartes (miniatures, liens), utilisez l\'onglet « Cartes Explorer »' },
+      { key: 'about', label: 'Qui sommes-nous (ancien)', icon: Info, description: 'Textes, photo (miniature modifiable) et citation' },
       { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence' },
     ],
   },
@@ -66,7 +67,7 @@ const PAGES: PageDef[] = [
     key: 'about', label: 'À propos', icon: Info,
     description: 'Notre identité, Vision, Mission, Valeurs',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'about', label: 'Qui sommes-nous', icon: Info, description: 'Texte principal de présentation' },
       { key: 'vision', label: 'Vision', icon: Eye, description: 'Texte de la vision' },
       { key: 'mission', label: 'Mission', icon: Flame, description: 'Texte de la mission' },
@@ -82,7 +83,7 @@ const PAGES: PageDef[] = [
     key: 'culte', label: 'Culte & Rassemblements', icon: Calendar,
     description: 'Horaires, Infos pratiques',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'schedule', label: 'Horaires de culte', icon: Calendar, description: 'Titre et description' },
       { key: 'practicals', label: 'Infos pratiques', icon: Info, description: 'Parking, transport, enfants' },
     ],
@@ -91,7 +92,7 @@ const PAGES: PageDef[] = [
     key: 'events', label: 'Événements', icon: Calendar,
     description: 'Événements à venir et passés',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'upcoming', label: 'Événements à venir', icon: Calendar, description: 'Titre et description' },
       { key: 'weekly', label: 'Cultes hebdomadaires', icon: Calendar, description: 'Titre et description' },
       { key: 'weekly_heading', label: 'En-tête Cultes hebdomadaires', icon: Calendar, description: 'Label, titre et description' },
@@ -102,7 +103,7 @@ const PAGES: PageDef[] = [
     key: 'jeunesse', label: 'Jeunesse', icon: Users,
     description: 'Activités, Programme, Témoignages',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'activities', label: 'Activités', icon: Users, description: 'Titre et description' },
       { key: 'program', label: 'Programme', icon: Calendar, description: 'Titre et description' },
     ],
@@ -111,7 +112,7 @@ const PAGES: PageDef[] = [
     key: 'ministeres', label: 'Ministères', icon: Building2,
     description: 'Louange, Évangélisation, Diaconie, Groupes',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'louange', label: 'Louange & Adoration', icon: Radio, description: 'Titre et description' },
       { key: 'evangelisation', label: 'Évangélisation', icon: Compass, description: 'Titre et description' },
       { key: 'diaconie', label: 'Diaconie & Aide sociale', icon: Heart, description: 'Titre et description' },
@@ -122,7 +123,7 @@ const PAGES: PageDef[] = [
     key: 'departments', label: 'Tous les départements', icon: Building2,
     description: 'Liste des départements',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des départements', icon: Building2, description: 'Titre et description' },
     ],
   },
@@ -130,7 +131,7 @@ const PAGES: PageDef[] = [
     key: 'pasteurs', label: 'Équipe pastorale', icon: Users,
     description: 'Pasteurs principaux et équipe',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'principaux', label: 'Pasteurs principaux', icon: Users, description: 'Titre et description' },
       { key: 'equipe', label: 'Reste de l\'équipe', icon: Users, description: 'Titre et description' },
     ],
@@ -139,7 +140,7 @@ const PAGES: PageDef[] = [
     key: 'extensions', label: 'Extensions', icon: MapPin,
     description: 'Extensions locales',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des extensions', icon: MapPin, description: 'Titre et description' },
     ],
   },
@@ -148,7 +149,7 @@ const PAGES: PageDef[] = [
     key: 'enseignements', label: 'Enseignements', icon: BookOpen,
     description: 'Enseignements, Séries, Études bibliques',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des enseignements', icon: BookOpen, description: 'Titre et description' },
       { key: 'series', label: 'Séries', icon: BookOpen, description: 'Titre et description' },
       { key: 'studies', label: 'Études bibliques', icon: BookOpen, description: 'Titre et description' },
@@ -156,9 +157,9 @@ const PAGES: PageDef[] = [
   },
   {
     key: 'predications', label: 'Prédications', icon: BookOpen,
-    description: 'Prédications et séries',
+    description: 'Prédications et séries — Pour les miniatures et contenu, utilisez l\'onglet « Prédications » (#predications)',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des prédications', icon: BookOpen, description: 'Titre et description' },
       { key: 'series', label: 'Séries de prédications', icon: BookOpen, description: 'Titre et description' },
     ],
@@ -167,7 +168,7 @@ const PAGES: PageDef[] = [
     key: 'blog', label: 'Blog', icon: MessageSquare,
     description: 'Articles et actualités',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'featured', label: 'Article à la une', icon: MessageSquare, description: 'Titre et description' },
       { key: 'list', label: 'Liste des articles', icon: MessageSquare, description: 'Titre et description' },
     ],
@@ -177,7 +178,7 @@ const PAGES: PageDef[] = [
     key: 'media', label: 'Médias — Contenus', icon: Video,
     description: 'Vidéos, Émissions, En direct, Photos',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'videos', label: 'Toutes les vidéos', icon: Video, description: 'Titre et description' },
       { key: 'emissions', label: 'Émissions', icon: Radio, description: 'Titre et description' },
       { key: 'live', label: 'En direct', icon: Video, description: 'Titre et description' },
@@ -188,7 +189,7 @@ const PAGES: PageDef[] = [
     key: 'emissions', label: 'Médias — Émissions', icon: Radio,
     description: 'Émissions programmées',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des émissions', icon: Radio, description: 'Titre et description' },
       { key: 'featured', label: 'Émission à la une', icon: Radio, description: 'Titre et description' },
     ],
@@ -198,7 +199,7 @@ const PAGES: PageDef[] = [
     key: 'communiques', label: 'Communiqués', icon: Megaphone,
     description: 'Communiqués officiels',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des communiqués', icon: Megaphone, description: 'Titre et description' },
     ],
   },
@@ -206,7 +207,7 @@ const PAGES: PageDef[] = [
     key: 'annonces', label: 'Annonces', icon: Megaphone,
     description: 'Annonces importantes',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'list', label: 'Liste des annonces', icon: Megaphone, description: 'Titre et description' },
     ],
   },
@@ -215,7 +216,7 @@ const PAGES: PageDef[] = [
     key: 'contact', label: 'Contact', icon: MapPin,
     description: 'Coordonnées, Formulaire, Carte',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'services', label: 'Horaires de culte', icon: Calendar, description: 'Titre et description' },
       { key: 'form', label: 'Formulaire de contact', icon: MessageSquare, description: 'Titre et description' },
       { key: 'social', label: 'Réseaux sociaux', icon: Radio, description: 'Titre et description' },
@@ -225,7 +226,7 @@ const PAGES: PageDef[] = [
     key: 'dons', label: 'Dons', icon: Heart,
     description: 'Méthodes de don',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'methods', label: 'Méthodes de don', icon: Heart, description: 'Titre et description' },
     ],
   },
@@ -234,7 +235,7 @@ const PAGES: PageDef[] = [
     key: 'vision', label: 'Vision & Mission', icon: Eye,
     description: 'Mission, Valeurs, Chronologie',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'mission', label: 'Mission', icon: Flame, description: 'Titre et description' },
       { key: 'values', label: 'Valeurs', icon: Heart, description: 'Titre et description' },
       { key: 'timeline', label: 'Chronologie', icon: Calendar, description: 'Titre et description' },
@@ -245,7 +246,7 @@ const PAGES: PageDef[] = [
     key: 'activities', label: 'Activités / Culte', icon: Calendar,
     description: 'Héro, Ministères, CTA',
     sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Badge, titre, sous-titre' },
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'ministries', label: 'Ministères', icon: Users, description: 'Titre et sous-titre' },
       { key: 'cta', label: 'Appel à action', icon: Compass, description: 'Titre et description' },
     ],
@@ -319,6 +320,11 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     cta_map: [
       { field_key: 'title', label: 'Titre du CTA', type: 'text', value: 'Rejoignez notre famille' },
       { field_key: 'text', label: 'Texte du CTA', type: 'text', value: '' },
+    ],
+    explore: [
+      { field_key: 'heading_label', label: 'Label de section', type: 'text', value: 'Explorer' },
+      { field_key: 'heading_title', label: 'Titre de la section', type: 'text', value: 'Découvrez nos activités' },
+      { field_key: 'description', label: 'Sous-titre / Description', type: 'text', value: 'Gérez les prédications affichées sur la page #predications et modifiez chaque carte depuis le back-office.' },
     ],
     pastors: [
       { field_key: 'label', label: 'Label de section', type: 'text', value: 'Notre équipe' },

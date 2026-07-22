@@ -30,6 +30,7 @@ export {
   Facebook,
   Youtube,
   Instagram,
+  Hash,
 } from 'lucide-react';
 
 export type LucideIcon = React.FC<{ className?: string; style?: React.CSSProperties }>;

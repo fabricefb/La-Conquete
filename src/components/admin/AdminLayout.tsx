@@ -37,6 +37,7 @@ const tabGroups: TabGroup[] = [
     title: 'Contenu',
     tabs: [
       { id: 'contents', label: 'Contenus', Icon: FileText },
+      { id: 'activity_cards', label: 'Cartes Explorer', Icon: Image },
       { id: 'predications', label: 'Prédications', Icon: Radio },
       { id: 'audio', label: 'Audio', Icon: Headphones },
       { id: 'theme', label: 'Thème', Icon: Palette },

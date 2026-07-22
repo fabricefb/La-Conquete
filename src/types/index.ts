@@ -292,7 +292,8 @@ export type AdminTab =
   | 'predications'
   | 'annonces'
   | 'communiques'
-  | 'emissions';
+  | 'emissions'
+  | 'activity_cards';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
