@@ -6,7 +6,6 @@ import type { WorshipFormLink, WorshipService } from '../types';
 const LOGO_URL = 'https://la-conquete.pages.dev/logo-conquete.png';
 const CHURCH_PHOTO = 'https://la-conquete.pages.dev/church-photo-2.jpg';
 const CHURCH_NAME = 'Eglise Evang\u00e9lique La Conqu\u00eate';
-const CHURCH_PHOTO = 'https://la-conquete.pages.dev/church-photo-2.jpg';
 
 /* CSS keyframes injected once */
 const ANIM_STYLE_ID = 'form-orateur-anim-style';
