@@ -409,7 +409,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
   // ── Guard: not logged in ───────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
         <SiteHeader onNavigate={onNavigate} activePage="pastoral" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
@@ -436,7 +436,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
   // ── Loading ─────────────────────────────────────────────────────
   if (dataLoading) {
     return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
         <SiteHeader onNavigate={onNavigate} activePage="pastoral" />
         <div className="flex min-h-[80vh] items-center justify-center">
           <div className="text-center">
@@ -451,7 +451,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="pastoral" />
 
       <main className="pt-24 pb-32 px-margin-mobile md:px-margin-desktop">

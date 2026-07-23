@@ -809,7 +809,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   // ── Guard: not logged in ───────────────────────────────────────
   if (!user) {
     return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
         <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">
@@ -838,7 +838,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
      ════════════════════════════════════════════════════════════════ */
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
 
       <main className="pt-16">

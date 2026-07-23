@@ -398,7 +398,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
   const convertisMois = zones.reduce((sum, z) => sum + z.converti_count, 0);
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="departments" />
 
       {/* ─── HERO ─── */}

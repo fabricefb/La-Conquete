@@ -364,7 +364,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
      ═══════════════════════════════════════════════════════════════ */
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="reports" />
 
       <main className="pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto space-y-24">

@@ -106,7 +106,8 @@ export function AboutPage({ onNavigate }: PageProps) {
         <SiteHeader activePage="about" onNavigate={onNavigate} />
         <MobileNav active="about" onNavigate={onNavigate} />
         <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" bgImage={DEFAULT_ABOUT_HERO_IMG} />
-        <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <div className="footer-spacer" />
+      <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       </div>
     );
   }
@@ -397,6 +398,7 @@ export function AboutPage({ onNavigate }: PageProps) {
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       <MobileNav active="about" onNavigate={onNavigate} />
     </div>

@@ -940,6 +940,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       )}
 
       {/* ═══════ FOOTER ═══════ */}
+      <div className="footer-spacer" />
       <SiteFooter
         onNavigate={onNavigate}
         theme={colorMode}

@@ -347,7 +347,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
   };
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="emissions" />
 
       {/* ─── HERO ─── */}

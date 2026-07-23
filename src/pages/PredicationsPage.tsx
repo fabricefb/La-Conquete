@@ -270,7 +270,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
   // ── Loading state ───────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
         <SiteHeader onNavigate={onNavigate} activePage="predications" />
         <div className="flex items-center justify-center py-40">
           <div className="flex flex-col items-center gap-3">
@@ -283,7 +283,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="predications" />
 
       {/* ─── HERO ─── */}

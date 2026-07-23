@@ -1234,7 +1234,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
   // Guard: not logged in
   if (!user) {
     return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
         <SiteHeader onNavigate={onNavigate} activePage="communication" />
         <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
           <div className="glass-card max-w-md p-10 text-center">

@@ -567,6 +567,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter
         onNavigate={onNavigate}
         theme={colorMode}
