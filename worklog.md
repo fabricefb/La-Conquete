@@ -21,4 +21,21 @@ Stage Summary:
 - 2 SQL migration files created for manual execution in Supabase dashboard:
   - 21_department_meetings.sql
   - 22_department_communications.sql
-- Key files modified: DashboardPage.tsx, PlanificationTab.tsx, DepartmentSection.tsx, MediaCenterSection.tsx
+- Key files modified: DashboardPage.tsx, PlanificationTab.tsx, DepartmentSection.tsx, MediaCenterSection.tsx---
+Task ID: 2
+Agent: main
+Task: Fix form link expiration + Events page hero admin
+
+Work Log:
+- Diagnosed form link expiration bug: computeFormDeadline set expires_at to service_date - 12h, which could be in the past
+- Fixed computeFormDeadline to guarantee minimum 7 days from now (matches WhatsApp message)
+- Fixed regenerated links (handleGenerateLink) to also enforce 7-day minimum
+- Added cta_text and cta_url fields to events hero section in ContentsTab admin
+- Updated EventsPage hero to use bg_image as background (from admin) with gradient overlay
+- Added CTA button in EventsPage hero that reads from content admin (cta_text, cta_url)
+- Built and deployed via git push
+
+Stage Summary:
+- Form links now guaranteed to last 7 days minimum from creation/regeneration
+- Events hero now has admin-manageable CTA button and background image
+- Admin path: Contents tab > Events > hero section > set bg_image, cta_text, cta_url
