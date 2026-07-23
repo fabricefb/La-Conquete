@@ -568,6 +568,56 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .light .auth-whatsapp-divider { border-color: #e5e7eb; }
 }
 
+
+  /* ─── Mobile bottom padding (for fixed MobileNav) ─── */
+  .mobile-bottom-pad {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+  @media (min-width: 1280px) {
+    .mobile-bottom-pad { padding-bottom: 0; }
+  }
+
+  /* ─── Mobile section padding reduction ─── */
+  @media (max-width: 768px) {
+    .py-responsive { padding-top: 4rem; padding-bottom: 4rem; }
+  }
+  @media (min-width: 769px) {
+    .py-responsive { padding-top: 6rem; padding-bottom: 6rem; }
+  }
+
+  /* ─── Touch-friendly hover fallback ─── */
+  @media (hover: none) and (pointer: coarse) {
+    .hover-show { opacity: 1 !important; transform: none !important; }
+    .group:hover .group-hover-show-mobile { opacity: 1 !important; transform: translateY(0) !important; }
+  }
+
+  /* ─── Horizontal scroll hide scrollbar ─── */
+  .scrollbar-x-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-x-hide::-webkit-scrollbar { display: none; }
+
+  /* ─── Drawer animation ─── */
+  .drawer-enter { animation: drawerSlideIn 0.3s cubic-bezier(0.22,1,0.36,1) forwards; }
+  @keyframes drawerSlideIn { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+
+  /* ─── Hide particles on mobile (perf) ─── */
+  @media (max-width: 768px) {
+    .mobile-hide-particle { display: none !important; }
+  }
+
+
+  @media (max-width: 640px) {
+    .event-card__image { height: 180px; }
+    .event-card__content { padding: 16px; }
+    .event-card__title { font-size: 1rem; }
+    .event-card__meta li { font-size: 12px; }
+    .event-card__date { font-size: 11px; padding: 4px 10px; top: 10px; left: 10px; }
+    .event-card__category { font-size: 9px; padding: 3px 8px; top: 10px; right: 10px; }
+    .cherito-btn { padding: 8px 16px; font-size: 12px; }
+  }
+
 /* ═══════════════════════════════════════════════════════════════════════
    8. PWA — Hide footer on mobile standalone
    ═══════════════════════════════════════════════════════════════════════ */

@@ -111,7 +111,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
     <div className="min-h-screen bg-bg text-cream font-sans">
       <SiteHeader onNavigate={onNavigate} activePage="events" />
 
-      <main className="min-h-screen">
+      <main className="min-h-screen mobile-bottom-pad">
         {/* ═══════ HERO — Bento Calendar Overview ═══════ */}
         <section className="relative py-xl overflow-hidden bg-ink-700 text-white">
           {/* Background image (from admin) */}
@@ -129,8 +129,8 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               <span className="inline-block px-3 py-1 bg-evangile-600 rounded text-[12px] font-bold tracking-widest uppercase mb-4">
                 {getContent(contentMap, 'hero', 'badge', 'Agenda Spirituel')}
               </span>
-              <h1 className="font-playfair text-headline-xl mb-6">{heroTitle}</h1>
-              <p className="text-body-lg text-sky-100 max-w-xl mb-8 leading-relaxed">{heroSubtitle}</p>
+              <h1 className="font-playfair text-3xl sm:text-4xl md:text-headline-xl mb-4 sm:mb-6">{heroTitle}</h1>
+              <p className="text-base sm:text-body-lg text-sky-100 max-w-xl mb-6 sm:mb-8 leading-relaxed">{heroSubtitle}</p>
               {(heroCtaText && heroCtaUrl) && (
                 <a
                   href={heroCtaUrl}
@@ -140,7 +140,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </a>
               )}
-              <div className="flex flex-wrap gap-4 mt-6">
+              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-6">
                 <div className="flex items-center gap-2 text-white/80">
                   <MS className="text-accent-500 text-[20px]">location_on</MS>
                   <span className="font-be-vn text-label-lg uppercase tracking-wide">Lubumbashi Main Campus</span>
@@ -154,16 +154,16 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
             {/* Right — Bento grid */}
             <EvtReveal delay={2}>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {/* Bento card 1 */}
                 {bentoEvents[0] && (() => {
                   const { day, month } = formatDate(bentoEvents[0].event_date);
                   return (
-                    <div className="glass-card p-6 rounded-xl flex flex-col justify-between aspect-square">
-                      <span className="text-headline-xl font-bold text-accent-500 font-playfair">{day}</span>
+                    <div className="glass-card p-6 rounded-xl flex flex-col justify-between aspect-[4/3] sm:aspect-square">
+                      <span className="text-4xl sm:text-headline-xl font-bold text-accent-500 font-playfair">{day}</span>
                       <div>
                         <p className="font-bold uppercase tracking-widest text-[12px] text-sky-100">{month}</p>
-                        <p className="font-playfair text-headline-md text-white/90 mt-1 line-clamp-2">{bentoEvents[0].title}</p>
+                        <p className="font-playfair text-xl sm:text-headline-md text-white/90 mt-1 line-clamp-2">{bentoEvents[0].title}</p>
                       </div>
                     </div>
                   );
@@ -172,24 +172,24 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 {bentoEvents[1] && (() => {
                   const { day, month } = formatDate(bentoEvents[1].event_date);
                   return (
-                    <div className="bg-evangile-600 p-6 rounded-xl flex flex-col justify-between aspect-square shadow-xl shadow-accent-500/20">
+                    <div className="bg-evangile-600 p-6 rounded-xl flex flex-col justify-between aspect-[4/3] sm:aspect-square shadow-xl shadow-accent-500/20">
                       <span className="text-headline-xl font-bold text-white font-playfair">{day}</span>
                       <div>
                         <p className="font-bold uppercase tracking-widest text-[12px] text-white/80">{month}</p>
-                        <p className="font-playfair text-headline-md text-white mt-1 line-clamp-2">{bentoEvents[1].title}</p>
+                        <p className="font-playfair text-xl sm:text-headline-md text-white mt-1 line-clamp-2">{bentoEvents[1].title}</p>
                       </div>
                     </div>
                   );
                 })()}
                 {/* Bento card 3 — Next service bar */}
-                <div className="col-span-2 glass-card p-6 rounded-xl flex items-center justify-between">
+                <div className="col-span-2 glass-card p-6 rounded-xl flex items-center justify-start sm:justify-between">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-ink-700 flex items-center justify-center shrink-0">
                       <MS className="text-white text-[24px]">celebration</MS>
                     </div>
                     <div>
                       <p className="font-be-vn text-label-lg text-accent-500 uppercase">Prochain Culte</p>
-                      <p className="font-playfair text-headline-md text-white/90">
+                      <p className="font-playfair text-xl sm:text-headline-md text-white/90">
                         {nextSunday ? nextSunday.title : 'Culte de Célébration'}
                       </p>
                     </div>
@@ -208,10 +208,10 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
         {/* ═══════ FILTERS — Sticky ═══════ */}
         <section className="py-4 md:py-5 bg-bg border-b border-line sticky top-16 z-40">
           <div className="px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-x-hide px-0">
               {CATEGORIES.map((cat) => (
                 <button key={cat} onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2 rounded-full font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
+                  className={`px-4 py-2.5 sm:px-5 sm:py-2 rounded-full whitespace-nowrap font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
                     activeCategory === cat
                       ? 'bg-evangile-600 text-white shadow-lg shadow-accent-500/20'
                       : 'bg-bg-elevated text-muted hover:bg-bg-card-hover'
@@ -239,7 +239,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
             <div className="space-y-gutter">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="animate-pulse rounded-xl overflow-hidden flex flex-col lg:flex-row bg-bg-elevated">
-                  <div className="lg:w-1/3 h-64 lg:h-auto bg-white/5" />
+                  <div className="lg:w-1/3 h-48 sm:h-64 lg:h-auto bg-white/5" />
                   <div className="lg:w-2/3 p-8 space-y-4">
                     <div className="h-4 rounded bg-white/5 w-1/4" />
                     <div className="h-6 rounded bg-white/5 w-2/3" />
@@ -259,7 +259,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                 return (
                   <EvtReveal className="mb-8">
                     <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
-                      <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
+                      <div className="lg:w-1/3 relative h-48 sm:h-64 lg:h-auto overflow-hidden">
                         <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                           style={{ backgroundImage: `url(${feat.image_url || FALLBACK_IMG})` }} />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
@@ -280,7 +280,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                               <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
                             </div>
                             <div>
-                              <h2 className="font-playfair text-2xl md:text-3xl font-bold text-cream leading-tight">{feat.title}</h2>
+                              <h2 className="font-playfair text-xl sm:text-xl sm:text-2xl md:text-3xl font-bold text-cream leading-tight">{feat.title}</h2>
                               <p className="text-accent-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">
                                 {feat.is_featured ? 'Événement à la une' : feat.category}
                               </p>
@@ -322,7 +322,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                         <EvtReveal key={event.id} delay={Math.min((i % 4) + 1, 4) as 1|2|3|4}>
                           <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
                             {/* Image */}
-                            <div className="lg:w-1/3 relative h-64 lg:h-auto overflow-hidden">
+                            <div className="lg:w-1/3 relative h-48 sm:h-64 lg:h-auto overflow-hidden">
                               <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
                                 style={{ backgroundImage: `url(${event.image_url || FALLBACK_IMG})` }} />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
@@ -381,7 +381,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                               <img src={event.image_url || FALLBACK_IMG} alt={event.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
                               <div className="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-14 rounded-lg bg-black/70 backdrop-blur-sm text-center">
                                 <span className="text-xl font-bold text-accent-400 font-playfair leading-none">{day}</span>
-                                <span className="text-[9px] uppercase tracking-widest text-white/70">{month}</span>
+                                <span className="text-[10px] uppercase tracking-widest text-white/70">{month}</span>
                               </div>
                             </div>
                             <div className="flex flex-col flex-1 p-5">
@@ -403,7 +403,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               )}
 
               {filtered.length === 0 && (
-                <div className="py-20 text-center text-muted">
+                <div className="py-12 sm:py-16 md:py-12 sm:py-20 text-center text-muted">
                   <Calendar className="mx-auto mb-4 h-10 w-10 opacity-40" />
                   <p className="font-be-vn">Aucun événement trouvé.</p>
                 </div>
@@ -415,7 +415,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
           <EvtReveal className="mt-16 md:mt-24">
             <div className="mb-10 text-center">
               <p className="section-label justify-center">Chaque semaine</p>
-              <h2 className="mt-4 font-playfair text-3xl md:text-4xl font-bold text-cream">Cultes hebdomadaires</h2>
+              <h2 className="mt-4 font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-cream">Cultes hebdomadaires</h2>
               <p className="mt-3 text-muted max-w-xl mx-auto font-be-vn">Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle.</p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -439,7 +439,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
           <EvtReveal className="mt-16 md:mt-24">
             <div className="glass rounded-2xl p-8 md:p-12 bg-radial-primary text-center">
               <MS className="text-accent-500 text-[40px] mb-4">mail</MS>
-              <h2 className="mt-2 font-playfair text-2xl md:text-3xl font-bold text-cream">Ne Manquez Aucun Moment de Bénédiction</h2>
+              <h2 className="mt-2 font-playfair text-xl sm:text-2xl md:text-3xl font-bold text-cream">Ne Manquez Aucun Moment de Bénédiction</h2>
               <p className="mt-3 text-muted max-w-2xl mx-auto font-be-vn">
                 Recevez les dernières mises à jour sur nos événements, séminaires et cultes directement dans votre boîte mail.
               </p>

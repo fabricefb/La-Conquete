@@ -121,7 +121,7 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
       {/* Bio overlay — appears ONLY on hover, disappears on mouse leave */}
       {showBio && pastor.bio && (
         <div
-          className="absolute inset-0 z-20 flex items-end p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+          className="absolute inset-0 z-20 flex items-end p-4 opacity-0 transition-opacity duration-300 group-hover:opacity-100 hover-show"
           style={{
             background: 'linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.85) 40%, rgba(6,13,29,0.6) 70%, transparent 100%)',
           }}

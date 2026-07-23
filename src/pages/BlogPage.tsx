@@ -84,7 +84,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const totalPages = Math.ceil(regular.length / PER_PAGE);
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="blog" onNavigate={onNavigate} />
       <MobileNav active="blog" onNavigate={onNavigate} />
 

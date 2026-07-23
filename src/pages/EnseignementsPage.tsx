@@ -90,7 +90,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
   }, [items, activeFilter, search]);
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="enseignements" onNavigate={onNavigate} />
       <MobileNav active="enseignements" onNavigate={onNavigate} />
 

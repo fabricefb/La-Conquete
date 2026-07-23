@@ -701,7 +701,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
 
       {/* ═════════════ Mobile Drawer ═════════════ */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-bg xl:hidden">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-bg xl:hidden drawer-enter">
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
@@ -725,7 +725,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             {/* User card */}
             {user && profile && (
               <>
-                <div className="flex items-center gap-3 rounded-2xl border border-line bg-white/[0.03] p-4 mb-2">
+                <div className="flex items-center gap-3 rounded-2xl border border-line bg-white/[0.03] p-4 mb-2 overflow-hidden">
                   <UserAvatar name={profile.full_name} size="md" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-cream truncate">

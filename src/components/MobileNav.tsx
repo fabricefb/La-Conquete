@@ -34,16 +34,16 @@ export function MobileNav({ onNavigate, active }: MobileNavProps) {
   const resolvedActive = ACTIVE_ALIAS[active] ?? active;
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around glass px-2 xl:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 flex h-16 items-center justify-around glass px-2 xl:hidden pb-[max(0px,env(safe-area-inset-bottom))]">
       {items.map((item) => {
         const Icon = item.icon;
         const isActive = resolvedActive === item.key;
         return (
           <button key={item.key} onClick={() => onNavigate(item.key)}
-            className={`relative flex flex-col items-center gap-0.5 transition-all duration-300 ${isActive ? 'text-accent-300' : 'text-muted'}`}
+            className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[48px] min-h-[48px] transition-all duration-300 ${isActive ? 'text-accent-300' : 'text-muted'}`}
             aria-label={item.label}>
             <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
-            <span className="text-[9px] font-semibold uppercase tracking-tight">{item.label}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-tight">{item.label}</span>
             {isActive && <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-evangile-600 animate-pulse-gold" />}
           </button>
         );

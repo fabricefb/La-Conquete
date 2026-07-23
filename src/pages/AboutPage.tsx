@@ -112,7 +112,7 @@ export function AboutPage({ onNavigate }: PageProps) {
   }
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="about" onNavigate={onNavigate} />
       <MobileNav active="about" onNavigate={onNavigate} />
 

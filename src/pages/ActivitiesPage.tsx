@@ -259,7 +259,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
   }
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="activities" onNavigate={onNavigate} />
       <MobileNav active="activities" onNavigate={onNavigate} />
 

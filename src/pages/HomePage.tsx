@@ -111,11 +111,11 @@ function SkeletonPage() {
           </div>
         </div>
       </section>
-      <section className="py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
           <div className="h-10 w-64 mx-auto animate-pulse rounded-xl bg-white/10" />
           <div className="grid md:grid-cols-5 gap-8">
-            <div className="md:col-span-3 h-64 animate-pulse rounded-2xl bg-white/5" />
+            <div className="md:col-span-3 h-56 sm:h-64 animate-pulse rounded-2xl bg-white/5" />
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
                 <div key={i} className="h-28 animate-pulse rounded-xl bg-white/5" />
@@ -124,11 +124,11 @@ function SkeletonPage() {
           </div>
         </div>
       </section>
-      <section className="py-24">
+      <section className="py-12 sm:py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-64 animate-pulse rounded-2xl bg-white/5" />
+              <div key={i} className="h-56 sm:h-64 animate-pulse rounded-2xl bg-white/5" />
             ))}
           </div>
         </div>
@@ -458,7 +458,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
      RENDER
      ════════════════════════════════════════════════════════════════ */
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="home" />
 
@@ -541,8 +541,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           {/* Main heading */}
           <div className="animate-fade-up">
             <h1 className="font-headline font-bold leading-tight">
-              <span className="brand-text text-5xl md:text-7xl lg:text-8xl block">{heroTitle1}</span>
-              <span className="text-cream text-5xl md:text-7xl lg:text-8xl block mt-2">{heroTitle2}</span>
+              <span className="brand-text text-4xl sm:text-5xl md:text-7xl lg:text-8xl block">{heroTitle1}</span>
+              <span className="text-cream text-4xl sm:text-5xl md:text-7xl lg:text-8xl block mt-2">{heroTitle2}</span>
             </h1>
           </div>
 
@@ -600,7 +600,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-accent-400' },
             ].map(({ num, Icon, title, desc, accent }, i) => (
               <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-accent-500/60 hover:shadow-lg hover:shadow-accent-500/5">
+                <div className="glass-card group relative overflow-hidden rounded-2xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-accent-500/60 hover:shadow-lg hover:shadow-accent-500/5">
                   {/* Background number */}
                   <span className="absolute top-4 right-6 text-5xl font-bold text-cream opacity-[0.07] select-none font-serif">
                     {num}
@@ -629,12 +629,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: MOT DU PASTEUR ═══════ */}
       {isSectionVisible('unique') && (
-      <section className="py-24" style={getSectionStyle('unique')}>
+      <section className="py-12 sm:py-16 md:py-24" style={getSectionStyle('unique')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             {/* Left: PNG portrait (no frame) + signature */}
             <RevealSection>
-              <div className="relative flex flex-col items-center lg:items-start h-[460px] overflow-visible">
+              <div className="relative flex flex-col items-center lg:items-start h-[320px] sm:h-[400px] md:h-[460px] overflow-visible">
                 <div
                   className="relative flex items-center justify-center overflow-visible"
                   style={{
@@ -647,7 +647,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   <img
                     src={pastorPortrait}
                     alt="Pasteur"
-                    className="h-[420px] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300"
+                    className="h-[280px] sm:h-[360px] md:h-[420px] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300"
                     style={{ transform: `scale(${portraitScale})` }}
                     loading="lazy"
                   />
@@ -711,7 +711,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </p>
           </RevealSection>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {displayCards.map((card, i) => {
               const IconComponent = iconMap[(card.icon_name || 'eye').toLowerCase()] || Eye;
               const imgUrl = card.image_url || DEFAULT_SERMON_IMG;
@@ -725,7 +725,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     <img
                       src={imgUrl}
                       alt={card.title}
-                      className="blog-img-zoom h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="blog-img-zoom h-56 sm:h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
@@ -746,7 +746,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <h3 className="font-serif text-lg font-semibold text-white">{card.title}</h3>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0">
+                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 sm:translate-y-2 group-hover:translate-y-0">
                         <span>Découvrir</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </div>
@@ -854,7 +854,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: PASTORAL TEAM ═══════ */}
       {isSectionVisible('pastors') && pastors.length > 0 && (
-        <section className="py-24" style={getSectionStyle('pastors')}>
+        <section className="py-12 sm:py-16 md:py-24" style={getSectionStyle('pastors')}>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : undefined}>{pastorsLabel}</p>
@@ -890,7 +890,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
-      <section className="relative h-[520px] overflow-hidden">
+      <section className="relative h-[400px] sm:h-[480px] md:h-[520px] overflow-hidden">
         {/* Map as full background (Google Maps iframe) */}
         <div className="absolute inset-0 z-0">
           <iframe

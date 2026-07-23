@@ -29,7 +29,7 @@ function useCounter(target: number, duration = 2000, startOnVisible = false, vis
 /* ─── Loading skeleton ───────────────────────────────────────── */
 function Skeleton() {
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <div className="h-20 bg-white/5 animate-pulse" />
       <div className="h-screen bg-white/5 animate-pulse" />
       <div className="max-w-6xl mx-auto px-4 py-20 space-y-8">

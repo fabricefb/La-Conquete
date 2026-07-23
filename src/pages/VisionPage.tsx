@@ -82,7 +82,7 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
   }));
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="vision" onNavigate={onNavigate} />
       <MobileNav active="vision" onNavigate={onNavigate} />
 

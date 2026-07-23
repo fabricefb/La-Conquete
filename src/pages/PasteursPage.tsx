@@ -158,7 +158,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
   }, []);
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="pasteurs" onNavigate={onNavigate} />
       <MobileNav active="pasteurs" onNavigate={onNavigate} />
 

@@ -86,7 +86,7 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
   const useDB = dbMinistries.length > 0;
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="ministeres" onNavigate={onNavigate} />
       <MobileNav active="ministeres" onNavigate={onNavigate} />
 

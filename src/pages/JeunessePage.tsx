@@ -88,7 +88,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
   const introText = getContent(cm, 'intro', 'text', "Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className=\"text-accent-400 font-semibold\">présent</span>.");
 
   return (
-    <div className="bg-bg min-h-screen">
+    <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="jeunesse" onNavigate={onNavigate} />
       <MobileNav active="jeunesse" onNavigate={onNavigate} />
 
