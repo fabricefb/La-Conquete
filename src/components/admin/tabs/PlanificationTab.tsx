@@ -216,7 +216,9 @@ function computeFormDeadline(svc: { date: string; time: string | null; is_delaye
   if (svc.is_delayed && svc.delayed_minutes > 0) {
     deadline.setMinutes(deadline.getMinutes() + svc.delayed_minutes);
   }
-  return deadline.toISOString();
+  // Ensure the link lasts at least 7 days from now (matches WhatsApp message)
+  const minDeadline = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+  return deadline.getTime() < minDeadline.getTime() ? minDeadline.toISOString() : deadline.toISOString();
 }
 
 /** Enrich a single WorshipService with form_deadline_at if missing (DB column not created yet) */
@@ -434,7 +436,11 @@ export function PlanificationTab() {
       const token = generateToken();
       // Compute expires_at client-side (DB trigger broken — references missing form_deadline_at column)
       const svc = services.find(s => s.id === serviceId);
-      const expiresAt = svc?.form_deadline_at || null;
+      // Ensure at least 7 days from now (matches WhatsApp message)
+      let expiresAt = svc?.form_deadline_at || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      if (new Date(expiresAt).getTime() < Date.now() + 7 * 24 * 60 * 60 * 1000) {
+        expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+      }
       // Supprimer d'abord tout lien existant pour ce service/type, puis inserer
       await supabase.from('worship_form_links').delete().eq('service_id', serviceId).eq('link_type', linkType);
       const { error } = await supabase.from('worship_form_links').insert({

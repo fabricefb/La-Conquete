@@ -103,6 +103,9 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
   const heroTitle = getContent(contentMap, 'hero', 'title', 'Événements de la Saison de Conquête');
   const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Rejoignez notre communauté dynamique pour des moments de transformation, de prière et de communion fraternelle à Lubumbashi et dans toutes nos extensions.');
+  const heroBgImage = getContent(contentMap, 'hero', 'bg_image', '');
+  const heroCtaText = getContent(contentMap, 'hero', 'cta_text', 'Voir tous les événements');
+  const heroCtaUrl = getContent(contentMap, 'hero', 'cta_url', '#upcoming');
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans">
@@ -111,6 +114,13 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
       <main className="min-h-screen">
         {/* ═══════ HERO — Bento Calendar Overview ═══════ */}
         <section className="relative py-xl overflow-hidden bg-ink-700 text-white">
+          {/* Background image (from admin) */}
+          {heroBgImage && (
+            <div className="absolute inset-0 z-0">
+              <img src={heroBgImage} alt="" className="w-full h-full object-cover opacity-30" />
+              <div className="absolute inset-0 bg-gradient-to-r from-ink-700/95 via-ink-700/80 to-ink-700/60" />
+            </div>
+          )}
           {/* Subtle decorative radial */}
           <div className="absolute inset-0 bg-radial-primary opacity-40" />
           <div className="relative z-10 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
@@ -121,7 +131,16 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               </span>
               <h1 className="font-playfair text-headline-xl mb-6">{heroTitle}</h1>
               <p className="text-body-lg text-sky-100 max-w-xl mb-8 leading-relaxed">{heroSubtitle}</p>
-              <div className="flex flex-wrap gap-4">
+              {(heroCtaText && heroCtaUrl) && (
+                <a
+                  href={heroCtaUrl}
+                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-evangile-600 hover:bg-evangile-700 text-white rounded-xl font-bold text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 shadow-lg shadow-evangile-600/30"
+                >
+                  {heroCtaText}
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+              )}
+              <div className="flex flex-wrap gap-4 mt-6">
                 <div className="flex items-center gap-2 text-white/80">
                   <MS className="text-accent-500 text-[20px]">location_on</MS>
                   <span className="font-be-vn text-label-lg uppercase tracking-wide">Lubumbashi Main Campus</span>

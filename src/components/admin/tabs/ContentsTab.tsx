@@ -401,6 +401,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Calendrier' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Événements' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+      { field_key: 'cta_text', label: 'Texte du bouton CTA', type: 'text', value: '' },
+      { field_key: 'cta_url', label: 'Lien du bouton CTA', type: 'text', value: '' },
     ],
     upcoming: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'À venir' },
