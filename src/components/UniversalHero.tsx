@@ -96,7 +96,7 @@ export function UniversalHero({
 
   // Standard hero — image et gradient sur des divs séparés pour éviter les conflits CSS
   return (
-    <section className="relative flex min-h-[70vh] items-center justify-center overflow-hidden">
+    <section className="relative flex min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] items-center justify-center overflow-hidden">
       {/* Image de fond (si fournie) */}
       {heroBg && (
         <div
@@ -109,7 +109,7 @@ export function UniversalHero({
       {/* Gradient radial par défaut (visible si pas d'image) */}
       {!heroBg && <div className="absolute inset-0 bg-radial-primary" />}
       {/* Contenu */}
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-24 pt-28 text-center">
+      <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 pt-24 sm:py-20 sm:pt-28 text-center">
         {badge && (
           <div className="animate-fade-up">
             <span className="mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
@@ -118,7 +118,7 @@ export function UniversalHero({
           </div>
         )}
         <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <h1 className="font-serif text-4xl font-bold leading-tight text-cream sm:text-5xl md:text-6xl">
+          <h1 className="font-serif text-3xl font-bold leading-tight text-cream sm:text-4xl md:text-5xl lg:text-6xl">
             {title}
           </h1>
         </div>

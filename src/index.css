@@ -490,6 +490,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 
   /* ─── Cutout mask ─── */
   .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 85%, 90% 100%, 0 100%); }
+  @media (max-width: 640px) {
+    .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
+  }
 
   /* ─── Pastor overlay ─── */
   .pastor-overlay { background: linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.4) 50%, transparent 100%); }

@@ -234,7 +234,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
         </section>
 
         {/* Ministries grid skeleton */}
-        <section className="py-20 px-4">
+        <section className="py-12 md:py-20 px-4">
           <div className="mx-auto max-w-6xl">
             <div className="mb-3 h-8 w-52 animate-pulse rounded-lg bg-white/5 mx-auto text-center" />
             <div className="mb-10 h-5 w-80 animate-pulse rounded bg-white/5 mx-auto" />
@@ -247,7 +247,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
         </section>
 
         {/* CTA skeleton */}
-        <section className="py-20 px-4">
+        <section className="py-12 md:py-20 px-4">
           <div className="mx-auto max-w-4xl">
             <div className="h-48 animate-pulse rounded-2xl bg-white/5" />
           </div>
@@ -270,7 +270,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
       <WeeklySchedule />
 
       {/* ── Ministries Grid ── */}
-      <section className="py-20 px-4">
+      <section className="py-12 md:py-20 px-4">
         <div className="mx-auto max-w-6xl">
           <h2 className="reveal section-label mb-3 text-center">{ministriesTitle}</h2>
           {ministriesSubtitle && (
@@ -318,7 +318,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
       </section>
 
       {/* ── CTA Banner ── */}
-      <section className="py-20 px-4">
+      <section className="py-12 md:py-20 px-4">
         <div className="reveal mx-auto max-w-4xl">
           <div className="relative overflow-hidden rounded-2xl">
             {/* Background image placeholder */}

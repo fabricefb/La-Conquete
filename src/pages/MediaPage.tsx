@@ -249,7 +249,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
   const closeLightbox = useCallback(() => setLightboxItem(null), []);
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader
         onNavigate={onNavigate}
         activePage="media"
@@ -280,7 +280,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
       </section>
 
       {/* ─── CONTENT ─── */}
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:py-16 sm:px-6 lg:px-8">
         {/* Error state */}
         {error && (
           <RevealSection className="mb-10">

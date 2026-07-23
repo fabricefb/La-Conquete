@@ -1,12 +1,14 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
-import { HomePage } from './pages/HomePage';
-import { AboutPage } from './pages/AboutPage';
-import { ActivitiesPage } from './pages/ActivitiesPage';
-import { EventsPage } from './pages/EventsPage';
-import { MediaPage } from './pages/MediaPage';
-import { ContactPage } from './pages/ContactPage';
-import { AdminPage } from './pages/AdminPage';
-import { DashboardPage } from './pages/DashboardPage';
+
+/* ─── Lazy-loaded pages (code splitting — ALL pages) ─── */
+const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage').then(m => ({ default: m.ActivitiesPage })));
+const EventsPage = lazy(() => import('./pages/EventsPage').then(m => ({ default: m.EventsPage })));
+const MediaPage = lazy(() => import('./pages/MediaPage').then(m => ({ default: m.MediaPage })));
+const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const AdminPage = lazy(() => import('./pages/AdminPage').then(m => ({ default: m.AdminPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage').then(m => ({ default: m.DashboardPage })));
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { DynamicThemeProvider } from './contexts/DynamicTheme';
@@ -16,7 +18,6 @@ import { AudioPlayer } from './components/AudioPlayer';
 import { BibleReader } from './components/BibleReader';
 import { NotificationCenter } from './components/NotificationCenter';
 import { PWAInstallPrompt } from './components/PWAInstallPrompt';
-import type { Page } from './lib/navigation';
 
 /* ─── Lazy-loaded pages (code splitting) ─── */
 const CrmPage = lazy(() => import('./pages/CrmPage').then(m => ({ default: m.CrmPage })));

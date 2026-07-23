@@ -463,7 +463,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <MobileNav onNavigate={onNavigate} active="home" />
 
       {/* ═══════ HERO (full-screen immersive — 100vh, full-width, no gaps) ═══════ */}
-      <section className="relative w-full h-[100vh] m-0 p-0 spirit-breath flex items-center justify-center overflow-hidden" style={{ marginTop: 0 }}>
+      <section className="relative w-full h-[100dvh] m-0 p-0 spirit-breath flex items-center justify-center overflow-hidden" style={{ marginTop: 0 }}>
         {/* Parallax background wrapper */}
         <div
           ref={bgRef}
@@ -584,7 +584,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (
-      <section className="py-24 bg-radial-primary" style={getSectionStyle('pillars')}>
+      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('pillars')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Nos Fondements</p>
@@ -699,7 +699,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: EXPLORER ═══════ */}
       {isSectionVisible('explore') && (
-      <section className="py-24 bg-radial-primary" style={getSectionStyle('explore')}>
+      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('explore')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Explorer</p>
@@ -746,7 +746,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                         <IconComponent className="h-5 w-5" />
                       </div>
                       <h3 className="font-serif text-lg font-semibold text-white">{card.title}</h3>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-0 transition-all duration-300 group-hover:opacity-100 translate-y-2 sm:translate-y-2 group-hover:translate-y-0">
+                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 translate-y-0 sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300">
                         <span>Découvrir</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </div>
@@ -762,7 +762,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: DERNIÈRES NOUVELLES ═══════ */}
       {isSectionVisible('news') && (
-      <section className="py-24 bg-radial-primary" style={getSectionStyle('news')}>
+      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('news')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Actualités</p>
@@ -822,7 +822,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ SECTION: BIBLICAL QUOTE (full-width dark) ═══════ */}
       {isSectionVisible('quote') && (
       <section
-        className="py-28"
+        className="py-16 md:py-24 lg:py-28"
         style={{ backgroundColor: 'rgb(var(--bg-rgb))', ...getSectionStyle('quote') }}
       >
         <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
@@ -872,7 +872,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: TESTIMONIALS ═══════ */}
       {isSectionVisible('testimonials') && testimonials.length > 0 && (
-        <section className="py-24 bg-radial-primary" style={getSectionStyle('testimonials')}>
+        <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('testimonials')}>
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center">Témoignages</p>
@@ -890,7 +890,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
-      <section className="relative h-[400px] sm:h-[480px] md:h-[520px] overflow-hidden">
+      <section className="relative h-[280px] sm:h-[400px] md:h-[480px] lg:h-[520px] overflow-hidden">
         {/* Map as full background (Google Maps iframe) */}
         <div className="absolute inset-0 z-0">
           <iframe

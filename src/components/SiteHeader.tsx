@@ -646,7 +646,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
 
           {/* RIGHT: Desktop Navigation + Actions */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <nav className="hidden items-center gap-0.5 xl:flex">
+            <nav className="hidden items-center gap-0.5 lg:flex">
               {NAV_ITEMS.map(renderDesktopItem)}
             </nav>
 
@@ -684,14 +684,14 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
                 className="hidden lg:flex items-center gap-1.5 rounded-lg border border-line px-3 py-2 text-sm font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500"
               >
                 <LogIn className="h-4 w-4" />
-                <span className="hidden xl:inline">Connexion</span>
+                <span className="hidden lg:inline">Connexion</span>
               </button>
             )}
 
             <button
               onClick={() => setDrawerOpen(true)}
               aria-label="Ouvrir le menu"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 xl:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-500 lg:hidden"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -701,7 +701,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
 
       {/* ═════════════ Mobile Drawer ═════════════ */}
       {drawerOpen && (
-        <div className="fixed inset-0 z-[60] flex flex-col bg-bg xl:hidden drawer-enter">
+        <div className="fixed inset-0 z-[60] flex flex-col bg-bg lg:hidden drawer-enter">
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">

@@ -111,7 +111,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400"
                   >
                     <Globe className="h-4 w-4" />
                   </a>
@@ -127,7 +127,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
             <ul className="flex flex-col gap-2">
               {navLinks.map((link) => (
                 <li key={link.page}>
-                  <button onClick={() => onNavigate(link.page)} className="text-sm text-muted transition-colors duration-200 hover:text-cream">{link.label}</button>
+                  <button onClick={() => onNavigate(link.page)} className="text-sm text-muted transition-colors duration-200 hover:text-cream py-1.5">{link.label}</button>
                 </li>
               ))}
             </ul>

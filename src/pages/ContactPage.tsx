@@ -167,7 +167,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader
         onNavigate={onNavigate}
         activePage="contact"
@@ -177,7 +177,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       <UniversalHero pageKey="contact" defaultBadge="Contactez-nous" defaultTitle="Contact" defaultSubtitle="Que vous ayez une question, un témoignage ou souhaitiez en savoir plus, nous sommes là pour vous." />
 
       {/* ─── CONTACT INFO + FORM ─── */}
-      <section className="py-24">
+      <section className="py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid gap-12 lg:grid-cols-5">
 
@@ -273,7 +273,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
             {/* ─── RIGHT: Contact form ─── */}
             <RevealSection className="lg:col-span-3 reveal-delay-1">
-              <div className="glass rounded-4xl p-8">
+              <div className="glass rounded-4xl p-5 md:p-8">
                 <h2 className="mb-6 font-serif text-2xl font-semibold text-cream">
                   Envoyez-nous un message
                 </h2>
@@ -314,7 +314,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                             key={opt.val}
                             type="button"
                             onClick={() => setForm(f => ({ ...f, visitorType: opt.val as typeof f.visitorType }))}
-                            className={`rounded-xl px-3 py-2.5 text-xs font-medium border transition-all ${
+                            className={`rounded-xl px-3 py-3 text-xs font-medium border transition-all ${
                               form.visitorType === opt.val
                                 ? 'border-accent-400/50 bg-accent-400/10 text-accent-400'
                                 : 'border-line text-muted hover:text-cream hover:border-white/20'
@@ -377,7 +377,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                             key={s}
                             type="button"
                             onClick={() => setForm(f => ({ ...f, subject: s }))}
-                            className={`rounded-lg px-3 py-1.5 text-[11px] font-medium border transition-all ${
+                            className={`rounded-lg px-3 py-2.5 text-xs font-medium border transition-all ${
                               form.subject === s
                                 ? 'border-accent-400/50 bg-accent-400/10 text-accent-400'
                                 : 'border-line text-muted hover:text-cream hover:border-white/20'
@@ -438,16 +438,16 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       </section>
 
       {/* ─── SERVICE TIMES ─── */}
-      <section className="py-24 bg-radial-primary">
+      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-12 text-center">
             <p className="section-label justify-center">Horaires</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Nos cultes</h2>
+            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">Nos cultes</h2>
           </RevealSection>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {SERVICE_TIMES.map(({ day, service, time, Icon }, i) => (
               <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
-                <div className="glass rounded-3xl p-6 text-center transition-all duration-300 hover:scale-105">
+                <div className="glass rounded-3xl p-6 text-center transition-all duration-300 hover:scale-105 active:scale-95">
                   <IconBox pageKey="contact" elementId={`service-clock-icon-${i}`} className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-accent-400/20 text-accent-400">
                     <Icon className="h-5 w-5" />
                   </IconBox>
@@ -462,11 +462,11 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       </section>
 
       {/* ─── MAP SECTION ─── */}
-      <section className="py-24">
+      <section className="py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-12 text-center">
             <p className="section-label justify-center">Nous trouver</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">
+            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">
               Nos lieux de culte
             </h2>
           </RevealSection>
@@ -512,7 +512,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                 <InteractiveMap
                   locations={locations}
                   onSelect={setSelectedLocation}
-                  className="h-[500px]"
+                  className="h-[300px] sm:h-[400px] md:h-[500px]"
                 />
               </RevealSection>
             </div>

@@ -96,7 +96,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       <UniversalHero pageKey="jeunesse" defaultBadge="Génération Conquête" defaultTitle="Ministère de la Jeunesse" defaultSubtitle="Une génération enflammée pour Dieu, équipée pour transformer sa communauté et son époque." />
 
       {/* ═══ QUI SOMMES-NOUS ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-primary">
+      <section className="py-12 md:py-20 lg:py-28 px-4 bg-radial-primary">
         <div className="mx-auto max-w-4xl text-center">
           <p className="reveal section-label justify-center">À propos</p>
           <h2 className="reveal reveal-delay-1 mt-4 font-serif text-3xl font-semibold text-cream sm:text-4xl">Qui sommes-nous ?</h2>
@@ -105,7 +105,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       </section>
 
       {/* ═══ ACTIVITÉS ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      <section className="py-12 md:py-20 lg:py-28 px-4">
         <div className="mx-auto max-w-6xl">
           <p className="reveal section-label mb-3 text-center">Ce que nous faisons</p>
           <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Nos Activités</h2>
@@ -124,7 +124,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       </section>
 
       {/* ═══ PROGRAMME MENSUEL ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-ember">
+      <section className="py-12 md:py-20 lg:py-28 px-4 bg-radial-ember">
         <div className="mx-auto max-w-3xl">
           <p className="reveal section-label mb-3 text-center">Calendrier</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Programme</h2>
@@ -145,14 +145,14 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       </section>
 
       {/* ═══ GALERIE ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      <section className="py-12 md:py-20 lg:py-28 px-4">
         <div className="mx-auto max-w-6xl">
           <p className="reveal section-label mb-3 text-center">En images</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Galerie Photos</h2>
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             {GALLERY.map((src, i) => (
               <div key={src} className={`reveal reveal-delay-${(i % 4) + 1} overflow-hidden rounded-2xl`}>
-                <img src={src} alt={`Jeunesse ${i + 1}`} className="h-52 w-full object-cover transition-transform duration-500 hover:scale-110" />
+                <img src={src} alt={`Jeunesse ${i + 1}`} className="h-40 sm:h-52 w-full object-cover transition-transform duration-500 hover:scale-110" />
               </div>
             ))}
           </div>
@@ -160,7 +160,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       </section>
 
       {/* ═══ TÉMOIGNAGES ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-primary">
+      <section className="py-12 md:py-20 lg:py-28 px-4 bg-radial-primary">
         <div className="mx-auto max-w-4xl">
           <p className="reveal section-label mb-3 text-center">Ils témoignent</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Témoignages</h2>
@@ -181,7 +181,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
       </section>
 
       {/* ═══ CTA ═══ */}
-      <section className="py-20 px-4">
+      <section className="py-12 md:py-20 px-4">
         <div className="reveal mx-auto max-w-2xl text-center">
           <p className="section-label mb-4">Rejoins-nous</p>
           <p className="mb-8 text-cream/70">

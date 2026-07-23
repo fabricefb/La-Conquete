@@ -108,12 +108,12 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
   const heroCtaUrl = getContent(contentMap, 'hero', 'cta_url', '#upcoming');
 
   return (
-    <div className="min-h-screen bg-bg text-cream font-sans">
+    <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="events" />
 
       <main className="min-h-screen mobile-bottom-pad">
         {/* ═══════ HERO — Bento Calendar Overview ═══════ */}
-        <section className="relative py-xl overflow-hidden bg-ink-700 text-white">
+        <section className="relative py-12 md:py-16 overflow-hidden bg-ink-700 text-white">
           {/* Background image (from admin) */}
           {heroBgImage && (
             <div className="absolute inset-0 z-0">
@@ -123,7 +123,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
           )}
           {/* Subtle decorative radial */}
           <div className="absolute inset-0 bg-radial-primary opacity-40" />
-          <div className="relative z-10 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+          <div className="relative z-10 px-4 md:px-6 lg:px-8 max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
             {/* Left — Text */}
             <EvtReveal>
               <span className="inline-block px-3 py-1 bg-evangile-600 rounded text-[12px] font-bold tracking-widest uppercase mb-4">
@@ -207,11 +207,11 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
         {/* ═══════ FILTERS — Sticky ═══════ */}
         <section className="py-4 md:py-5 bg-bg border-b border-line sticky top-16 z-40">
-          <div className="px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-x-hide px-0">
+          <div className="px-4 md:px-6 lg:px-8 max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-x-hide px-0 scrollbar-none">
               {CATEGORIES.map((cat) => (
                 <button key={cat} onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2.5 sm:px-5 sm:py-2 rounded-full whitespace-nowrap font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
+                  className={`px-4 py-3 sm:px-5 sm:py-2.5 rounded-full whitespace-nowrap font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
                     activeCategory === cat
                       ? 'bg-evangile-600 text-white shadow-lg shadow-accent-500/20'
                       : 'bg-bg-elevated text-muted hover:bg-bg-card-hover'
@@ -230,7 +230,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
         </section>
 
         {/* ═══════ EVENT LIST ═══════ */}
-        <section className="py-10 md:py-16 px-margin-mobile md:px-margin-desktop max-w-8xl mx-auto">
+        <section className="py-10 md:py-16 px-4 md:px-6 lg:px-8 max-w-8xl mx-auto">
           {error && (
             <div className="mb-10 rounded-xl border border-ember-500/20 bg-ember-500/10 p-6 text-center text-muted">{error}</div>
           )}
@@ -403,7 +403,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               )}
 
               {filtered.length === 0 && (
-                <div className="py-12 sm:py-16 md:py-12 sm:py-20 text-center text-muted">
+                <div className="py-12 sm:py-16 md:py-20 text-center text-muted">
                   <Calendar className="mx-auto mb-4 h-10 w-10 opacity-40" />
                   <p className="font-be-vn">Aucun événement trouvé.</p>
                 </div>
