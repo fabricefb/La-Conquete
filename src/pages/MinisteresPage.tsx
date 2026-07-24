@@ -159,6 +159,7 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );

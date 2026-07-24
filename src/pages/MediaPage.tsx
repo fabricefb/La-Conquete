@@ -333,6 +333,7 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
         <Lightbox item={lightboxItem} onClose={closeLightbox} />
       )}
 
+      <div className="footer-spacer" />
       <SiteFooter
         onNavigate={onNavigate}
         theme={colorMode}

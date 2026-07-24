@@ -297,6 +297,7 @@ export function EvangelisationPage({ onNavigate }: { onNavigate: (page: any) => 
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );

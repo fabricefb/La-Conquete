@@ -827,7 +827,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </button>
           </div>
         </div>
-        <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+        <div className="footer-spacer" />
+      <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
         <MobileNav onNavigate={onNavigate} active="dashboard" />
       </div>
     );
@@ -2058,6 +2059,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </main>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="dashboard" />
 

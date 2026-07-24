@@ -514,6 +514,7 @@ export function EmissionsPage({ onNavigate }: EmissionsPageProps) {
         </RevealSection>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="emissions" />
     </div>

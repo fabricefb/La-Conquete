@@ -253,7 +253,8 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
           </div>
         </section>
 
-        <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <div className="footer-spacer" />
+      <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       </div>
     );
   }
@@ -337,6 +338,7 @@ export function ActivitiesPage({ onNavigate }: PageProps) {
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );

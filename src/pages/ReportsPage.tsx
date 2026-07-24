@@ -967,6 +967,7 @@ export function ReportsPage({ onNavigate }: ReportsPageProps) {
 
       </main>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="reports" />
     </div>

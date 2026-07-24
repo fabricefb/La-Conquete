@@ -178,6 +178,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );

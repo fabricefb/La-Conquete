@@ -512,6 +512,7 @@ export function CrmPage({ onNavigate }: CrmPageProps) {
         )}
       </main>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
 
       {/* ═══ Add Modal ═══════════════════════════════════════════════ */}

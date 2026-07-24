@@ -135,6 +135,7 @@ export function CommuniquesPage({ onNavigate }: CommuniquesPageProps) {
         )}
       </section>
     </div>
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} />
     </>
   );

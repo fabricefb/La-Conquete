@@ -457,6 +457,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
         </section>
       </main>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="events" />
     </div>

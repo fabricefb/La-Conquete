@@ -427,7 +427,8 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
             </button>
           </div>
         </div>
-        <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+        <div className="footer-spacer" />
+      <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
         <MobileNav onNavigate={onNavigate} active="pastoral" />
       </div>
     );
@@ -444,7 +445,8 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
             <p className="text-muted">Chargement de l'espace pastoral…</p>
           </div>
         </div>
-        <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+        <div className="footer-spacer" />
+      <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
         <MobileNav onNavigate={onNavigate} active="pastoral" />
       </div>
     );
@@ -1289,6 +1291,7 @@ export function PastoralPage({ onNavigate }: PastoralPageProps) {
           </button>
         </div>
       </Modal>
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="pastoral" />
     </div>

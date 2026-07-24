@@ -146,6 +146,7 @@ export function AnnoncesPage({ onNavigate }: AnnoncesPageProps) {
         )}
       </section>
     </div>
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} />
     </>
   );

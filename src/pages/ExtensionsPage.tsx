@@ -441,6 +441,7 @@ export function ExtensionsPage({ onNavigate }: ExtensionsPageProps) {
           </section>
         )}
       </div>
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} />
     </>
   );

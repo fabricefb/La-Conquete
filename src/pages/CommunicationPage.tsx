@@ -1250,7 +1250,8 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
             </button>
           </div>
         </div>
-        <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+        <div className="footer-spacer" />
+      <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
         <MobileNav onNavigate={onNavigate} active="communication" />
       </div>
     );
@@ -1316,6 +1317,7 @@ export function CommunicationPage({ onNavigate }: CommunicationPageProps) {
         </div>
       </main>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="communication" />
     </div>

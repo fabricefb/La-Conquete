@@ -562,6 +562,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
         </section>
       )}
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="predications" />
     </div>

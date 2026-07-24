@@ -496,6 +496,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   @media (max-width: 640px) {
     .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
   }
+  @media (max-width: 640px) {
+    .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
+  }
 
   /* ─── Pastor overlay ─── */
   .pastor-overlay { background: linear-gradient(to top, rgba(6,13,29,0.95) 0%, rgba(6,13,29,0.4) 50%, transparent 100%); }
@@ -630,3 +633,26 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 @media (display-mode: standalone) and (max-width: 768px) {
   .pwa-footer-hide { display: none !important; }
 }
+
+  /* ─── Hide typing cursor on mobile ─── */
+  @media (max-width: 768px) {
+    .typing-cursor::after { display: none; }
+  }
+
+  /* ─── Footer spacer ─── */
+  .footer-spacer {
+    height: 0;
+  }
+  @media (max-width: 768px) {
+    .footer-spacer {
+      height: 1rem;
+    }
+  }
+
+  /* ─── Softer footer border on mobile ─── */
+  @media (max-width: 768px) {
+    footer, footer[class*="border"] {
+      border-top-color: rgba(255, 255, 255, 0.04) !important;
+    }
+  }
+

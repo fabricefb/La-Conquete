@@ -221,6 +221,7 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active={"home" as Page} />
     </div>

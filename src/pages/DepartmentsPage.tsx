@@ -569,6 +569,7 @@ export function DepartmentsPage({ onNavigate }: DepartmentsPageProps) {
         </section>
       )}
 
+      <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
       <MobileNav onNavigate={onNavigate} active="departments" />
     </div>

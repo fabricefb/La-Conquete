@@ -200,6 +200,7 @@ export function EnseignementsPage({ onNavigate }: { onNavigate: (page: Page) => 
         </div>
       </section>
 
+      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );
