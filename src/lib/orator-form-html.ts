@@ -796,15 +796,15 @@ export function generateOratorFormHTML(p: OratorFormParams): string {
   function sendViaWhatsApp() {
     const d = collectData();
     if (!d.orator_name || !d.theme) {
-      showError('Le nom et le th\\u00e8me sont obligatoires.');
+      showError('Le nom et le th\ème sont obligatoires.');
       return;
     }
     let msg = '*FORMULAIRE ORATEUR*\\n';
     msg += 'Culte: ' + CONFIG.serviceDate + ' ' + CONFIG.serviceTime + '\\n';
     msg += 'Type: ' + CONFIG.serviceType + '\\n\\n';
     msg += '*Orateur:* ' + d.orator_name + '\\n';
-    msg += '*Th\\u00e8me:* ' + d.theme + '\\n';
-    if (d.sub_theme) msg += '*Sous-th\\u00e8me:* ' + d.sub_theme + '\\n';
+    msg += '*Th\ème:* ' + d.theme + '\\n';
+    if (d.sub_theme) msg += '*Sous-th\ème:* ' + d.sub_theme + '\\n';
     if (d.verses.length > 0) {
       msg += '\\n*Versets bibliques:*\\n';
       d.verses.forEach((v, i) => { msg += (i + 1) + '. ' + v + '\\n'; });
@@ -813,11 +813,11 @@ export function generateOratorFormHTML(p: OratorFormParams): string {
       msg += '\\n*Grands points du message:*\\n';
       d.points.forEach((p, i) => {
         msg += (i + 1) + '. ' + p.title;
-        if (p.description) msg += ' \\u2014 ' + p.description;
+        if (p.description) msg += ' \— ' + p.description;
         msg += '\\n';
       });
     }
-    if (d.summary) msg += '\\n*R\\u00e9sum\\u00e9:*\\n' + d.summary + '\\n';
+    if (d.summary) msg += '\\n*R\ésum\é:*\\n' + d.summary + '\\n';
     if (d.remarks) msg += '\\n*Remarques:* ' + d.remarks + '\\n';
 
     const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
@@ -829,7 +829,7 @@ export function generateOratorFormHTML(p: OratorFormParams): string {
     if (e) e.preventDefault();
     const d = collectData();
     if (!d.orator_name || !d.theme) {
-      showError('Le nom et le th\\u00e8me sont obligatoires. Veuillez remplir ces champs.');
+      showError('Le nom et le th\ème sont obligatoires. Veuillez remplir ces champs.');
       return false;
     }
 
@@ -943,7 +943,7 @@ export function generateOratorFormHTML(p: OratorFormParams): string {
       document.getElementById('successOverlay').classList.add('active');
 
     } catch (err) {
-      showError(err.message || 'Une erreur est survenue. Veuillez r\\u00e9essayer ou utilisez WhatsApp.');
+      showError(err.message || 'Une erreur est survenue. Veuillez r\éessayer ou utilisez WhatsApp.');
       btn.disabled = false;
       btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Confirmer et envoyer';
     }

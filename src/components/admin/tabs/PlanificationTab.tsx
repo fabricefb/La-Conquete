@@ -658,7 +658,7 @@ export function PlanificationTab() {
     }
   };
 
-  /* \u2014 Duplicate a service as a special culte \u2014 */
+  /* — Duplicate a service as a special culte — */
   const [dupModal, setDupModal] = useState<{ svc: WorshipService } | null>(null);
   const handleDuplicateService = async (srcId: string, newDate: string, newType: WorshipServiceType, newTime: string) => {
     try {
@@ -675,7 +675,7 @@ export function PlanificationTab() {
         created_by: user?.id,
       }).select('id,date,time,type,orator_name,president_name,status,notes,created_by,is_delayed,delayed_at,delayed_minutes,created_at,updated_at').single();
       if (error) throw error;
-      addToast({ type: 'success', message: 'Culte dupliqu\u00e9 avec succ\u00e8s' });
+      addToast({ type: 'success', message: 'Culte dupliqué avec succès' });
       setDupModal(null);
       fetchAll();
     } catch (err: any) {
@@ -683,7 +683,7 @@ export function PlanificationTab() {
     }
   };
 
-  /* \u2014 Export PDF of complete program \u2014 */
+  /* — Export PDF of complete program — */
   const handleExportPDF = async (svc: WorshipService) => {
     try {
       const [formRes, orderRes] = await Promise.allSettled([
@@ -702,18 +702,18 @@ export function PlanificationTab() {
       let text = `PROGRAMME DU CULTE\n${'='*40}\n`;
       text += `${typeLabel}\nDate: ${formatDate(svc.date)} ${formatTime(svc.time)}\n`;
       if (svc.orator_name) text += `Orateur: ${svc.orator_name}\n`;
-      if (svc.president_name) text += `Pr\u00e9sident: ${svc.president_name}\n`;
+      if (svc.president_name) text += `Président: ${svc.president_name}\n`;
       text += `\n`;
       if (form) {
         text += `FORMULAIRE ORATEUR\n${'-'*30}\n`;
-        text += `Th\u00e8me: ${form.theme}\n`;
-        if (form.sub_theme) text += `Sous-th\u00e8me: ${form.sub_theme}\n`;
+        text += `Thème: ${form.theme}\n`;
+        if (form.sub_theme) text += `Sous-thème: ${form.sub_theme}\n`;
         if (form.bible_book) text += `Verset: ${form.bible_book} ${form.bible_chapter || ''}:${form.bible_verses || ''}\n`;
         if (pts.length > 0) {
           text += `\nPoints du message:\n`;
-          pts.forEach((p: any, i: number) => { text += `  ${i+1}. ${p.title}${p.description ? ' \u2014 ' + p.description : ''}\n`; });
+          pts.forEach((p: any, i: number) => { text += `  ${i+1}. ${p.title}${p.description ? ' — ' + p.description : ''}\n`; });
         }
-        if (form.summary) text += `\nR\u00e9sum\u00e9: ${form.summary}\n`;
+        if (form.summary) text += `\nRésumé: ${form.summary}\n`;
         text += `\n`;
       }
       if (order.length > 0) {
@@ -724,7 +724,7 @@ export function PlanificationTab() {
           if (item.notes) text += `     Notes: ${item.notes}\n`;
         });
         const total = order.reduce((s: number, i: any) => s + (i.duration_minutes || 0), 0);
-        text += `\nDur\u00e9e totale: ${total} min\n`;
+        text += `\nDurée totale: ${total} min\n`;
       }
 
       // Open print dialog with formatted text
@@ -1047,7 +1047,7 @@ export function PlanificationTab() {
                       <button
                         onClick={() => setDupModal({ svc })}
                         className="text-xs px-3 py-1.5 rounded-lg bg-sky-500/10 text-sky-300 hover:bg-sky-500/20 transition-colors flex items-center gap-1"
-                        title="Dupliquer ce culte en tant qu'\u00e9v\u00e9nement sp\u00e9cial"
+                        title="Dupliquer ce culte en tant qu'événement spécial"
                       >
                         <Copy className="h-3 w-3" /> Dupliquer
                       </button>
@@ -1392,7 +1392,7 @@ export function PlanificationTab() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <p className="text-xs text-muted mb-4">Cr\u00e9er un nouvel \u00e9v\u00e9nement sp\u00e9cial \u00e0 partir de ce culte. L\'orateur, le pr\u00e9sident et les notes seront copi\u00e9s.</p>
+            <p className="text-xs text-muted mb-4">Créer un nouvel événement spécial à partir de ce culte. L\'orateur, le président et les notes seront copiés.</p>
             <DuplicateFormModal
               sourceService={dupModal.svc}
               onSubmit={(d, t, tm) => handleDuplicateService(dupModal.svc.id, d, t, tm)}
@@ -1644,7 +1644,7 @@ function CreateServiceModal({ onClose, onSubmit }: {
   );
 }
 
-/* \u00e9\u00e9\u00e9\u00e9 Duplicate Form Modal \u00e9\u00e9\u00e9\u00e9 */
+/* éééé Duplicate Form Modal éééé */
 function DuplicateFormModal({ sourceService, onSubmit, onCancel }: {
   sourceService: WorshipService;
   onSubmit: (date: string, type: WorshipServiceType, time: string) => void;
@@ -1681,7 +1681,7 @@ function DuplicateFormModal({ sourceService, onSubmit, onCancel }: {
   return (
     <div className="space-y-3">
       <div>
-        <label className="text-xs text-muted block mb-1.5">Type d'\u00e9v\u00e9nement *</label>
+        <label className="text-xs text-muted block mb-1.5">Type d'événement *</label>
         <select value={type} onChange={e => handleTypeChange(e.target.value as WorshipServiceType)}
           className="input-surface w-full rounded-lg px-3 py-2.5 text-sm text-cream">
           {CULTE_TYPE_GROUPS.map(group => (
@@ -1707,7 +1707,7 @@ function DuplicateFormModal({ sourceService, onSubmit, onCancel }: {
       </div>
       <p className="text-[11px] text-muted bg-white/3 rounded-lg px-3 py-2">
         Orateur: <strong className="text-cream">{sourceService.orator_name || '-'}</strong> |
-        Pr\u00e9sident: <strong className="text-cream">{sourceService.president_name || '-'}</strong>
+        Président: <strong className="text-cream">{sourceService.president_name || '-'}</strong>
       </p>
       <div className="flex gap-2">
         <button onClick={handleSubmit} disabled={!date || saving}

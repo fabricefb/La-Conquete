@@ -5,7 +5,7 @@ import type { WorshipFormLink, WorshipService } from '../types';
 
 const LOGO_URL = 'https://la-conquete.pages.dev/logo-conquete.png';
 const CHURCH_PHOTO = 'https://la-conquete.pages.dev/church-photo-2.jpg';
-const CHURCH_NAME = 'Eglise Evang\u00e9lique La Conqu\u00eate';
+const CHURCH_NAME = 'Eglise Evangélique La Conquête';
 
 /* CSS keyframes injected once */
 const ANIM_STYLE_ID = 'form-orateur-anim-style';
@@ -45,7 +45,7 @@ if (typeof document !== 'undefined' && !document.getElementById(ANIM_STYLE_ID)) 
 /* ═══════════════════════════════════════════════════════════════════
    Branded Orator Form Page — accessible via #/form-orateur/{token}
    L'orateur ouvre le lien, remplit le formulaire en ligne,
-   et les donn\u00e9es sont envoy\u00e9es directement \u00e0 Supabase.
+   et les données sont envoyées directement à Supabase.
    ═══════════════════════════════════════════════════════════════════ */
 
 interface Props { token: string; }
@@ -53,7 +53,7 @@ interface Props { token: string; }
 /* ── Helpers ── */
 function formatDateFr(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
-  const months = ['janvier','f\u00e9vrier','mars','avril','mai','juin','juillet','ao\u00fbt','septembre','octobre','novembre','d\u00e9cembre'];
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
   const weekdays = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const date = new Date(y, m - 1, d);
   return `${weekdays[date.getDay()]} ${d} ${months[m - 1]} ${y}`;
@@ -100,7 +100,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
       }
 
       if (linkData.expires_at && new Date(linkData.expires_at) < new Date()) {
-        setError('Ce lien a expir\u00e9. Contactez le d\u00e9partement m\u00e9dia.');
+        setError('Ce lien a expiré. Contactez le département média.');
         setLoading(false);
         return;
       }
@@ -223,7 +223,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
   const handleSubmit = async () => {
     const oratorName = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (!oratorName || !theme.trim()) {
-      setError('Le nom et le th\u00e8me sont obligatoires.');
+      setError('Le nom et le thème sont obligatoires.');
       return;
     }
 
@@ -302,7 +302,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
   const sendViaWhatsApp = () => {
     const oratorName = `${firstName.trim()} ${lastName.trim()}`.trim();
     if (!oratorName || !theme.trim()) {
-      setError('Remplissez au moins le nom et le th\u00e8me.');
+      setError('Remplissez au moins le nom et le thème.');
       return;
     }
     const dateStr = service ? formatDateFr(service.date) : '';
@@ -312,8 +312,8 @@ export function FormOrateurBrandedPage({ token }: Props) {
     msg += `Culte: ${dateStr} ${timeStr}\n`;
     msg += `Type: ${service?.type || ''}\n\n`;
     msg += `*Orateur:* ${oratorName}\n`;
-    msg += `*Th\u00e8me:* ${theme.trim()}\n`;
-    if (subTheme.trim()) msg += `*Sous-th\u00e8me:* ${subTheme.trim()}\n`;
+    msg += `*Thème:* ${theme.trim()}\n`;
+    if (subTheme.trim()) msg += `*Sous-thème:* ${subTheme.trim()}\n`;
 
     const filledVerses = verses.filter(v => v.trim());
     if (filledVerses.length > 0) {
@@ -326,12 +326,12 @@ export function FormOrateurBrandedPage({ token }: Props) {
       msg += `\n*Grands points du message:*\n`;
       filledPoints.forEach((p, i) => {
         msg += `${i + 1}. ${p.title}`;
-        if (p.description) msg += ` \u2014 ${p.description}`;
+        if (p.description) msg += ` — ${p.description}`;
         msg += '\n';
       });
     }
 
-    if (summary.trim()) msg += `\n*R\u00e9sum\u00e9:*\n${summary.trim()}\n`;
+    if (summary.trim()) msg += `\n*Résumé:*\n${summary.trim()}\n`;
     if (remarks.trim()) msg += `\n*Remarques:* ${remarks.trim()}\n`;
 
     openWhatsApp(null, msg);
@@ -347,16 +347,16 @@ export function FormOrateurBrandedPage({ token }: Props) {
           <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-5 fo-float" style={{ background: 'linear-gradient(135deg, rgba(212,168,67,.15), rgba(212,168,67,.05))', border: '1px solid rgba(212,168,67,.2)' }}>
             <img src={LOGO_URL} alt="" style={{ width: 36, height: 36, objectFit: 'contain' }} />
           </div>
-          <p className="text-sm font-medium" style={{ color: '#A0AAC3' }}>Chargement du formulaire\u2026</p>
+          <p className="text-sm font-medium" style={{ color: '#A0AAC3' }}>Chargement du formulaire…</p>
           {loadTimedOut && (
             <div className="mt-4 fo-fade-up">
-              <p className="text-xs mb-3" style={{ color: 'rgba(247,243,238,0.5)' }}>Le chargement est lent. V\u00e9rifiez votre connexion.</p>
+              <p className="text-xs mb-3" style={{ color: 'rgba(247,243,238,0.5)' }}>Le chargement est lent. Vérifiez votre connexion.</p>
               <button
                 onClick={() => { setLoadTimedOut(false); loadData(); }}
                 className="px-4 py-2 rounded-xl text-xs font-semibold fo-btn-press"
                 style={{ background: 'rgba(212,168,67,.15)', border: '1px solid rgba(212,168,67,.3)', color: '#D4A843', cursor: 'pointer' }}
               >
-                R\u00e9essayer
+                Réessayer
               </button>
             </div>
           )}
@@ -392,17 +392,17 @@ export function FormOrateurBrandedPage({ token }: Props) {
           <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6" style={{ background: 'rgba(37,211,102,.1)' }}>
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#25D366" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Formulaire envoy\u00e9 !</h2>
+          <h2 className="text-2xl font-bold mb-2" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Formulaire envoyé !</h2>
           <p className="text-sm" style={{ color: '#A0AAC3', lineHeight: 1.7 }}>
-            Merci ! Votre formulaire a \u00e9t\u00e9 soumis avec succ\u00e8s au d\u00e9partement de m\u00e9dia de la {CHURCH_NAME}.
+            Merci ! Votre formulaire a été soumis avec succès au département de média de la {CHURCH_NAME}.
           </p>
-          <p className="text-xs mt-4" style={{ color: 'rgba(160,170,195,.5)' }}>Redirection vers la page d'accueil\u2026</p>
+          <p className="text-xs mt-4" style={{ color: 'rgba(160,170,195,.5)' }}>Redirection vers la page d'accueil…</p>
           <button
             onClick={() => { window.location.href = window.location.origin + '/'; }}
             className="mt-5 px-6 py-2.5 rounded-xl text-sm font-semibold fo-btn-press"
             style={{ background: 'rgba(212,168,67,.12)', border: '1px solid rgba(212,168,67,.25)', color: '#D4A843', cursor: 'pointer' }}
           >
-            Retour \u00e0 l'accueil
+            Retour à l'accueil
           </button>
         </div>
       </div>
@@ -508,7 +508,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
               textShadow: '0 1px 10px rgba(0,0,0,.3)',
             }}
           >
-            {isPresident ? 'Formulaire du Pr\u00e9sident de Culte' : "Formulaire de l'Orateur"}
+            {isPresident ? 'Formulaire du Président de Culte' : "Formulaire de l'Orateur"}
           </p>
 
           {/* Service date badge */}
@@ -564,9 +564,9 @@ export function FormOrateurBrandedPage({ token }: Props) {
           </div>
           <div style={{ lineHeight: 1.7 }}>
             <span className="text-sm font-semibold" style={{ color: '#D4A843' }}>Important</span>
-            <span className="text-sm" style={{ color: 'rgba(247,243,238,.75)' }}> \u2014 Ce formulaire doit \u00eatre rempli et envoy\u00e9 au moins </span>
+            <span className="text-sm" style={{ color: 'rgba(247,243,238,.75)' }}> — Ce formulaire doit être rempli et envoyé au moins </span>
             <span className="text-sm font-semibold" style={{ color: '#D4A843' }}>une heure avant le culte</span>
-            <span className="text-sm" style={{ color: 'rgba(247,243,238,.75)' }}>, avec respect et diligence. Merci pour votre collaboration avec le d\u00e9partement de m\u00e9dia.</span>
+            <span className="text-sm" style={{ color: 'rgba(247,243,238,.75)' }}>, avec respect et diligence. Merci pour votre collaboration avec le département de média.</span>
           </div>
         </div>
 
@@ -581,7 +581,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
           >
             <div className="flex items-center gap-2 mb-2">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6A96E8" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-              <span className="text-sm font-semibold" style={{ color: '#6A96E8' }}>Message du d\u00e9partement</span>
+              <span className="text-sm font-semibold" style={{ color: '#6A96E8' }}>Message du département</span>
             </div>
             <p className="text-sm pl-6" style={{ color: 'rgba(247,243,238,.8)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{serviceNotes}</p>
           </div>
@@ -605,15 +605,15 @@ export function FormOrateurBrandedPage({ token }: Props) {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D4A843" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Identit\u00e9 de l'orateur</h2>
-                <p className="text-xs" style={{ color: '#A0AAC3' }}>Votre nom tel qu'il appara\u00eetra sur le programme</p>
+                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Identité de l'orateur</h2>
+                <p className="text-xs" style={{ color: '#A0AAC3' }}>Votre nom tel qu'il apparaîtra sur le programme</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: '#A0AAC3' }}>
-                  Pr\u00e9nom <span style={{ color: '#E3221F' }}>*</span>
+                  Prénom <span style={{ color: '#E3221F' }}>*</span>
                 </label>
                 <input
                   type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
@@ -643,18 +643,18 @@ export function FormOrateurBrandedPage({ token }: Props) {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6A96E8" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Th\u00e8me du message</h2>
-                <p className="text-xs" style={{ color: '#A0AAC3' }}>Le sujet central de votre pr\u00e9dication</p>
+                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Thème du message</h2>
+                <p className="text-xs" style={{ color: '#A0AAC3' }}>Le sujet central de votre prédication</p>
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: '#A0AAC3' }}>
-                Th\u00e8me principal <span style={{ color: '#E3221F' }}>*</span>
+                Thème principal <span style={{ color: '#E3221F' }}>*</span>
               </label>
               <input
                 type="text" value={theme} onChange={e => setTheme(e.target.value)}
-                placeholder="Ex: La puissance de la pri\u00e8re" required
+                placeholder="Ex: La puissance de la prière" required
                 className="w-full rounded-xl px-4 py-3.5 text-sm outline-none fo-input-focus"
                 style={{ background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.1)', color: '#F7F3EE' }}
               />
@@ -662,11 +662,11 @@ export function FormOrateurBrandedPage({ token }: Props) {
 
             <div>
               <label className="block text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: '#A0AAC3' }}>
-                Sous-th\u00e8me <span className="font-normal" style={{ color: 'rgba(160,170,195,.5)' }}>(optionnel)</span>
+                Sous-thème <span className="font-normal" style={{ color: 'rgba(160,170,195,.5)' }}>(optionnel)</span>
               </label>
               <input
                 type="text" value={subTheme} onChange={e => setSubTheme(e.target.value)}
-                placeholder="Angle sp\u00e9cifique ou compl\u00e9ment"
+                placeholder="Angle spécifique ou complément"
                 className="w-full rounded-xl px-4 py-3.5 text-sm outline-none fo-input-focus"
                 style={{ background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.1)', color: '#F7F3EE' }}
               />
@@ -681,7 +681,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
               </div>
               <div>
                 <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Versets bibliques</h2>
-                <p className="text-xs" style={{ color: '#A0AAC3' }}>Les r\u00e9f\u00e9rences scripturaires de votre message</p>
+                <p className="text-xs" style={{ color: '#A0AAC3' }}>Les références scripturaires de votre message</p>
               </div>
             </div>
 
@@ -713,7 +713,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
               </div>
               <div>
                 <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Grands points du message</h2>
-                <p className="text-xs" style={{ color: '#A0AAC3' }}>Structurez les parties cl\u00e9s de votre pr\u00e9dication</p>
+                <p className="text-xs" style={{ color: '#A0AAC3' }}>Structurez les parties clés de votre prédication</p>
               </div>
             </div>
 
@@ -777,18 +777,18 @@ export function FormOrateurBrandedPage({ token }: Props) {
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F7F3EE" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
               </div>
               <div>
-                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Informations compl\u00e9mentaires</h2>
-                <p className="text-xs" style={{ color: '#A0AAC3' }}>R\u00e9sum\u00e9 et remarques pour l'\u00e9quipe m\u00e9dia</p>
+                <h2 className="text-lg font-bold" style={{ fontFamily: "'Playfair Display', serif", color: '#F7F3EE' }}>Informations complémentaires</h2>
+                <p className="text-xs" style={{ color: '#A0AAC3' }}>Résumé et remarques pour l'équipe média</p>
               </div>
             </div>
 
             <div className="mb-4">
               <label className="block text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: '#A0AAC3' }}>
-                R\u00e9sum\u00e9 du message <span className="font-normal" style={{ color: 'rgba(160,170,195,.5)' }}>(optionnel)</span>
+                Résumé du message <span className="font-normal" style={{ color: 'rgba(160,170,195,.5)' }}>(optionnel)</span>
               </label>
               <textarea
                 value={summary} onChange={e => setSummary(e.target.value)}
-                placeholder="Un r\u00e9sum\u00e9 de votre message pour l'\u00e9quipe m\u00e9dia..."
+                placeholder="Un résumé de votre message pour l'équipe média..."
                 rows={4}
                 className="w-full rounded-xl px-4 py-3.5 text-sm outline-none fo-input-focus resize-y"
                 style={{ background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.1)', color: '#F7F3EE', minHeight: 100 }}
@@ -801,7 +801,7 @@ export function FormOrateurBrandedPage({ token }: Props) {
               </label>
               <textarea
                 value={remarks} onChange={e => setRemarks(e.target.value)}
-                placeholder="Informations compl\u00e9mentaires pour le d\u00e9partement m\u00e9dia..."
+                placeholder="Informations complémentaires pour le département média..."
                 rows={3}
                 className="w-full rounded-xl px-4 py-3.5 text-sm outline-none fo-input-focus resize-y"
                 style={{ background: 'rgba(255,255,255,.04)', border: '1.5px solid rgba(255,255,255,.1)', color: '#F7F3EE' }}
@@ -817,8 +817,8 @@ export function FormOrateurBrandedPage({ token }: Props) {
             <img src={LOGO_URL} alt="" style={{ width: 20, height: 20, objectFit: 'contain', opacity: .5 }} />
             <div style={{ width: 24, height: 1, background: 'rgba(212,168,67,.3)' }} />
           </div>
-          <p className="text-xs font-semibold" style={{ color: '#D4A843' }}>D\u00e9partement de M\u00e9dia et Communication</p>
-          <p className="text-xs mt-1" style={{ color: 'rgba(160,170,195,.5)' }}>&copy; {new Date().getFullYear()} {CHURCH_NAME} \u2014 Tous droits r\u00e9serv\u00e9s</p>
+          <p className="text-xs font-semibold" style={{ color: '#D4A843' }}>Département de Média et Communication</p>
+          <p className="text-xs mt-1" style={{ color: 'rgba(160,170,195,.5)' }}>&copy; {new Date().getFullYear()} {CHURCH_NAME} — Tous droits réservés</p>
         </div>
       </div>
 

@@ -852,7 +852,7 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
         >
           <div className="flex items-center gap-2.5">
             <MessageSquare className="h-4.5 w-4.5 text-cyan-400" />
-            <span className="text-sm font-medium text-cream">Communications des d\u00e9partements</span>
+            <span className="text-sm font-medium text-cream">Communications des départements</span>
             {deptMessages.filter(m => !m.is_read).length > 0 && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300">
                 {deptMessages.filter(m => !m.is_read).length} nouveau{deptMessages.filter(m => !m.is_read).length > 1 ? 'x' : ''}
@@ -866,8 +866,8 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
             {deptMessages.length === 0 ? (
               <div className="text-center py-6">
                 <MessageSquare className="w-8 h-8 mx-auto mb-2 text-muted/40" />
-                <p className="text-muted text-sm">Aucune communication re\u00e7ue</p>
-                <p className="text-muted/60 text-xs mt-1">Les messages des autres d\u00e9partements appara\u00eetront ici.</p>
+                <p className="text-muted text-sm">Aucune communication reçue</p>
+                <p className="text-muted/60 text-xs mt-1">Les messages des autres départements apparaîtront ici.</p>
               </div>
             ) : (
               deptMessages.map((msg: any) => (
