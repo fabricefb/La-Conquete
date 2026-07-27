@@ -292,7 +292,7 @@ export function AudioTab() {
           .upload(filePath, audioFile, { cacheControl: '31536000' });
 
         if (uploadError) {
-          addToast("Erreur lors de l'upload du fichier audio", 'error');
+          addToast("Erreur upload audio: " + uploadError.message, 'error');
           setSubmitting(false);
           setUploadProgress(null);
           return;

@@ -88,10 +88,13 @@ interface AdminLayoutProps {
   isFullAdmin?: boolean;
 }
 
-// Onglets masqués pour le pasteur principal (consultation uniquement)
-const HIDDEN_TABS_FOR_PASTOR = new Set<AdminTab>([
-  'theme', 'settings',
-  'pipeline', 'onboarding', 'protocol', 'creneaux',
+// Onglets autorisés pour les pasteurs (liste blanche)
+const ALLOWED_TABS_FOR_PASTOR = new Set<AdminTab>([
+  'homepage_builder', 'guide',
+  'predications', 'audio', 'testimonials', 'messages',
+  'annonces', 'communiques', 'emissions',
+  'creneaux', 'media_communication',
+  'pipeline', 'onboarding', 'protocol', 'evangelism',
 ]);
 
 // Onglets masqués pour les utilisateurs niveau 4 (diacre, collaborateur, etc.)
@@ -116,19 +119,23 @@ function SidebarNav({
   isPrincipalPastor?: boolean;
 }) {
   // Filtrer les onglets selon le rôle
+  let allowedTabs: Set<AdminTab> | null = null;
   let hiddenTabs = new Set<AdminTab>();
-  if (isPrincipalPastor) {
-    hiddenTabs = HIDDEN_TABS_FOR_PASTOR;
+  if (isPrincipalPastor || (!isFullAdmin && userRoleLevel >= 5)) {
+    allowedTabs = ALLOWED_TABS_FOR_PASTOR;
   } else if (!isFullAdmin && userRoleLevel >= 4) {
     hiddenTabs = HIDDEN_TABS_FOR_LEVEL4;
   } else if (!isFullAdmin) {
-    hiddenTabs = HIDDEN_TABS_FOR_PASTOR;
+    allowedTabs = ALLOWED_TABS_FOR_PASTOR;
   }
 
-  const visibleGroups = hiddenTabs.size === 0 ? tabGroups : tabGroups.map(g => ({
-    ...g,
-    tabs: g.tabs.filter(t => !hiddenTabs.has(t.id)),
-  })).filter(g => g.tabs.length > 0);
+  const visibleGroups = (allowedTabs === null && hiddenTabs.size === 0) ? tabGroups
+    : tabGroups.map(g => ({
+      ...g,
+      tabs: g.tabs.filter(t =>
+        (allowedTabs === null || allowedTabs.has(t.id)) && !hiddenTabs.has(t.id)
+      ),
+    })).filter(g => g.tabs.length > 0);
 
   return (
     <nav className="flex-1 overflow-y-auto p-3">
