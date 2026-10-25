@@ -549,6 +549,14 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   @keyframes slideRight { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes slideUp    { from { opacity: 0; transform: translateY(100%); } to { opacity: 1; transform: translateY(0); } }
 
+  /* ─── Hero slideshow — zoom lent (Ken Burns) ─── */
+  .hero-slide-zoom {
+    animation: heroZoom 22s ease-in-out infinite alternate;
+    transform-origin: center center;
+    will-change: transform;
+  }
+  @keyframes heroZoom { from { transform: scale(1); } to { transform: scale(1.09); } }
+
   /* ─── Pulse (Bleu accent) ─── */
   .animate-pulse-primary { animation: pulsePrimary 2s ease-in-out infinite; }
   @keyframes pulsePrimary {

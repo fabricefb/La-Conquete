@@ -7,7 +7,7 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { TopBar } from '../components/home/TopBar';
-import { UpcomingCarousel } from '../components/home/UpcomingCarousel';
+import { UpcomingCarousel, type AgendaSettings } from '../components/home/UpcomingCarousel';
 import { RecentTeachings } from '../components/home/RecentTeachings';
 import { NextSteps } from '../components/home/NextSteps';
 import { QuickActions } from '../components/home/QuickActions';
@@ -364,12 +364,12 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
     : [DEFAULT_HERO_IMG];
   const [heroIndex, setHeroIndex] = useState(0);
 
-  // Slideshow: change every 30 seconds
+  // Slideshow: zoom lent puis fondu vers l'image suivante
   useEffect(() => {
     if (heroImages.length <= 1) return;
     const timer = setInterval(() => {
       setHeroIndex(prev => (prev + 1) % heroImages.length);
-    }, 30000);
+    }, 10000);
     return () => clearInterval(timer);
   }, [heroImages.length]);
   // Hero texts
@@ -379,6 +379,35 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const heroBibleVerse = getContent(cm, 'hero', 'bible_verse', 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"');
   const heroCtaPrimary = getContent(cm, 'hero', 'cta_primary', 'Rejoindre le culte');
   const heroCtaSecondary = getContent(cm, 'hero', 'cta_secondary', 'Notre vision');
+
+  // Agenda — textes et affiche de l'événement à la une (modifiables au back-office)
+  const agenda: AgendaSettings = {
+    eyebrow: getContent(cm, 'agenda', 'eyebrow', 'Événements'),
+    title: getContent(cm, 'agenda', 'title', 'À ne pas manquer'),
+    subtitle: getContent(
+      cm,
+      'agenda',
+      'subtitle',
+      "Le marathon de prière et les rendez-vous qui rythment la vie de l'église.",
+    ),
+    kicker: getContent(cm, 'agenda', 'featured_kicker', 'À la une'),
+    badge: getContent(cm, 'agenda', 'featured_badge', '1er – 30 novembre 2026'),
+    featuredTitle: getContent(cm, 'agenda', 'featured_title', 'Marathon de prière'),
+    featuredTime: getContent(
+      cm,
+      'agenda',
+      'featured_time',
+      'Lundi – vendredi, 16h – 18h45 · Dimanche, 8h – 10h30',
+    ),
+    featuredDescription: getContent(
+      cm,
+      'agenda',
+      'featured_description',
+      "« La mission de l'Église locale face au monde moderne » — Matthieu 28:19-20.",
+    ),
+    featuredImage: getContent(cm, 'agenda', 'featured_image', '/priere.jpg'),
+    featuredCta: getContent(cm, 'agenda', 'featured_cta', "Voir l'événement"),
+  };
 
   // Pillars
   const pillar1Title = getContent(cm, 'pillars', 'pillar_1_title', 'Foi');
@@ -433,9 +462,9 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const pastorWordQuoteRef = getContent(cm, 'pastor_word', 'bible_ref', 'Jérémie 29:11');
   const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', '/pasteur-kazadi.jpg');
   const pastorSignature = getContent(cm, 'pastor_word', 'signature_image', '');
-  const portraitScale = parseFloat(getContent(cm, 'pastor_word', 'portrait_scale', '1')) || 1;
+  const portraitScale = parseFloat(getContent(cm, 'pastor_word', 'portrait_scale', '1.25')) || 1.25;
   const portraitPosX = getContent(cm, 'pastor_word', 'portrait_pos_x', 'center'); // left | center | right
-  const portraitPosY = getContent(cm, 'pastor_word', 'portrait_pos_y', 'center'); // top | center | bottom
+  const portraitPosY = getContent(cm, 'pastor_word', 'portrait_pos_y', 'top'); // top | center | bottom
   const signaturePosX = getContent(cm, 'pastor_word', 'signature_pos_x', 'center'); // left | center | right
   const signatureScale = parseFloat(getContent(cm, 'pastor_word', 'signature_scale', '1')) || 1;
 
@@ -479,7 +508,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
             heroImages.map((img: string, i: number) => (
               <div
                 key={i}
-                className="photo-claro-strong absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[1200ms] ease-in-out"
+                className="photo-claro-strong hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[1500ms] ease-in-out"
                 style={{
                   backgroundImage: `url(${img})`,
                   opacity: i === heroIndex ? 1 : 0,
@@ -488,7 +517,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
             ))
           ) : (
             <div
-              className="photo-claro-strong absolute inset-0 bg-cover bg-center bg-no-repeat"
+              className="photo-claro-strong hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImg})` }}
             />
           )}
@@ -567,7 +596,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
       {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} textColor={topbarTextColor} bgColor={topbarBgColor} />}
 
       {/* ═══════ SECTION: À NE PAS MANQUER (carrousel) ═══════ */}
-      {isSectionVisible('agenda') && <UpcomingCarousel events={events} onNavigate={onNavigate} />}
+      {isSectionVisible('agenda') && <UpcomingCarousel events={events} agenda={agenda} onNavigate={onNavigate} />}
 
       {/* ═══════ SECTION: NOS FONDEMENTS + MOT DU PASTEUR ═══════ */}
       {(isSectionVisible('pillars') || isSectionVisible('unique')) && (

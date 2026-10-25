@@ -10,6 +10,7 @@ import {
 /* ═══════════════════════════════════════════════════════════════════
    LiveStreamTab — Admin panel to program the next live stream
    - next_live_datetime: ISO datetime for the countdown
+   - live_end_datetime: ISO datetime when the live window closes (optional)
    - next_live_label: e.g. "Culte du dimanche"
    - live_platform: 'facebook' | 'youtube'
    - live_channel_url: the full URL to the Facebook page or YouTube channel
@@ -18,6 +19,7 @@ import {
 
 interface LiveConfig {
   next_live_datetime: string;
+  live_end_datetime: string;
   next_live_label: string;
   live_platform: 'facebook' | 'youtube';
   live_channel_url: string;
@@ -26,6 +28,7 @@ interface LiveConfig {
 
 const DEFAULT_CONFIG: LiveConfig = {
   next_live_datetime: '',
+  live_end_datetime: '',
   next_live_label: 'Culte du dimanche',
   live_platform: 'facebook',
   live_channel_url: '',
@@ -52,6 +55,14 @@ function inputValueToDatetime(val: string): string {
   if (!val) return '';
   // datetime-local → ISO
   return new Date(val).toISOString();
+}
+
+function resolveLiveEnd(startIso: string, endIso: string): Date | null {
+  if (!startIso) return null;
+  const start = new Date(startIso).getTime();
+  if (!Number.isFinite(start)) return null;
+  const configuredEnd = endIso ? new Date(endIso).getTime() : NaN;
+  return new Date(Number.isFinite(configuredEnd) && configuredEnd > start ? configuredEnd : start + 4 * 3600000);
 }
 
 function generateEmbedUrl(platform: 'facebook' | 'youtube', channelUrl: string): string {
@@ -96,6 +107,7 @@ export function LiveStreamTab() {
       try {
         const keys = [
           'next_live_datetime',
+          'live_end_datetime',
           'next_live_label',
           'live_platform',
           'live_channel_url',
@@ -114,6 +126,7 @@ export function LiveStreamTab() {
           }
           setConfig({
             next_live_datetime: map['next_live_datetime'] || '',
+            live_end_datetime: map['live_end_datetime'] || '',
             next_live_label: map['next_live_label'] || 'Culte du dimanche',
             live_platform: (map['live_platform'] as 'facebook' | 'youtube') || 'facebook',
             live_channel_url: map['live_channel_url'] || '',
@@ -147,15 +160,16 @@ export function LiveStreamTab() {
   }, []);
 
   // ── Save ──
-  const handleSave = useCallback(async () => {
+  const persistConfig = useCallback(async (cfg: LiveConfig, successMessage = 'Configuration du live enregistrée avec succès') => {
     setSaving(true);
     try {
       const rows = [
-        { key: 'next_live_datetime', value: config.next_live_datetime, type: 'text', category: 'general', label: 'Prochain live — Date', sort_order: 800 },
-        { key: 'next_live_label', value: config.next_live_label, type: 'text', category: 'general', label: 'Prochain live — Titre', sort_order: 801 },
-        { key: 'live_platform', value: config.live_platform, type: 'text', category: 'general', label: 'Plateforme live', sort_order: 802 },
-        { key: 'live_channel_url', value: config.live_channel_url, type: 'url', category: 'general', label: 'URL du canal live', sort_order: 803 },
-        { key: 'live_embed_url', value: config.live_embed_url, type: 'url', category: 'general', label: 'URL d\'embed live', sort_order: 804 },
+        { key: 'next_live_datetime', value: cfg.next_live_datetime, type: 'text', category: 'general', label: 'Prochain live — Date', sort_order: 800 },
+        { key: 'live_end_datetime', value: cfg.live_end_datetime, type: 'text', category: 'general', label: 'Prochain live — Fin', sort_order: 805 },
+        { key: 'next_live_label', value: cfg.next_live_label, type: 'text', category: 'general', label: 'Prochain live — Titre', sort_order: 801 },
+        { key: 'live_platform', value: cfg.live_platform, type: 'text', category: 'general', label: 'Plateforme live', sort_order: 802 },
+        { key: 'live_channel_url', value: cfg.live_channel_url, type: 'url', category: 'general', label: 'URL du canal live', sort_order: 803 },
+        { key: 'live_embed_url', value: cfg.live_embed_url, type: 'url', category: 'general', label: 'URL d\'embed live', sort_order: 804 },
       ];
 
       await Promise.all(
@@ -169,44 +183,80 @@ export function LiveStreamTab() {
         ),
       );
 
-      addToast('Configuration du live enregistrée avec succès', 'success');
+      addToast(successMessage, 'success');
     } catch {
       addToast("Erreur lors de l'enregistrement de la configuration", 'error');
     } finally {
       setSaving(false);
     }
-  }, [config, addToast]);
+  }, [addToast]);
 
-  // ── Countdown preview ──
-  const [previewCountdown, setPreviewCountdown] = useState({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
+  const handleSave = useCallback(() => persistConfig(config), [config, persistConfig]);
+
+  const handleStartNow = useCallback(() => {
+    const now = new Date();
+    const next: LiveConfig = {
+      ...config,
+      next_live_datetime: now.toISOString(),
+      live_end_datetime: new Date(now.getTime() + 4 * 3600000).toISOString(),
+    };
+    setConfig(next);
+    void persistConfig(next, 'Direct démarré — le bouton EN DIRECT est actif sur le site');
+  }, [config, persistConfig]);
+
+  const handleStopNow = useCallback(() => {
+    const now = new Date();
+    const next: LiveConfig = {
+      ...config,
+      next_live_datetime: new Date(now.getTime() - 60000).toISOString(),
+      live_end_datetime: now.toISOString(),
+    };
+    setConfig(next);
+    void persistConfig(next, 'Direct terminé — le bouton EN DIRECT a été retiré du site');
+  }, [config, persistConfig]);
+
+  // ── Live window preview ──
+  const [preview, setPreview] = useState({
+    phase: 'none' as 'none' | 'upcoming' | 'live' | 'ended',
+    days: 0, hours: 0, mins: 0, secs: 0,
+  });
 
   useEffect(() => {
     if (!config.next_live_datetime) {
-      setPreviewCountdown({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
+      setPreview({ phase: 'none', days: 0, hours: 0, mins: 0, secs: 0 });
       return;
     }
 
-    const target = new Date(config.next_live_datetime).getTime();
+    const start = new Date(config.next_live_datetime).getTime();
+    const configuredEnd = config.live_end_datetime ? new Date(config.live_end_datetime).getTime() : NaN;
+    const end = Number.isFinite(configuredEnd) && configuredEnd > start
+      ? configuredEnd
+      : start + 4 * 3600000;
 
     function tick() {
-      const diff = target - Date.now();
-      if (diff <= 0) {
-        setPreviewCountdown({ days: 0, hours: 0, mins: 0, secs: 0, expired: false });
-        return;
+      const now = Date.now();
+      if (!Number.isFinite(start)) {
+        setPreview({ phase: 'none', days: 0, hours: 0, mins: 0, secs: 0 });
+      } else if (now >= end) {
+        setPreview({ phase: 'ended', days: 0, hours: 0, mins: 0, secs: 0 });
+      } else if (now >= start) {
+        setPreview({ phase: 'live', days: 0, hours: 0, mins: 0, secs: 0 });
+      } else {
+        const diff = start - now;
+        setPreview({
+          phase: 'upcoming',
+          days: Math.floor(diff / 86400000),
+          hours: Math.floor((diff % 86400000) / 3600000),
+          mins: Math.floor((diff % 3600000) / 60000),
+          secs: Math.floor((diff % 60000) / 1000),
+        });
       }
-      setPreviewCountdown({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        mins: Math.floor((diff % 3600000) / 60000),
-        secs: Math.floor((diff % 60000) / 1000),
-        expired: false,
-      });
     }
 
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
-  }, [config.next_live_datetime]);
+  }, [config.next_live_datetime, config.live_end_datetime]);
 
   // ── Loading state ──
   if (loading) {
@@ -252,28 +302,30 @@ export function LiveStreamTab() {
               })}
             </p>
 
-            {!previewCountdown.expired ? (
+            {preview.phase === 'upcoming' && (
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                 <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
                   Dans
                 </span>
                 <div className="flex items-center gap-1 font-mono text-sm font-bold text-white">
-                  {previewCountdown.days > 0 && (
-                    <span className="bg-white/10 rounded px-2 py-1">{previewCountdown.days}j</span>
+                  {preview.days > 0 && (
+                    <span className="bg-white/10 rounded px-2 py-1">{preview.days}j</span>
                   )}
                   <span className="bg-white/10 rounded px-2 py-1">
-                    {String(previewCountdown.hours).padStart(2, '0')}h
+                    {String(preview.hours).padStart(2, '0')}h
                   </span>
                   <span className="bg-white/10 rounded px-2 py-1">
-                    {String(previewCountdown.mins).padStart(2, '0')}m
+                    {String(preview.mins).padStart(2, '0')}m
                   </span>
                   <span className="bg-white/10 rounded px-2 py-1">
-                    {String(previewCountdown.secs).padStart(2, '0')}s
+                    {String(preview.secs).padStart(2, '0')}s
                   </span>
                 </div>
               </div>
-            ) : (
+            )}
+
+            {preview.phase === 'live' && (
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                 <span className="text-xs font-bold uppercase tracking-wider text-red-400">
@@ -281,9 +333,52 @@ export function LiveStreamTab() {
                 </span>
               </div>
             )}
+
+            {preview.phase === 'ended' && (
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-white/30" />
+                <span className="text-xs font-bold uppercase tracking-wider text-white/40">
+                  Direct terminé — le bouton EN DIRECT est masqué sur le site
+                </span>
+              </div>
+            )}
+
+            <p className="text-xs text-white/40">
+              Fenêtre de diffusion jusqu&apos;au{' '}
+              {resolveLiveEnd(config.next_live_datetime, config.live_end_datetime)?.toLocaleString('fr-FR', {
+                weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit',
+              })}
+            </p>
           </div>
         ) : (
           <p className="text-sm text-white/30 italic">Aucun direct programmé. Configurez la date ci-dessous.</p>
+        )}
+
+        {isFullAdmin && (
+          <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-white/10 pt-4">
+            <button
+              type="button"
+              onClick={handleStartNow}
+              disabled={saving}
+              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-red-500 disabled:opacity-50"
+            >
+              <Radio className="h-3.5 w-3.5" />
+              Démarrer maintenant
+            </button>
+            {config.next_live_datetime && (
+              <button
+                type="button"
+                onClick={handleStopNow}
+                disabled={saving}
+                className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-white/70 transition-colors hover:bg-white/10 hover:text-white disabled:opacity-50"
+              >
+                Arrêter le direct
+              </button>
+            )}
+            <span className="text-[11px] text-white/40">
+              Enregistré immédiatement — visible sur le site sous 1 minute.
+            </span>
+          </div>
         )}
       </div>
 
@@ -317,7 +412,24 @@ export function LiveStreamTab() {
             className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-amber-500/50 [color-scheme:dark]"
           />
           <p className="mt-1.5 text-xs text-white/40">
-            Fuseau horaire du navigateur — le site affichera le compte à rebours automatiquement
+            Fuseau horaire du navigateur — à cette heure, le bouton EN DIRECT apparaît automatiquement
+          </p>
+        </div>
+
+        {/* End of live */}
+        <div>
+          <label className="flex items-center gap-2 mb-2 text-sm font-medium text-white/80">
+            <Clock className="h-4 w-4 text-amber-400" />
+            Fin de diffusion (optionnel)
+          </label>
+          <input
+            type="datetime-local"
+            value={datetimeToInputValue(config.live_end_datetime)}
+            onChange={(e) => update('live_end_datetime', inputValueToDatetime(e.target.value))}
+            className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-white outline-none transition-colors focus:border-amber-500/50 [color-scheme:dark]"
+          />
+          <p className="mt-1.5 text-xs text-white/40">
+            Passé cette heure, le bouton EN DIRECT disparaît du site. Laisser vide = 4 h après le début.
           </p>
         </div>
 
@@ -372,7 +484,7 @@ export function LiveStreamTab() {
           <p className="mt-1.5 text-xs text-white/40">
             {config.live_platform === 'youtube'
               ? "Collez l'URL complète de votre chaîne YouTube (ex: youtube.com/@VotreChaine). L'URL d'intégration sera générée automatiquement."
-              : "Collez l'URL de votre page Facebook ou du live en cours. Le lecteur sera intégré automatiquement."}
+              : "Collez l'URL de la vidéo en direct Facebook (elle change à chaque diffusion). L'URL d'intégration est générée automatiquement ; le bouton « Ouvrir sur Facebook » reste disponible en secours."}
           </p>
         </div>
 
@@ -411,8 +523,9 @@ export function LiveStreamTab() {
             <ul className="list-disc list-inside space-y-0.5">
               <li>L&apos;admin définit la date/heure du prochain live</li>
               <li>Un <strong>compte à rebours</strong> s&apos;affiche automatiquement sur le site</li>
-              <li>Quand le compte à rebours atteint zéro, le bouton <strong>EN DIRECT</strong> apparaît</li>
+              <li>À l&apos;heure programmée, le bouton <strong>EN DIRECT</strong> apparaît</li>
               <li>Les visiteurs cliquent et regardent le live <strong>directement sur le site</strong> via le lecteur intégré</li>
+              <li>Le bouton disparaît à l&apos;heure de fin (ou 4 h après le début si aucune fin n&apos;est fixée)</li>
             </ul>
           </div>
         </div>

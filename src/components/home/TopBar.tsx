@@ -36,37 +36,50 @@ function WhatsAppIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
 }
 
 /* ------------------------------------------------------------------ */
-/*  Countdown helper                                                   */
+/*  Live window helper                                                 */
+/*  off       → aucun direct programmé (ou direct terminé)             */
+/*  upcoming  → compte à rebours avant le culte                        */
+/*  live      → fenêtre de diffusion : bouton EN DIRECT                */
 /* ------------------------------------------------------------------ */
-function useCountdown(targetDate: string | null) {
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
+const LIVE_FALLBACK_HOURS = 4;
+
+function useLiveStatus(startDate: string | null, endDate: string | null, label: string) {
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    if (!targetDate) return;
-    const target = new Date(targetDate).getTime();
-
-    function tick() {
-      const now = Date.now();
-      const diff = target - now;
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, mins: 0, secs: 0, expired: true });
-        return;
-      }
-      setTimeLeft({
-        days: Math.floor(diff / 86400000),
-        hours: Math.floor((diff % 86400000) / 3600000),
-        mins: Math.floor((diff % 3600000) / 60000),
-        secs: Math.floor((diff % 60000) / 1000),
-        expired: false,
-      });
-    }
-
-    tick();
-    const id = setInterval(tick, 1000);
+    if (!startDate) return;
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
-  }, [targetDate]);
+  }, [startDate]);
 
-  return timeLeft;
+  const start = startDate ? new Date(startDate).getTime() : NaN;
+  if (!Number.isFinite(start)) {
+    return { phase: 'off' as const, label, days: 0, hours: 0, mins: 0, secs: 0 };
+  }
+
+  const configuredEnd = endDate ? new Date(endDate).getTime() : NaN;
+  const end = Number.isFinite(configuredEnd) && configuredEnd > start
+    ? configuredEnd
+    : start + LIVE_FALLBACK_HOURS * 3600000;
+
+  if (now >= end) {
+    return { phase: 'off' as const, label, days: 0, hours: 0, mins: 0, secs: 0 };
+  }
+
+  if (now >= start) {
+    return { phase: 'live' as const, label, days: 0, hours: 0, mins: 0, secs: 0 };
+  }
+
+  const diff = start - now;
+  return {
+    phase: 'upcoming' as const,
+    label,
+    days: Math.floor(diff / 86400000),
+    hours: Math.floor((diff % 86400000) / 3600000),
+    mins: Math.floor((diff % 3600000) / 60000),
+    secs: Math.floor((diff % 60000) / 1000),
+  };
 }
 
 /* ------------------------------------------------------------------ */
@@ -96,11 +109,15 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
     ...SERVICE_TIMES.map((s) => `${s.service} — ${s.day}, ${s.time.replace(' – ', ' à ')}`),
   ]);
   const [liveTargetDate, setLiveTargetDate] = useState<string | null>(null);
+  const [liveEndDate, setLiveEndDate] = useState<string | null>(null);
   const [liveLabel, setLiveLabel] = useState('Prochain direct');
-  const countdown = useCountdown(liveTargetDate);
+  const live = useLiveStatus(liveTargetDate, liveEndDate, liveLabel);
 
-  /* ── Fetch communiqués & live countdown from Supabase ── */
+  /* ── Fetch communiqués & live window (refreshed every minute) ── */
   useEffect(() => {
+    let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | undefined;
+
     async function load() {
       try {
         // Fetch published communiqués for the marquee
@@ -112,36 +129,38 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
           .order('created_at', { ascending: false })
           .limit(10);
 
-        if (commData && commData.length > 0) {
+        if (!cancelled && commData && commData.length > 0) {
           setAnnouncements([...UPCOMING_ANNOUNCEMENTS, ...commData.map((c: any) => c.title)]);
         }
 
-        // Fetch next live event date from site_settings
-        const { data: setting } = await supabase
+        // Fetch the live window from site_settings
+        const { data: liveRows } = await supabase
           .from('site_settings')
-          .select('value')
-          .eq('key', 'next_live_datetime')
-          .single();
+          .select('key, value')
+          .in('key', ['next_live_datetime', 'live_end_datetime', 'next_live_label']);
 
-        if (setting?.value) {
-          setLiveTargetDate(setting.value);
+        if (cancelled) return;
+
+        if (liveRows) {
+          const map: Record<string, string> = {};
+          for (const row of liveRows) map[row.key] = row.value;
+          setLiveTargetDate(map['next_live_datetime'] || null);
+          setLiveEndDate(map['live_end_datetime'] || null);
+          setLiveLabel(map['next_live_label'] || 'Prochain direct');
         }
 
-        // Fetch live label
-        const { data: labelSetting } = await supabase
-          .from('site_settings')
-          .select('value')
-          .eq('key', 'next_live_label')
-          .single();
-
-        if (labelSetting?.value) {
-          setLiveLabel(labelSetting.value);
-        }
+        // Keep open pages in sync when the admin starts or stops the live
+        if (!timer) timer = setInterval(() => { void load(); }, 60000);
       } catch {
         // Keep defaults
       }
     }
+
     void load();
+    return () => {
+      cancelled = true;
+      if (timer) clearInterval(timer);
+    };
   }, []);
 
   /* ── Build marquee items (duplicate for seamless loop) ── */
@@ -167,38 +186,52 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
     >
       {/* ---- Main content row ---- */}
       <div className="flex items-center justify-between px-3 md:px-6 py-2.5">
-        {/* ---- Left: Countdown to next live ---- */}
+        {/* ---- Left: live window (countdown → EN DIRECT) ---- */}
         <div className="flex items-center gap-2 shrink-0">
-          <span className="live-dot" aria-hidden="true" />
-          {!countdown.expired ? (
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white hidden sm:inline">
-                {liveLabel}
-              </span>
-              <div className="flex items-center gap-0.5 font-mono text-[10px] md:text-xs font-bold text-white">
-                {countdown.days > 0 && (
-                  <span className="border border-white/25 px-1.5 py-0.5">{countdown.days}j</span>
-                )}
-                <span className="border border-white/25 px-1.5 py-0.5">
-                  {String(countdown.hours).padStart(2, '0')}h
+          {live.phase === 'upcoming' && (
+            <>
+              <span className="live-dot" aria-hidden="true" />
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white hidden sm:inline">
+                  {live.label}
                 </span>
-                <span className="border border-white/25 px-1.5 py-0.5">
-                  {String(countdown.mins).padStart(2, '0')}m
-                </span>
-                <span className="border border-white/25 px-1.5 py-0.5">
-                  {String(countdown.secs).padStart(2, '0')}s
-                </span>
+                <div className="flex items-center gap-0.5 font-mono text-[10px] md:text-xs font-bold text-white">
+                  {live.days > 0 && (
+                    <span className="border border-white/25 px-1.5 py-0.5">{live.days}j</span>
+                  )}
+                  <span className="border border-white/25 px-1.5 py-0.5">
+                    {String(live.hours).padStart(2, '0')}h
+                  </span>
+                  <span className="border border-white/25 px-1.5 py-0.5">
+                    {String(live.mins).padStart(2, '0')}m
+                  </span>
+                  <span className="border border-white/25 px-1.5 py-0.5">
+                    {String(live.secs).padStart(2, '0')}s
+                  </span>
+                </div>
               </div>
-            </div>
-          ) : (
-            <button
-              onClick={onLiveClick}
-              className="flex cursor-pointer items-center gap-1.5 transition-opacity hover:opacity-80"
-            >
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white animate-pulse">
-                EN DIRECT
-              </span>
-            </button>
+            </>
+          )}
+          {live.phase === 'live' && (
+            <>
+              <span className="live-dot" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={onLiveClick}
+                className="flex cursor-pointer items-center gap-2 transition-opacity hover:opacity-80"
+                aria-label={`Suivre le direct — ${live.label}`}
+              >
+                <span className="hidden text-[11px] font-medium text-white/75 md:inline">
+                  {live.label}
+                </span>
+                <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white animate-pulse">
+                  EN DIRECT
+                </span>
+                <span className="hidden border border-white/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white sm:inline">
+                  Regarder
+                </span>
+              </button>
+            </>
           )}
         </div>
 

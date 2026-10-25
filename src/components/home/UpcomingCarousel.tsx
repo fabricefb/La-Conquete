@@ -29,18 +29,6 @@ const SERVICE_IMAGES: Record<number, string> = {
   5: '/church-photo-1.jpg',
 };
 
-const MARATHON: Slide = {
-  key: 'marathon',
-  label: 'À la une',
-  badge: '1er – 30 novembre 2026',
-  title: 'Marathon de prière',
-  time: 'Lundi – vendredi, 16h – 18h45 · Dimanche, 8h – 10h30',
-  description: "« La mission de l'Église locale face au monde moderne » — Matthieu 28:19-20.",
-  image: '/priere.jpg',
-  cta: "Voir l'événement",
-  page: 'events',
-};
-
 const WEEKLY: Slide[] = SERVICE_TIMES.slice(0, 4).map((s) => ({
   key: `service-${s.weekday}`,
   label: 'Programme hebdomadaire',
@@ -72,12 +60,26 @@ function eventToSlide(evt: ChurchEvent): Slide {
   };
 }
 
+export interface AgendaSettings {
+  eyebrow: string;
+  title: string;
+  subtitle: string;
+  kicker: string;
+  badge: string;
+  featuredTitle: string;
+  featuredTime: string;
+  featuredDescription: string;
+  featuredImage: string;
+  featuredCta: string;
+}
+
 interface UpcomingCarouselProps {
   events: ChurchEvent[];
+  agenda: AgendaSettings;
   onNavigate: (page: Page) => void;
 }
 
-export function UpcomingCarousel({ events, onNavigate }: UpcomingCarouselProps) {
+export function UpcomingCarousel({ events, agenda, onNavigate }: UpcomingCarouselProps) {
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
 
@@ -88,7 +90,19 @@ export function UpcomingCarousel({ events, onNavigate }: UpcomingCarouselProps) 
     })
     .slice(0, 2);
 
-  const slides = [MARATHON, ...upcoming.map(eventToSlide), ...WEEKLY];
+  const featured: Slide = {
+    key: 'featured',
+    label: agenda.kicker,
+    badge: agenda.badge,
+    title: agenda.featuredTitle,
+    time: agenda.featuredTime,
+    description: agenda.featuredDescription,
+    image: agenda.featuredImage || '/priere.jpg',
+    cta: agenda.featuredCta,
+    page: 'events',
+  };
+
+  const slides = [featured, ...upcoming.map(eventToSlide), ...WEEKLY];
 
   const go = (next: number) => {
     setIndex(((next % slides.length) + slides.length) % slides.length);
@@ -114,11 +128,11 @@ export function UpcomingCarousel({ events, onNavigate }: UpcomingCarouselProps) 
           <div>
             <div className="flex items-center gap-4">
               <span className="rule-accent" />
-              <p className="section-eyebrow">Événements</p>
+              <p className="section-eyebrow">{agenda.eyebrow}</p>
             </div>
-            <h2 className="section-title mt-4">À ne pas manquer</h2>
+            <h2 className="section-title mt-4">{agenda.title}</h2>
             <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">
-              Le marathon de prière et les rendez-vous qui rythment la vie de l'église.
+              {agenda.subtitle}
             </p>
           </div>
 

@@ -10,6 +10,7 @@ import {
   Megaphone, Heart, MapPin, BookOpen, Eye, Newspaper,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { CHURCH } from '../../../lib/church';
 type IconComponent = React.ComponentType<any>;
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ const PAGES: PageDef[] = [
     sections: [
       { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email, texte défilant' },
       { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond (photo modifiable), diaporama, titre, verset biblique' },
+      { key: 'agenda', label: 'Événements — À ne pas manquer', icon: Calendar, description: 'Affiche du marathon (photo/PDF converti en image), dates, textes et en-tête du carrousel' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
       { key: 'pastor_word', label: 'Mot du pasteur', icon: Users, description: 'Portrait (photo modifiable), signature (image modifiable), textes et citation' },
       { key: 'news', label: 'Dernières nouvelles', icon: Newspaper, description: 'Titre et sous-titre de la section actualités' },
@@ -257,8 +259,8 @@ interface SeedField {
 const SEEDS: Record<string, Record<string, SeedField[]>> = {
   home: {
     topbar: [
-      { field_key: 'phone', label: 'Téléphone', type: 'text', value: '+243 00 000 0000' },
-      { field_key: 'email', label: 'Email', type: 'text', value: 'contact@laconquete.cd' },
+      { field_key: 'phone', label: 'Téléphone', type: 'text', value: CHURCH.phone.display },
+      { field_key: 'email', label: 'Email', type: 'text', value: CHURCH.email },
       { field_key: 'marquee_text', label: 'Texte défilant personnalisé (vide = communiqués auto)', type: 'text', value: '' },
     ],
     hero: [
@@ -266,10 +268,22 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'bg_images', label: 'Images diaporama (séparées par ,)', type: 'text', value: '' },
       { field_key: 'title_line1', label: 'Titre ligne 1', type: 'text', value: 'La Conquête' },
       { field_key: 'title_line2', label: 'Titre ligne 2', type: 'text', value: 'des Âmes' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: 'Église Évangélique La Conquête — Kinshasa, RDC' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: `Église Évangélique La Conquête — ${CHURCH.address.city}, ${CHURCH.address.country}` },
       { field_key: 'bible_verse', label: 'Verset biblique (typing)', type: 'text', value: 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"' },
       { field_key: 'cta_primary', label: 'Bouton CTA principal', type: 'text', value: 'Rejoindre le culte' },
       { field_key: 'cta_secondary', label: 'Bouton CTA secondaire', type: 'text', value: 'Notre vision' },
+    ],
+    agenda: [
+      { field_key: 'eyebrow', label: 'En-tête section (label)', type: 'text', value: 'Événements' },
+      { field_key: 'title', label: 'En-tête section (titre)', type: 'text', value: 'À ne pas manquer' },
+      { field_key: 'subtitle', label: 'En-tête section (sous-titre)', type: 'text', value: "Le marathon de prière et les rendez-vous qui rythment la vie de l'église." },
+      { field_key: 'featured_kicker', label: 'Affiche — Sur-titre', type: 'text', value: 'À la une' },
+      { field_key: 'featured_badge', label: 'Affiche — Date', type: 'text', value: '1er – 30 novembre 2026' },
+      { field_key: 'featured_title', label: 'Affiche — Titre', type: 'text', value: 'Marathon de prière' },
+      { field_key: 'featured_time', label: 'Affiche — Horaires / lieu', type: 'text', value: 'Lundi – vendredi, 16h – 18h45 · Dimanche, 8h – 10h30' },
+      { field_key: 'featured_description', label: 'Affiche — Description', type: 'text', value: "« La mission de l'Église locale face au monde moderne » — Matthieu 28:19-20." },
+      { field_key: 'featured_image', label: 'Affiche — Photo officielle (upload)', type: 'image_url', value: '/priere.jpg' },
+      { field_key: 'featured_cta', label: 'Affiche — Texte du bouton', type: 'text', value: "Voir l'événement" },
     ],
     pillars: [
       { field_key: 'heading_label', label: 'En-tête section (label)', type: 'text', value: 'Nos Fondements' },
@@ -298,9 +312,9 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
       { field_key: 'bible_ref', label: 'Référence biblique', type: 'text', value: '' },
       { field_key: 'portrait_image', label: 'Photo portrait (PNG sans fond)', type: 'image_url', value: '' },
-      { field_key: 'portrait_scale', label: 'Échelle du portrait (ex: 1, 1.2, 0.8)', type: 'text', value: '1' },
+      { field_key: 'portrait_scale', label: 'Échelle du portrait (ex: 1, 1.2, 0.8)', type: 'text', value: '1.25' },
       { field_key: 'portrait_pos_x', label: 'Position horizontale (left / center / right)', type: 'text', value: 'center' },
-      { field_key: 'portrait_pos_y', label: 'Position verticale (top / center / bottom)', type: 'text', value: 'center' },
+      { field_key: 'portrait_pos_y', label: 'Position verticale (top / center / bottom)', type: 'text', value: 'top' },
       { field_key: 'signature_image', label: 'Image signature (PNG)', type: 'image_url', value: '' },
       { field_key: 'signature_scale', label: 'Échelle de la signature (ex: 1, 1.5, 0.7)', type: 'text', value: '1' },
       { field_key: 'signature_pos_x', label: 'Position signature (left / center / right)', type: 'text', value: 'center' },
