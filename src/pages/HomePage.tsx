@@ -6,10 +6,11 @@ import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
-import { IconBox } from '../components/IconBox';
 import { TopBar } from '../components/home/TopBar';
 import { UpcomingCarousel } from '../components/home/UpcomingCarousel';
 import { RecentTeachings } from '../components/home/RecentTeachings';
+import { NextSteps } from '../components/home/NextSteps';
+import { QuickActions } from '../components/home/QuickActions';
 import { ServiceCountdown } from '../components/home/ServiceCountdown';
 import { LiveStreamModal } from '../components/LiveStreamModal';
 import { ArticleReader } from '../components/ArticleReader';
@@ -32,6 +33,7 @@ import {
   Newspaper,
   Clock,
   ArrowUpRight,
+  MapPin,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { ChurchEvent } from '../types';
@@ -153,13 +155,14 @@ const smallVerses = [
 
 interface HomePageProps {
   onNavigate: (page: Page) => void;
+  openAuth: (view?: 'login' | 'signup') => void;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
    HomePage component
    ═══════════════════════════════════════════════════════════════════ */
 
-export function HomePage({ onNavigate }: HomePageProps) {
+export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const bgRef = useRef<HTMLDivElement>(null);
 
@@ -566,115 +569,117 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ SECTION: À NE PAS MANQUER (carrousel) ═══════ */}
       {isSectionVisible('agenda') && <UpcomingCarousel events={events} onNavigate={onNavigate} />}
 
-      {/* ═══════ SECTION: THREE PILLARS ═══════ */}
-      {isSectionVisible('pillars') && (
+      {/* ═══════ SECTION: NOS FONDEMENTS + MOT DU PASTEUR ═══════ */}
+      {(isSectionVisible('pillars') || isSectionVisible('unique')) && (
       <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('pillars')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-14 text-center">
-            <p className="section-label justify-center">Nos Fondements</p>
-            <h2 className="section-title mt-4">
-              Trois piliers qui nous guident
-            </h2>
-          </RevealSection>
+          {isSectionVisible('pillars') && (
+          <>
+            <RevealSection className="mb-12">
+              <div className="flex items-center gap-4">
+                <span className="rule-accent" />
+                <p className="section-eyebrow">Nos Fondements</p>
+              </div>
+              <h2 className="section-title mt-4">
+                Trois piliers qui nous guident
+              </h2>
+            </RevealSection>
 
-          <div className="grid gap-px border border-line bg-line md:grid-cols-3">
-            {[
-              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc },
-              { num: '02', Icon: Flame, title: pillar2Title, desc: pillar2Desc },
-              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc },
-            ].map(({ num, Icon, title, desc }, i) => (
-              <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
-                <div className="group relative flex h-full flex-col bg-bg-card p-6 transition-colors duration-300 hover:bg-bg-card-hover sm:p-8">
-                  <div className="flex items-start justify-between">
-                    <IconBox pageKey="home" elementId={`pillars-icon-${i}`} className="inline-flex h-12 w-12 items-center justify-center border border-line text-evangile-600">
-                      <Icon className="h-6 w-6" />
-                    </IconBox>
-                    <span className="stat-figure text-[2rem] text-evangile-600/20">{num}</span>
+            <div className="grid gap-px border border-line bg-line md:grid-cols-3">
+              {[
+                { num: '01', title: pillar1Title, desc: pillar1Desc },
+                { num: '02', title: pillar2Title, desc: pillar2Desc },
+                { num: '03', title: pillar3Title, desc: pillar3Desc },
+              ].map(({ num, title, desc }, i) => (
+                <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
+                  <div className="group relative flex h-full flex-col bg-bg-card p-6 transition-colors duration-300 hover:bg-bg-card-hover sm:p-8">
+                    <span className="font-hero text-5xl leading-none text-evangile-600/35">{num}</span>
+                    <span className="mt-5 h-px w-10 bg-evangile-600" />
+                    <h3 className="card-title mt-5">{title}</h3>
+                    <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{desc}</p>
                   </div>
+                </RevealSection>
+              ))}
+            </div>
+          </>
+          )}
 
-                  <h3 className="card-title mt-6">{title}</h3>
-                  <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{desc}</p>
-                </div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
-      )}
-
-      {/* ═══════ SECTION: MOT DU PASTEUR ═══════ */}
-      {isSectionVisible('unique') && (
-      <section className="py-12 sm:py-16 md:py-24" style={getSectionStyle('unique')}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left: portrait encadré + signature */}
-            <RevealSection>
-              <div className="mx-auto flex w-full max-w-md flex-col items-center lg:mx-0 lg:items-start">
-                <div className="portrait-frame relative aspect-[4/5] w-full overflow-hidden">
-                  <img
-                    src={pastorPortrait}
-                    alt={CHURCH.pastor.name}
-                    className="h-full w-full object-cover transition-transform duration-500"
-                    style={{
-                      objectPosition: `${portraitPosX} ${portraitPosY}`,
-                      transform: `scale(${portraitScale})`,
-                    }}
-                    loading="lazy"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent" />
-                  <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                    <p className="person-role">{CHURCH.pastor.title}</p>
-                    <p className="person-name mt-1.5">{CHURCH.pastor.name}</p>
-                  </div>
-                </div>
-                {pastorSignature && (
-                  <div
-                    className="mt-4 flex w-full"
-                    style={{ justifyContent: signaturePosX === 'left' ? 'flex-start' : signaturePosX === 'right' ? 'flex-end' : 'center' }}
-                  >
+          {isSectionVisible('unique') && (
+          <div className={isSectionVisible('pillars') ? 'mt-16 border-t border-line pt-16 md:mt-20 md:pt-20' : ''}>
+            <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-16">
+              {/* Left: portrait encadré + signature */}
+              <RevealSection>
+                <div className="mx-auto flex w-full max-w-md flex-col items-center lg:mx-0 lg:items-start">
+                  <div className="portrait-frame relative aspect-[4/5] w-full overflow-hidden">
                     <img
-                      src={pastorSignature}
-                      alt="Signature"
-                      className="h-12 w-auto object-contain opacity-80 transition-transform duration-300"
-                      style={{ transform: `scale(${signatureScale})` }}
+                      src={pastorPortrait}
+                      alt={CHURCH.pastor.name}
+                      className="h-full w-full object-cover transition-transform duration-500"
+                      style={{
+                        objectPosition: `${portraitPosX} ${portraitPosY}`,
+                        transform: `scale(${portraitScale})`,
+                      }}
                       loading="lazy"
                     />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                      <p className="person-role">{CHURCH.pastor.title}</p>
+                      <p className="person-name mt-1.5">{CHURCH.pastor.name}</p>
+                    </div>
                   </div>
-                )}
-              </div>
-            </RevealSection>
+                  {pastorSignature && (
+                    <div
+                      className="mt-4 flex w-full"
+                      style={{ justifyContent: signaturePosX === 'left' ? 'flex-start' : signaturePosX === 'right' ? 'flex-end' : 'center' }}
+                    >
+                      <img
+                        src={pastorSignature}
+                        alt="Signature"
+                        className="h-12 w-auto object-contain opacity-80 transition-transform duration-300"
+                        style={{ transform: `scale(${signatureScale})` }}
+                        loading="lazy"
+                      />
+                    </div>
+                  )}
+                </div>
+              </RevealSection>
 
-            {/* Right: Text */}
-            <RevealSection className="reveal-delay-1">
-              <p className="section-eyebrow">{pastorWordLabel}</p>
-              <h2 className="section-title mt-4">
-                {pastorWordTitle}
-              </h2>
-              <div className="rule-accent mt-6" />
-              <p className="mt-6 leading-relaxed text-muted">{pastorWordText1}</p>
-              <p className="mt-4 leading-relaxed text-muted">{pastorWordText2}</p>
+              {/* Right: Text */}
+              <RevealSection className="reveal-delay-1">
+                <p className="section-eyebrow">{pastorWordLabel}</p>
+                <h2 className="section-title mt-4">
+                  {pastorWordTitle}
+                </h2>
+                <div className="rule-accent mt-6" />
+                <p className="mt-6 leading-relaxed text-muted">{pastorWordText1}</p>
+                <p className="mt-4 leading-relaxed text-muted">{pastorWordText2}</p>
 
-              {/* Signed quote */}
-              <blockquote className="mt-8 border-l-2 pl-5" style={{ borderColor: 'rgb(var(--brand-red-rgb))' }}>
-                <p className="verse-quote">&laquo; {pastorWordQuote} &raquo;</p>
-                <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-evangile-600">&mdash; {pastorWordQuoteRef}</p>
-              </blockquote>
+                {/* Signed quote */}
+                <blockquote className="mt-8 border-l-2 pl-5" style={{ borderColor: 'rgb(var(--brand-red-rgb))' }}>
+                  <p className="verse-quote">&laquo; {pastorWordQuote} &raquo;</p>
+                  <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-evangile-600">&mdash; {pastorWordQuoteRef}</p>
+                </blockquote>
 
-              <button
-                onClick={() => onNavigate('about')}
-                className="btn-primary mt-8"
-              >
-                Voir À propos
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </RevealSection>
+                <button
+                  onClick={() => onNavigate('about')}
+                  className="btn-primary mt-8"
+                >
+                  Voir À propos
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </RevealSection>
+            </div>
           </div>
+          )}
         </div>
       </section>
       )}
 
       {/* ═══════ SECTION: MESSAGES RÉCENTS ═══════ */}
       {isSectionVisible('teachings') && <RecentTeachings onNavigate={onNavigate} />}
+
+      {/* ═══════ SECTION: PROCHAIN PAS ═══════ */}
+      {isSectionVisible('nextsteps') && <NextSteps onNavigate={onNavigate} onOpenAuth={openAuth} />}
 
       {/* ═══════ SECTION: EXPLORER ═══════ */}
       {isSectionVisible('explore') && (
@@ -905,7 +910,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="w-full">
             <RevealSection>
               <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center border border-white/25 bg-ink-950/50">
-                <Heart className="h-6 w-6 text-evangile-500" />
+                <MapPin className="h-6 w-6 text-evangile-500" />
               </div>
 
               <p className="section-eyebrow">Nous rejoindre</p>
@@ -946,6 +951,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
       />
 
       <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} onNavigate={onNavigate} />
+
+      {/* ═══════ ACCÈS RAPIDES (bouton flottant) ═══════ */}
+      <QuickActions onNavigate={onNavigate} />
     </div>
   );
 }

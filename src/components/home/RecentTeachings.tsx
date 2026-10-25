@@ -38,15 +38,25 @@ export function RecentTeachings({ onNavigate }: { onNavigate: (page: Page) => vo
             </p>
           </div>
 
-          <a
-            href={YOUTUBE_CHANNEL.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-link shrink-0"
-          >
-            <Youtube className="h-4 w-4" />
-            {YOUTUBE_CHANNEL.handle}
-          </a>
+          <div className="flex flex-wrap items-center gap-3 sm:flex-col sm:items-end">
+            <a
+              href={YOUTUBE_CHANNEL.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-link shrink-0"
+            >
+              <Youtube className="h-4 w-4" />
+              {YOUTUBE_CHANNEL.handle}
+            </a>
+            <button
+              type="button"
+              onClick={() => onNavigate('enseignements')}
+              className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap border border-line px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors duration-200 hover:border-evangile-600/60 hover:text-evangile-400"
+            >
+              Tous les enseignements
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         <div className="mt-8 grid gap-6 lg:h-[31rem] lg:grid-cols-12">
@@ -126,12 +136,6 @@ export function RecentTeachings({ onNavigate }: { onNavigate: (page: Page) => vo
           </div>
         </div>
 
-        <div className="mt-10 text-center">
-          <button type="button" onClick={() => onNavigate('enseignements')} className="btn-ghost">
-            Tous les enseignements
-            <ArrowRight className="h-4 w-4" />
-          </button>
-        </div>
       </div>
     </section>
   );
