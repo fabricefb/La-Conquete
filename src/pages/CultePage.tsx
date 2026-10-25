@@ -21,7 +21,7 @@ const FALLBACK_SCHEDULES = [
 
 const PRACTICALS = [
   { Icon: Car, title: 'Parking', desc: 'Parking gratuit disponible devant et autour de l\'église.' },
-  { Icon: Bus, title: 'Transport en commun', desc: 'Ligne 4 — arrêt « Cour Militaire » à 200 m.' },
+  { Icon: Bus, title: 'Transport en commun', desc: 'Demandez le croisement Mama Yemo, sur l’avenue N’Djamena.' },
   { Icon: Baby, title: 'Accueil enfants', desc: 'Salle dédiée pour les 0-5 ans pendant les cultes dominicaux.' },
   { Icon: Phone, title: 'Information', desc: `Appelez-nous au ${CHURCH.phone.display} pour toute question.` },
 ] as const;

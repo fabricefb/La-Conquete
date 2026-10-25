@@ -10,8 +10,10 @@ import { IconBox } from '../components/IconBox';
 import { TopBar } from '../components/home/TopBar';
 import { ServiceCountdown } from '../components/home/ServiceCountdown';
 import { LiveStreamModal } from '../components/LiveStreamModal';
+import { ArticleReader } from '../components/ArticleReader';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
+import { sortedArticles, articleDate, readingTime, type Article } from '../lib/articles';
 import {
   Crown,
   Flame,
@@ -28,7 +30,7 @@ import {
   ChevronDown,
   Newspaper,
   Clock,
-  Hash,
+  ArrowUpRight,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { ChurchEvent } from '../types';
@@ -183,9 +185,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveModalOpen, setLiveModalOpen] = useState(false);
+  const [openArticle, setOpenArticle] = useState<Article | null>(null);
   const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
   const [sectionColors, setSectionColors] = useState<SectionColorMap>({});
   const [activityCards, setActivityCards] = useState<ActivityCard[]>([]);
+
+  const news = sortedArticles();
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
@@ -431,8 +436,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const signatureScale = parseFloat(getContent(cm, 'pastor_word', 'signature_scale', '1')) || 1;
 
   // News section
-  const newsTitle = getContent(cm, 'news', 'title', 'Dernières nouvelles');
-  const newsSubtitle = getContent(cm, 'news', 'subtitle', 'Restez informé des activités et événements à venir dans notre communauté.');
+  const newsTitle = getContent(cm, 'news', 'title', "La vie de l'église");
+  const newsSubtitle = getContent(cm, 'news', 'subtitle', 'Enseignements, annonces et nouvelles de nos extensions — ce qui fait vivre la communauté.');
 
   // CTA map section
   const ctaTitle = getContent(cm, 'cta_map', 'title', 'Rejoignez notre famille');
@@ -682,7 +687,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               Découvrez nos activités
             </h2>
             <p className="mt-3 text-sm text-muted max-w-2xl mx-auto">
-              Gérez les prédications affichées sur la page <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 border border-amber-500/25 px-2 py-0.5 text-xs font-semibold text-amber-400 mx-1"><Hash className="h-3 w-3" />predications</span>              et modifiez chaque carte depuis le back-office.
+              Cinq portes d'entrée dans la vie de l'église : prédications, rendez-vous, ministères, médias et actualités.
             </p>
           </RevealSection>
 
@@ -735,87 +740,156 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
       )}
 
-      {/* ═══════ SECTION: DERNIÈRES NOUVELLES ═══════ */}
+      {/* ═══════ SECTION: ACTUALITÉS ═══════ */}
       {isSectionVisible('news') && (
-      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('news')}>
+      <section className="py-16 md:py-24 lg:py-28 bg-radial-primary" style={getSectionStyle('news')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-14 text-center">
-            <p className="section-label justify-center">Actualités</p>
-            <h2 className="section-title mt-4">
-              {newsTitle}
-            </h2>
-            <p className="mt-4 text-muted max-w-2xl mx-auto">{newsSubtitle}</p>
+          <RevealSection className="mb-12 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-4">
+                <span className="rule-accent" />
+                <p className="section-eyebrow">Actualités</p>
+              </div>
+              <h2 className="section-title mt-4">{newsTitle}</h2>
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">{newsSubtitle}</p>
+            </div>
+            <button onClick={() => onNavigate('blog')} className="btn-link shrink-0">
+              Tous les articles
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </RevealSection>
 
-          {events.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {events.slice(0, 3).map((evt, i) => {
-                const evtDate = new Date(evt.event_date);
-                const dayNum = evtDate.getDate();
-                const monthShort = evtDate.toLocaleDateString('fr-FR', { month: 'short' });
-                const fullDate = evtDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-                return (
-                <RevealSection key={evt.id} className={`reveal-delay-${i + 1}`}>
-                  <div className="group rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 bg-white/[0.03] border border-white/[0.06] hover:border-white/[0.12] hover:shadow-xl hover:shadow-black/20">
-                    {/* Image section */}
+          {news.length > 0 && (
+            <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+              <RevealSection className="lg:col-span-7">
+                <button onClick={() => setOpenArticle(news[0])} className="group block w-full text-left">
+                  <div className="relative aspect-[16/10] overflow-hidden">
+                    <img
+                      src={news[0].image}
+                      alt=""
+                      className="photo-claro-strong h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                    <span className="absolute left-0 top-0 bg-evangile-600 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
+                      {news[0].category}
+                    </span>
+                  </div>
+                  <div className="mt-5 flex items-center gap-4 text-[11px] uppercase tracking-[0.14em] text-muted">
+                    <span>{articleDate(news[0].date)}</span>
+                    <span className="h-3 w-px bg-line" />
+                    <span>Lecture {readingTime(news[0])}</span>
+                  </div>
+                  <h3 className="card-title mt-3 text-cream transition-colors group-hover:text-accent-300">{news[0].title}</h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{news[0].excerpt}</p>
+                  <span className="btn-link mt-6 inline-flex">
+                    Lire l'article
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </button>
+              </RevealSection>
+
+              <div className="lg:col-span-5">
+                <div className="border-t border-line">
+                  {news.slice(1, 4).map((a, i) => (
+                    <RevealSection key={a.slug} className={`reveal-delay-${i + 1}`}>
+                      <button onClick={() => setOpenArticle(a)} className="group grid w-full grid-cols-[auto_1fr] gap-5 border-b border-line py-6 text-left">
+                        <span className="font-hero text-3xl leading-none text-muted/40">0{i + 2}</span>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
+                            {a.category} — {articleDate(a.date)}
+                          </p>
+                          <h3 className="mt-2 text-base font-semibold leading-snug text-cream transition-colors group-hover:text-accent-300">
+                            {a.title}
+                          </h3>
+                          <span className="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-400">
+                            Lire
+                            <ArrowRight className="h-3 w-3" />
+                          </span>
+                        </div>
+                      </button>
+                    </RevealSection>
+                  ))}
+                </div>
+                <button
+                  onClick={() => onNavigate('blog')}
+                  className="mt-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:text-accent-300"
+                >
+                  Voir les {news.length} articles
+                  <ArrowUpRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+      )}
+
+      {/* ═══════ SECTION: AGENDA ═══════ */}
+      {isSectionVisible('agenda') && events.length > 0 && (
+      <section className="py-16 md:py-24" style={getSectionStyle('agenda')}>
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <RevealSection className="mb-12 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-4">
+                <span className="rule-accent" />
+                <p className="section-eyebrow">Agenda</p>
+              </div>
+              <h2 className="section-title mt-4">Prochains rendez-vous</h2>
+            </div>
+            <button onClick={() => onNavigate('events')} className="btn-link shrink-0">
+              Tout l'agenda
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </RevealSection>
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {events.slice(0, 3).map((evt, i) => {
+              const evtDate = new Date(evt.event_date);
+              const dayNum = evtDate.getDate();
+              const monthShort = evtDate.toLocaleDateString('fr-FR', { month: 'short' });
+              const fullDate = evtDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+              return (
+                <RevealSection key={evt.id} className={`reveal-delay-${i + 1} h-full`}>
+                  <article className="group flex h-full flex-col border border-line bg-card transition-colors hover:border-evangile-600/60">
                     {evt.image_url && (
-                      <div className="relative h-52 overflow-hidden">
+                      <div className="relative h-48 overflow-hidden">
                         <img
                           src={evt.image_url}
-                          alt={evt.title}
-                          className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          alt=""
+                          className="photo-claro h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                           loading="lazy"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                        {/* Date badge - top left */}
-                        <div className="absolute left-4 top-4 flex flex-col items-center justify-center rounded-xl bg-evangile-600 px-3 py-2 text-center shadow-lg">
-                          <span className="block text-2xl font-bold leading-none text-white">{dayNum}</span>
-                          <span className="block text-[10px] font-semibold uppercase tracking-wider text-white/80 mt-0.5">{monthShort}</span>
+                        <div className="absolute left-0 top-0 flex flex-col items-center justify-center bg-evangile-600 px-4 py-3 text-center">
+                          <span className="font-hero text-2xl leading-none text-white">{dayNum}</span>
+                          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85">{monthShort}</span>
                         </div>
-                        {/* Category badge - top right */}
-                        <span className="absolute right-3 top-3 inline-flex items-center rounded-lg bg-white/10 border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
-                          {evt.category}
-                        </span>
                       </div>
                     )}
-                    {/* Content section */}
-                    <div className="p-5 sm:p-6">
-                      <h3 className="text-lg font-semibold text-cream leading-snug group-hover:text-accent-300 transition-colors">
-                        {evt.title}
-                      </h3>
-                      <ul className="mt-3 space-y-2">
-                        <li className="flex items-center gap-2 text-xs text-muted">
+                    <div className="flex flex-1 flex-col p-6">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-400">{evt.category}</p>
+                      <h3 className="mt-2 text-lg font-semibold leading-snug text-cream">{evt.title}</h3>
+                      <ul className="mt-4 space-y-2 text-xs text-muted">
+                        <li className="flex items-center gap-2">
                           <Clock className="h-3.5 w-3.5 flex-shrink-0 text-accent-400/60" />
                           {fullDate}
                         </li>
                         {evt.location && (
-                          <li className="flex items-center gap-2 text-xs text-muted">
+                          <li className="flex items-center gap-2">
                             <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-accent-400/60" />
                             {evt.location}
                           </li>
                         )}
                       </ul>
-                      <button
-                        onClick={() => onNavigate('events')}
-                        className="btn-gold mt-5 text-xs px-5 py-2.5"
-                      >
-                        Détails de l'événement
+                      <button onClick={() => onNavigate('events')} className="btn-ghost mt-6 w-fit text-xs">
+                        Détails
                         <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                  </div>
+                  </article>
                 </RevealSection>
-                );
-              })}
-            </div>
-          ) : (
-            <RevealSection>
-              <div className="glass rounded-2xl p-8 text-center border border-dashed border-accent-400/20">
-                <Newspaper className="mx-auto mb-3 h-8 w-8 text-accent-400/40" />
-                <p className="text-muted text-sm">Aucun événement à venir pour le moment. Revenez bientôt !</p>
-              </div>
-            </RevealSection>
-          )}
+              );
+            })}
+          </div>
         </div>
       </section>
       )}
@@ -953,6 +1027,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
         open={liveModalOpen}
         onClose={() => setLiveModalOpen(false)}
       />
+
+      <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} onNavigate={onNavigate} />
     </div>
   );
 }

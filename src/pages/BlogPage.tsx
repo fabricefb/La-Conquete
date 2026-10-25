@@ -1,48 +1,22 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
-import { Search, Calendar, Clock, ArrowRight, ChevronLeft, ChevronRight } from '../lib/icons';
-import { supabase } from '../lib/supabase';
+import { ArticleReader } from '../components/ArticleReader';
+import { Search, ArrowRight, Clock } from '../lib/icons';
+import { articleDate, readingTime, sortedArticles, type Article } from '../lib/articles';
 import type { Page } from '../lib/navigation';
 
-// ─── Types ────────────────────────────────────────────────────────
-interface BlogArticle {
-  id: string;
-  title: string;
-  excerpt: string;
-  category: string;
-  date: string;
-  readTime: string;
-  imageUrl: string;
-  isFeatured: boolean;
-}
-
-const CATEGORIES = ['Tous', 'Enseignement', 'Témoignage', 'Événement', 'Annonce'] as const;
+const CATEGORIES = ['Tous', 'Enseignement', 'Événement', 'Annonce', 'Vision'] as const;
 type Cat = (typeof CATEGORIES)[number];
 
-// ─── Fallback ─────────────────────────────────────────────────────
-const FALLBACK: BlogArticle[] = [
-  { id: '1', title: 'Comment développer une vie de prière puissante', excerpt: 'La prière n\'est pas une option pour le croyant — c\'est sa respiration spirituelle. Découvrez les principes bibliques pour une vie de prière efficace.', category: 'Enseignement', date: '2024-11-12', readTime: '5 min', imageUrl: '/priere.jpg', isFeatured: true },
-  { id: '2', title: 'Témoignage : Ma guérison divine', excerpt: 'Sœur Marie partage comment la fidélité de Dieu s\'est manifestée dans sa vie à travers une guérison miraculeuse.', category: 'Témoignage', date: '2024-11-08', readTime: '4 min', imageUrl: '/bible.jpg', isFeatured: false },
-  { id: '3', title: 'Retour en images : Conférence des Jeunes 2024', excerpt: 'Plus de 300 jeunes se sont rassemblés pour trois jours de louange, d\'enseignement et de communion.', category: 'Événement', date: '2024-10-28', readTime: '3 min', imageUrl: '/church-photo-1.jpg', isFeatured: false },
-  { id: '4', title: 'Les 7 piliers d\'une famille forte', excerpt: 'Dieu a un plan pour votre foyer. Voici les principes fondamentaux pour bâtir une famille selon le cœur de Dieu.', category: 'Enseignement', date: '2024-10-20', readTime: '6 min', imageUrl: '/church-photo-2.jpg', isFeatured: false },
-  { id: '5', title: 'Programme de fin d\'année 2024', excerpt: 'Découvrez le programme complet des activités prévues pour les mois de novembre et décembre.', category: 'Annonce', date: '2024-10-15', readTime: '2 min', imageUrl: '/church-photo-3.jpg', isFeatured: false },
-  { id: '6', title: 'Comprendre la dîme : Au-delà du chiffre', excerpt: 'La dîme n\'est pas un fardeau mais un privilège. Approfondissons ce que la Bible enseigne sur la générosité.', category: 'Enseignement', date: '2024-10-10', readTime: '7 min', imageUrl: '/predication-1.jpg', isFeatured: false },
-  { id: '7', title: 'Mon voyage de l\'athéisme à la foi', excerpt: 'Frère Jean raconte comment une simple invitation a changé le cours de sa vie éternelle.', category: 'Témoignage', date: '2024-10-01', readTime: '5 min', imageUrl: '/bible.jpg', isFeatured: false },
-];
-
-// ─── Component ─────────────────────────────────────────────────────
 export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [articles, setArticles] = useState<BlogArticle[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeCat, setActiveCat] = useState<Cat>('Tous');
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
-  const PER_PAGE = 6;
+  const [openArticle, setOpenArticle] = useState<Article | null>(null);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -51,135 +25,139 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
     );
     document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
     return () => obs.disconnect();
-  }, [articles]);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchBlog() {
-      try {
-        const { data } = await supabase.from('contents').select('*').eq('type', 'blog').order('created_at', { ascending: false }).limit(30);
-        if (!cancelled && data && data.length > 0) {
-          setArticles(data.map((d: Record<string, string>) => ({
-            id: d.id, title: d.title || '', excerpt: d.description || d.value || '', category: d.category || 'Enseignement',
-            date: d.created_at, readTime: `${Math.max(2, Math.ceil((d.value || '').length / 200))} min`, imageUrl: d.image_url || '/church-photo-1.jpg', isFeatured: d.is_featured === true || d.is_featured === 'true',
-          })));
-        } else { if (!cancelled) setArticles(FALLBACK); }
-      } catch { if (!cancelled) setArticles(FALLBACK); }
-      finally { if (!cancelled) setLoading(false); }
-    }
-    fetchBlog();
-    return () => { cancelled = true; };
-  }, []);
+  }, [activeCat, search]);
 
   const filtered = useMemo(() => {
-    let list = articles;
+    let list = sortedArticles();
     if (activeCat !== 'Tous') list = list.filter(a => a.category === activeCat);
-    if (search) list = list.filter(a => (a.title || '').toLowerCase().includes(search.toLowerCase()));
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(a => `${a.title} ${a.excerpt}`.toLowerCase().includes(q));
+    }
     return list;
-  }, [articles, activeCat, search]);
+  }, [activeCat, search]);
 
-  const featured = filtered.find(a => a.isFeatured);
-  const regular = filtered.filter(a => !a.isFeatured);
-  const paged = regular.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-  const totalPages = Math.ceil(regular.length / PER_PAGE);
+  const [featured, ...rest] = filtered;
 
   return (
     <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="blog" onNavigate={onNavigate} />
       <MobileNav active="blog" onNavigate={onNavigate} />
 
-      {/* ═══ HERO ═══ */}
-      <UniversalHero pageKey="blog" defaultBadge="Restez informé" defaultTitle="Actualités & Enseignements" defaultSubtitle="Articles, témoignages et annonces pour nourrir votre foi et vous tenir au courant de la vie de l'église." />
+      <UniversalHero
+        pageKey="blog"
+        defaultBadge="Restez informé"
+        defaultTitle="Actualités & Enseignements"
+        defaultSubtitle="Articles, annonces et nouvelles des extensions pour nourrir votre foi et vous tenir au courant de la vie de l'église."
+      />
 
-      {/* ═══ CONTENT ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      <section className="py-16 md:py-24 px-4">
         <div className="mx-auto max-w-7xl">
-          {/* Search & Filters */}
-          <div className="reveal mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="relative max-w-xs">
+          <div className="mb-10 flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="relative w-full max-w-xs">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un article..." className="input-surface w-full rounded-xl py-2.5 pl-10 pr-4 text-sm text-cream" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher un article..."
+                className="input-surface w-full py-2.5 pl-10 pr-4 text-sm text-cream"
+              />
             </div>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(c => (
-                <button key={c} onClick={() => { setActiveCat(c); setPage(1); }} className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-all ${activeCat === c ? 'bg-evangile-600 text-white' : 'glass text-muted hover:text-cream'}`}>
+                <button
+                  key={c}
+                  onClick={() => setActiveCat(c)}
+                  className={`border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] transition-colors ${
+                    activeCat === c
+                      ? 'border-evangile-600 bg-evangile-600 text-white'
+                      : 'border-line text-muted hover:border-evangile-600/60 hover:text-cream'
+                  }`}
+                >
                   {c}
                 </button>
               ))}
             </div>
           </div>
 
-          {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="glass-card rounded-2xl overflow-hidden animate-pulse">
-                  <div className="h-48 bg-white/5" />
-                  <div className="p-5 space-y-3"><div className="h-3 w-16 rounded bg-white/10" /><div className="h-5 w-full rounded bg-white/10" /><div className="h-3 w-3/4 rounded bg-white/5" /></div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              {/* Featured */}
-              {featured && page === 1 && (
-                <div className="reveal mb-10 glass-card rounded-2xl overflow-hidden sm:flex">
-                  <div className="sm:w-1/2 h-64 sm:h-auto overflow-hidden">
-                    <img src={featured.imageUrl} alt={featured.title} className="blog-img-zoom h-full w-full object-cover" />
-                  </div>
-                  <div className="p-6 sm:p-8 sm:w-1/2 flex flex-col justify-center">
-                    <span className="mb-2 inline-block w-fit rounded-full bg-accent-400/10 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-accent-400">{featured.category}</span>
-                    <h2 className="font-serif text-2xl font-bold text-cream sm:text-3xl">{featured.title}</h2>
-                    <p className="mt-3 text-sm leading-relaxed text-muted">{featured.excerpt}</p>
-                    <div className="mt-4 flex items-center gap-4 text-xs text-muted">
-                      <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{new Date(featured.date).toLocaleDateString('fr-FR')}</span>
-                      <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{featured.readTime}</span>
-                    </div>
-                    <button className="mt-5 btn-ghost w-fit text-sm">Lire l'article <ArrowRight className="h-4 w-4" /></button>
-                  </div>
-                </div>
-              )}
-
-              {/* Grid */}
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {paged.map((a, i) => (
-                  <article key={a.id} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02]`}>
-                    <div className="relative h-48 overflow-hidden">
-                      <img src={a.imageUrl} alt={a.title} className="blog-img-zoom h-full w-full object-cover" />
-                      <span className="absolute top-3 left-3 rounded-full bg-evangile-600 px-2.5 py-0.5 text-[10px] font-bold uppercase text-white">{a.category}</span>
-                    </div>
-                    <div className="p-5">
-                      <h3 className="font-serif text-lg font-semibold text-cream line-clamp-2">{a.title}</h3>
-                      <p className="mt-2 text-sm text-muted line-clamp-2">{a.excerpt}</p>
-                      <div className="mt-3 flex items-center justify-between text-xs text-muted">
-                        <span>{new Date(a.date).toLocaleDateString('fr-FR')}</span>
-                        <span>{a.readTime}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="reveal mt-10 flex items-center justify-center gap-2">
-                  <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-cream disabled:opacity-30">
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  {Array.from({ length: totalPages }).map((_, i) => (
-                    <button key={i} onClick={() => setPage(i + 1)} className={`h-9 w-9 rounded-xl text-sm font-semibold transition-all ${page === i + 1 ? 'bg-evangile-600 text-white' : 'glass text-muted hover:text-cream'}`}>{i + 1}</button>
-                  ))}
-                  <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} className="rounded-xl border border-white/10 p-2 text-muted transition-colors hover:border-accent-400/40 hover:text-cream disabled:opacity-30">
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </>
+          {filtered.length === 0 && (
+            <p className="py-20 text-center text-sm text-muted">Aucun article ne correspond à cette recherche.</p>
           )}
+
+          {featured && (
+            <article className="reveal mb-12 grid overflow-hidden border border-line bg-card lg:grid-cols-2">
+              <div className="relative h-64 overflow-hidden lg:h-auto">
+                <img
+                  src={featured.image}
+                  alt=""
+                  className="photo-claro h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                />
+              </div>
+              <div className="flex flex-col justify-center p-6 sm:p-10">
+                <div className="flex items-center gap-3">
+                  <span className="rule-accent" />
+                  <p className="section-eyebrow">{featured.category}</p>
+                </div>
+                <h2 className="card-title mt-4 text-cream">{featured.title}</h2>
+                <p className="mt-4 text-sm leading-relaxed text-muted">{featured.excerpt}</p>
+                <div className="mt-6 flex items-center gap-5 text-xs uppercase tracking-[0.12em] text-muted">
+                  <span>{articleDate(featured.date)}</span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    {readingTime(featured)}
+                  </span>
+                </div>
+                <button onClick={() => setOpenArticle(featured)} className="btn-primary mt-8 w-fit">
+                  Lire l'article
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            </article>
+          )}
+
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {rest.map((a, i) => (
+              <RevealCard key={a.slug} delay={i % 3}>
+                <button
+                  onClick={() => setOpenArticle(a)}
+                  className="group flex h-full w-full flex-col border border-line bg-card text-left transition-colors hover:border-evangile-600/60"
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={a.image}
+                      alt=""
+                      className="photo-claro h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    <span className="absolute left-0 top-0 bg-evangile-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                      {a.category}
+                    </span>
+                  </div>
+                  <div className="flex flex-1 flex-col p-5">
+                    <p className="text-[10px] uppercase tracking-[0.14em] text-muted">{articleDate(a.date)}</p>
+                    <h3 className="mt-2 text-lg font-semibold leading-snug text-cream group-hover:text-accent-300 transition-colors">
+                      {a.title}
+                    </h3>
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">{a.excerpt}</p>
+                    <span className="mt-auto inline-flex items-center gap-2 pt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-400">
+                      Lire
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
+                  </div>
+                </button>
+              </RevealCard>
+            ))}
+          </div>
         </div>
       </section>
+
+      <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} onNavigate={onNavigate} />
 
       <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );
+}
+
+function RevealCard({ children, delay }: { children: React.ReactNode; delay: number }) {
+  return <div className={`reveal reveal-delay-${delay + 1} h-full`}>{children}</div>;
 }

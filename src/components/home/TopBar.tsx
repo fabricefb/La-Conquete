@@ -82,8 +82,16 @@ interface TopBarProps {
   bgColor?: string;
 }
 
+const UPCOMING_ANNOUNCEMENTS: string[] = [];
+if (Date.now() < new Date('2026-12-01T00:00:00+02:00').getTime()) {
+  UPCOMING_ANNOUNCEMENTS.push(
+    "Marathon de prière — du 1er au 30 novembre 2026 · thème : « La mission de l'Église locale face au monde moderne »",
+  );
+}
+
 export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride, textColor, bgColor }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
+    ...UPCOMING_ANNOUNCEMENTS,
     `Bienvenue à l'Église Évangélique La Conquête — ${CHURCH.address.city}, ${CHURCH.address.country}`,
     ...SERVICE_TIMES.map((s) => `${s.service} — ${s.day}, ${s.time.replace(' – ', ' à ')}`),
   ]);
@@ -105,7 +113,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
           .limit(10);
 
         if (commData && commData.length > 0) {
-          setAnnouncements(commData.map((c: any) => c.title));
+          setAnnouncements([...UPCOMING_ANNOUNCEMENTS, ...commData.map((c: any) => c.title)]);
         }
 
         // Fetch next live event date from site_settings

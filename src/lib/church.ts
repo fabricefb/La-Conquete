@@ -26,11 +26,11 @@ export const CHURCH = {
 
   address: {
     street: "520, Avenue N'Djamena",
-    landmark: "à côté de la Cour d'Ordre Militaire",
+    landmark: 'coin Mama Yemo',
     city: 'Lubumbashi',
     country: 'RD Congo',
     get full() {
-      return `${this.street}, réf. ${this.landmark}, ${this.city}, ${this.country}`;
+      return `${this.street}, ${this.landmark}, ${this.city}, ${this.country}`;
     },
   },
 
