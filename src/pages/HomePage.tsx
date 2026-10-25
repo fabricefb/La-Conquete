@@ -8,24 +8,24 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { IconBox } from '../components/IconBox';
 import { TopBar } from '../components/home/TopBar';
+import { UpcomingCarousel } from '../components/home/UpcomingCarousel';
 import { ServiceCountdown } from '../components/home/ServiceCountdown';
 import { LiveStreamModal } from '../components/LiveStreamModal';
 import { ArticleReader } from '../components/ArticleReader';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
 import { sortedArticles, articleDate, readingTime, type Article } from '../lib/articles';
+import { CHURCH } from '../lib/church';
 import {
   Crown,
   Flame,
   Compass,
-  Quote,
   Heart,
   ArrowRight,
   Radio,
   MonitorPlay,
   Users,
   Calendar,
-  MapPin,
   Eye,
   ChevronDown,
   Newspaper,
@@ -92,18 +92,18 @@ function SkeletonPage() {
       <div className="h-16 animate-pulse bg-bg/80" />
       <section className="flex min-h-screen items-center justify-center">
         <div className="mx-auto max-w-4xl px-4 pt-24 pb-16 text-center">
-          <div className="mx-auto mb-6 h-8 w-72 animate-pulse rounded-full bg-white/10" />
-          <div className="mx-auto mb-6 h-16 w-[500px] max-w-full animate-pulse rounded-xl bg-white/10" />
-          <div className="mx-auto mb-10 h-6 w-80 max-w-full animate-pulse rounded-lg bg-white/10" />
+          <div className="mx-auto mb-6 h-8 w-72 animate-pulse bg-white/10" />
+          <div className="mx-auto mb-6 h-16 w-[500px] max-w-full animate-pulse bg-white/10" />
+          <div className="mx-auto mb-10 h-6 w-80 max-w-full animate-pulse bg-white/10" />
           <div className="flex justify-center gap-4">
-            <div className="h-12 w-40 animate-pulse rounded-full bg-white/10" />
-            <div className="h-12 w-44 animate-pulse rounded-full bg-white/10" />
+            <div className="h-12 w-40 animate-pulse bg-white/10" />
+            <div className="h-12 w-44 animate-pulse bg-white/10" />
           </div>
           <div className="mt-16 flex justify-center gap-12">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="animate-pulse">
-                <div className="mx-auto mb-2 h-8 w-16 rounded-lg bg-white/10" />
-                <div className="mx-auto h-3 w-20 rounded bg-white/5" />
+                <div className="mx-auto mb-2 h-8 w-16 bg-white/10" />
+                <div className="mx-auto h-3 w-20 bg-white/5" />
               </div>
             ))}
           </div>
@@ -111,12 +111,12 @@ function SkeletonPage() {
       </section>
       <section className="py-12 sm:py-16 md:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-          <div className="h-10 w-64 mx-auto animate-pulse rounded-xl bg-white/10" />
+          <div className="h-10 w-64 mx-auto animate-pulse bg-white/10" />
           <div className="grid md:grid-cols-5 gap-8">
-            <div className="md:col-span-3 h-56 sm:h-64 animate-pulse rounded-2xl bg-white/5" />
+            <div className="md:col-span-3 h-56 sm:h-64 animate-pulse bg-white/5" />
             <div className="md:col-span-2 grid grid-cols-2 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-28 animate-pulse rounded-xl bg-white/5" />
+                <div key={i} className="h-28 animate-pulse bg-white/5" />
               ))}
             </div>
           </div>
@@ -126,7 +126,7 @@ function SkeletonPage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-56 sm:h-64 animate-pulse rounded-2xl bg-white/5" />
+              <div key={i} className="h-56 sm:h-64 animate-pulse bg-white/5" />
             ))}
           </div>
         </div>
@@ -302,9 +302,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
   // Fallback cards if Supabase returns nothing
   const fallbackCards: ActivityCard[] = [
-    { id: 'fb-1', title: 'Prédications', description: '12+ messages', icon_name: 'radio', image_url: DEFAULT_SERMON_IMG, link: 'predications', sort_order: 1, is_active: true },
-    { id: 'fb-2', title: 'Événements', description: 'Prochains événements', icon_name: 'calendar', image_url: DEFAULT_EVENT_IMG, link: 'events', sort_order: 2, is_active: true },
-    { id: 'fb-3', title: 'Ministères', description: '8 départements', icon_name: 'users', image_url: DEFAULT_MINISTRY_IMG, link: 'departments', sort_order: 3, is_active: true },
+    { id: 'fb-1', title: 'Prédications', description: 'Messages récents', icon_name: 'radio', image_url: DEFAULT_SERMON_IMG, link: 'predications', sort_order: 1, is_active: true },
+    { id: 'fb-2', title: 'Événements', description: "L'agenda", icon_name: 'calendar', image_url: DEFAULT_EVENT_IMG, link: 'events', sort_order: 2, is_active: true },
+    { id: 'fb-3', title: 'Ministères', description: 'Les départements', icon_name: 'users', image_url: DEFAULT_MINISTRY_IMG, link: 'ministeres', sort_order: 3, is_active: true },
     { id: 'fb-4', title: 'Médias', description: 'Vidéos & podcasts', icon_name: 'monitor_play', image_url: DEFAULT_MEDIA_IMG, link: 'media', sort_order: 4, is_active: true },
     { id: 'fb-5', title: 'Actualités', description: 'Dernières nouvelles', icon_name: 'newspaper', image_url: DEFAULT_NEWS_IMG, link: 'blog', sort_order: 5, is_active: true },
   ];
@@ -541,12 +541,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 className="animate-fade-up mt-10 flex flex-wrap items-center gap-4"
                 style={{ animationDelay: '0.32s' }}
               >
-                <button onClick={() => onNavigate('activities')} className="btn-primary">
+                <button onClick={() => onNavigate('culte')} className="btn-primary">
                   {heroCtaPrimary}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <button onClick={() => onNavigate('about')} className="btn-ghost">
-                  Notre vision
+                  {heroCtaSecondary}
                 </button>
               </div>
             </div>
@@ -562,6 +562,9 @@ export function HomePage({ onNavigate }: HomePageProps) {
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
       {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} textColor={topbarTextColor} bgColor={topbarBgColor} />}
 
+      {/* ═══════ SECTION: À NE PAS MANQUER (carrousel) ═══════ */}
+      {isSectionVisible('agenda') && <UpcomingCarousel events={events} onNavigate={onNavigate} />}
+
       {/* ═══════ SECTION: THREE PILLARS ═══════ */}
       {isSectionVisible('pillars') && (
       <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('pillars')}>
@@ -573,32 +576,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </h2>
           </RevealSection>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <div className="grid gap-px border border-line bg-line md:grid-cols-3">
             {[
-              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc, accent: 'text-accent-400' },
-              { num: '02', Icon: Flame, title: pillar2Title, desc: pillar2Desc, accent: 'text-red-400' },
-              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc, accent: 'text-accent-400' },
-            ].map(({ num, Icon, title, desc, accent }, i) => (
+              { num: '01', Icon: Crown, title: pillar1Title, desc: pillar1Desc },
+              { num: '02', Icon: Flame, title: pillar2Title, desc: pillar2Desc },
+              { num: '03', Icon: Compass, title: pillar3Title, desc: pillar3Desc },
+            ].map(({ num, Icon, title, desc }, i) => (
               <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
-                <div className="glass-card group relative overflow-hidden rounded-2xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-accent-500/60 hover:shadow-lg hover:shadow-accent-500/5">
-                  {/* Background number */}
-                  <span className="absolute top-4 right-6 text-5xl font-bold tabular-nums text-cream opacity-[0.06] select-none">
-                    {num}
-                  </span>
+                <div className="group relative flex h-full flex-col bg-bg-card p-6 transition-colors duration-300 hover:bg-bg-card-hover sm:p-8">
+                  <div className="flex items-start justify-between">
+                    <IconBox pageKey="home" elementId={`pillars-icon-${i}`} className="inline-flex h-12 w-12 items-center justify-center border border-line text-evangile-600">
+                      <Icon className="h-6 w-6" />
+                    </IconBox>
+                    <span className="stat-figure text-[2rem] text-evangile-600/20">{num}</span>
+                  </div>
 
-                  {/* Icon */}
-                  <IconBox pageKey="home" elementId={`pillars-icon-${i}`} className={`mb-5 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-line ${accent}`}>
-                    <Icon className="h-6 w-6" />
-                  </IconBox>
-
-                  {/* Content */}
-                  <h3 className={`mb-3 text-xl font-semibold ${accent}`}>
-                    {title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted">{desc}</p>
-
-                  {/* Hover gradient border effect */}
-                  <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-accent-600 to-red-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left" />
+                  <h3 className="card-title mt-6">{title}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{desc}</p>
                 </div>
               </RevealSection>
             ))}
@@ -612,29 +606,29 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <section className="py-12 sm:py-16 md:py-24" style={getSectionStyle('unique')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            {/* Left: PNG portrait (no frame) + signature */}
+            {/* Left: portrait encadré + signature */}
             <RevealSection>
-              <div className="relative flex flex-col items-center lg:items-start h-[320px] sm:h-[400px] md:h-[460px] overflow-visible">
-                <div
-                  className="relative flex items-center justify-center overflow-visible"
-                  style={{
-                    height: '100%',
-                    width: '100%',
-                    alignItems: portraitPosY === 'top' ? 'flex-start' : portraitPosY === 'bottom' ? 'flex-end' : 'center',
-                    justifyContent: portraitPosX === 'left' ? 'flex-start' : portraitPosX === 'right' ? 'flex-end' : 'center',
-                  }}
-                >
+              <div className="mx-auto flex w-full max-w-md flex-col items-center lg:mx-0 lg:items-start">
+                <div className="portrait-frame relative aspect-[4/5] w-full overflow-hidden">
                   <img
                     src={pastorPortrait}
-                    alt="Pasteur"
-                    className="h-[280px] sm:h-[360px] md:h-[420px] w-auto max-w-full object-contain drop-shadow-2xl transition-transform duration-300"
-                    style={{ transform: `scale(${portraitScale})` }}
+                    alt={CHURCH.pastor.name}
+                    className="h-full w-full object-cover transition-transform duration-500"
+                    style={{
+                      objectPosition: `${portraitPosX} ${portraitPosY}`,
+                      transform: `scale(${portraitScale})`,
+                    }}
                     loading="lazy"
                   />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/85 via-ink-950/10 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                    <p className="person-role">{CHURCH.pastor.title}</p>
+                    <p className="person-name mt-1.5">{CHURCH.pastor.name}</p>
+                  </div>
                 </div>
                 {pastorSignature && (
                   <div
-                    className="mt-2 w-full flex"
+                    className="mt-4 flex w-full"
                     style={{ justifyContent: signaturePosX === 'left' ? 'flex-start' : signaturePosX === 'right' ? 'flex-end' : 'center' }}
                   >
                     <img
@@ -651,22 +645,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
             {/* Right: Text */}
             <RevealSection className="reveal-delay-1">
-              <p className="section-label">{pastorWordLabel}</p>
+              <p className="section-eyebrow">{pastorWordLabel}</p>
               <h2 className="section-title mt-4">
                 {pastorWordTitle}
               </h2>
+              <div className="rule-accent mt-6" />
               <p className="mt-6 leading-relaxed text-muted">{pastorWordText1}</p>
               <p className="mt-4 leading-relaxed text-muted">{pastorWordText2}</p>
 
               {/* Signed quote */}
-              <blockquote className="mt-8 border-l-4 border-accent-400/50 pl-5">
-                <p className="text-sm italic text-cream/70">&laquo; {pastorWordQuote} &raquo;</p>
-                <p className="mt-1 text-xs font-semibold text-accent-400">&mdash; {pastorWordQuoteRef}</p>
+              <blockquote className="mt-8 border-l-2 pl-5" style={{ borderColor: 'rgb(var(--brand-red-rgb))' }}>
+                <p className="verse-quote">&laquo; {pastorWordQuote} &raquo;</p>
+                <p className="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-evangile-600">&mdash; {pastorWordQuoteRef}</p>
               </blockquote>
 
               <button
                 onClick={() => onNavigate('about')}
-                className="btn-gold mt-8"
+                className="btn-primary mt-8"
               >
                 Voir À propos
                 <ArrowRight className="h-4 w-4" />
@@ -691,7 +686,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             </p>
           </RevealSection>
 
-          <div className="grid gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+          <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {displayCards.map((card, i) => {
               const IconComponent = iconMap[(card.icon_name || 'eye').toLowerCase()] || Eye;
               const imgUrl = card.image_url || DEFAULT_SERMON_IMG;
@@ -700,33 +695,31 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 <RevealSection key={card.id} className={`reveal-delay-${(i % 5) + 1}`}>
                   <button
                     onClick={() => onNavigate(navigateTo as Page)}
-                    className="group relative w-full overflow-hidden rounded-2xl text-left"
+                    className="group relative h-64 w-full overflow-hidden bg-bg-card text-left"
                   >
                     <img
                       src={imgUrl}
                       alt={card.title}
-                      className="blog-img-zoom h-56 sm:h-64 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      className="photo-claro absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/45 to-ink-950/10" />
 
-                    {/* Description badge (was "stat") */}
+                    <span className="absolute left-4 top-4 z-10 font-hero text-lg text-white/45">
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+
                     {card.description && (
-                      <div className="absolute right-3 top-3 z-10">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-white/10 border border-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white/80 backdrop-blur-sm">
-                          <Eye className="h-3 w-3" />
-                          {card.description}
-                        </span>
-                      </div>
+                      <span className="absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 border border-white/20 bg-black/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-white/80">
+                        <Eye className="h-3 w-3" />
+                        {card.description}
+                      </span>
                     )}
 
-                    {/* Bottom content */}
-                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                      <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/20 text-accent-400">
-                        <IconComponent className="h-5 w-5" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-white">{card.title}</h3>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 translate-y-0 sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300">
+                    <div className="absolute bottom-0 left-0 right-0 z-10 p-5">
+                      <IconComponent className="mb-3 h-5 w-5 text-white/70" />
+                      <h3 className="card-title text-white">{card.title}</h3>
+                      <div className="mt-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/70 lg:opacity-0 lg:transition-opacity lg:duration-300 lg:group-hover:opacity-100">
                         <span>Découvrir</span>
                         <ArrowRight className="h-3.5 w-3.5" />
                       </div>
@@ -779,7 +772,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     <span className="h-3 w-px bg-line" />
                     <span>Lecture {readingTime(news[0])}</span>
                   </div>
-                  <h3 className="card-title mt-3 text-cream transition-colors group-hover:text-accent-300">{news[0].title}</h3>
+                  <h3 className="card-title mt-3 text-cream transition-colors group-hover:text-evangile-400">{news[0].title}</h3>
                   <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{news[0].excerpt}</p>
                   <span className="btn-link mt-6 inline-flex">
                     Lire l'article
@@ -798,10 +791,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
                           <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
                             {a.category} — {articleDate(a.date)}
                           </p>
-                          <h3 className="mt-2 text-base font-semibold leading-snug text-cream transition-colors group-hover:text-accent-300">
+                          <h3 className="mt-2 text-base font-semibold leading-snug text-cream transition-colors group-hover:text-evangile-400">
                             {a.title}
                           </h3>
-                          <span className="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent-400">
+                          <span className="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-evangile-500">
                             Lire
                             <ArrowRight className="h-3 w-3" />
                           </span>
@@ -812,7 +805,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
                 <button
                   onClick={() => onNavigate('blog')}
-                  className="mt-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:text-accent-300"
+                  className="mt-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:text-evangile-400"
                 >
                   Voir les {news.length} articles
                   <ArrowUpRight className="h-4 w-4" />
@@ -824,104 +817,26 @@ export function HomePage({ onNavigate }: HomePageProps) {
       </section>
       )}
 
-      {/* ═══════ SECTION: AGENDA ═══════ */}
-      {isSectionVisible('agenda') && events.length > 0 && (
-      <section className="py-16 md:py-24" style={getSectionStyle('agenda')}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-12 flex flex-col gap-6 border-b border-line pb-8 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-4">
-                <span className="rule-accent" />
-                <p className="section-eyebrow">Agenda</p>
-              </div>
-              <h2 className="section-title mt-4">Prochains rendez-vous</h2>
-            </div>
-            <button onClick={() => onNavigate('events')} className="btn-link shrink-0">
-              Tout l'agenda
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </RevealSection>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {events.slice(0, 3).map((evt, i) => {
-              const evtDate = new Date(evt.event_date);
-              const dayNum = evtDate.getDate();
-              const monthShort = evtDate.toLocaleDateString('fr-FR', { month: 'short' });
-              const fullDate = evtDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
-              return (
-                <RevealSection key={evt.id} className={`reveal-delay-${i + 1} h-full`}>
-                  <article className="group flex h-full flex-col border border-line bg-card transition-colors hover:border-evangile-600/60">
-                    {evt.image_url && (
-                      <div className="relative h-48 overflow-hidden">
-                        <img
-                          src={evt.image_url}
-                          alt=""
-                          className="photo-claro h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                        <div className="absolute left-0 top-0 flex flex-col items-center justify-center bg-evangile-600 px-4 py-3 text-center">
-                          <span className="font-hero text-2xl leading-none text-white">{dayNum}</span>
-                          <span className="mt-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-white/85">{monthShort}</span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="flex flex-1 flex-col p-6">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-accent-400">{evt.category}</p>
-                      <h3 className="mt-2 text-lg font-semibold leading-snug text-cream">{evt.title}</h3>
-                      <ul className="mt-4 space-y-2 text-xs text-muted">
-                        <li className="flex items-center gap-2">
-                          <Clock className="h-3.5 w-3.5 flex-shrink-0 text-accent-400/60" />
-                          {fullDate}
-                        </li>
-                        {evt.location && (
-                          <li className="flex items-center gap-2">
-                            <MapPin className="h-3.5 w-3.5 flex-shrink-0 text-accent-400/60" />
-                            {evt.location}
-                          </li>
-                        )}
-                      </ul>
-                      <button onClick={() => onNavigate('events')} className="btn-ghost mt-6 w-fit text-xs">
-                        Détails
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </article>
-                </RevealSection>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-      )}
-
       {/* ═══════ SECTION: BIBLICAL QUOTE (full-width dark) ═══════ */}
       {isSectionVisible('quote') && (
       <section
-        className="py-16 md:py-24 lg:py-28"
+        className="border-y border-line py-16 md:py-24 lg:py-28"
         style={{ backgroundColor: 'rgb(var(--bg-rgb))', ...getSectionStyle('quote') }}
       >
-        <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
           <RevealSection>
-            {/* Gold divider above */}
-            <div className="mx-auto mb-8 flex items-center justify-center gap-4">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
-              <Quote className="h-8 w-8 text-accent-400/60 rotate-180" />
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
+            <div className="mx-auto flex max-w-xs items-center gap-4">
+              <span className="rule h-px flex-1" />
+              <span className="section-eyebrow">Verset</span>
+              <span className="rule h-px flex-1" />
             </div>
 
-            <p className="font-serif text-2xl italic leading-relaxed sm:text-3xl" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : { color: 'rgb(var(--text-rgb))' }}>
+            <p className="verse-quote mt-8 text-xl leading-relaxed sm:text-2xl" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : { color: 'rgb(var(--text-rgb))' }}>
               &laquo; {quoteText} &raquo;
             </p>
-            <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-accent-400" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : undefined}>
+            <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.22em] text-evangile-600" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : undefined}>
               &mdash; {quoteRef}
             </p>
-
-            {/* Gold divider below */}
-            <div className="mt-8 mx-auto flex items-center justify-center gap-4">
-              <div className="h-px w-16 bg-gradient-to-r from-transparent to-evangile-600/50" />
-              <Quote className="h-8 w-8 text-accent-400/60" />
-              <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
-            </div>
           </RevealSection>
         </div>
       </section>
@@ -965,12 +880,12 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
       {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
-      <section className="relative h-[280px] sm:h-[400px] md:h-[480px] lg:h-[520px] overflow-hidden">
+      <section className="relative overflow-hidden">
         {/* Map as full background (Google Maps iframe) */}
         <div className="absolute inset-0 z-0">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3907.451037817296!2d27.47710807481882!3d-11.662413288545377!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19723fdfcdd79fa3%3A0xd1db505d58bc72bb!2sEglise%20Evang%C3%A8lique%20la%20Conqu%C3%AAte!5e0!3m2!1sfr!2scd!4v1784346539701!5m2!1sfr!2scd"
-            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0 }}
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', border: 0, filter: 'grayscale(0.6) contrast(1.08) brightness(0.9)' }}
             allowFullScreen
             loading="lazy"
             referrerPolicy="strict-origin-when-cross-origin"
@@ -978,29 +893,27 @@ export function HomePage({ onNavigate }: HomePageProps) {
           />
         </div>
         {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/50 z-[1]" />
+        <div className="absolute inset-0 z-[1] bg-ink-950/80" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-t from-ink-950/80 via-transparent to-ink-950/40" />
 
         {/* CTA content overlay */}
-        <div className="relative z-[2] flex items-center justify-center h-full">
-          <div className="mx-auto max-w-2xl px-4 text-center">
+        <div className="relative z-[2] mx-auto flex min-h-[440px] max-w-2xl flex-col items-center justify-center px-4 py-16 text-center sm:min-h-[480px] md:min-h-[520px]">
+          <div className="w-full">
             <RevealSection>
-              {/* Heart with ping */}
-              <div className="relative mx-auto mb-6 flex h-16 w-16 items-center justify-center">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-400/20" />
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-accent-400/15 border border-accent-400/30">
-                  <Heart className="h-7 w-7 text-accent-400" />
-                </div>
+              <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center border border-white/25 bg-ink-950/50">
+                <Heart className="h-6 w-6 text-evangile-500" />
               </div>
 
-              <h2 className="section-title">
+              <p className="section-eyebrow">Nous rejoindre</p>
+              <h2 className="section-title mt-4">
                 {ctaTitle}
               </h2>
-              <p className="mt-4 text-lg leading-relaxed text-cream/90 max-w-lg mx-auto">
+              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-cream/85">
                 {ctaText}
               </p>
 
               <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                <button onClick={() => onNavigate('contact')} className="btn-gold">
+                <button onClick={() => onNavigate('contact')} className="btn-primary">
                   {ctaTitle === 'Rejoignez notre famille' ? 'Rejoindre' : ctaTitle}
                   <ArrowRight className="h-4 w-4" />
                 </button>

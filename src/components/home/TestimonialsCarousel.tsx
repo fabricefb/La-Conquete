@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronLeft, ChevronRight, Quote } from '../../lib/icons';
+import { ChevronLeft, ChevronRight } from '../../lib/icons';
 
 interface Testimonial {
   id: string;
@@ -64,63 +64,38 @@ export function TestimonialsCarousel({
   const current = testimonials[currentIndex];
 
   return (
-    <div className="glass-card relative overflow-hidden rounded-2xl p-8 sm:p-10 md:p-12">
-      {/* Decorative corners */}
-      <div className="absolute left-0 top-0 h-8 w-8">
-        <div className="absolute left-4 top-0 h-px w-6 bg-gradient-to-r from-accent-600/80 to-transparent" />
-        <div className="absolute left-0 top-4 h-6 w-px bg-gradient-to-b from-accent-600/80 to-transparent" />
-      </div>
-      <div className="absolute bottom-0 right-0 h-8 w-8">
-        <div className="absolute bottom-4 right-0 h-px w-6 bg-gradient-to-l from-accent-600/80 to-transparent" />
-        <div className="absolute bottom-0 right-4 h-6 w-px bg-gradient-to-t from-accent-600/80 to-transparent" />
-      </div>
+    <div className="panel relative overflow-hidden p-8 sm:p-10 md:p-12">
+      <span className="rule-accent absolute left-8 top-0 sm:left-10 md:left-12" />
 
-      {/* Quote decoration */}
-      <div className="absolute right-6 top-6 text-accent-400/20">
-        <Quote className="h-10 w-10" />
-      </div>
-
-      {/* Content */}
       <div className="relative mx-auto max-w-2xl text-center">
         <div key={currentIndex} className={isAnimating || currentIndex === 0 ? 'verse-enter' : ''}>
-          <p
-            className="font-serif italic text-lg leading-relaxed sm:text-xl md:text-2xl"
-            style={{ color: 'rgb(var(--text-rgb))' }}
-          >
+          <p className="text-base leading-relaxed text-cream sm:text-lg">
             &ldquo;{current.content}&rdquo;
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-400/15 text-sm font-bold text-accent-400">
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center border border-line bg-bg-card font-hero text-lg text-evangile-600">
               {current.is_anonymous
                 ? '?'
                 : (current.author_name || 'A').charAt(0).toUpperCase()}
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold" style={{ color: 'rgb(var(--text-rgb))' }}>
+              <p className="person-name">
                 {current.is_anonymous ? 'Anonyme' : current.author_name || 'Membre'}
               </p>
               {current.category && current.category !== 'general' && (
-                <p className="text-xs capitalize" style={{ color: 'rgb(var(--radial-primary-rgb, 227,34,31))' }}>
-                  {current.category}
-                </p>
+                <p className="person-role mt-1 capitalize">{current.category}</p>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
       {testimonials.length > 1 && (
-        <div className="mt-8 flex items-center justify-center gap-6">
+        <div className="mt-10 flex items-center justify-center gap-6 border-t border-line pt-6">
           <button
             type="button"
             onClick={() => handleManualNav(currentIndex - 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-            style={{
-              background: 'rgb(var(--glass-bg-rgb) / 0.4)',
-              border: '1px solid rgb(var(--glass-border-rgb) / 0.2)',
-              color: 'rgb(var(--text-muted-rgb))',
-            }}
+            className="flex h-10 w-10 items-center justify-center border border-line text-muted transition-colors hover:border-evangile-600 hover:text-evangile-600"
             aria-label="Témoignage précédent"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -132,16 +107,9 @@ export function TestimonialsCarousel({
                 key={index}
                 type="button"
                 onClick={() => handleManualNav(index)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  index === currentIndex
-                    ? 'w-6 bg-gradient-to-r from-accent-600 to-red-500'
-                    : 'w-2 hover:scale-125'
+                className={`h-0.5 transition-all duration-300 ${
+                  index === currentIndex ? 'w-10 bg-evangile-600' : 'w-6 bg-line hover:bg-muted'
                 }`}
-                style={
-                  index !== currentIndex
-                    ? { background: 'rgb(var(--text-muted-rgb) / 0.3)' }
-                    : undefined
-                }
                 aria-label={`Aller au témoignage ${index + 1}`}
               />
             ))}
@@ -150,12 +118,7 @@ export function TestimonialsCarousel({
           <button
             type="button"
             onClick={() => handleManualNav(currentIndex + 1)}
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-            style={{
-              background: 'rgb(var(--glass-bg-rgb) / 0.4)',
-              border: '1px solid rgb(var(--glass-border-rgb) / 0.2)',
-              color: 'rgb(var(--text-muted-rgb))',
-            }}
+            className="flex h-10 w-10 items-center justify-center border border-line text-muted transition-colors hover:border-evangile-600 hover:text-evangile-600"
             aria-label="Témoignage suivant"
           >
             <ChevronRight className="h-5 w-5" />

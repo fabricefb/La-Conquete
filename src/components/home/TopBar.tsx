@@ -159,7 +159,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
     <div
       className="relative w-full overflow-hidden"
       style={{
-        backgroundColor: bgColor || undefined,
+        backgroundColor: bgColor || 'rgb(var(--brand-red-rgb))',
         color: textColor || undefined,
       }}
       role="banner"
@@ -177,15 +177,15 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
               </span>
               <div className="flex items-center gap-0.5 font-mono text-[10px] md:text-xs font-bold text-white">
                 {countdown.days > 0 && (
-                  <span className="bg-white/20 rounded px-1 py-0.5">{countdown.days}j</span>
+                  <span className="border border-white/25 px-1.5 py-0.5">{countdown.days}j</span>
                 )}
-                <span className="bg-white/20 rounded px-1 py-0.5">
+                <span className="border border-white/25 px-1.5 py-0.5">
                   {String(countdown.hours).padStart(2, '0')}h
                 </span>
-                <span className="bg-white/20 rounded px-1 py-0.5">
+                <span className="border border-white/25 px-1.5 py-0.5">
                   {String(countdown.mins).padStart(2, '0')}m
                 </span>
-                <span className="bg-white/20 rounded px-1 py-0.5">
+                <span className="border border-white/25 px-1.5 py-0.5">
                   {String(countdown.secs).padStart(2, '0')}s
                 </span>
               </div>
@@ -193,7 +193,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
           ) : (
             <button
               onClick={onLiveClick}
-              className="flex items-center gap-1.5 cursor-pointer hover:scale-105 transition-transform"
+              className="flex cursor-pointer items-center gap-1.5 transition-opacity hover:opacity-80"
             >
               <span className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-white animate-pulse">
                 EN DIRECT
@@ -237,7 +237,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
 
           <button
             onClick={() => onNavigate?.('dons')}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-evangile-700 text-[11px] font-bold hover:bg-white/90 transition-all duration-300 hover:scale-[1.02] active:scale-95"
+            className="flex items-center gap-1.5 bg-cream px-3 py-1 text-[11px] font-bold text-ink-950 transition-colors hover:bg-white/85"
           >
             <Heart size={11} aria-hidden="true" />
             <span>Don</span>

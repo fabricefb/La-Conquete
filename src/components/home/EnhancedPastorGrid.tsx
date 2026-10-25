@@ -25,15 +25,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   pastor_principal: 'Pasteur Principal',
 };
 
-const CATEGORY_COLORS: Record<string, string> = {
-  pastor_principal: 'bg-amber-500/90 text-white',
-  ancien: 'bg-blue-500/90 text-white',
-  diacre: 'bg-purple-500/90 text-white',
-  collaborateur: 'bg-green-500/90 text-white',
-  assistant_pastor: 'bg-amber-500/90 text-white',
-  partenaire: 'bg-cyan-500/90 text-white',
-};
-
 function getInitials(name: string): string {
   if (!name) return '??';
   const parts = name.trim().split(/\s+/);
@@ -63,7 +54,6 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
   const initials = getInitials(pastor.full_name);
   const category = pastor.pastor_category ?? '';
   const categoryLabel = CATEGORY_LABELS[category] || category;
-  const categoryColor = CATEGORY_COLORS[category] || 'bg-gray-500/90 text-white';
 
   const hasSocials =
     pastor.social_links &&
@@ -98,23 +88,18 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
       {/* Category badge */}
       {category && categoryLabel && (
         <div className="absolute left-3 right-3 top-3 z-10">
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider ${categoryColor}`}
-          >
+          <span className="inline-block bg-evangile-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
             {categoryLabel}
           </span>
         </div>
       )}
 
-      {/* Bottom content — always visible (name + title) */}
+      {/* Bottom scrim + always-visible identity */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[5] h-2/5 bg-gradient-to-t from-ink-950/95 via-ink-950/55 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 z-10 p-4">
-        <h3
-          className="font-semibold text-lg leading-tight text-cream drop-shadow-lg"
-        >
-          {pastor.full_name}
-        </h3>
+        <h3 className="person-name">{pastor.full_name}</h3>
         {pastor.title && (
-          <p className="mt-0.5 text-sm text-cream/80 drop-shadow-md">{pastor.title}</p>
+          <p className="person-role mt-1">{pastor.title}</p>
         )}
       </div>
 
@@ -145,7 +130,7 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
                     href={pastor.social_links.facebook}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    className="flex h-8 w-8 items-center justify-center transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
                     aria-label={`Facebook de ${pastor.full_name}`}
                   >
                     <Facebook className="h-3.5 w-3.5" />
@@ -156,7 +141,7 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
                     href={pastor.social_links.youtube}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    className="flex h-8 w-8 items-center justify-center transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
                     aria-label={`YouTube de ${pastor.full_name}`}
                   >
                     <MonitorPlay className="h-3.5 w-3.5" />
@@ -165,7 +150,7 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
                 {pastor.social_links?.email && (
                   <a
                     href={`mailto:${pastor.social_links.email}`}
-                    className="flex h-8 w-8 items-center justify-center rounded-full transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
+                    className="flex h-8 w-8 items-center justify-center transition-all duration-200 hover:scale-110 bg-white/10 border border-white/20 text-cream"
                     aria-label={`Email de ${pastor.full_name}`}
                   >
                     <Mail className="h-3.5 w-3.5" />
