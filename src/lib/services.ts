@@ -17,10 +17,9 @@ export interface ServiceTime {
 }
 
 export const SERVICE_TIMES: readonly ServiceTime[] = [
-  { day: 'Dimanche', weekday: 0, service: 'Culte Principal', time: '10h00 – 13h00', start: '10:00' },
-  { day: 'Mardi', weekday: 2, service: 'Étude Biblique', time: '19h00 – 21h00', start: '19:00' },
-  { day: 'Jeudi', weekday: 4, service: 'Intercession', time: '18h30 – 20h30', start: '18:30' },
-  { day: 'Vendredi', weekday: 5, service: "Veillée d'Adoration", time: '22h00 – 02h00', start: '22:00' },
+  { day: 'Dimanche', weekday: 0, service: 'Culte Principal', time: '08h00 – 10h30', start: '08:00' },
+  { day: 'Mercredi', weekday: 3, service: "Culte d'enseignement et prière", time: '16h30 – 18h30', start: '16:30' },
+  { day: 'Vendredi', weekday: 5, service: 'Culte de jeûne et prière', time: '16h00 – 18h30', start: '16:00' },
 ] as const;
 
 export interface NextService extends ServiceTime {

@@ -19,15 +19,13 @@ interface Slide {
 
 const SERVICE_DESCRIPTIONS: Record<number, string> = {
   0: 'Adoration, Parole et communion fraternelle.',
-  2: "Approfondir l'Écriture, ensemble.",
-  4: "Porter l'Église, la ville et les nations.",
-  5: 'Une nuit de louange et de prière.',
+  3: "Enseignement biblique et prière au cœur de la semaine.",
+  5: 'Un temps de jeûne, de prière et de consécration.',
 };
 
 const SERVICE_IMAGES: Record<number, string> = {
   0: '/church-photo-3.jpg',
-  2: '/bible.jpg',
-  4: '/church-photo-2.jpg',
+  3: '/bible.jpg',
   5: '/church-photo-1.jpg',
 };
 
