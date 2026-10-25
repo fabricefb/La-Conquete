@@ -11,6 +11,7 @@ import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
 import { MapPin, Phone, Mail, Globe, Clock, Send, Navigation } from '../lib/icons';
 import { SERVICE_TIMES } from '../lib/services';
+import { CHURCH } from '../lib/church';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
@@ -345,7 +346,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                           required
                           value={form.phone}
                           onChange={(e) => updateField('phone', e.target.value)}
-                          placeholder="+243 812 345 678"
+                          placeholder={CHURCH.phone.display}
                           className="input-surface w-full px-4 py-3 text-sm"
                         />
                       </div>

@@ -2,7 +2,7 @@ import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
   Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, MapPin, HandHeart, Mic, Building2, MonitorPlay,
+  Calendar, HandHeart, Mic, Building2, MonitorPlay,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -75,7 +75,6 @@ const NAV_ITEMS: NavItem[] = [
         {
           title: 'Communauté',
           items: [
-            { label: 'Extensions', page: 'extensions', icon: MapPin },
             { label: 'Nos valeurs', page: 'vision', icon: Heart },
             { label: 'Partenariats', icon: HandHeart, tag: 'Bientôt' },
           ],

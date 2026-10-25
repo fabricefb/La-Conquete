@@ -28,7 +28,6 @@ const CommunicationPage = lazy(() => import('./pages/CommunicationPage').then(m 
 const EmissionsPage = lazy(() => import('./pages/EmissionsPage').then(m => ({ default: m.EmissionsPage })));
 const PredicationsPage = lazy(() => import('./pages/PredicationsPage').then(m => ({ default: m.PredicationsPage })));
 const DepartmentsPage = lazy(() => import('./pages/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
-const ExtensionsPage = lazy(() => import('./pages/ExtensionsPage').then(m => ({ default: m.ExtensionsPage })));
 const CommuniquesPage = lazy(() => import('./pages/CommuniquesPage').then(m => ({ default: m.CommuniquesPage })));
 const AnnoncesPage = lazy(() => import('./pages/AnnoncesPage').then(m => ({ default: m.AnnoncesPage })));
 const DonsPage = lazy(() => import('./pages/DonsPage').then(m => ({ default: m.DonsPage })));
@@ -43,7 +42,7 @@ const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ de
 const FormOrateurBrandedPage = lazy(() => import('./pages/FormOrateurBrandedPage').then(m => ({ default: m.FormOrateurBrandedPage })));
 const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(m => ({ default: m.EvangelisationPage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'extensions', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
 function getPage(): Page {
   let h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   if (h === 'emision') h = 'emissions';
@@ -180,7 +179,6 @@ function AppRouter() {
               case 'emissions': return <EmissionsPage {...nav} />;
               case 'predications': return <PredicationsPage {...nav} />;
               case 'departments': return <DepartmentsPage {...nav} />;
-              case 'extensions': return <ExtensionsPage {...nav} />;
               case 'communiques': return <CommuniquesPage {...nav} />;
               case 'annonces': return <AnnoncesPage {...nav} />;
               case 'dons': return <DonsPage {...nav} />;

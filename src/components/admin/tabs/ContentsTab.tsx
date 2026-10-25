@@ -136,14 +136,6 @@ const PAGES: PageDef[] = [
       { key: 'equipe', label: 'Reste de l\'équipe', icon: Users, description: 'Titre et description' },
     ],
   },
-  {
-    key: 'extensions', label: 'Extensions', icon: MapPin,
-    description: 'Extensions locales',
-    sections: [
-      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
-      { key: 'list', label: 'Liste des extensions', icon: MapPin, description: 'Titre et description' },
-    ],
-  },
   /* ══════════ VIE SPIRITUELLE ══════════ */
   {
     key: 'enseignements', label: 'Enseignements', icon: BookOpen,
@@ -495,18 +487,6 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     ],
     equipe: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'L\'équipe' },
-      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
-    ],
-  },
-
-  extensions: {
-    hero: [
-      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Nos Extensions' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Extensions' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
-    ],
-    list: [
-      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Nos localités' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
     ],
   },

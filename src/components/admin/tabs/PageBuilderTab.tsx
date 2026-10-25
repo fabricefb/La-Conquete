@@ -147,7 +147,6 @@ const PAGES: PageDef[] = [
   { key: 'ministeres', label: 'Ministères', sections: ['hero', 'louange', 'evangelisation', 'diaconie', 'groupes'] },
   { key: 'departments', label: 'Tous les départements', sections: ['hero', 'list', 'evangelisation', 'join'] },
   { key: 'pasteurs', label: 'Équipe pastorale', sections: ['hero', 'principaux', 'equipe'] },
-  { key: 'extensions', label: 'Extensions', sections: ['hero', 'list'] },
   /* ─── Vie spirituelle ─── */
   { key: 'enseignements', label: 'Enseignements', sections: ['hero', 'list', 'series', 'studies'] },
   { key: 'predications', label: 'Prédications', sections: ['hero', 'list', 'series'] },

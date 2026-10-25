@@ -366,7 +366,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   // Hero texts
   const heroTitle1 = getContent(cm, 'hero', 'title_line1', 'La Conquête');
   const heroTitle2 = getContent(cm, 'hero', 'title_line2', 'des Âmes');
-  const heroSubtitle = getContent(cm, 'hero', 'subtitle', 'Église Évangélique La Conquête — Kinshasa, RDC');
+  const heroSubtitle = getContent(cm, 'hero', 'subtitle', 'Église Évangélique La Conquête — Lubumbashi, RDC');
   const heroBibleVerse = getContent(cm, 'hero', 'bible_verse', 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"');
   const heroCtaPrimary = getContent(cm, 'hero', 'cta_primary', 'Rejoindre le culte');
   const heroCtaSecondary = getContent(cm, 'hero', 'cta_secondary', 'Notre vision');

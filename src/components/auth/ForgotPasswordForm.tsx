@@ -5,6 +5,7 @@
    ═══════════════════════════════════════════════════════════════════ */
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { CHURCH } from '../../lib/church';
 import { useToast } from '../../contexts/ToastContext';
 import { Mail, Phone, KeyRound, MessageCircle, ArrowLeft, Loader2, CheckCircle } from '../../lib/icons';
 
@@ -21,8 +22,8 @@ type RecoveryMethod = 'email' | 'whatsapp';
 const FONT_BODY = { fontFamily: "'Inter', sans-serif" };
 const FONT_DISPLAY = { fontFamily: "'Cormorant Garamond', serif" };
 
-/* ─── Admin WhatsApp number (configurable) ────────────────── */
-const ADMIN_WHATSAPP = '243999071754';
+/* ─── Admin WhatsApp number ───────────────────────────────── */
+const ADMIN_WHATSAPP = CHURCH.phone.href.replace(/\D/g, '');
 
 /* ═══════════════════════════════════════════════════════════════════
    Component

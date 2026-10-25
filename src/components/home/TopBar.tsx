@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
+import { CHURCH } from '../../lib/church';
+import { SERVICE_TIMES } from '../../lib/services';
 import { useToast } from '../../contexts/ToastContext';
 import { Heart, Phone, Mail } from '../../lib/icons';
 
@@ -82,9 +84,8 @@ interface TopBarProps {
 
 export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride, textColor, bgColor }: TopBarProps) {
   const [announcements, setAnnouncements] = useState<string[]>([
-    'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC',
-    'Culte dominical à 08h00 — Venez adorer le Seigneur avec nous !',
-    'Réunion de prière tous les mercredis à 18h00',
+    `Bienvenue à l'Église Évangélique La Conquête — ${CHURCH.address.city}, ${CHURCH.address.country}`,
+    ...SERVICE_TIMES.map((s) => `${s.service} — ${s.day}, ${s.time.replace(' – ', ' à ')}`),
   ]);
   const [liveTargetDate, setLiveTargetDate] = useState<string | null>(null);
   const [liveLabel, setLiveLabel] = useState('Prochain direct');
@@ -144,7 +145,7 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
     ? [...customItems, ...customItems]
     : announcements.length > 0
       ? [...announcements, ...announcements]
-      : ['Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC', 'Bienvenue à l\'Église Évangélique La Conquête — Kinshasa, RDC'];
+      : [`Bienvenue à l'Église Évangélique La Conquête — ${CHURCH.address.city}, ${CHURCH.address.country}`];
 
   return (
     <div
@@ -211,19 +212,19 @@ export function TopBar({ onNavigate, onLiveClick, phone, email, marqueeOverride,
         {/* ---- Right: Phone + Email + Don ---- */}
         <div className="flex items-center gap-2 md:gap-3 shrink-0">
           <a
-            href={`tel:${(phone || '+243999071754').replace(/\s/g, '')}`}
+            href={phone ? `tel:${phone.replace(/\s/g, '')}` : CHURCH.phone.href}
             className="hidden md:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
           >
             <Phone size={11} aria-hidden="true" />
-            <span className="whitespace-nowrap">{phone || '+243 999 071 754'}</span>
+            <span className="whitespace-nowrap">{phone || CHURCH.phone.display}</span>
           </a>
 
           <a
-            href={`mailto:${email || 'contact@laconquete.cd'}`}
+            href={`mailto:${email || CHURCH.email}`}
             className="hidden lg:flex items-center gap-1 text-white/80 hover:text-white transition-colors text-[11px]"
           >
             <Mail size={11} aria-hidden="true" />
-            <span className="whitespace-nowrap">{email || 'contact@laconquete.cd'}</span>
+            <span className="whitespace-nowrap">{email || CHURCH.email}</span>
           </a>
 
           <button

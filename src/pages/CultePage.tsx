@@ -8,6 +8,7 @@ import { Clock, MonitorPlay, Navigation, Phone } from '../lib/icons';
 import { Car, Bus, Baby } from 'lucide-react';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
+import { CHURCH } from '../lib/church';
 import { supabase, db, buildContentMap, getContent } from '../lib/supabase';
 
 // ─── Fallback Data ──────────────────────────────────────────────
@@ -22,7 +23,7 @@ const PRACTICALS = [
   { Icon: Car, title: 'Parking', desc: 'Parking gratuit disponible devant et autour de l\'église.' },
   { Icon: Bus, title: 'Transport en commun', desc: 'Ligne 4 — arrêt « Cour Militaire » à 200 m.' },
   { Icon: Baby, title: 'Accueil enfants', desc: 'Salle dédiée pour les 0-5 ans pendant les cultes dominicaux.' },
-  { Icon: Phone, title: 'Information', desc: 'Appelez-nous au +243 844 107 079 pour toute question.' },
+  { Icon: Phone, title: 'Information', desc: `Appelez-nous au ${CHURCH.phone.display} pour toute question.` },
 ] as const;
 
 // ─── Component ─────────────────────────────────────────────────────
@@ -167,7 +168,7 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
           </div>
           <div className="reveal mt-4 flex items-center justify-center gap-2 text-sm text-muted">
             <Navigation className="h-4 w-4 text-accent-400" />
-            <span>520, Av. N'Djamena, Commune de Lubumbashi, Haut Katanga, RD Congo</span>
+            <span>{CHURCH.address.street}, {CHURCH.address.city}, {CHURCH.address.country}</span>
           </div>
         </div>
       </section>

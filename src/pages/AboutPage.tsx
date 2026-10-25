@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
 import { useReveal } from '../lib/hooks';
+import { CHURCH } from '../lib/church';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { IconBox } from '../components/IconBox';
@@ -42,8 +43,7 @@ const FALLBACK_VALUES: ValueItem[] = [
 
 /* ── Giving info ── */
 const GIVING = [
-  { label: 'M-Pesa', value: '+243 831 685 713' },
-  { label: 'Orange Money', value: '+243 892 170 701' },
+  { label: 'Mobile Money — M-Pesa / Orange Money', value: CHURCH.phone.display },
   { label: 'EQUITY BCDC (USD)', value: '16610-00997-08928' },
   { label: 'EQUITY BCDC (FC)', value: '16620-00997-10572' },
 ];
@@ -309,7 +309,7 @@ export function AboutPage({ onNavigate }: PageProps) {
             </p>
           </RevealSection>
 
-          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {GIVING.map((item, i) => (
               <RevealSection key={item.label} className={`reveal-delay-${i + 1}`}>
                 <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.02]">
@@ -354,10 +354,10 @@ export function AboutPage({ onNavigate }: PageProps) {
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { Icon: MapPin, label: 'Adresse', value: '520, Av. N\'Djamena, Commune de Lubumbashi, Haut Katanga, RD Congo' },
-              { Icon: Phone, label: 'WhatsApp', value: '+243 844 107 079', href: 'https://wa.me/243844107079' },
-              { Icon: Mail, label: 'Email', value: 'egliseevangeliquelaconquete@gmail.com', href: 'mailto:egliseevangeliquelaconquete@gmail.com' },
-              { Icon: Mail, label: 'Info', value: 'info@laconquete.org', href: 'mailto:info@laconquete.org' },
+              { Icon: MapPin, label: 'Adresse', value: `${CHURCH.address.street}, ${CHURCH.address.city}, ${CHURCH.address.country}` },
+              { Icon: Phone, label: 'Téléphone', value: CHURCH.phone.display, href: CHURCH.phone.href },
+              { Icon: Mail, label: 'Email', value: CHURCH.email, href: `mailto:${CHURCH.email}` },
+              
             ].map(({ Icon, label, value, href }, i) => (
               <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
                 {href ? (

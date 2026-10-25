@@ -59,7 +59,6 @@ const TARGET_PAGE_OPTIONS = [
   { value: 'dons', label: 'Dons', tag: '' },
   { value: 'vision', label: 'Vision & Mission', tag: '' },
   { value: 'pasteurs', label: 'Équipe pastorale', tag: '' },
-  { value: 'extensions', label: 'Extensions', tag: '' },
   { value: 'activities', label: 'Activités', tag: '' },
   { value: 'emissions', label: 'Émissions', tag: '' },
   { value: 'communiques', label: 'Communiqués', tag: '' },

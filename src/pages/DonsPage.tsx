@@ -7,6 +7,7 @@ import { MobileNav } from '../components/MobileNav';
 import { UniversalHero } from '../components/UniversalHero';
 import { Heart, CreditCard, Smartphone, MessageCircle, Phone, Mail, Shield, Users, BookOpen, Radio, HandHeart } from '../lib/icons';
 import type { Page } from '../lib/navigation';
+import { CHURCH } from '../lib/church';
 
 /* ─── Types ───────────────────────────────────────────────────────── */
 interface DonsPageProps {
@@ -15,7 +16,7 @@ interface DonsPageProps {
 
 /* ─── Verse ───────────────────────────────────────────────────────── */
 const QUOTE_TEXT = "Nous ne bâtissons pas seulement des murs, nous élevons des destinées pour la gloire éternelle.";
-const QUOTE_AUTHOR = "Pasteur Jean-Luc & Marie-Claire";
+const QUOTE_AUTHOR = CHURCH.pastor.name;
 
 /* ─── Don amounts ─────────────────────────────────────────────────── */
 const AMOUNTS = ['$20', '$50', '$100', 'Autre'];
@@ -36,8 +37,8 @@ export function DonsPage({ onNavigate }: DonsPageProps) {
     db.getSettings().then(settings => setSettings(buildSettingsMap(settings) || {})).catch(() => {});
   }, []);
 
-  const churchPhone = settings['church_phone'] || '+243 000 000 000';
-  const whatsappNumber = settings['whatsapp'] || '243000000000';
+  const churchPhone = settings['church_phone'] || CHURCH.phone.display;
+  const whatsappNumber = settings['whatsapp'] || CHURCH.phone.href.replace(/\D/g, '');
 
   const handleWhatsAppDon = () => {
     const msg = encodeURIComponent('Bonjour, je souhaite faire un don à l\'Église Évangélique La Conquête. Pourriez-vous me donner les informations de paiement ?');

@@ -16,7 +16,6 @@ export type Page =
   | 'reports'
   | 'communication'
   | 'pastoral'
-  | 'extensions'
   | 'annonces'
   | 'communiques'
   | 'culte'
