@@ -1,12 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════════
-   ÉGLISE ÉVANGÉLIQUE LA CONQUÊTE — Design System v2.0
-   Palette : Bleu Conquête #0F2147 · Rouge Évangile #E3221F
-             Ciel Divin #D8E3FB · Blanc Cristal #FFFFFF
-   Typo   : Playfair Display (titres) · Poppins (corps)
-   Style  : High-Tech Spirituel · Glassmorphism Premium
+   ÉGLISE ÉVANGÉLIQUE LA CONQUÊTE — Design System v3.0
+   Palette : Marine institutionnel #0B1021 · Rouge Évangile #E3221F
+             Blanc / gris clair en mode clair
+   Typo   : Poppins (titres en capitales espacées + corps)
+             Playfair Display — réservé aux citations bibliques
+   Style  : Corporate haut de gamme · institutionnel · rigueur de grille
    ═══════════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600;700&display=swap');
+/* Fonts are loaded from <link> tags in index.html (preconnected).
+   A CSS @import here would block first paint on a render-blocking round-trip. */
 @import 'leaflet/dist/leaflet.css';
 
 @tailwind base;
@@ -14,29 +16,36 @@
 @tailwind utilities;
 
 /* ─────────────────────────────────────────────────────────────────
-   1. DARK MODE (défaut) — Bleu Conquête profond
+   1. DARK MODE (défaut) — Marine institutionnel
    ───────────────────────────────────────────────────────────────── */
 :root {
   /* --- Surfaces --- */
-  --bg-rgb:             6 13 29;
-  --bg-elevated-rgb:    9 19 39;
-  --bg-card-rgb:        15 33 71;
-  --bg-card-hover-rgb:  22 45 94;
+  --bg-rgb:             7 9 50;     /* #070932 — marine profond */
+  --bg-elevated-rgb:    13 16 66;   /* #0D1042 */
+  --bg-card-rgb:        18 22 78;   /* #12164E */
+  --bg-card-hover-rgb:  26 31 92;   /* #1A1F5C */
 
   /* --- Textes --- */
-  --text-rgb:           247 243 238;
-  --text-muted-rgb:     160 170 195;
+  --text-rgb:           250 248 242;  /* #FAF8F2 — crème */
+  --text-muted-rgb:     166 172 208;
   --text-on-primary-rgb:255 255 255;
 
   /* --- Bordures --- */
   --border-subtle-rgb:  255 255 255;
-  --border-subtle-a:    0.08;
+  --border-subtle-a:    0.14;
 
   /* --- Glassmorphism --- */
-  --glass-bg-rgb:       15 33 71;
-  --glass-bg-a:         0.15;
+  --glass-bg-rgb:       13 16 66;
+  --glass-bg-a:         0.55;
   --glass-border-rgb:   255 255 255;
-  --glass-border-a:     0.12;
+  --glass-border-a:     0.14;
+
+  /* --- Accent Rouge Évangile ---
+         --brand-red-rgb = valeur de marque exacte (#E3221F) : aplats, boutons,
+         filets. --accent-red-rgb = teinte corail clarifiée pour le TEXTE fin sur
+         marine, seule à passer AA à 11px. */
+  --brand-red-rgb:   227 34 31;    /* #E3221F */
+  --accent-red-rgb:  248 106 92;   /* #F86A5C */
 
   /* --- Accent Bleu (nuances de bleu — couleur dominante du thème) --- */
   --accent-50-rgb:   232 238 255;
@@ -81,33 +90,38 @@
    2. LIGHT MODE (optionnel)
    ───────────────────────────────────────────────────────────────── */
 .light {
-  --bg-rgb:             216 227 251;
-  --bg-elevated-rgb:    232 239 252;
-  --bg-card-rgb:        240 244 253;
-  --bg-card-hover-rgb:  216 227 251;
-  --text-rgb:           15 33 71;
-  --text-muted-rgb:     80 90 120;
+  /* --- Surfaces — crème et blanc chaud, jamais de gris bleuté --- */
+  --bg-rgb:             250 248 242;  /* #FAF8F2 */
+  --bg-elevated-rgb:    255 252 245;  /* #FFFCF5 */
+  --bg-card-rgb:        255 255 255;
+  --bg-card-hover-rgb:  244 240 230;
+  --text-rgb:           15 18 72;     /* #0F1248 — encre marine */
+  --text-muted-rgb:     90 96 132;
   --text-on-primary-rgb:255 255 255;
-  --border-subtle-rgb:  100 120 180;
-  --border-subtle-a:    0.12;
-  --glass-bg-rgb:       240 244 253;
+  --border-subtle-rgb:  216 220 237;  /* #D8DCED */
+  --border-subtle-a:    1;
+  --glass-bg-rgb:       255 255 255;
   --glass-bg-a:         0.75;
-  --glass-border-rgb:   180 200 240;
-  --glass-border-a:     0.20;
+  --glass-border-rgb:   216 220 237;
+  --glass-border-a:     1;
   --radial-primary-rgb: 45 78 154;
   --radial-primary-a:   0.06;
   --radial-accent-rgb:  74 124 221;
   --radial-accent-a:    0.04;
-  --btn-ghost-border-rgb:  100 120 180;
-  --btn-ghost-border-a:    0.20;
-  --btn-ghost-hover-rgb:   216 227 251;
-  --btn-ghost-hover-a:     0.50;
-  --btn-ghost-text-rgb:    15 33 71;
-  --input-bg-rgb:       240 244 253;
+  --btn-ghost-border-rgb:  15 18 72;
+  --btn-ghost-border-a:    0.28;
+  --btn-ghost-hover-rgb:   244 240 230;
+  --btn-ghost-hover-a:     0.90;
+  --btn-ghost-text-rgb:    15 18 72;
+  --input-bg-rgb:       255 255 255;
   --input-bg-a:         0.90;
-  --input-border-rgb:   180 200 240;
-  --input-border-a:     0.30;
-  --surface-variant:    #d8e3fb;
+  --input-border-rgb:   216 220 237;
+  --input-border-a:     1;
+  --surface-variant:    #fffcf5;
+
+  /* --- Rouge : sur crème la marque pure est déjà lisible --- */
+  --brand-red-rgb:   227 34 31;   /* #E3221F */
+  --accent-red-rgb:  198 26 24;   /* #C61A18 — assombri pour le contraste AA */
 
   /* --- Accent Bleu — Mode clair (plus profond pour contraste) --- */
   --accent-50-rgb:   232 238 255;
@@ -136,14 +150,55 @@
     transition: background-color 0.4s ease, color 0.4s ease;
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Playfair Display', serif;
+    /* Direction corporate : les titres sont géométriques (Poppins). Playfair ne
+       subsiste que via .verse-quote et sera retiré des classes `font-serif`
+       résiduelles au fil de la refonte des pages. */
+    font-family: 'Poppins', system-ui, sans-serif;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
   ::selection {
     background: rgba(227, 34, 31, 0.25);
     color: #fff;
   }
+
+  /* ─── Keyboard focus ring ───
+     The site shipped with zero focus styles and `.input-surface:focus { outline: none }`,
+     which made it unusable by keyboard. :focus-visible keeps the ring for keyboard
+     navigation only, so pointer users never see it. */
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent-400-rgb));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  /* On tinted/dark surfaces a softer inner ring reads better than a hard outline. */
+  .glass :focus-visible,
+  .glass-card :focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   3b. MOTION PREFERENCE — the site runs an infinite marquee, a
+   typewriter, floating particles and breathing gradients. Users who
+   ask the OS to reduce motion get a static, fully readable page.
+   ───────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal, .evt-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .animate-marquee, .spirit-breath, .particle, .shimmer-line {
+    animation: none !important;
+  }
+  .particle { display: none !important; }
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -156,12 +211,32 @@
   /* --custom-theme-active: '1' when custom theme is on */
 }
 
-html[style*="--custom-theme-active"] {
+html[style*="--custom-theme-active"]:not(.sharp) {
   --dynamic-radius: var(--custom-radius, 16px);
   .glass, .btn-primary, .btn-ghost, .btn-accent, .input-surface, [class*="rounded-"] {
     border-radius: var(--dynamic-radius) !important;
   }
+  /* Pills, avatars and dots are round on purpose — the admin radius must not
+     turn them into soft rectangles. */
+  [class*="rounded-full"] {
+    border-radius: 9999px !important;
+  }
 }
+
+/* ─────────────────────────────────────────────────────────────────
+   4b. REGISTRE « ANGLES DROITS » — pages publiques
+   La direction institutionnelle interdit tout arrondi sur le site
+   vitrine. `html.sharp` est posé par le routeur selon la page affichée :
+   l'espace interne (admin, dashboard) garde ses pilules et ses switchs.
+   ───────────────────────────────────────────────────────────────── */
+html.sharp *,
+html.sharp *::before,
+html.sharp *::after {
+  border-radius: 0 !important;
+}
+/* Exceptions assumées : tout ce qui doit rester circulaire (spinner, pastille
+   de statut) porte la classe `keep-radius`. */
+html.sharp .keep-radius { border-radius: 9999px !important; }
 
 html[style*="--custom-theme-active"] .brand-text {
   background: linear-gradient(135deg, var(--custom-primary) 0%, var(--custom-primary) 50%, var(--custom-accent) 100%) !important;
@@ -243,55 +318,199 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     -webkit-text-fill-color: transparent;
   }
 
-  /* --- Section label (Bleu accent) --- */
+  /* --- Section label (Rouge Évangile) --- */
   .section-label {
-    @apply inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.35em] text-accent-400;
+    @apply inline-flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.35em];
+    color: rgb(var(--accent-red-rgb));
   }
   .section-label::before {
     content: '';
     @apply h-px w-8;
-    background: rgb(var(--accent-400-rgb) / 0.5);
+    background: rgb(var(--brand-red-rgb) / 0.65);
   }
 
-  /* --- Primary CTA button (Rouge Évangile) --- */
+  /* ═════════════════════════════════════════════════════════════
+     SYSTÈME TYPOGRAPHIQUE « INSTITUTIONNEL »
+     Référence visuelle : affiche d'événement — display condensé en
+     capitales (Bebas Neue), corps Poppins, aucun arrondi, filets fins.
+     Playfair est réservé aux citations bibliques.
+     ═════════════════════════════════════════════════════════════ */
+
+  /* Grand titre de hero — display condensé, graisse unique 400. */
+  .display-title {
+    @apply font-hero uppercase text-cream;
+    font-weight: 400;
+    font-size: clamp(3.5rem, 11vw, 9.5rem);
+    line-height: 0.86;
+    letter-spacing: 0.012em;
+  }
+
+  /* Titres de section — même fonte, échelle inférieure. */
+  .section-title {
+    @apply font-hero uppercase text-cream;
+    font-weight: 400;
+    font-size: clamp(2.25rem, 5vw, 3.75rem);
+    line-height: 0.92;
+    letter-spacing: 0.02em;
+  }
+
+  /* Sous-titres de carte / bloc — condensé mais discret. */
+  .card-title {
+    @apply font-hero uppercase text-cream;
+    font-weight: 400;
+    font-size: 1.5rem;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  /* Sur-titre institutionnel, au-dessus d'un titre de section. */
+  .section-eyebrow {
+    @apply font-sans text-[11px] font-semibold uppercase;
+    color: rgb(var(--accent-red-rgb));
+    letter-spacing: 0.32em;
+  }
+
+  /* Étiquette nominative des personnalités : « Prénom Nom » + fonction. */
+  .person-name {
+    @apply font-sans text-base font-semibold uppercase text-cream;
+    letter-spacing: 0.08em;
+  }
+  .person-role {
+    @apply font-sans text-[11px] font-medium uppercase text-muted;
+    letter-spacing: 0.22em;
+  }
+
+  /* Chiffres éditoriaux : très grands, tabulaires, pour stats et comptes
+     à rebours. Le contraste de taille est un pilier de la direction. */
+  .stat-figure {
+    @apply font-hero text-cream;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(3rem, 7vw, 5.5rem);
+    line-height: 0.85;
+    letter-spacing: 0.01em;
+  }
+  .countdown-figure {
+    @apply font-hero;
+    font-variant-numeric: tabular-nums;
+    color: rgb(var(--accent-red-rgb));
+    font-size: clamp(2.5rem, 5.5vw, 3.75rem);
+    line-height: 0.9;
+    letter-spacing: 0.02em;
+  }
+  .countdown-unit {
+    @apply font-sans text-[10px] font-medium uppercase text-muted;
+    letter-spacing: 0.28em;
+  }
+
+  /* Citation / verset — seul usage résiduel de Playfair. */
+  .verse-quote {
+    @apply font-serif italic text-cream/75;
+    font-size: 1.0625rem;
+    line-height: 1.7;
+  }
+
+  /* Filet de séparation fin — structure la page sans la surcharger. */
+  .rule { @apply h-px w-full; background: rgb(var(--border-subtle-rgb) / var(--border-subtle-a)); }
+  .rule-accent { @apply h-px w-16; background: rgb(var(--brand-red-rgb)); }
+
+  /* Carte institutionnelle : angle droit, filet 1px, padding généreux. */
+  .panel {
+    @apply bg-bg-card;
+    border: 1px solid rgb(var(--border-subtle-rgb) / var(--border-subtle-a));
+  }
+  .panel-accent { border-color: rgb(var(--brand-red-rgb)); border-width: 2px; }
+
+  /* Cadre net d'un portrait institutionnel. */
+  .portrait-frame {
+    @apply relative overflow-hidden bg-bg-elevated;
+    border: 1px solid rgb(var(--border-subtle-rgb) / var(--border-subtle-a));
+  }
+
+  /* Étalonnage clair-obscur des photos d'église : on retire la saturation
+     crue, on monte le contraste, on noie les ombres dans le marine. */
+  .photo-claro {
+    filter: grayscale(0.3) contrast(1.12) brightness(0.78) saturate(0.85);
+  }
+  .photo-claro-strong {
+    filter: grayscale(0.5) contrast(1.18) brightness(0.6) saturate(0.72);
+  }
+
+  /* Voile marine appliqué sur une photo pour garder le texte lisible. */
+  .hero-scrim {
+    background:
+      linear-gradient(to right, rgb(var(--bg-rgb) / 0.96) 0%, rgb(var(--bg-rgb) / 0.78) 45%, rgb(var(--bg-rgb) / 0.4) 100%),
+      linear-gradient(to top, rgb(var(--bg-rgb) / 0.98) 0%, transparent 50%);
+  }
+
+  /* Trame de grille très discrète — signal « rigueur institutionnelle ». */
+  .grid-lines {
+    background-image:
+      linear-gradient(rgb(255 255 255 / 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(255 255 255 / 0.03) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+
+  /* Signature du fond : le mot géant en filigrane, hors cadre. */
+  .watermark {
+    @apply font-hero uppercase select-none pointer-events-none;
+    color: rgb(var(--text-rgb) / 0.045);
+    line-height: 0.8;
+    letter-spacing: 0.02em;
+  }
+
+  /* Plaque du logo. Le logo de marque est un bloc blanc (symbole + lettrage) :
+     sur marine il se pose à nu, sur crème il a besoin d'un socle encre. */
+  .logo-plate { @apply flex shrink-0 items-center justify-center; }
+  .light .logo-plate { background: rgb(var(--text-rgb)); padding: 0.5rem 0.875rem; }
+
+  /* --- Boutons — angle droit, aplats francs, aucun rebond --- */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-evangile-600 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 hover:scale-[1.02] active:scale-95;
+    @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter,background-color] duration-200 hover:brightness-110 active:brightness-95;
+    letter-spacing: 0.025em;
   }
 
-  /* --- Ghost/outline button --- */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-2xl border px-7 py-3.5 text-sm font-semibold transition-all duration-300 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2.5 border px-8 py-4 text-[15px] font-semibold transition-colors duration-200;
+    letter-spacing: 0.025em;
     border-color: rgb(var(--btn-ghost-border-rgb) / var(--btn-ghost-border-a));
     color: rgb(var(--btn-ghost-text-rgb));
   }
   .btn-ghost:hover {
-    border-color: rgb(var(--accent-400-rgb) / 0.5);
+    border-color: rgb(var(--brand-red-rgb) / 0.55);
     background: rgb(var(--btn-ghost-hover-rgb) / var(--btn-ghost-hover-a));
   }
 
+  /* Lien-bouton nu, pour les actions secondaires d'une rangée de CTA. */
+  .btn-link {
+    @apply inline-flex items-center gap-2 px-2 py-4 text-[15px] font-semibold uppercase transition-colors duration-200;
+    color: rgb(var(--text-muted-rgb));
+    letter-spacing: 0.08em;
+  }
+  .btn-link:hover { color: rgb(var(--accent-red-rgb)); }
+
   /* --- Accent CTA button --- */
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-evangile-500 to-evangile-700 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95;
+    @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95;
+    letter-spacing: 0.025em;
   }
 
   /* --- Legacy aliases (gold → brand bleu) --- */
   .gold-text { background: linear-gradient(135deg, rgb(var(--accent-300-rgb)) 0%, rgb(var(--accent-500-rgb)) 40%, #E3221F 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .gold-line { background: linear-gradient(90deg, transparent, rgb(var(--accent-400-rgb)), transparent); }
-  .btn-gold { @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-evangile-600 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95; }
-  .btn-ember { @apply inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-evangile-500 to-evangile-700 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-glow-red hover:brightness-110 active:scale-95; }
+  .btn-gold { @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.025em; }
+  .btn-ember { @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.025em; }
 
   /* --- Input surface --- */
   .input-surface {
-    border-radius: 1rem;
     border: 1px solid rgb(var(--input-border-rgb) / var(--input-border-a));
     background: rgb(var(--input-bg-rgb) / var(--input-bg-a));
     color: rgb(var(--text-rgb));
     transition: all 0.3s ease;
   }
   .input-surface:focus {
-    border-color: rgb(var(--accent-400-rgb) / 0.4);
+    border-color: rgb(var(--accent-400-rgb) / 0.55);
     outline: none;
-    box-shadow: 0 0 0 3px rgb(var(--accent-400-rgb) / 0.1);
+    box-shadow: 0 0 0 3px rgb(var(--accent-400-rgb) / 0.22);
   }
   .input-surface::placeholder { color: rgb(var(--text-muted-rgb)); opacity: 0.5; }
 }
@@ -490,12 +709,6 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 
   /* ─── Cutout mask ─── */
   .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 85%, 90% 100%, 0 100%); }
-  @media (max-width: 640px) {
-    .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
-  }
-  @media (max-width: 640px) {
-    .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
-  }
   @media (max-width: 640px) {
     .cutout-mask { clip-path: polygon(0 0, 100% 0, 100% 92%, 96% 100%, 0 100%); }
   }

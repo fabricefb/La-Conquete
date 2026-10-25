@@ -136,9 +136,13 @@ export function DynamicThemeProvider({ children }: { children: React.ReactNode }
   }, []);
 
   // ── Sync color-mode class on <html> ───────────────────────────
+  // Do NOT assign className here: it wiped every other html class (notably the
+  // `sharp` corner register set by the router).
   useEffect(() => {
     const el = document.documentElement;
-    el.className = 'fr ' + colorMode;
+    el.classList.add('fr');
+    el.classList.remove('dark', 'light');
+    el.classList.add(colorMode);
   }, [colorMode]);
 
   // ── Fetch theme settings on mount ─────────────────────────────

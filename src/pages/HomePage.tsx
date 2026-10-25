@@ -8,8 +8,8 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { IconBox } from '../components/IconBox';
 import { TopBar } from '../components/home/TopBar';
+import { ServiceCountdown } from '../components/home/ServiceCountdown';
 import { LiveStreamModal } from '../components/LiveStreamModal';
-import { TypingText } from '../components/home/TypingHero';
 import { EnhancedPastorGrid } from '../components/home/EnhancedPastorGrid';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
 import {
@@ -51,20 +51,15 @@ interface ActivityCard {
    Constants & defaults
    ═══════════════════════════════════════════════════════════════════ */
 
-const DEFAULT_HERO_IMG =
-  'https://images.pexels.com/photos/2889440/pexels-photo-2889440.jpeg?auto=compress&cs=tinysrgb&w=1920';
-const DEFAULT_ABOUT_IMG =
-  'https://images.pexels.com/photos/290468/pexels-photo-290468.jpeg?auto=compress&cs=tinysrgb&w=1200';
-const DEFAULT_SERMON_IMG =
-  'https://images.pexels.com/photos/6044266/pexels-photo-6044266.jpeg?auto=compress&cs=tinysrgb&w=800';
-const DEFAULT_EVENT_IMG =
-  'https://images.pexels.com/photos/4484077/pexels-photo-4484077.jpeg?auto=compress&cs=tinysrgb&w=800';
-const DEFAULT_MINISTRY_IMG =
-  'https://images.pexels.com/photos/3184291/pexels-photo-3184291.jpeg?auto=compress&cs=tinysrgb&w=800';
-const DEFAULT_MEDIA_IMG =
-  'https://images.pexels.com/photos/3811945/pexels-photo-3811945.jpeg?auto=compress&cs=tinysrgb&w=800';
-const DEFAULT_NEWS_IMG =
-  'https://images.pexels.com/photos/590022/pexels-photo-590022.jpeg?auto=compress&cs=tinysrgb&w=800';
+/* Fallbacks only — each is overridable from the admin. These are the church's
+   own photographs, shipped from /public so nothing depends on a third-party CDN. */
+const DEFAULT_HERO_IMG = '/church-photo-3.jpg';
+const DEFAULT_ABOUT_IMG = '/church-photo-1.jpg';
+const DEFAULT_SERMON_IMG = '/predication-1.jpg';
+const DEFAULT_EVENT_IMG = '/priere.jpg';
+const DEFAULT_MINISTRY_IMG = '/church-photo-2.jpg';
+const DEFAULT_MEDIA_IMG = '/bible.jpg';
+const DEFAULT_NEWS_IMG = '/church-photo-1.jpg';
 /* ═══════════════════════════════════════════════════════════════════
    RevealSection helper
    ═══════════════════════════════════════════════════════════════════ */
@@ -427,7 +422,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
   const pastorWordText2 = getContent(cm, 'pastor_word', 'text_2', 'Nous sommes dans une saison où Dieu appelle son Église à se lever, à prendre position et à manifester sa gloire dans chaque domaine de la société.');
   const pastorWordQuote = getContent(cm, 'pastor_word', 'bible_text', 'Car je connais les projets que j\'ai formés sur vous, dit l\'Éternel, projets de paix et non de malheur, afin de vous donner un avenir et de l\'espérance.');
   const pastorWordQuoteRef = getContent(cm, 'pastor_word', 'bible_ref', 'Jérémie 29:11');
-  const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', 'https://snvmythqboaeakzcqkpy.supabase.co/storage/v1/object/public/media/home/about/1784289838638-pkobgo.jpg');
+  const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', '/pasteur-kazadi.jpg');
   const pastorSignature = getContent(cm, 'pastor_word', 'signature_image', '');
   const portraitScale = parseFloat(getContent(cm, 'pastor_word', 'portrait_scale', '1')) || 1;
   const portraitPosX = getContent(cm, 'pastor_word', 'portrait_pos_x', 'center'); // left | center | right
@@ -463,20 +458,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
       <SiteHeader onNavigate={onNavigate} />
       <MobileNav onNavigate={onNavigate} active="home" />
 
-      {/* ═══════ HERO (full-screen immersive — 100vh, full-width, no gaps) ═══════ */}
-      <section className="relative w-full h-[100dvh] m-0 p-0 spirit-breath flex items-center justify-center overflow-hidden" style={{ marginTop: 0 }}>
-        {/* Parallax background wrapper */}
+      {/* ═══════ HERO — pleine largeur, photo réelle, implantation à gauche ═══════ */}
+      <section className="relative w-full h-[100dvh] m-0 overflow-hidden flex items-end" style={{ marginTop: 0 }}>
+        {/* Photo de reportage — calée en clair-obscur sur le marine */}
         <div
           ref={bgRef}
-          className="absolute inset-[-15%] will-change-transform"
+          className="absolute inset-[-6%] will-change-transform"
           style={{ transition: 'transform 0.1s linear' }}
         >
-          {/* Background slideshow layer */}
           {heroImages.length > 1 ? (
             heroImages.map((img: string, i: number) => (
               <div
                 key={i}
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[2000ms] ease-in-out"
+                className="photo-claro-strong absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[1200ms] ease-in-out"
                 style={{
                   backgroundImage: `url(${img})`,
                   opacity: i === heroIndex ? 1 : 0,
@@ -485,98 +479,78 @@ export function HomePage({ onNavigate }: HomePageProps) {
             ))
           ) : (
             <div
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              className="photo-claro-strong absolute inset-0 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${heroImg})` }}
             />
           )}
         </div>
-        {/* Slideshow dots (only if multiple images) */}
+
+        {/* Voile marine : garantit la lisibilité du texte sur la photo */}
+        <div className="hero-scrim absolute inset-0" />
+        <div className="grid-lines absolute inset-0 pointer-events-none" />
+
+        {/* Sélecteur du diaporama — barres fines, registre institutionnel */}
         {heroImages.length > 1 && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          <div className="absolute bottom-10 right-6 z-20 flex gap-1.5 lg:right-10">
             {heroImages.map((_: string, i: number) => (
               <button
                 key={i}
                 onClick={() => setHeroIndex(i)}
-                className={`w-2 h-2 rounded-full transition-all duration-500 ${
-                  i === heroIndex
-                    ? 'bg-evangile-500 w-6'
-                    : 'bg-white/30 hover:bg-white/50'
+                className={`h-0.5 w-8 transition-all duration-500 ${
+                  i === heroIndex ? 'bg-evangile-600 w-14' : 'bg-white/25 hover:bg-white/50'
                 }`}
                 aria-label={`Image ${i + 1}`}
               />
             ))}
           </div>
         )}
-        {/* Dark overlay */}
-        <div className="absolute inset-0 bg-black/60" />
 
-        {/* Decorative grid overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-          }}
-        />
+        {/* Mot géant en filigrane — signature de l'affiche */}
+        <span className="watermark absolute -right-8 top-1/2 hidden -translate-y-1/2 text-[22vw] leading-none lg:block">
+          Conquête
+        </span>
 
-        {/* Radial red glow */}
-        <div className="absolute inset-0 bg-radial-primary pointer-events-none" />
+        {/* Contenu — aligné sur la grille, bloc en bas à gauche */}
+        <div className="relative z-10 w-full pb-16 pt-24 sm:pb-20 lg:pb-24">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="max-w-3xl">
+              <div className="animate-fade-up flex items-center gap-4">
+                <span className="rule-accent" />
+                <p className="section-eyebrow">{heroSubtitle}</p>
+              </div>
 
-        {/* Floating light particles */}
-        <div className="particle" style={{ width: 4, height: 4, left: '15%', bottom: -10, animationDuration: '18s', animationDelay: '0s' }} />
-        <div className="particle" style={{ width: 3, height: 3, left: '28%', bottom: -10, animationDuration: '14s', animationDelay: '2s' }} />
-        <div className="particle" style={{ width: 5, height: 5, left: '42%', bottom: -10, animationDuration: '22s', animationDelay: '5s' }} />
-        <div className="particle" style={{ width: 2, height: 2, left: '55%', bottom: -10, animationDuration: '12s', animationDelay: '1s' }} />
-        <div className="particle" style={{ width: 6, height: 6, left: '68%', bottom: -10, animationDuration: '25s', animationDelay: '7s' }} />
-        <div className="particle" style={{ width: 3, height: 3, left: '80%', bottom: -10, animationDuration: '16s', animationDelay: '3s' }} />
-        <div className="particle" style={{ width: 4, height: 4, left: '90%', bottom: -10, animationDuration: '20s', animationDelay: '6s' }} />
-        <div className="particle" style={{ width: 2, height: 2, left: '10%', bottom: -10, animationDuration: '10s', animationDelay: '4s' }} />
-        <div className="particle" style={{ width: 5, height: 5, left: '35%', bottom: -10, animationDuration: '19s', animationDelay: '8s' }} />
-        <div className="particle" style={{ width: 3, height: 3, left: '72%', bottom: -10, animationDuration: '15s', animationDelay: '0.5s' }} />
-        <div className="particle" style={{ width: 4, height: 4, left: '50%', bottom: -10, animationDuration: '21s', animationDelay: '3.5s' }} />
-        <div className="particle" style={{ width: 2, height: 2, left: '85%', bottom: -10, animationDuration: '13s', animationDelay: '1.5s' }} />
+              <div className="animate-fade-up mt-6" style={{ animationDelay: '0.08s' }}>
+                <h1 className="display-title">
+                  <span className="block">{heroTitle1}</span>
+                  <span className="block">{heroTitle2}</span>
+                </h1>
+              </div>
 
-        {/* Hero content */}
-        <div className="relative z-10 mx-auto max-w-4xl px-4 text-center">
-          {/* Main heading */}
-          <div className="animate-fade-up">
-            <h1 className="font-headline font-bold leading-tight">
-              <span className="brand-text text-4xl sm:text-5xl md:text-7xl lg:text-8xl block">{heroTitle1}</span>
-              <span className="text-cream text-4xl sm:text-5xl md:text-7xl lg:text-8xl block mt-2">{heroTitle2}</span>
-            </h1>
-          </div>
+              <div className="animate-fade-up mt-8 max-w-xl border-l-2 pl-5" style={{ animationDelay: '0.16s', borderColor: 'rgb(var(--brand-red-rgb))' }}>
+                <blockquote className="verse-quote">{heroBibleVerse}</blockquote>
+              </div>
 
-          {/* Subtitle */}
-          <div className="animate-fade-up mt-6" style={{ animationDelay: '0.1s' }}>
-            <p className="text-sm md:text-base uppercase tracking-widest text-muted font-medium">
-              {heroSubtitle}
-            </p>
-          </div>
+              <ServiceCountdown className="animate-fade-up mt-10" />
 
-          {/* Typing text — Bible verse */}
-          <div className="animate-fade-up mt-8" style={{ animationDelay: '0.2s' }}>
-            <TypingText
-              words={[heroBibleVerse]}
-              className="text-base md:text-lg text-cream/70 italic typing-cursor"
-            />
-          </div>
-
-          {/* CTA button — single, prominent */}
-          <div
-            className="animate-fade-up mt-12 flex flex-col items-center justify-center gap-4"
-            style={{ animationDelay: '0.3s' }}
-          >
-            <button onClick={() => onNavigate('activities')} className="btn-primary text-lg px-8 py-3">
-              {heroCtaPrimary}
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              <div
+                className="animate-fade-up mt-10 flex flex-wrap items-center gap-4"
+                style={{ animationDelay: '0.32s' }}
+              >
+                <button onClick={() => onNavigate('activities')} className="btn-primary">
+                  {heroCtaPrimary}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                <button onClick={() => onNavigate('about')} className="btn-ghost">
+                  Notre vision
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-bounce">
-          <ChevronDown className="h-6 w-6 text-cream/50" />
+        {/* Indice de défilement — fixe, sans rebond */}
+        <div className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2">
+          <ChevronDown className="h-5 w-5 text-cream/40" />
         </div>
       </section>
 
@@ -589,7 +563,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Nos Fondements</p>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+            <h2 className="section-title mt-4">
               Trois piliers qui nous guident
             </h2>
           </RevealSection>
@@ -603,7 +577,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <RevealSection key={num} className={`reveal-delay-${i + 1}`}>
                 <div className="glass-card group relative overflow-hidden rounded-2xl p-5 sm:p-8 transition-all duration-300 hover:-translate-y-1 border-t-2 border-transparent hover:border-t-accent-500/60 hover:shadow-lg hover:shadow-accent-500/5">
                   {/* Background number */}
-                  <span className="absolute top-4 right-6 text-5xl font-bold text-cream opacity-[0.07] select-none font-serif">
+                  <span className="absolute top-4 right-6 text-5xl font-bold tabular-nums text-cream opacity-[0.06] select-none">
                     {num}
                   </span>
 
@@ -613,7 +587,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   </IconBox>
 
                   {/* Content */}
-                  <h3 className={`mb-3 font-serif text-xl font-semibold ${accent}`}>
+                  <h3 className={`mb-3 text-xl font-semibold ${accent}`}>
                     {title}
                   </h3>
                   <p className="text-sm leading-relaxed text-muted">{desc}</p>
@@ -673,7 +647,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             {/* Right: Text */}
             <RevealSection className="reveal-delay-1">
               <p className="section-label">{pastorWordLabel}</p>
-              <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold leading-snug text-cream">
+              <h2 className="section-title mt-4">
                 {pastorWordTitle}
               </h2>
               <p className="mt-6 leading-relaxed text-muted">{pastorWordText1}</p>
@@ -704,7 +678,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Explorer</p>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+            <h2 className="section-title mt-4">
               Découvrez nos activités
             </h2>
             <p className="mt-3 text-sm text-muted max-w-2xl mx-auto">
@@ -746,7 +720,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/20 text-accent-400">
                         <IconComponent className="h-5 w-5" />
                       </div>
-                      <h3 className="font-serif text-lg font-semibold text-white">{card.title}</h3>
+                      <h3 className="text-lg font-semibold text-white">{card.title}</h3>
                       <div className="mt-2 flex items-center gap-2 text-sm text-accent-300 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 translate-y-0 sm:translate-y-2 sm:group-hover:translate-y-0 transition-all duration-300">
                         <span>Découvrir</span>
                         <ArrowRight className="h-3.5 w-3.5" />
@@ -767,7 +741,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
             <p className="section-label justify-center">Actualités</p>
-            <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+            <h2 className="section-title mt-4">
               {newsTitle}
             </h2>
             <p className="mt-4 text-muted max-w-2xl mx-auto">{newsSubtitle}</p>
@@ -806,7 +780,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     )}
                     {/* Content section */}
                     <div className="p-5 sm:p-6">
-                      <h3 className="font-serif text-lg font-semibold text-cream leading-snug group-hover:text-accent-300 transition-colors">
+                      <h3 className="text-lg font-semibold text-cream leading-snug group-hover:text-accent-300 transition-colors">
                         {evt.title}
                       </h3>
                       <ul className="mt-3 space-y-2">
@@ -861,7 +835,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
               <div className="h-px w-16 bg-gradient-to-l from-transparent to-evangile-600/50" />
             </div>
 
-            <p className="font-serif text-2xl italic leading-relaxed sm:text-3xl" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : { color: 'var(--cream)' }}>
+            <p className="font-serif text-2xl italic leading-relaxed sm:text-3xl" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : { color: 'rgb(var(--text-rgb))' }}>
               &laquo; {quoteText} &raquo;
             </p>
             <p className="mt-8 text-sm font-semibold uppercase tracking-widest text-accent-400" style={sectionColors['quote']?.text ? { color: sectionColors['quote'].text } : undefined}>
@@ -885,7 +859,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : undefined}>{pastorsLabel}</p>
-              <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : { color: 'var(--cream)' }}>
+              <h2 className="section-title mt-4" style={sectionColors['pastors']?.text ? { color: sectionColors['pastors'].text } : { color: 'rgb(var(--text-rgb))' }}>
                 {pastorsTitle}
               </h2>
             </RevealSection>
@@ -903,7 +877,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <RevealSection className="mb-14 text-center">
               <p className="section-label justify-center">Témoignages</p>
-              <h2 className="mt-4 font-serif text-3xl md:text-4xl font-semibold text-cream">
+              <h2 className="section-title mt-4">
                 Ce que Dieu fait parmi nous
               </h2>
             </RevealSection>
@@ -944,7 +918,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 </div>
               </div>
 
-              <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream">
+              <h2 className="section-title">
                 {ctaTitle}
               </h2>
               <p className="mt-4 text-lg leading-relaxed text-cream/90 max-w-lg mx-auto">

@@ -38,7 +38,7 @@ function getIcon(iconName: string): LucideIcon {
 const CARD_ACCENT_CLASSES = ['bg-radial-primary', 'bg-radial-ember'] as const;
 
 /* ─── Programme de la Semaine ─────────────────────────────────── */
-const LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
+const LOGO = '/logo-conquete.png';
 
 interface WeeklySlot {
   day: string; date: string; title: string; subtitle?: string;

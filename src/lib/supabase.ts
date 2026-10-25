@@ -33,6 +33,8 @@ import type {
   VisitRequest,
   SpiritualAssessment,
   NotificationItem,
+  InventoryItem,
+  InventoryReservation,
 } from '../types';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
@@ -739,6 +741,46 @@ export const db = {
 
   deleteEventComment(id: string) {
     return supabase.from('event_comments').delete().eq('id', id);
+  },
+
+  // ═══════════════════════════════════════════════
+  // Inventory (matériel de l'église)
+  // ═══════════════════════════════════════════════
+
+  getInventoryItems(category?: InventoryItem['category']) {
+    let query = supabase.from('inventory_items').select('*').order('name');
+    if (category) query = query.eq('category', category);
+    return fetchTable<InventoryItem>(query);
+  },
+
+  upsertInventoryItem(item: Partial<InventoryItem>) {
+    const payload = { ...item, updated_at: new Date().toISOString() };
+    // Without a primary key, `upsert` would target id = null and fail.
+    const builder = item.id
+      ? supabase.from('inventory_items').upsert(payload, { onConflict: 'id' })
+      : supabase.from('inventory_items').insert(payload);
+    return builder.select().single();
+  },
+
+  deleteInventoryItem(id: string) {
+    return supabase.from('inventory_items').delete().eq('id', id);
+  },
+
+  getInventoryReservations(itemId: string) {
+    return fetchTable<InventoryReservation>(
+      supabase
+        .from('inventory_reservations')
+        .select('*')
+        .eq('item_id', itemId)
+        .order('reserved_date', { ascending: false }),
+    );
+  },
+
+  upsertInventoryReservation(reservation: Partial<InventoryReservation>) {
+    const builder = reservation.id
+      ? supabase.from('inventory_reservations').upsert(reservation, { onConflict: 'id' })
+      : supabase.from('inventory_reservations').insert(reservation);
+    return builder.select().single();
   },
 };
 

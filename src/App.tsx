@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
+import type { Page } from './lib/navigation';
 
 /* ─── Lazy-loaded pages (code splitting — ALL pages) ─── */
 const HomePage = lazy(() => import('./pages/HomePage').then(m => ({ default: m.HomePage })));
@@ -53,7 +54,7 @@ function getPage(): Page {
 function PageLoader() {
   return (
     <div className="min-h-screen bg-bg flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-accent-400/30 border-t-accent-500 rounded-full animate-spin" />
+      <div className="keep-radius w-8 h-8 border-2 border-accent-400/30 border-t-accent-500 rounded-full animate-spin" />
     </div>
   );
 }
@@ -123,6 +124,13 @@ function AppRouter() {
     }
     window.location.hash = page;
   }, [page, openAuth, formToken, formOrateurToken]);
+
+  /* Pages publiques → registre « angles droits ». L'espace interne conserve
+     ses pilules et ses switchs arrondis. */
+  useEffect(() => {
+    const INTERNAL: Page[] = ['admin', 'dashboard', 'crm', 'reports', 'communication', 'pastoral'];
+    document.documentElement.classList.toggle('sharp', !INTERNAL.includes(page));
+  }, [page]);
 
   useEffect(() => {
     const fn = () => {

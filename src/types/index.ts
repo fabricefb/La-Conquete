@@ -6,7 +6,10 @@ export type ToastType = 'success' | 'error' | 'info';
 
 // ─── Navigation ──────────────────────────────────────────────────
 // NOTE: The canonical Page type lives in lib/navigation.ts.
-// Re-export here so that types/index.ts remains a single import point.
+// Imported for local use below AND re-exported so that types/index.ts
+// remains a single import point — a bare `export type { } from` does not
+// bring the name into this file's scope.
+import type { Page } from '../lib/navigation';
 export type { Page } from '../lib/navigation';
 export type Theme = 'dark' | 'light';
 
@@ -408,6 +411,7 @@ export interface PastorSocialLinks {
   twitter?: string;
   whatsapp?: string;
   website?: string;
+  email?: string;
 }
 
 export interface Pastor {
@@ -1429,4 +1433,36 @@ export interface EvangelismStats {
   rdv_pending: number;
   in_discipleship: number;
   rdv_completed: number;
+}
+
+// ─── Inventory (matériel de l'église) ────────────────────────────
+// Mirrors the CHECK constraints on inventory_items / inventory_reservations.
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: 'sound' | 'seating' | 'lighting' | 'literature' | 'generators' | 'tents' | 'vehicles' | 'other';
+  description: string | null;
+  quantity_total: number;
+  quantity_available: number;
+  condition: 'excellent' | 'good' | 'fair' | 'needs_repair' | 'retired';
+  location_stored: string | null;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InventoryReservation {
+  id: string;
+  item_id: string;
+  item_name: string | null;
+  event_id: string;
+  event_title: string | null;
+  quantity_reserved: number;
+  reserved_by: string;
+  reserved_by_name: string | null;
+  status: 'pending' | 'approved' | 'active' | 'returned' | 'overdue';
+  reserved_date: string;
+  return_date: string | null;
+  notes: string | null;
+  created_at: string;
 }

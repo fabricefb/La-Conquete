@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Mail, Phone, MapPin, Globe } from '../lib/icons';
+import { Mail, Phone, MapPin, Facebook, Youtube, Instagram, MessageCircle, Music } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { Theme } from '../types';
 import { ThemeToggle } from './ThemeToggle';
 import { db, buildSettingsMap } from '../lib/supabase';
+import { CHURCH, churchSetting } from '../lib/church';
 import type { Ministry } from '../types';
+
+// Le bloc de marque est le même qu'en tête : un seul logo, une seule clé de réglage.
+const DEFAULT_LOGO = '/logo-conquete.png';
 
 interface SiteFooterProps {
   onNavigate: (page: Page) => void;
@@ -58,24 +62,24 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     return () => { cancelled = true; };
   }, []);
 
-  const logoUrl = settingsMap['logo_url'] ?? '';
-  const churchName = settingsMap['church_name'] ?? 'Église Évangélique La Conquête';
-  const phone = settingsMap['phone'] ?? '+243 844 107 079';
-  const email = settingsMap['email'] ?? 'egliseevangeliquelaconquete@gmail.com';
-  const address = settingsMap['address'] ?? "520, Av. N'Djamena, Lubumbashi";
-  const city = settingsMap['city'] ?? 'Haut Katanga, RD Congo';
-  const facebookUrl = settingsMap['facebook_url'] ?? '';
+  const logoUrl = churchSetting(settingsMap, 'site_logo_url', DEFAULT_LOGO);
+  const churchName = churchSetting(settingsMap, 'church_name', CHURCH.name);
+  const phone = churchSetting(settingsMap, 'phone', CHURCH.phone.display);
+  const email = churchSetting(settingsMap, 'email', CHURCH.email);
+  const address = churchSetting(settingsMap, 'address', `${CHURCH.address.street}, réf. ${CHURCH.address.landmark}`);
+  const city = churchSetting(settingsMap, 'city', `${CHURCH.address.city}, ${CHURCH.address.country}`);
+  const facebookUrl = churchSetting(settingsMap, 'facebook_url', CHURCH.social.facebook);
   const youtubeUrl = settingsMap['youtube_url'] ?? '';
   const whatsappUrl = settingsMap['whatsapp_url'] ?? '';
-  const instagramUrl = settingsMap['instagram_url'] ?? '';
+  const instagramUrl = churchSetting(settingsMap, 'instagram_url', CHURCH.social.instagram);
   const tiktokUrl = settingsMap['tiktok_url'] ?? '';
 
-  const socialLinks: { href: string; label: string }[] = [
-    { href: facebookUrl, label: 'Facebook' },
-    { href: youtubeUrl, label: 'YouTube' },
-    { href: whatsappUrl, label: 'WhatsApp' },
-    { href: instagramUrl, label: 'Instagram' },
-    { href: tiktokUrl, label: 'TikTok' },
+  const socialLinks: { href: string; label: string; Icon: React.FC<{ className?: string }> }[] = [
+    { href: facebookUrl, label: 'Facebook', Icon: Facebook },
+    { href: youtubeUrl, label: 'YouTube', Icon: Youtube },
+    { href: whatsappUrl, label: 'WhatsApp', Icon: MessageCircle },
+    { href: instagramUrl, label: 'Instagram', Icon: Instagram },
+    { href: tiktokUrl, label: 'TikTok', Icon: Music },
   ].filter((s) => s.href);
 
   const navLinks: { label: string; page: Page }[] = [
@@ -95,25 +99,25 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-5">
           {/* Brand + social */}
           <div className="lg:col-span-1 flex flex-col gap-5">
-            <button onClick={() => onNavigate('home')} className="flex items-center gap-3 transition-opacity hover:opacity-80 w-fit">
-              <img src={logoUrl || '/logo-footer.png'} alt={churchName} className="h-10 w-10 rounded-full object-contain bg-white/5 p-0.5" />
-              <span className="gold-text text-lg font-bold tracking-wide">La Conquête</span>
+            <button onClick={() => onNavigate('home')} className="logo-plate w-fit transition-opacity hover:opacity-80" aria-label="La Conquête — Accueil">
+              <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-10 w-auto object-contain" />
             </button>
             <p className="text-sm text-muted leading-relaxed">
               {churchName} — Ancrée dans la foi, ouverte à tous, engagée dans la communauté de {city}.
             </p>
             {socialLinks.length > 0 && (
               <div className="flex items-center gap-3">
-                {socialLinks.map(({ href, label }) => (
+                {socialLinks.map(({ href, label, Icon }) => (
                   <a
                     key={label}
                     href={href}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-line text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400"
+                    title={label}
+                    className="flex h-10 w-10 items-center justify-center border border-line text-muted transition-colors duration-200 hover:border-evangile-600 hover:text-cream"
                   >
-                    <Globe className="h-4 w-4" />
+                    <Icon className="h-4 w-4" />
                   </a>
                 ))}
                 <ThemeToggle theme={theme} onToggle={onToggleTheme} />
@@ -172,9 +176,8 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-line pt-6 sm:flex-row">
           <p className="text-xs text-muted">&copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.</p>
-          <button onClick={() => onNavigate('home')} className="flex items-center gap-2 transition-opacity hover:opacity-80">
-            <img src={logoUrl || '/logo-footer.png'} alt={churchName} className="h-5 w-5 rounded-full object-contain bg-white/5 p-0.5" />
-            <span className="gold-text text-sm font-bold tracking-wide">La Conquête</span>
+          <button onClick={() => onNavigate('home')} className="text-xs font-semibold uppercase tracking-[0.2em] text-muted transition-colors hover:text-cream">
+            Retour à l'accueil
           </button>
         </div>
       </div>

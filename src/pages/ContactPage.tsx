@@ -10,6 +10,7 @@ import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
 import { MapPin, Phone, Mail, Globe, Clock, Send, Navigation } from '../lib/icons';
+import { SERVICE_TIMES } from '../lib/services';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
@@ -19,12 +20,7 @@ interface ContactPageProps {
 }
 
 // ─── Static service times ─────────────────────────────────────────
-const SERVICE_TIMES = [
-  { day: 'Dimanche', service: 'Culte Principal', time: '10h00 – 13h00', Icon: Clock },
-  { day: 'Mardi', service: 'Étude Biblique', time: '19h00 – 21h00', Icon: Clock },
-  { day: 'Jeudi', service: 'Intercession', time: '18h30 – 20h30', Icon: Clock },
-  { day: 'Vendredi', service: "Veillée d'Adoration", time: '22h00 – 02h00', Icon: Clock },
-] as const;
+// Source unique : src/lib/services.ts (aussi lue par le compte à rebours de l'accueil)
 
 // ─── Social link config ───────────────────────────────────────────
 interface SocialLinkDef {
@@ -445,15 +441,15 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">Nos cultes</h2>
           </RevealSection>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICE_TIMES.map(({ day, service, time, Icon }, i) => (
+            {SERVICE_TIMES.map(({ day, service, time }, i) => (
               <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
-                <div className="glass rounded-3xl p-6 text-center transition-all duration-300 hover:scale-105 active:scale-95">
-                  <IconBox pageKey="contact" elementId={`service-clock-icon-${i}`} className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-2xl border border-accent-400/20 text-accent-400">
-                    <Icon className="h-5 w-5" />
+                <div className="panel p-6 text-center">
+                  <IconBox pageKey="contact" elementId={`service-clock-icon-${i}`} className="mx-auto mb-4 flex h-11 w-11 items-center justify-center border border-line text-accent-400">
+                    <Clock className="h-5 w-5" />
                   </IconBox>
-                  <p className="text-xs font-bold uppercase tracking-widest text-accent-400">{day}</p>
-                  <h3 className="mt-1 font-serif text-lg font-semibold text-cream">{service}</h3>
-                  <p className="mt-1 text-sm text-muted">{time}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'rgb(var(--accent-red-rgb))' }}>{day}</p>
+                  <h3 className="card-title mt-2">{service}</h3>
+                  <p className="mt-2 text-sm text-muted">{time}</p>
                 </div>
               </RevealSection>
             ))}

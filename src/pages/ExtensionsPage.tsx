@@ -49,9 +49,9 @@ const FALLBACK_EXTENSIONS: Extension[] = [
       { title: 'Groupe de prière', schedule: 'Mercredi, 18h00', description: 'Moment de prière communautaire et intercession' },
     ],
     photos: [
-      'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1507692049790-de58290a4334?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1510590337019-5ef8d2d2b47e?w=600&h=400&fit=crop',
+      '/church-photo-1.jpg',
+      '/church-photo-2.jpg',
+      '/church-photo-3.jpg',
     ],
     program: [
       { day: 'Dimanche', time: '09h00 — 11h30', label: 'Culte principal' },
@@ -73,8 +73,8 @@ const FALLBACK_EXTENSIONS: Extension[] = [
       { title: 'Alpha Course', schedule: 'Mardi, 18h00', description: 'Cours d\'initiation à la foi chrétienne pour nouveaux croyants' },
     ],
     photos: [
-      'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=600&h=400&fit=crop',
+      '/predication-1.jpg',
+      '/priere.jpg',
     ],
     program: [
       { day: 'Dimanche', time: '10h00 — 12h00', label: 'Culte principal' },
@@ -97,9 +97,9 @@ const FALLBACK_EXTENSIONS: Extension[] = [
       { title: 'Aide sociale', schedule: 'En continu', description: 'Programme d\'aide aux familles vulnérables' },
     ],
     photos: [
-      'https://images.unsplash.com/photo-1449844908441-8829872d2607?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1438031653695-883f8c900b85?w=600&h=400&fit=crop',
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&h=400&fit=crop',
+      '/bible.jpg',
+      '/church-photo-1.jpg',
+      '/church-photo-2.jpg',
     ],
     program: [
       { day: 'Dimanche', time: '09h30 — 12h00', label: 'Culte principal' },
@@ -132,7 +132,7 @@ function mapDbToExtension(row: Record<string, any>): Extension {
       : [],
     photos: photo
       ? [photo]
-      : ['https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=600&h=400&fit=crop'],
+      : ['/church-photo-3.jpg'],
     program: row.schedule
       ? [{ day: 'Dimanche', time: row.schedule, label: 'Culte' }]
       : [],

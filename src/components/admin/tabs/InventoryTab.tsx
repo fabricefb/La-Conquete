@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAuth } from '../../../contexts/AuthContext';
 import type { InventoryItem, InventoryReservation, ChurchEvent } from '../../../types';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Search, Package } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
@@ -91,6 +92,7 @@ const EMPTY_FORM: ItemFormData = {
 
 export function InventoryTab() {
   const { addToast } = useToast();
+  const { user, profile } = useAuth();
 
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -246,17 +248,26 @@ export function InventoryTab() {
       addToast('Veuillez remplir tous les champs obligatoires', 'error');
       return;
     }
+    // reserved_by is NOT NULL with a FK on user_profiles — an empty string always
+    // fails the constraint, so a signed-in user is mandatory here.
+    if (!user?.id) {
+      addToast('Vous devez être connecté pour réserver du matériel', 'error');
+      return;
+    }
+    const selectedItem = items.find((i) => i.id === selectedItemId);
     setSaving(true);
     try {
       await db.upsertInventoryReservation({
         item_id: selectedItemId,
+        item_name: selectedItem?.name ?? null,
         event_id: resForm.event_id,
         quantity_reserved: resForm.quantity_reserved,
         reserved_date: resForm.reserved_date || new Date().toISOString(),
         return_date: resForm.return_date || undefined,
         notes: resForm.notes || undefined,
         status: 'pending',
-        reserved_by: '',
+        reserved_by: user.id,
+        reserved_by_name: profile?.full_name ?? null,
         created_at: new Date().toISOString(),
       });
       addToast('Réservation ajoutée', 'success');

@@ -14,7 +14,7 @@ import type { Pastor } from '../types';
 interface PageProps { onNavigate: (page: Page) => void; }
 
 const DEFAULT_ABOUT_HERO_IMG =
-  'https://images.pexels.com/photos/2889440/pexels-photo-2889440.jpeg?auto=compress&cs=tinysrgb&w=1920';
+  '/church-photo-3.jpg';
 
 /* ── Hardcoded fallback pastors (used only if DB is empty) ── */
 const FALLBACK_PASTORS: Pastor[] = [

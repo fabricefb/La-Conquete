@@ -13,7 +13,8 @@ import { ThemeToggle } from './ThemeToggle';
 import { db, buildSettingsMap } from '../lib/supabase';
 
 // Default logo — overridable via Supabase site_settings (key: site_logo_url)
-const DEFAULT_LOGO = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAuHDznVSbj77TcRuf-r0to8rCYGPa9lZ75G4Zm7hbC__8gp8d56nTozKyHZyybWU9xdaBURMxftyiZF-i4Zdp8XT_bJYNT-WVQWu3r32FHqxjRzt9cCMpPuHJJZryUrKgHbCiFJYnLg0boUgp8ATuXf_zhlyEhW-QlPQVcfIXjf8lrX2G3JGtujmvo3YKp_c94RqPQf5g8LvIBM1zRCErGSOVjRIw8SQ4aH3aliCJ-EOhKBq-PO5S3pZoaMuTk7u2iKCU';
+// The wordmark is white-on-transparent, so it must always sit on a dark plate.
+const DEFAULT_LOGO = '/logo-conquete.png';
 
 /* ═══════════════════════════════════════════════════════════════════
    Navigation Data — 7 main items with mega menu support
@@ -49,9 +50,9 @@ interface NavItem {
 
 // Default mega menu images — overridable via site_settings keys:
 //   mega_menu_image_about, mega_menu_image_vie_eglise, mega_menu_image_media
-const DEFAULT_VISION_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
-const DEFAULT_MEDIA_IMAGE = 'https://images.unsplash.com/photo-1507838153414-b4b713384a76?w=400&h=300&fit=crop';
-const DEFAULT_VIE_EGLISE_IMAGE = 'https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&h=300&fit=crop';
+const DEFAULT_VISION_IMAGE = '/church-photo-2.jpg';
+const DEFAULT_MEDIA_IMAGE = '/predication-1.jpg';
+const DEFAULT_VIE_EGLISE_IMAGE = '/church-photo-3.jpg';
 
 const NAV_ITEMS: NavItem[] = [
   /* 1. Accueil */
@@ -590,10 +591,9 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
       <button
         key={item.page}
         onClick={() => handleNav(item.page!)}
-        className={`nav-item-zoom rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-          activePage === item.page
-            ? 'text-accent-400 bg-accent-400/10'
-            : 'text-muted hover:text-cream hover:bg-white/5'
+        aria-current={activePage === item.page ? 'page' : undefined}
+        className={`relative px-3 py-2 text-[13px] font-medium tracking-wide transition-colors duration-200 after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-evangile-600 after:transition-transform after:duration-300 hover:text-cream hover:after:scale-x-100 ${
+          activePage === item.page ? 'text-cream after:scale-x-100' : 'text-muted'
         }`}
       >
         {item.label}
@@ -631,17 +631,13 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
   return (
     <>
       {/* ═════════════ Desktop / Tablet Header ═════════════ */}
-      <header className={`fixed left-0 right-0 ${topOffset || 'top-0'} z-40 transition-all duration-300 ${
-        scrolled ? 'glass border-b border-line shadow-lg' : 'bg-bg/80 border-b border-transparent'
+      <header className={`fixed left-0 right-0 ${topOffset || 'top-0'} z-40 border-b border-line bg-bg transition-[background-color] duration-300 ${
+        scrolled ? 'shadow-lg' : ''
       }`}>
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          {/* LEFT: Logo */}
-          <button onClick={() => handleNav('home')} className="flex shrink-0 items-center gap-3 transition-opacity duration-200 hover:opacity-80">
-            <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
-            <div className="hidden sm:flex flex-col leading-tight">
-              <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
-              <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
-            </div>
+          {/* LEFT: Logo — le bloc de marque porte déjà le nom, on ne le répète pas */}
+          <button onClick={() => handleNav('home')} className="logo-plate transition-opacity duration-200 hover:opacity-80" aria-label="La Conquête — Accueil">
+            <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-9 w-auto object-contain sm:h-10" />
           </button>
 
           {/* RIGHT: Desktop Navigation + Actions */}
@@ -704,12 +700,8 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <div className="fixed inset-0 z-[60] flex flex-col bg-bg lg:hidden drawer-enter">
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
-            <button onClick={() => handleNav('home')} className="flex items-center gap-2.5">
-              <img src={logoUrl} alt="La Conquête" className="h-11 w-11 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
-              <div className="flex flex-col leading-tight">
-                <span className="brand-text text-[11px] font-medium tracking-wide lowercase">église évangélique</span>
-                <span className="brand-text text-sm font-extrabold tracking-widest uppercase">LA CONQUÊTE</span>
-              </div>
+            <button onClick={() => handleNav('home')} className="logo-plate" aria-label="La Conquête — Accueil">
+              <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-9 w-auto object-contain" />
             </button>
             <button
               onClick={() => setDrawerOpen(false)}

@@ -29,7 +29,7 @@ const weeklyServices = [
   { title: 'Dévotion Matinale', day: 'Lun – Ven', time: '06h00 – 08h00', Icon: GraduationCap, desc: 'Chaque jour de la semaine' },
 ];
 
-const FALLBACK_IMG = 'https://images.pexels.com/photos/2774557/pexels-photo-2774557.jpeg?auto=compress&cs=tinysrgb&w=800';
+const FALLBACK_IMG = '/priere.jpg';
 
 /* ─── Material Symbol wrapper ─── */
 function MS({ children, className = '' }: { children: string; className?: string }) {

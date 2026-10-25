@@ -53,11 +53,13 @@ export default {
         /* --- Blanc Cristal --- */
         'cristal': '#FFFFFF',
 
-        /* ─── Legacy aliases (maintain backward compat) ─── */
-        ink:   { 950:'#050810', 900:'#080d1a', 800:'#0c1322', 700:'#0f2147', 600:'#162d5e', 500:'#1e3a75', 400:'#2a4d94', 300:'#3a62b3' },
-        gold:  { 50:'#fef2f2', 100:'#fee2e2', 200:'#fca5a5', 300:'#f87171', 400:'#ef4444', 500:'#E3221F', 600:'#c91916', 700:'#a31311', 800:'#7f100f', 900:'#5c0c0b' },
-        ember: { 400:'#ff7b6b', 500:'#f23c2e', 600:'#b9170d', 700:'#8c110a' },
-        sky:   { 50:'#f0f4ff', 100:'#D8E3FB', 200:'#b8ccf7', 300:'#8fb0f0', 400:'#6a96e8', 500:'#4a7cdd', 600:'#3a64be', 700:'#2d4e9a', 800:'#1e3470', 900:'#0f2147' },
+        /* ─── Legacy aliases — rebranched on the official palette so the brand
+               values live in exactly one place. Do NOT add new usages: migrate to
+               conquest / evangile / divin instead. Slated for removal in Phase 3. ─── */
+        ink:   { 950:'#060D1D', 900:'#09132B', 800:'#0C1A39', 700:'#0F2147', 600:'#1A3480', 500:'#2D4BA5', 400:'#576FB7', 300:'#8193C9' },
+        gold:  { 50:'#FEF2F2', 100:'#FEE2E2', 200:'#FECACA', 300:'#FCA5A5', 400:'#F87171', 500:'#EF4444', 600:'#E3221F', 700:'#B91C1C', 800:'#991B1B', 900:'#7F1D1D' },
+        ember: { 400:'#F87171', 500:'#EF4444', 600:'#E3221F', 700:'#B91C1C' },
+        sky:   { 50:'#F5F7FF', 100:'#D8E3FB', 200:'#B8CCF7', 300:'#8FB0F0', 400:'#6A96E8', 500:'#4A7CDD', 600:'#3A64BE', 700:'#2D4E9A', 800:'#1E3470', 900:'#0F2147' },
 
         /* --- Accent Bleu (nuances de bleu pour icônes, labels, hover) --- */
         'accent': {
@@ -87,12 +89,18 @@ export default {
          TYPOGRAPHIE OFFICIELLE
          ═══════════════════════════════════════════════════════════ */
       fontFamily: {
-        'headline': ['"Playfair Display"', 'serif'],
-        'display':  ['"Playfair Display"', 'serif'],
-        'body':     ['"Poppins"', 'sans-serif'],
-        'sans':     ['"Poppins"', 'system-ui', 'sans-serif'],
-        /* Legacy */
-        'playfair': ['"Playfair Display"', 'serif'],
+        'headline': ['"Playfair Display"', 'Georgia', 'serif'],
+        'display':  ['"Playfair Display"', 'Georgia', 'serif'],
+        'body':     ['Poppins', 'system-ui', 'sans-serif'],
+        'sans':     ['Poppins', 'system-ui', 'sans-serif'],
+        /* `hero` = registre institutionnel des pages publiques : condensé,
+           capitales, graisse unique. `display`/`headline` restent Playfair pour
+           l'espace interne — ne pas les confondre. */
+        'hero':     ['"Bebas Neue"', 'Oswald', 'Poppins', 'sans-serif'],
+        /* `font-serif` is used ~90x across the public pages: bind it to the brand
+           serif instead of letting Tailwind fall back to the ui-serif stack. */
+        'serif':    ['"Playfair Display"', 'Georgia', 'serif'],
+        'mono':     ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
 
       fontSize: {

@@ -86,9 +86,8 @@ export function EvangelisationPage({ onNavigate }: { onNavigate: (page: any) => 
 
   const loadContent = useCallback(async () => {
     try {
-      const { data } = await db.contents.select().eq('page', 'evangelisation');
-      const map = data ? buildContentMap(data) : {};
-      setContent(map);
+      const rows = await db.getPageContents('evangelisation');
+      setContent(buildContentMap(rows));
     } catch {
       // fallback to defaults
     } finally {
@@ -118,8 +117,8 @@ export function EvangelisationPage({ onNavigate }: { onNavigate: (page: any) => 
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src="https://images.pexels.com/photos/382297/pexels-photo-382297.jpeg?auto=compress&cs=tinysrgb&w=1920&h=1080&dpr=2"
-            alt="Community outreach"
+            src="/church-photo-1.jpg"
+            alt="Équipe en mission d'évangélisation"
             className="h-full w-full object-cover"
             loading="eager"
           />
