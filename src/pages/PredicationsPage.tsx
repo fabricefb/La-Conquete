@@ -8,6 +8,8 @@ import { MobileNav } from '../components/MobileNav';
 import { Play, Clock, Search, Calendar, Headphones, Mic, ArrowRight, BookOpen, Filter, Loader2 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import { UniversalHero } from '../components/UniversalHero';
+import { YOUTUBE_CHANNEL } from '../lib/teachings';
+import { CHURCH } from '../lib/church';
 
 // ═══════════════════════════════════════════════════════════════════
 // TYPES
@@ -288,23 +290,23 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
 
       {/* ─── HERO ─── */}
       <UniversalHero pageKey="predications" defaultBadge="Prédications" defaultTitle="Nos Prédications" defaultSubtitle="Retrouvez les enseignements bibliques, prédications et séries de notre église pour nourrir votre vie spirituelle.">
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4 animate-fade-up" style={{ animationDelay: '0.3s' }}>
+        <div className="mt-8 flex items-center gap-2 animate-fade-up sm:gap-3" style={{ animationDelay: '0.3s' }}>
           <a
-            href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+            href={YOUTUBE_CHANNEL.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full bg-accent-400 px-6 py-3 text-sm font-bold text-navy-900 transition-all duration-300 hover:bg-accent-300 hover:scale-[1.03] active:scale-95"
+            className="btn-primary flex-1 gap-1.5 whitespace-nowrap px-3 py-2.5 text-[12.5px] sm:flex-none sm:gap-2.5 sm:px-6"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
             Voir sur YouTube
           </a>
           <a
-            href="https://www.facebook.com/profile.php?id=100063920379476"
+            href={CHURCH.social.facebook}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-6 py-3 text-sm font-bold text-gold transition-all duration-300 hover:bg-gold/20 hover:scale-[1.03] active:scale-95"
+            className="btn-ghost flex-1 gap-1.5 whitespace-nowrap px-3 py-2.5 text-[12.5px] sm:flex-none sm:gap-2.5 sm:px-6"
           >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
             Voir sur Facebook
           </a>
         </div>
@@ -364,7 +366,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
           <div className="grid gap-6 sm:grid-cols-2">
             {/* YouTube Card */}
             <a
-              href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+              href={YOUTUBE_CHANNEL.url}
               target="_blank"
               rel="noopener noreferrer"
               className="glass group rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.02]"
@@ -395,7 +397,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
 
             {/* Facebook Card */}
             <a
-              href="https://www.facebook.com/profile.php?id=100063920379476"
+              href={CHURCH.social.facebook}
               target="_blank"
               rel="noopener noreferrer"
               className="glass group rounded-3xl overflow-hidden transition-all duration-300 hover:scale-[1.02]"
@@ -476,7 +478,7 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
               Les prédications seront bientôt disponibles. Consultez notre chaîne YouTube en attendant.
             </p>
             <a
-              href="https://www.youtube.com/@EgliseEvangeliqueLaConquete"
+              href={YOUTUBE_CHANNEL.url}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-accent-400 px-6 py-3 text-sm font-bold text-navy-900 transition-all duration-300 hover:bg-accent-300 hover:scale-[1.03]"

@@ -44,7 +44,15 @@ function WhatsAppIcon({ className = 'h-4 w-4' }: { className?: string }) {
 
 export function QuickActions({ onNavigate }: QuickActionsProps) {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 120);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -69,10 +77,12 @@ export function QuickActions({ onNavigate }: QuickActionsProps) {
     onNavigate(page);
   };
 
+  if (!scrolled && !open) return null;
+
   return (
     <div
       ref={rootRef}
-      className="fixed bottom-24 right-4 z-[70] flex flex-col items-end gap-3 lg:bottom-8 lg:right-8"
+      className="fixed bottom-24 right-4 z-[70] flex flex-col items-end gap-3 animate-fade-up lg:bottom-8 lg:right-8"
     >
       {open && (
         <div
@@ -140,7 +150,7 @@ export function QuickActions({ onNavigate }: QuickActionsProps) {
         {!open && (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute right-full top-1/2 mr-3 hidden -translate-y-1/2 whitespace-nowrap border border-line bg-bg-card px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream shadow-lg lg:block"
+            className="pointer-events-none absolute right-full top-1/2 mr-3 hidden -translate-y-1/2 translate-x-2 whitespace-nowrap border border-line bg-bg-card px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream opacity-0 shadow-lg transition-[opacity,transform] duration-200 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 lg:block"
           >
             Accès rapides
           </span>

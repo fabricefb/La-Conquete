@@ -61,3 +61,10 @@ export function churchSetting(
   const v = settingsMap[key];
   return v && v.trim() ? v.trim() : fallback;
 }
+
+/** Comptes officiels pour les dîmes et offrandes. Aucun autre numéro ne doit circuler. */
+export const GIVING_ACCOUNTS = [
+  { label: 'Mobile Money — M-Pesa / Orange Money', value: CHURCH.phone.display },
+  { label: 'Equity BCDC — USD', value: '16610-00997-08928' },
+  { label: 'Equity BCDC — FC', value: '16620-00997-10572' },
+] as const;

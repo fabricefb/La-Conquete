@@ -340,7 +340,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .display-title {
     @apply font-hero uppercase text-cream;
     font-weight: 400;
-    font-size: clamp(3.5rem, 11vw, 9.5rem);
+    font-size: clamp(3rem, 8.5vw, 8rem);
     line-height: 0.86;
     letter-spacing: 0.012em;
   }
@@ -393,7 +393,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     @apply font-hero;
     font-variant-numeric: tabular-nums;
     color: rgb(var(--accent-red-rgb));
-    font-size: clamp(2.5rem, 5.5vw, 3.75rem);
+    font-size: clamp(2rem, 4.5vw, 3.125rem);
     line-height: 0.9;
     letter-spacing: 0.02em;
   }
@@ -465,13 +465,13 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 
   /* --- Boutons — angle droit, aplats francs, aucun rebond --- */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter,background-color] duration-200 hover:brightness-110 active:brightness-95;
-    letter-spacing: 0.025em;
+    @apply inline-flex items-center justify-center gap-2 bg-evangile-600 px-6 py-3 text-[12.5px] font-semibold text-white transition-[filter,background-color] duration-200 hover:brightness-110 active:brightness-95;
+    letter-spacing: 0.02em;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2.5 border px-8 py-4 text-[15px] font-semibold transition-colors duration-200;
-    letter-spacing: 0.025em;
+    @apply inline-flex items-center justify-center gap-2 border px-6 py-3 text-[12.5px] font-semibold transition-colors duration-200;
+    letter-spacing: 0.02em;
     border-color: rgb(var(--btn-ghost-border-rgb) / var(--btn-ghost-border-a));
     color: rgb(var(--btn-ghost-text-rgb));
   }
@@ -490,15 +490,15 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
 
   /* --- Accent CTA button --- */
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95;
-    letter-spacing: 0.025em;
+    @apply inline-flex items-center justify-center gap-2 bg-evangile-600 px-6 py-3 text-[12.5px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95;
+    letter-spacing: 0.02em;
   }
 
   /* --- Legacy aliases (gold → brand bleu) --- */
   .gold-text { background: linear-gradient(135deg, rgb(var(--accent-300-rgb)) 0%, rgb(var(--accent-500-rgb)) 40%, #E3221F 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
   .gold-line { background: linear-gradient(90deg, transparent, rgb(var(--accent-400-rgb)), transparent); }
-  .btn-gold { @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.025em; }
-  .btn-ember { @apply inline-flex items-center justify-center gap-2.5 bg-evangile-600 px-8 py-4 text-[15px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.025em; }
+  .btn-gold { @apply inline-flex items-center justify-center gap-2 bg-evangile-600 px-6 py-3 text-[12.5px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.02em; }
+  .btn-ember { @apply inline-flex items-center justify-center gap-2 bg-evangile-600 px-6 py-3 text-[12.5px] font-semibold text-white transition-[filter] duration-200 hover:brightness-110 active:brightness-95; letter-spacing: 0.02em; }
 
   /* --- Input surface --- */
   .input-surface {
@@ -556,6 +556,54 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     will-change: transform;
   }
   @keyframes heroZoom { from { transform: scale(1); } to { transform: scale(1.09); } }
+
+  /* ─── Hero intérieur — wipe d'ouverture + lueur de séparation ─── */
+  .hero-reveal-wipe {
+    animation: heroWipe 1.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-reveal-wipe.hero-slide-zoom {
+    animation:
+      heroWipe 1.4s cubic-bezier(0.22, 1, 0.36, 1) both,
+      heroZoom 22s ease-in-out 1.4s infinite alternate;
+  }
+  @keyframes heroWipe {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 0 0 0); }
+  }
+
+  .hero-glow-separator {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: min(84%, 1040px);
+    height: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, transparent, rgb(var(--brand-red-rgb) / 0.9), transparent);
+    box-shadow:
+      0 0 18px 2px rgb(var(--brand-red-rgb) / 0.35),
+      0 0 70px 18px rgb(var(--brand-red-rgb) / 0.14);
+  }
+  .hero-glow-separator::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: min(66%, 680px);
+    height: 130px;
+    transform: translateX(-50%);
+    background: radial-gradient(ellipse at center bottom, rgb(255 255 255 / 0.08), rgb(var(--brand-red-rgb) / 0.1) 38%, transparent 72%);
+    filter: blur(16px);
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-reveal-wipe,
+    .hero-reveal-wipe.hero-slide-zoom,
+    .hero-slide-zoom {
+      animation: none;
+      transform: none;
+    }
+  }
 
   /* ─── Pulse (Bleu accent) ─── */
   .animate-pulse-primary { animation: pulsePrimary 2s ease-in-out infinite; }
@@ -735,7 +783,7 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     .card-parallax:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
     .glass, .glass-card { backdrop-filter: blur(10px) saturate(150%); -webkit-backdrop-filter: blur(10px) saturate(150%); }
     body { -webkit-tap-highlight-color: transparent; }
-    .btn-primary, .btn-ghost, .btn-accent, .btn-gold, .btn-ember { min-height: 48px; }
+    .btn-primary, .btn-ghost, .btn-accent, .btn-gold, .btn-ember { min-height: 44px; }
   }
 
   /* ─── Leaflet theme ─── */

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { db, buildContentMap, getContent } from '../lib/supabase';
-import { useReveal } from '../lib/hooks';
 
 interface UniversalHeroProps {
   pageKey: string;
@@ -8,18 +7,30 @@ interface UniversalHeroProps {
   defaultTitle: string;
   defaultSubtitle?: string;
   bgImage?: string;
-  fullScreen?: boolean;
   children?: React.ReactNode;
 }
 
+/* Photo de reportage par défaut quand la page n'en déclare pas encore.
+   Remplaçable depuis l'admin (page_contents.hero.bg_image). */
+const PAGE_HERO_IMAGES: Record<string, string> = {
+  activities: '/church-photo-2.jpg',
+  annonces: '/church-photo-3.jpg',
+  blog: '/church-photo-3.jpg',
+  communiques: '/church-photo-1.jpg',
+  contact: '/church-photo-2.jpg',
+  departments: '/church-photo-2.jpg',
+  dons: '/church-photo-1.jpg',
+  emissions: '/church-photo-1.jpg',
+  enseignements: '/church-photo-3.jpg',
+  jeunesse: '/church-photo-2.jpg',
+  media: '/church-photo-3.jpg',
+  predications: '/church-photo-1.jpg',
+};
+
 /**
- * UniversalHero — hero section réutilisable pour TOUTES les pages.
- * Lit badge/title/subtitle/bg_image depuis page_contents, avec fallbacks.
- * L'admin peut tout modifier via ContentsTab.
- *
- * Fix: le bg-radial-primary utilise le shorthand CSS 'background:' qui peut
- * entrer en conflit avec le style inline backgroundImage. Solution: utiliser
- * des divs séparés pour le fond image et le gradient radial.
+ * Hero institutionnel partagé par toutes les pages intérieures.
+ * Photo traitée en clair-obscur, titre condensé, filet rouge,
+ * puis fondu + lueur qui séparent le hero de la section suivante.
  */
 export function UniversalHero({
   pageKey,
@@ -27,7 +38,6 @@ export function UniversalHero({
   defaultTitle,
   defaultSubtitle = '',
   bgImage,
-  fullScreen = false,
   children,
 }: UniversalHeroProps) {
   const [cm, setCm] = useState<Record<string, string>>({});
@@ -45,91 +55,97 @@ export function UniversalHero({
   const badge = getContent(cm, 'hero', 'badge', defaultBadge);
   const title = getContent(cm, 'hero', 'title', defaultTitle);
   const subtitle = getContent(cm, 'hero', 'subtitle', defaultSubtitle);
-  const heroBg = bgImage || getContent(cm, 'hero', 'bg_image', '');
+  const heroBg = bgImage || getContent(cm, 'hero', 'bg_image', '') || PAGE_HERO_IMAGES[pageKey] || '';
+  const onImage = Boolean(heroBg);
 
-  if (fullScreen) {
-    return (
-      <section
-        className="relative min-h-screen spirit-breath flex items-center justify-center overflow-hidden"
-      >
-        {heroBg && (
+  const titleColor = onImage ? '#FFFFFF' : 'rgb(var(--text-rgb))';
+  const mutedColor = onImage ? 'rgba(255,255,255,0.72)' : 'rgb(var(--text-muted-rgb))';
+  const watermarkColor = onImage ? 'rgba(255,255,255,0.06)' : 'rgb(var(--text-rgb) / 0.05)';
+
+  return (
+    <section className="relative flex min-h-[62vh] items-end overflow-hidden border-b border-line sm:min-h-[68vh] lg:min-h-[76vh]">
+      {heroBg ? (
+        <>
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className="photo-claro-strong hero-reveal-wipe hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url(${heroBg})` }}
           />
-        )}
-        <div className="absolute inset-0 bg-black/60" />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-            backgroundSize: '60px 60px',
-          }}
-        />
-        <div className="absolute inset-0 bg-radial-primary pointer-events-none" />
-        <div className="relative z-10 mx-auto max-w-4xl px-4 pt-28 pb-20 text-center">
-          {badge && (
-            <div className="animate-fade-up">
-              <span className="mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
-                {badge}
-              </span>
-            </div>
-          )}
-          <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-            <h1 className="font-headline font-bold leading-tight text-cream">
-              <span className="brand-text text-5xl md:text-7xl lg:text-8xl block">{title}</span>
+          <div className="absolute inset-0 bg-ink-950/40" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(100deg, rgba(6,13,29,0.94) 0%, rgba(6,13,29,0.7) 42%, rgba(6,13,29,0.18) 74%, rgba(6,13,29,0.45) 100%)',
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/35" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-radial-primary" />
+      )}
+
+      <div className="grid-lines pointer-events-none absolute inset-0" />
+      <span
+        className="watermark pointer-events-none absolute -right-4 top-24 hidden text-[15vw] leading-none lg:block"
+        style={{ color: watermarkColor }}
+      >
+        {title}
+      </span>
+
+      <div className="relative z-10 w-full pb-28 pt-32 sm:pb-32 sm:pt-36 lg:pb-36">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl">
+            {badge && (
+              <div className="animate-fade-up flex items-center gap-4">
+                <span className="h-px w-10 bg-evangile-600" />
+                <p className="section-eyebrow">{badge}</p>
+              </div>
+            )}
+
+            <h1
+              className="animate-fade-up mt-5 font-hero uppercase"
+              style={{
+                color: titleColor,
+                fontSize: 'clamp(3rem, 8vw, 6rem)',
+                lineHeight: 0.88,
+                letterSpacing: '0.012em',
+                fontWeight: 400,
+                animationDelay: '0.08s',
+              }}
+            >
+              {title}
             </h1>
-          </div>
-          {subtitle && (
-            <div className="animate-fade-up mt-6" style={{ animationDelay: '0.2s' }}>
-              <p className="text-sm md:text-base uppercase tracking-widest text-muted font-medium">
+
+            <span
+              className="animate-fade-up mt-6 block h-px w-24 bg-evangile-600"
+              style={{ animationDelay: '0.14s' }}
+            />
+
+            {subtitle && (
+              <p
+                className="animate-fade-up mt-6 max-w-2xl text-base leading-relaxed sm:text-lg"
+                style={{ color: mutedColor, animationDelay: '0.2s' }}
+              >
                 {subtitle}
               </p>
-            </div>
-          )}
-          {children}
-        </div>
-      </section>
-    );
-  }
+            )}
 
-  // Standard hero — image et gradient sur des divs séparés pour éviter les conflits CSS
-  return (
-    <section className="relative flex min-h-[50vh] sm:min-h-[60vh] md:min-h-[70vh] items-center justify-center overflow-hidden">
-      {/* Image de fond (si fournie) */}
-      {heroBg && (
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        />
-      )}
-      {/* Overlay sombre quand il y a une image */}
-      {heroBg && <div className="absolute inset-0 bg-black/50" />}
-      {/* Gradient radial par défaut (visible si pas d'image) */}
-      {!heroBg && <div className="absolute inset-0 bg-radial-primary" />}
-      {/* Contenu */}
-      <div className="relative z-10 mx-auto max-w-4xl px-4 py-16 pt-24 sm:py-20 sm:pt-28 text-center">
-        {badge && (
-          <div className="animate-fade-up">
-            <span className="mb-4 inline-block rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gold">
-              {badge}
-            </span>
+            {children && (
+              <div className="animate-fade-up mt-8" style={{ animationDelay: '0.26s' }}>
+                {children}
+              </div>
+            )}
           </div>
-        )}
-        <div className="animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <h1 className="font-serif text-3xl font-bold leading-tight text-cream sm:text-4xl md:text-5xl lg:text-6xl">
-            {title}
-          </h1>
         </div>
-        {subtitle && (
-          <div className="animate-fade-up mt-6" style={{ animationDelay: '0.2s' }}>
-            <p className="text-lg leading-relaxed text-muted sm:text-xl">
-              {subtitle}
-            </p>
-          </div>
-        )}
-        {children}
+      </div>
+
+      {/* Fondu vers la section suivante + lueur rouge de séparation */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[2] h-24 sm:h-32">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, transparent, rgb(var(--bg-rgb)) 92%)' }}
+        />
+        <div className="hero-glow-separator" />
       </div>
     </section>
   );

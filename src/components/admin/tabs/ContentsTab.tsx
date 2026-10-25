@@ -333,8 +333,8 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'description', label: 'Sous-titre / Description', type: 'text', value: 'Gérez les prédications affichées sur la page #predications et modifiez chaque carte depuis le back-office.' },
     ],
     pastors: [
-      { field_key: 'label', label: 'Label de section', type: 'text', value: 'Notre équipe' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Rencontrez ceux qui servent' },
+      { field_key: 'label', label: 'Label de section', type: 'text', value: 'Bureau pastoral' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: "Une équipe au service de l'Église" },
     ],
     quote: [
       { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: '' },

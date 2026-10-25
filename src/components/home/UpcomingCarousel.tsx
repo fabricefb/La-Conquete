@@ -214,18 +214,18 @@ export function UpcomingCarousel({ events, agenda, onNavigate }: UpcomingCarouse
                       </p>
                     )}
 
-                    <div className="mt-8 flex flex-wrap items-center gap-3">
+                    <div className="mt-7 flex flex-wrap items-center gap-3">
                       <button onClick={() => onNavigate(slide.page)} className="btn-primary">
                         {slide.cta}
-                        <ArrowRight className="h-4 w-4" />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                       <a
                         href={whatsapp(slide.title)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 border border-white/30 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-white/10"
+                        className="inline-flex items-center gap-2 border border-white/30 px-5 py-2.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-white/10"
                       >
-                        <Bell className="h-4 w-4" />
+                        <Bell className="h-3.5 w-3.5" />
                         Me prévenir
                       </a>
                     </div>

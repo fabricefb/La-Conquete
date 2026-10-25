@@ -11,6 +11,7 @@ import { getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
 import type { Page } from '../lib/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { db, buildSettingsMap } from '../lib/supabase';
+import { CHURCH } from '../lib/church';
 
 // Default logo — overridable via Supabase site_settings (key: site_logo_url)
 // The wordmark is white-on-transparent, so it must always sit on a dark plate.
@@ -186,11 +187,15 @@ function LiveIndicators() {
   const { youtube, facebook } = useLiveStatus();
   if (!youtube && !facebook) return null;
 
+  // La chaîne n'est liée que si elle est configurée ; on ne fabrique pas d'URL.
+  const youtubeChannelId = import.meta.env.VITE_YOUTUBE_CHANNEL_ID as string | undefined;
+  const youtubeUrl = youtubeChannelId ? `https://www.youtube.com/channel/${youtubeChannelId}` : '';
+
   return (
     <div className="flex items-center gap-3">
-      {youtube && (
+      {youtube && youtubeUrl && (
         <a
-          href="https://www.youtube.com/@LaConquete"
+          href={youtubeUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-[11px] font-semibold text-red-400 hover:text-red-300 transition-colors"
@@ -202,7 +207,7 @@ function LiveIndicators() {
       )}
       {facebook && (
         <a
-          href="https://www.facebook.com/LaConqueteEglise"
+          href={CHURCH.social.facebook}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-1.5 text-[11px] font-semibold text-blue-400 hover:text-blue-300 transition-colors"

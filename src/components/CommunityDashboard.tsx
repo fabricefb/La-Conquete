@@ -42,7 +42,7 @@ const DEMO_ACTIVITIES: Activity[] = [
   { icon: <Heart className="h-4 w-4 text-pink-400" />, text: 'Demande de prière exaucée — Guérison', time: 'Il y a 5h' },
   { icon: <MessageSquare className="h-4 w-4 text-divin-100" />, text: 'Nouveau message dans le groupe Jeunesse', time: 'Il y a 8h' },
   { icon: <Calendar className="h-4 w-4 text-amber-400" />, text: 'Réunion de département confirmée — Chant', time: 'Il y a 1j' },
-  { icon: <Users className="h-4 w-4 text-purple-400" />, text: 'Cellule de maison Kinshasa — 18 présents', time: 'Il y a 2j' },
+  { icon: <Users className="h-4 w-4 text-purple-400" />, text: 'Cellule de maison Lubumbashi — 18 présents', time: 'Il y a 2j' },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════

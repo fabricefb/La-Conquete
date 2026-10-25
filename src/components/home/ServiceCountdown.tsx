@@ -34,14 +34,14 @@ export function ServiceCountdown({ className = '' }: { className?: string }) {
         </p>
       </div>
 
-      <div className="mt-4 grid max-w-lg grid-cols-4 border border-line">
+      <div className="mt-3 grid max-w-md grid-cols-4 border border-line">
         {UNITS.map(({ key, label }, i) => (
           <div
             key={key}
-            className={`flex flex-col items-center py-4 sm:py-5 ${i > 0 ? 'border-l border-line' : ''}`}
+            className={`flex flex-col items-center py-3 sm:py-3.5 ${i > 0 ? 'border-l border-line' : ''}`}
           >
             <span className="countdown-figure tabular-nums">{pad(left[key])}</span>
-            <span className="countdown-unit mt-2">{label}</span>
+            <span className="countdown-unit mt-1.5">{label}</span>
           </div>
         ))}
       </div>
