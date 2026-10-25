@@ -74,16 +74,18 @@ export function NextSteps({ onNavigate, onOpenAuth }: NextStepsProps) {
                   <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </button>
 
-                {secondary && (
-                  <button
-                    type="button"
-                    onClick={secondary.onAction}
-                    className="mt-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:text-cream"
-                  >
-                    {secondary.label}
-                    <ArrowRight className="h-3 w-3" />
-                  </button>
-                )}
+                <div className="mt-3 min-h-[1.25rem]">
+                  {secondary && (
+                    <button
+                      type="button"
+                      onClick={secondary.onAction}
+                      className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:text-cream"
+                    >
+                      {secondary.label}
+                      <ArrowRight className="h-3 w-3" />
+                    </button>
+                  )}
+                </div>
               </div>
             </article>
           ))}
