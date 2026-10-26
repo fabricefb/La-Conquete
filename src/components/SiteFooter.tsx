@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Mail, Phone, MapPin, Facebook, Youtube, Instagram, MessageCircle, Music,
-  ArrowRight, ChevronUp, HandHeart,
+  Mail, Phone, MapPin, ArrowRight, ChevronUp, HandHeart, MessageCircle,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 import type { Theme } from '../types';
@@ -9,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { db, buildSettingsMap, isSupabaseConfigured } from '../lib/supabase';
 import { CHURCH, churchSetting } from '../lib/church';
 import { SERVICE_TIMES } from '../lib/services';
-import { YOUTUBE_CHANNEL } from '../lib/teachings';
+import { visibleSocialLinks } from '../lib/socials';
 
 // Le bloc de marque est le même qu'en tête : un seul logo, une seule clé de réglage.
 const DEFAULT_LOGO = '/logo-conquete.png';
@@ -96,30 +95,21 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     'city',
     `${CHURCH.address.city}, ${CHURCH.address.country}`,
   );
-  const facebookUrl = churchSetting(settingsMap, 'facebook_url', CHURCH.social.facebook);
-  const youtubeUrl = churchSetting(settingsMap, 'youtube_url', YOUTUBE_CHANNEL.url);
-  const instagramUrl = churchSetting(settingsMap, 'instagram_url', CHURCH.social.instagram);
-  const whatsappUrl = settingsMap['whatsapp_url'] ?? '';
-  const tiktokUrl = settingsMap['tiktok_url'] ?? '';
+  const socialLinks = visibleSocialLinks(settingsMap);
+  const whatsappHref = socialLinks.find((s) => s.label === 'WhatsApp')?.href ?? '';
 
-  const socialLinks: { href: string; label: string; Icon: React.FC<{ className?: string }> }[] = [
-    { href: facebookUrl, label: 'Facebook', Icon: Facebook },
-    { href: youtubeUrl, label: 'YouTube', Icon: Youtube },
-    { href: instagramUrl, label: 'Instagram', Icon: Instagram },
-    { href: whatsappUrl, label: 'WhatsApp', Icon: MessageCircle },
-    { href: tiktokUrl, label: 'TikTok', Icon: Music },
-  ].filter((s) => s.href);
-
-  const linkGroups: { index: string; title: string; links: FooterLink[] }[] = [
-    { index: '01', title: 'L’Église', links: CHURCH_LINKS },
-    { index: '02', title: 'Vie de l’Église', links: LIFE_LINKS },
-    { index: '03', title: 'Médias', links: MEDIA_LINKS },
+  const linkGroups: { title: string; links: FooterLink[] }[] = [
+    { title: 'L’Église', links: CHURCH_LINKS },
+    { title: 'Vie de l’Église', links: LIFE_LINKS },
+    { title: 'Médias', links: MEDIA_LINKS },
   ];
 
   if (isPwaMobile) return null;
 
   return (
     <footer className="pwa-footer-hide border-t border-line bg-bg">
+      {/* Version complète : tablette et ordinateur */}
+      <div className="hidden sm:block">
       {/* Bandeau des cultes — la donnée vient de la source unique des horaires */}
       <div className="border-b border-line bg-white/[0.015]">
         <div className="mx-auto flex max-w-8xl flex-col gap-5 px-4 py-6 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
@@ -167,7 +157,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
               className="logo-plate w-fit transition-opacity hover:opacity-80"
               aria-label="La Conquête — Accueil"
             >
-              <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-10 w-auto object-contain" />
+              <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-[60px] w-auto object-contain" />
             </button>
             <p className="max-w-sm text-sm leading-relaxed text-muted">
               {churchName} — Ancrée dans la foi, ouverte à tous, engagée dans la communauté de {city}.
@@ -200,8 +190,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
                 aria-label={group.title}
                 className={`${wide ? 'col-span-2' : 'col-span-1'} lg:col-span-2`}
               >
-                <h3 className="mb-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream">
-                  <span className="text-evangile-500">{group.index}</span>
+                <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream">
                   {group.title}
                 </h3>
                 <ul className={wide
@@ -224,8 +213,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
 
           {/* Contact */}
           <div className="col-span-2 sm:col-span-4 lg:col-span-3">
-            <h3 className="mb-4 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream">
-              <span className="text-evangile-500">04</span>
+            <h3 className="mb-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-cream">
               Nous joindre
             </h3>
             <ul className="flex flex-col gap-3">
@@ -261,8 +249,93 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
         </div>
       </div>
 
-      {/* Bottom bar */}
-      <div className="border-t border-line">
+      </div>
+      {/* /Version complète */}
+
+      {/* Mobile : footer compact — des actions utiles plutôt que le plan du site */}
+      <div className="sm:hidden">
+        <div className="px-4 py-8">
+          <button
+            onClick={() => onNavigate('home')}
+            className="logo-plate w-fit transition-opacity hover:opacity-80"
+            aria-label="La Conquête — Accueil"
+          >
+            <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-[60px] w-auto object-contain" />
+          </button>
+          <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
+            {churchName} — Ancrée dans la foi, ouverte à tous, engagée dans la communauté de {city}.
+          </p>
+
+          <div className="mt-6 grid grid-cols-2 gap-2">
+            <a
+              href={`tel:${phone.replace(/\s/g, '')}`}
+              className="flex items-center justify-center gap-2 border border-line px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:border-evangile-600"
+            >
+              <Phone className="h-4 w-4 text-accent-400" />
+              Appeler
+            </a>
+            {whatsappHref && (
+              <a
+                href={whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 border border-line px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:border-evangile-600"
+              >
+                <MessageCircle className="h-4 w-4 text-accent-400" />
+                WhatsApp
+              </a>
+            )}
+            <button
+              onClick={() => onNavigate('contact')}
+              className="flex items-center justify-center gap-2 border border-line px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:border-evangile-600"
+            >
+              <Mail className="h-4 w-4 text-accent-400" />
+              Écrire
+            </button>
+            <button
+              onClick={() => onNavigate('dons')}
+              className="flex items-center justify-center gap-2 border border-line px-3 py-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors hover:border-evangile-600"
+            >
+              <HandHeart className="h-4 w-4 text-accent-400" />
+              Faire un don
+            </button>
+          </div>
+
+          <div className="mt-6 flex flex-wrap items-center gap-2.5">
+            {socialLinks.map(({ href, label, Icon }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+                title={label}
+                className="flex h-9 w-9 items-center justify-center border border-line text-muted transition-colors duration-200 hover:border-evangile-600 hover:text-cream"
+              >
+                <Icon className="h-4 w-4" />
+              </a>
+            ))}
+            {socialLinks.length > 0 && <span className="mx-1 h-6 w-px bg-line" />}
+            <ThemeToggle theme={theme} onToggle={onToggleTheme} />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between border-t border-line px-4 py-5">
+          <p className="text-[11px] text-muted">
+            &copy; {new Date().getFullYear()} {churchName}
+          </p>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted transition-colors hover:text-cream"
+          >
+            Haut de page
+            <ChevronUp className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom bar (tablette / ordinateur) */}
+      <div className="hidden border-t border-line sm:block">
         <div className="mx-auto flex max-w-8xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
           <p className="text-xs text-muted">
             &copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.

@@ -9,9 +9,10 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
-import { MapPin, Phone, Mail, Globe, Send, Navigation, ArrowRight } from '../lib/icons';
+import { MapPin, Phone, Mail, Send, Navigation, ArrowRight } from '../lib/icons';
 import { SERVICE_TIMES } from '../lib/services';
 import { CHURCH, churchSetting } from '../lib/church';
+import { visibleSocialLinks } from '../lib/socials';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
@@ -22,21 +23,6 @@ interface ContactPageProps {
 
 // ─── Static service times ─────────────────────────────────────────
 // Source unique : src/lib/services.ts (aussi lue par le compte à rebours de l'accueil)
-
-// ─── Social link config ───────────────────────────────────────────
-interface SocialLinkDef {
-  key: string;
-  label: string;
-  fallbackHref: string;
-  IconComponent: React.FC<{ className?: string }>;
-}
-
-const SOCIAL_LINKS: SocialLinkDef[] = [
-  { key: 'facebook_url', label: 'Facebook', fallbackHref: CHURCH.social.facebook, IconComponent: Globe },
-  { key: 'instagram_url', label: 'Instagram', fallbackHref: CHURCH.social.instagram, IconComponent: Globe },
-  { key: 'whatsapp_url', label: 'WhatsApp', fallbackHref: `https://wa.me/${CHURCH.phone.href.replace(/\D/g, '')}`, IconComponent: Globe },
-  { key: 'youtube_url', label: 'YouTube', fallbackHref: '', IconComponent: Globe },
-];
 
 // ─── Reveal wrapper ───────────────────────────────────────────────
 function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -215,6 +201,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   const directionsText = getContent(contentMap, 'map', 'cta_text', 'Itinéraire');
 
   const socialLabel = getContent(contentMap, 'social', 'heading_label', 'Réseaux sociaux');
+  const socialLinks = visibleSocialLinks(settingsMap);
   const todayWeekday = new Date(Date.now() + 120 * 60000).getUTCDay();
 
   // ── Form submission ────────────────────────────────────────────
@@ -372,26 +359,22 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                 </div>
 
                 {/* Social links */}
-                {SOCIAL_LINKS.some((s) => settingsMap[s.key] || s.fallbackHref) && (
+                {socialLinks.length > 0 && (
                   <div>
                     <p className="person-role">{socialLabel}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-px bg-line">
-                      {SOCIAL_LINKS.map(({ key, label, fallbackHref, IconComponent }) => {
-                        const href = settingsMap[key] || fallbackHref;
-                        if (!href) return null;
-                        return (
-                          <a
-                            key={key}
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 bg-bg px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:bg-bg-elevated hover:text-evangile-600"
-                          >
-                            <IconComponent className="h-3.5 w-3.5" />
-                            {label}
-                          </a>
-                        );
-                      })}
+                      {socialLinks.map(({ href, label, Icon }) => (
+                        <a
+                          key={label}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 bg-bg px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:bg-bg-elevated hover:text-evangile-600"
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                          {label}
+                        </a>
+                      ))}
                     </div>
                   </div>
                 )}

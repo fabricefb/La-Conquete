@@ -772,7 +772,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         <div className="mx-auto flex h-16 max-w-8xl items-center justify-between px-4 sm:px-6 lg:px-8">
           {/* LEFT: Logo — le bloc de marque porte déjà le nom, on ne le répète pas */}
           <button onClick={() => handleNav('home')} className="logo-plate transition-opacity duration-200 hover:opacity-80" aria-label="La Conquête — Accueil">
-            <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-9 w-auto object-contain sm:h-10" />
+            <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-11 w-auto object-contain sm:h-12" />
           </button>
 
           {/* RIGHT: Desktop Navigation + Actions */}
@@ -836,7 +836,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
           {/* Drawer header */}
           <div className="flex h-16 items-center justify-between border-b border-line px-4">
             <button onClick={() => handleNav('home')} className="logo-plate" aria-label="La Conquête — Accueil">
-              <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-9 w-auto object-contain" />
+              <img src={logoUrl} alt="Église Évangélique La Conquête" className="h-11 w-auto object-contain" />
             </button>
             <button
               onClick={() => setDrawerOpen(false)}

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { Save, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import { SOCIAL_NETWORKS } from '../../../lib/socials';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -33,6 +34,7 @@ export function SettingsTab() {
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [originalValues, setOriginalValues] = useState<Record<string, string>>({});
   const [formValues, setFormValues] = useState<Record<string, string>>({});
+  const [persistedKeys, setPersistedKeys] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [openCategories, setOpenCategories] = useState<Set<string>>(
@@ -57,11 +59,33 @@ export function SettingsTab() {
       }
 
       const rows: SiteSetting[] = data ?? [];
-      setSettings(rows);
+      const existingKeys = new Set(rows.map((r) => r.key));
+
+      // Les réseaux sociaux absents de la base sont proposés quand même,
+      // avec le compte officiel pré-rempli : un seul bouton à modifier.
+      const socialRows: SiteSetting[] = SOCIAL_NETWORKS
+        .filter((n) => !existingKeys.has(n.key))
+        .map((n, i) => ({
+          id: `social-${n.key}`,
+          key: n.key,
+          value: n.fallback,
+          label: n.label,
+          description: n.fallback
+            ? `Vide = compte officiel par défaut. Format : ${n.hint}`
+            : `Laisser vide pour masquer ce bouton. Format : ${n.hint}`,
+          type: 'url',
+          category: 'social',
+          sort_order: 500 + i,
+          updated_at: new Date().toISOString(),
+        }));
+
+      const allRows = [...rows, ...socialRows];
+      setSettings(allRows);
+      setPersistedKeys(existingKeys);
 
       const orig: Record<string, string> = {};
       const form: Record<string, string> = {};
-      for (const s of rows) {
+      for (const s of allRows) {
         orig[s.key] = s.value;
         form[s.key] = s.value;
       }
@@ -110,12 +134,26 @@ export function SettingsTab() {
     const keys = Array.from(modifiedKeys);
 
     const results = await Promise.allSettled(
-      keys.map((key) =>
-        supabase
-          .from('site_settings')
-          .update({ value: formValues[key], updated_at: now })
-          .eq('key', key),
-      ),
+      keys.map((key) => {
+        if (persistedKeys.has(key)) {
+          return supabase
+            .from('site_settings')
+            .update({ value: formValues[key], updated_at: now })
+            .eq('key', key);
+        }
+        // Nouveau réglage (ex. réseau social encore absent de la base)
+        const row = settings.find((s) => s.key === key);
+        return supabase.from('site_settings').insert({
+          key,
+          value: formValues[key],
+          label: row?.label ?? key,
+          description: row?.description ?? null,
+          type: row?.type ?? 'text',
+          category: row?.category ?? 'general',
+          sort_order: row?.sort_order ?? 999,
+          updated_at: now,
+        });
+      }),
     );
 
     const failed = results
@@ -129,6 +167,7 @@ export function SettingsTab() {
     if (failed.length === 0) {
       addToast('Paramètres sauvegardés avec succès', 'success');
       setOriginalValues({ ...formValues });
+      setPersistedKeys((prev) => new Set([...prev, ...keys]));
     } else {
       addToast(
         `${failed.length} paramètre(s) n'ont pas pu être sauvegardés`,
@@ -137,7 +176,7 @@ export function SettingsTab() {
     }
 
     setSaving(false);
-  }, [modifiedKeys, formValues, addToast]);
+  }, [modifiedKeys, formValues, settings, persistedKeys, addToast]);
 
   // ── Toggle category ──
 
