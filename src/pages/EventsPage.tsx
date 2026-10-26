@@ -1,56 +1,52 @@
 import { useState, useEffect } from 'react';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { db, buildContentMap, getContent, isSupabaseConfigured } from '../lib/supabase';
 import type { ChurchEvent } from '../types';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { useReveal } from '../lib/hooks';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
+import { UniversalHero } from '../components/UniversalHero';
+import { FeaturedSpeakers, type FeaturedSpeaker } from '../components/home/FeaturedSpeakers';
 import { formatDate } from '../lib/date';
-import { Calendar, MapPin, BookOpen, Heart, Sun, Music, GraduationCap, Star, Search } from '../lib/icons';
-import { IconBox } from '../components/IconBox';
-import { EvtReveal } from '../components/EvtReveal';
+import { SERVICE_TIMES } from '../lib/services';
+import { CHURCH } from '../lib/church';
+import { MARATHON } from '../lib/events';
+import { imageSrcSet } from '../lib/images';
+import { Calendar, MapPin, Clock, Search, ArrowRight, MessageCircle, Globe } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
 interface EventsPageProps { onNavigate: (page: Page) => void; }
 
 const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'] as const;
-const CAT_LABELS: Record<string, string> = {
-  'Tous': 'Tous', 'Cultes': 'Cultes', 'Missions': 'Missions', 'Jeunesse': 'Jeunesse',
-  'Communion': 'Communion', 'Formation': 'Formation', 'Évangélisation': 'Évangélisation',
-  'Spécial': 'Spécial', 'Autre': 'Autre',
-};
 
-const weeklyServices = [
-  { title: 'Culte de Louange et Adoration', day: 'Dimanche', time: '08h00 – 10h45', Icon: Sun, desc: 'Culte principal de la semaine' },
-  { title: 'Réunion des Mamans', day: 'Lundi', time: '17h00', Icon: Heart, desc: 'Département des femmes' },
-  { title: "Culte d'Enseignement", day: 'Mercredi', time: 'À confirmer', Icon: BookOpen, desc: 'Département des Hommes Adultes' },
-  { title: 'Culte de Jeunesse et Prière', day: 'Vendredi', time: 'À confirmer', Icon: Music, desc: '' },
-  { title: 'Génération Espoir', day: 'Samedi', time: 'À confirmer', Icon: Star, desc: 'Département de la Jeunesse' },
-  { title: 'Dévotion Matinale', day: 'Lun – Ven', time: '06h00 – 08h00', Icon: GraduationCap, desc: 'Chaque jour de la semaine' },
+const FALLBACK_SPEAKERS: FeaturedSpeaker[] = [
+  {
+    id: 1,
+    image: '/pasteur-romain-kazadi.webp',
+    name: 'Josué Romain Kazadi',
+    role: 'Pasteur Principal',
+    text: '',
+  },
+  {
+    id: 2,
+    image: '/pasteur-david-kateba.webp',
+    name: 'David Kateba',
+    role: 'Docteur',
+    text: '',
+  },
+  {
+    id: 3,
+    image: '/pasteur-richard-mukendi.webp',
+    name: 'Richard Mukendi',
+    role: 'Pasteur',
+    text: '',
+  },
 ];
 
-const FALLBACK_IMG = '/priere.jpg';
-
-/* ─── Material Symbol wrapper ─── */
-function MS({ children, className = '' }: { children: string; className?: string }) {
-  return <span className={`material-symbols-outlined ${className}`}>{children}</span>;
-}
-
-/* ─── Category badge label ─── */
-function catBadge(cat: string, isLive: boolean) {
-  if (isLive) return 'LIVE BROADCAST';
-  const map: Record<string, string> = { Cultes: 'WORSHIP', Missions: 'SPECIAL EVENT', Jeunesse: 'YOUTH FOCUS', Communion: 'COMMUNION' };
-  return map[cat] || 'EVENT';
-}
-
-/* ─── Category badge color ─── */
-function catBadgeColor(cat: string) {
-  return cat === 'Missions' ? 'bg-accent-500' : 'bg-ink-700';
-}
-
-/* ─── Button color ─── */
-function ctaBtnClass(cat: string) {
-  return cat === 'Missions' ? 'bg-accent-500 hover:opacity-90' : 'bg-ink-700 hover:bg-ink-600';
+function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const { ref, visible } = useReveal();
+  return <div ref={ref} className={`reveal ${visible ? 'in' : ''} ${className}`}>{children}</div>;
 }
 
 export function EventsPage({ onNavigate }: EventsPageProps) {
@@ -58,24 +54,26 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState('Tous');
+  const [activeCategory, setActiveCategory] = useState<string>('Tous');
   const [search, setSearch] = useState('');
-  const [email, setEmail] = useState('');
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
+
+  useReveal();
 
   useEffect(() => {
     let cancelled = false;
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
     async function load() {
       try {
-        const [evts, contents] = await Promise.all([
-          db.getEvents(),
-          db.getPageContents('events'),
-        ]);
+        const [evts, contents] = await Promise.all([db.getEvents(), db.getPageContents('events')]);
         if (cancelled) return;
         setEvents(evts);
         setContentMap(buildContentMap(contents));
       } catch {
-        setError('Impossible de charger les événements.');
+        if (!cancelled) setError('Agenda momentanément indisponible. Les rendez-vous hebdomadaires restent affichés ci-dessous.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -86,7 +84,8 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
   const filtered = events.filter((e) => {
     const matchCat = activeCategory === 'Tous' || e.category === activeCategory;
-    const matchSearch = !search || (e.title || '').toLowerCase().includes(search.toLowerCase()) || (e.description || '').toLowerCase().includes(search.toLowerCase());
+    const term = search.trim().toLowerCase();
+    const matchSearch = !term || (e.title || '').toLowerCase().includes(term) || (e.description || '').toLowerCase().includes(term);
     return matchCat && matchSearch;
   });
 
@@ -94,366 +93,323 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
     .filter((e) => new Date(e.event_date) >= new Date())
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
-  // Bento preview data (next 3 upcoming or fallback)
-  const bentoEvents = upcoming.length >= 3 ? upcoming.slice(0, 3) : upcoming.length >= 2 ? upcoming.slice(0, 2) : upcoming;
-  const nextSunday = upcoming.find((e) => {
-    const d = new Date(e.event_date);
-    return d.getDay() === 0;
-  }) || upcoming[0];
+  const featured = events.find((e) => e.is_featured && new Date(e.event_date) >= new Date());
+  const heroTitle = getContent(contentMap, 'hero', 'title', 'Événements');
 
-  const heroTitle = getContent(contentMap, 'hero', 'title', 'Événements de la Saison de Conquête');
-  const heroSubtitle = getContent(contentMap, 'hero', 'subtitle', 'Rejoignez notre communauté dynamique pour des moments de transformation, de prière et de communion fraternelle à Lubumbashi et dans toutes nos extensions.');
-  const heroBgImage = getContent(contentMap, 'hero', 'bg_image', '');
-  const heroCtaText = getContent(contentMap, 'hero', 'cta_text', 'Voir tous les événements');
-  const heroCtaUrl = getContent(contentMap, 'hero', 'cta_url', '#upcoming');
+  const marathon = {
+    label: getContent(contentMap, 'marathon', 'label', MARATHON.label),
+    title: getContent(contentMap, 'marathon', 'title', MARATHON.title),
+    period: getContent(contentMap, 'marathon', 'period', MARATHON.period),
+    theme: getContent(contentMap, 'marathon', 'theme', MARATHON.theme),
+    reference: getContent(contentMap, 'marathon', 'reference', MARATHON.reference),
+    hours: getContent(contentMap, 'marathon', 'hours', MARATHON.hours),
+    image: getContent(contentMap, 'marathon', 'image', MARATHON.image),
+  };
+
+  const speakersLabel = getContent(contentMap, 'speakers', 'label', 'Marathon de prière');
+  const speakersTitle = getContent(contentMap, 'speakers', 'title', 'Orateurs');
+  const speakersDescription = getContent(contentMap, 'speakers', 'description', '');
+  const isSpeakerActive = (position: number): boolean => {
+    const raw = getContent(contentMap, 'speakers', `speaker_${position}_active`, 'true');
+    return ['true', '1', 'oui', 'yes', 'on'].includes(raw.trim().toLowerCase());
+  };
+  const eventSpeakers: FeaturedSpeaker[] = [1, 2, 3]
+    .map((position) => {
+      const fallback = FALLBACK_SPEAKERS[position - 1];
+      return {
+        id: position,
+        image: getContent(contentMap, 'speakers', `speaker_${position}_image`, fallback.image),
+        name: getContent(contentMap, 'speakers', `speaker_${position}_name`, fallback.name),
+        role: getContent(contentMap, 'speakers', `speaker_${position}_role`, fallback.role),
+        text: getContent(contentMap, 'speakers', `speaker_${position}_text`, fallback.text),
+      };
+    })
+    .filter((speaker) => isSpeakerActive(speaker.id) && speaker.image && speaker.name);
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="events" />
 
-      <main className="min-h-screen mobile-bottom-pad">
-        {/* ═══════ HERO — Bento Calendar Overview ═══════ */}
-        <section className="relative py-12 md:py-16 overflow-hidden bg-ink-700 text-white">
-          {/* Background image (from admin) */}
-          {heroBgImage && (
-            <div className="absolute inset-0 z-0">
-              <img src={heroBgImage} alt="" className="w-full h-full object-cover opacity-30" />
-              <div className="absolute inset-0 bg-gradient-to-r from-ink-700/95 via-ink-700/80 to-ink-700/60" />
-            </div>
-          )}
-          {/* Subtle decorative radial */}
-          <div className="absolute inset-0 bg-radial-primary opacity-40" />
-          <div className="relative z-10 px-4 md:px-6 lg:px-8 max-w-8xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-            {/* Left — Text */}
-            <EvtReveal>
-              <span className="inline-block px-3 py-1 bg-evangile-600 rounded text-[12px] font-bold tracking-widest uppercase mb-4">
-                {getContent(contentMap, 'hero', 'badge', 'Agenda Spirituel')}
-              </span>
-              <h1 className="font-playfair text-3xl sm:text-4xl md:text-headline-xl mb-4 sm:mb-6">{heroTitle}</h1>
-              <p className="text-base sm:text-body-lg text-sky-100 max-w-xl mb-6 sm:mb-8 leading-relaxed">{heroSubtitle}</p>
-              {(heroCtaText && heroCtaUrl) && (
-                <a
-                  href={heroCtaUrl}
-                  className="inline-flex items-center gap-2 px-7 py-3.5 bg-evangile-600 hover:bg-evangile-700 text-white rounded-xl font-bold text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 shadow-lg shadow-evangile-600/30"
-                >
-                  {heroCtaText}
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-                </a>
-              )}
-              <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4 mt-6">
-                <div className="flex items-center gap-2 text-white/80">
-                  <MS className="text-accent-500 text-[20px]">location_on</MS>
-                  <span className="font-be-vn text-label-lg uppercase tracking-wide">Lubumbashi Main Campus</span>
-                </div>
-                <div className="flex items-center gap-2 text-white/80">
-                  <MS className="text-accent-500 text-[20px]">schedule</MS>
-                  <span className="font-be-vn text-label-lg uppercase tracking-wide">Horaires GMT+2</span>
-                </div>
-              </div>
-            </EvtReveal>
+      <main>
+        <UniversalHero
+          pageKey="events"
+          defaultBadge="Agenda spirituel"
+          defaultTitle={heroTitle}
+          defaultSubtitle="Cultes, veillées, séminaires et sorties d'évangélisation : les rendez-vous qui rythment la vie de l'église à Lubumbashi."
+          bgImage="/priere.webp"
+        />
 
-            {/* Right — Bento grid */}
-            <EvtReveal delay={2}>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {/* Bento card 1 */}
-                {bentoEvents[0] && (() => {
-                  const { day, month } = formatDate(bentoEvents[0].event_date);
-                  return (
-                    <div className="glass-card p-6 rounded-xl flex flex-col justify-between aspect-[4/3] sm:aspect-square">
-                      <span className="text-4xl sm:text-headline-xl font-bold text-accent-500 font-playfair">{day}</span>
+        {/* ═══ MARATHON DE PRIÈRE ═══ */}
+        <section id="marathon" className="border-b border-line px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-7xl">
+            <RevealSection>
+              <p className="section-label">{marathon.label}</p>
+              <h2 className="section-title mt-4">{marathon.title}</h2>
+              <div className="rule-accent mt-6" />
+            </RevealSection>
+
+            <div className="mt-10 grid gap-px bg-line lg:grid-cols-[minmax(0,400px)_1fr]">
+              <RevealSection>
+                <figure className="flex h-full items-center justify-center overflow-hidden">
+                  <img
+                    src={marathon.image}
+                    alt={`Affiche officielle — ${marathon.title}, ${marathon.period}`}
+                    className="h-full w-full object-contain"
+                    loading="lazy"
+                  />
+                </figure>
+              </RevealSection>
+
+              <RevealSection className="reveal-delay-1">
+                <div className="flex h-full flex-col justify-between gap-10 bg-bg-card p-8">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">
+                      {marathon.period}
+                    </p>
+                    <p className="person-role mt-6">Thème</p>
+                    <p className="mt-2 font-serif text-xl italic leading-snug text-cream sm:text-2xl">
+                      « {marathon.theme} »
+                    </p>
+                    <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">
+                      {marathon.reference}
+                    </p>
+                    <dl className="mt-8 grid gap-4 sm:grid-cols-2">
                       <div>
-                        <p className="font-bold uppercase tracking-widest text-[12px] text-sky-100">{month}</p>
-                        <p className="font-playfair text-xl sm:text-headline-md text-white/90 mt-1 line-clamp-2">{bentoEvents[0].title}</p>
+                        <dt className="person-role">Horaires</dt>
+                        <dd className="mt-2 text-sm leading-relaxed text-muted">{marathon.hours}</dd>
                       </div>
-                    </div>
-                  );
-                })()}
-                {/* Bento card 2 — solid accent */}
-                {bentoEvents[1] && (() => {
-                  const { day, month } = formatDate(bentoEvents[1].event_date);
-                  return (
-                    <div className="bg-evangile-600 p-6 rounded-xl flex flex-col justify-between aspect-[4/3] sm:aspect-square shadow-xl shadow-accent-500/20">
-                      <span className="text-headline-xl font-bold text-white font-playfair">{day}</span>
                       <div>
-                        <p className="font-bold uppercase tracking-widest text-[12px] text-white/80">{month}</p>
-                        <p className="font-playfair text-xl sm:text-headline-md text-white mt-1 line-clamp-2">{bentoEvents[1].title}</p>
+                        <dt className="person-role">Lieu</dt>
+                        <dd className="mt-2 text-sm leading-relaxed text-muted">{CHURCH.address.full}</dd>
                       </div>
-                    </div>
-                  );
-                })()}
-                {/* Bento card 3 — Next service bar */}
-                <div className="col-span-2 glass-card p-6 rounded-xl flex items-center justify-start sm:justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full bg-ink-700 flex items-center justify-center shrink-0">
-                      <MS className="text-white text-[24px]">celebration</MS>
-                    </div>
-                    <div>
-                      <p className="font-be-vn text-label-lg text-accent-500 uppercase">Prochain Culte</p>
-                      <p className="font-playfair text-xl sm:text-headline-md text-white/90">
-                        {nextSunday ? nextSunday.title : 'Culte de Célébration'}
-                      </p>
-                    </div>
+                    </dl>
                   </div>
-                  <span className="text-accent-500 font-bold font-be-vn text-label-lg hidden sm:block">
-                    {nextSunday
-                      ? new Date(nextSunday.event_date).toLocaleDateString('fr-FR', { weekday: 'short' }).toUpperCase() + ' ' + formatDate(nextSunday.event_date).day + ':00'
-                      : 'DIM 09:00'}
-                  </span>
+                  <div className="flex flex-wrap gap-3">
+                    <button onClick={() => onNavigate('blog')} className="btn-primary">
+                      Lire l'annonce <ArrowRight className="h-4 w-4" />
+                    </button>
+                    <button onClick={() => onNavigate('contact')} className="btn-ghost">
+                      Poser une question
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </EvtReveal>
-          </div>
-        </section>
-
-        {/* ═══════ FILTERS — Sticky ═══════ */}
-        <section className="py-4 md:py-5 bg-bg border-b border-line sticky top-16 z-40">
-          <div className="px-4 md:px-6 lg:px-8 max-w-8xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex flex-nowrap items-center gap-2 overflow-x-auto scrollbar-x-hide px-0 scrollbar-none">
-              {CATEGORIES.map((cat) => (
-                <button key={cat} onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-3 sm:px-5 sm:py-2.5 rounded-full whitespace-nowrap font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${
-                    activeCategory === cat
-                      ? 'bg-evangile-600 text-white shadow-lg shadow-accent-500/20'
-                      : 'bg-bg-elevated text-muted hover:bg-bg-card-hover'
-                  }`}>
-                  {CAT_LABELS[cat] || cat}
-                </button>
-              ))}
-            </div>
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-muted" />
-              <input type="text" placeholder="Rechercher un événement..." value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="input-surface w-full py-3 pl-11 pr-4 text-sm !rounded-lg" />
+              </RevealSection>
             </div>
           </div>
         </section>
 
-        {/* ═══════ EVENT LIST ═══════ */}
-        <section className="py-10 md:py-16 px-4 md:px-6 lg:px-8 max-w-8xl mx-auto">
-          {error && (
-            <div className="mb-10 rounded-xl border border-ember-500/20 bg-ember-500/10 p-6 text-center text-muted">{error}</div>
-          )}
+        {/* ═══ ORATEURS DU MARATHON ═══ */}
+        {eventSpeakers.length > 0 && (
+          <FeaturedSpeakers
+            speakers={eventSpeakers}
+            label={speakersLabel}
+            title={speakersTitle}
+            description={speakersDescription}
+            onNavigate={onNavigate}
+          />
+        )}
 
-          {loading ? (
-            <div className="space-y-gutter">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="animate-pulse rounded-xl overflow-hidden flex flex-col lg:flex-row bg-bg-elevated">
-                  <div className="lg:w-1/3 h-48 sm:h-64 lg:h-auto bg-white/5" />
-                  <div className="lg:w-2/3 p-8 space-y-4">
-                    <div className="h-4 rounded bg-white/5 w-1/4" />
-                    <div className="h-6 rounded bg-white/5 w-2/3" />
-                    <div className="h-3 rounded bg-white/5 w-full" />
-                    <div className="h-3 rounded bg-white/5 w-3/4" />
-                  </div>
+        {/* ═══ ÉVÉNEMENTS (Supabase) ═══ */}
+        <section className="px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-7xl">
+            <RevealSection>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="section-label">Calendrier</p>
+                  <h2 className="section-title mt-4">Prochains rendez-vous</h2>
                 </div>
-              ))}
-            </div>
-          ) : !error && (
-            <>
-              {/* Featured event — full-width horizontal card */}
-              {(() => {
-                const feat = filtered.find((e) => e.is_featured) || upcoming[0];
-                if (!feat) return null;
-                const { day, month } = formatDate(feat.event_date);
-                return (
-                  <EvtReveal className="mb-8">
-                    <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
-                      <div className="lg:w-1/3 relative h-48 sm:h-64 lg:h-auto overflow-hidden">
-                        <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                          style={{ backgroundImage: `url(${feat.image_url || FALLBACK_IMG})` }} />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
-                        <div className={`absolute top-4 left-4 px-3 py-1 ${feat.is_live ? 'bg-evangile-600 animate-pulse' : catBadgeColor(feat.category)} text-white font-be-vn text-[12px] font-bold uppercase tracking-wider rounded`}>
-                          {feat.is_live ? (
-                            <span className="flex items-center gap-1.5">
-                              <span className="h-1.5 w-1.5 rounded-full bg-white" />
-                              {catBadge(feat.category, true)}
+                <div className="relative w-full sm:w-72">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                  <label htmlFor="events-search" className="sr-only">Rechercher un événement</label>
+                  <input
+                    id="events-search"
+                    type="text"
+                    placeholder="Rechercher un événement…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="input-surface w-full py-2.5 pl-10 pr-4 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="rule-accent mt-6" />
+
+              <div className="mt-5 flex flex-wrap gap-2">
+                {CATEGORIES.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    aria-pressed={activeCategory === cat}
+                    className={`border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+                      activeCategory === cat
+                        ? 'border-evangile-600 bg-evangile-600 text-white'
+                        : 'border-line text-muted hover:border-evangile-600 hover:text-evangile-600'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </RevealSection>
+
+            {error && (
+              <div className="mt-8 border border-line bg-bg-card px-5 py-4 text-sm text-muted">{error}</div>
+            )}
+
+            {loading ? (
+              <div className="mt-10 grid gap-px bg-line sm:grid-cols-2">
+                {Array.from({ length: 2 }).map((_, i) => (
+                  <div key={i} className="animate-pulse bg-bg-card p-8">
+                    <div className="h-3 w-20 bg-white/10" />
+                    <div className="mt-4 h-6 w-2/3 bg-white/10" />
+                    <div className="mt-3 h-3 w-full bg-white/5" />
+                  </div>
+                ))}
+              </div>
+            ) : upcoming.length > 0 ? (
+              <div className="mt-10 space-y-6">
+                {upcoming.map((event, i) => {
+                  const { day, month } = formatDate(event.event_date);
+                  const time = new Date(event.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                  const isFeatured = featured?.id === event.id;
+                  return (
+                    <RevealSection key={event.id} className={`reveal-delay-${(i % 3) + 1}`}>
+                      <article className={`grid gap-px bg-line ${isFeatured ? 'lg:grid-cols-[280px_1fr]' : 'sm:grid-cols-[140px_1fr]'}`}>
+                        <div className="relative flex flex-col justify-center overflow-hidden bg-bg-card p-6">
+                          {isFeatured && event.image_url && (
+                            <>
+                              <img
+                                src={event.image_url}
+                                srcSet={imageSrcSet(event.image_url)}
+                                sizes="(min-width: 1024px) 280px, 100vw"
+                                alt=""
+                                aria-hidden="true"
+                                className="photo-claro-strong absolute inset-0 h-full w-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                              <div className="absolute inset-0 bg-bg/80" />
+                            </>
+                          )}
+                          <span className="relative font-hero text-5xl leading-none text-cream">{day}</span>
+                          <span className="relative mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">{month}</span>
+                          {event.is_live && (
+                            <span className="relative mt-3 inline-flex w-fit items-center gap-1.5 bg-evangile-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
+                              En direct
                             </span>
-                          ) : catBadge(feat.category, false)}
+                          )}
                         </div>
-                      </div>
-                      <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
-                        <div>
-                          <div className="flex items-center gap-4 mb-3">
-                            <div className="px-4 py-2 rounded-lg bg-bg-card text-accent-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
-                              <span>{day}</span>
-                              <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
-                            </div>
-                            <div>
-                              <h2 className="font-playfair text-xl sm:text-xl sm:text-2xl md:text-3xl font-bold text-cream leading-tight">{feat.title}</h2>
-                              <p className="text-accent-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">
-                                {feat.is_featured ? 'Événement à la une' : feat.category}
-                              </p>
-                            </div>
-                          </div>
-                          <p className="text-muted leading-relaxed line-clamp-2">{feat.description}</p>
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
-                          <div className="flex flex-wrap gap-5 text-muted">
-                            <span className="flex items-center gap-2 text-sm">
-                              <MS className="text-accent-500 text-[18px]">schedule</MS>
-                              <span className="font-be-vn">{new Date(feat.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} – 11:30</span>
+                        <div className="bg-bg-card p-6 md:p-8">
+                          <p className="section-eyebrow">{event.category}</p>
+                          <h3 className="card-title mt-2">{event.title}</h3>
+                          {event.description && (
+                            <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{event.description}</p>
+                          )}
+                          <div className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-muted">
+                            <span className="inline-flex items-center gap-2">
+                              <Clock className="h-3.5 w-3.5 text-evangile-600" /> {time}
                             </span>
-                            {feat.location && (
-                              <span className="flex items-center gap-2 text-sm">
-                                <MS className="text-accent-500 text-[18px]">location_on</MS>
-                                <span className="font-be-vn">{feat.location}</span>
+                            {event.location && (
+                              <span className="inline-flex items-center gap-2">
+                                <MapPin className="h-3.5 w-3.5 text-evangile-600" /> {event.location}
                               </span>
                             )}
                           </div>
-                          <button className={`w-full sm:w-auto px-7 py-3 text-white rounded-lg font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${feat.is_featured ? 'bg-evangile-600 hover:opacity-90' : ctaBtnClass(feat.category)}`}>
-                            {feat.is_live ? 'Rejoindre le Live' : 'Rejoindre'}
-                          </button>
                         </div>
-                      </div>
-                    </div>
-                  </EvtReveal>
-                );
-              })()}
-
-              {/* Regular events — horizontal cards */}
-              {upcoming.filter((e) => e !== (filtered.find((e) => e.is_featured) || upcoming[0])).length > 0 ? (
-                <div className="space-y-gutter">
-                  {upcoming
-                    .filter((e) => e !== (filtered.find((e) => e.is_featured) || upcoming[0]))
-                    .map((event, i) => {
-                      const { day, month } = formatDate(event.event_date);
-                      return (
-                        <EvtReveal key={event.id} delay={Math.min((i % 4) + 1, 4) as 1|2|3|4}>
-                          <div className="group rounded-xl overflow-hidden border border-line hover:border-accent-400/50 transition-all duration-300 flex flex-col lg:flex-row items-stretch bg-bg-elevated shadow-sm hover:shadow-xl hover:shadow-accent-500/5">
-                            {/* Image */}
-                            <div className="lg:w-1/3 relative h-48 sm:h-64 lg:h-auto overflow-hidden">
-                              <div className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110"
-                                style={{ backgroundImage: `url(${event.image_url || FALLBACK_IMG})` }} />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent lg:bg-gradient-to-r lg:from-transparent lg:via-transparent lg:to-black/10" />
-                              <div className={`absolute top-4 left-4 px-3 py-1 ${catBadgeColor(event.category)} text-white font-be-vn text-[12px] font-bold uppercase tracking-wider rounded`}>
-                                {catBadge(event.category, event.is_live)}
-                              </div>
-                            </div>
-                            {/* Content */}
-                            <div className="lg:w-2/3 p-6 md:p-8 flex flex-col justify-between">
-                              <div>
-                                <div className="flex items-center gap-4 mb-3">
-                                  <div className="px-4 py-2 rounded-lg bg-bg-card text-accent-500 font-bold text-headline-md font-playfair flex flex-col items-center leading-tight">
-                                    <span>{day}</span>
-                                    <span className="text-[11px] font-be-vn -mt-0.5 uppercase tracking-widest text-muted">{month}</span>
-                                  </div>
-                                  <div>
-                                    <h3 className="font-playfair text-xl md:text-2xl font-bold text-cream leading-tight">{event.title}</h3>
-                                    <p className="text-accent-500 font-be-vn text-label-lg uppercase tracking-wider mt-0.5">{event.category}</p>
-                                  </div>
-                                </div>
-                                <p className="text-muted leading-relaxed line-clamp-2">{event.description}</p>
-                              </div>
-                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-t border-line mt-6 pt-5">
-                                <div className="flex flex-wrap gap-5 text-muted">
-                                  <span className="flex items-center gap-2 text-sm">
-                                    <MS className="text-accent-500 text-[18px]">schedule</MS>
-                                    <span className="font-be-vn">{new Date(event.event_date).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                                  </span>
-                                  {event.location && (
-                                    <span className="flex items-center gap-2 text-sm">
-                                      <MS className="text-accent-500 text-[18px]">location_on</MS>
-                                      <span className="font-be-vn">{event.location}</span>
-                                    </span>
-                                  )}
-                                </div>
-                                <button className={`w-full sm:w-auto px-7 py-3 text-white rounded-lg font-be-vn text-label-lg uppercase tracking-wide transition-all duration-200 active:scale-95 ${ctaBtnClass(event.category)}`}>
-                                  {event.is_live ? 'Rejoindre le Live' : event.category === 'Missions' ? "S'inscrire" : 'Rejoindre'}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
-                        </EvtReveal>
-                      );
-                    })}
+                      </article>
+                    </RevealSection>
+                  );
+                })}
+              </div>
+            ) : (
+              <RevealSection className="mt-10">
+                <div className="border border-dashed border-line px-6 py-10 text-center">
+                  <Calendar className="mx-auto h-8 w-8 text-muted/50" />
+                  <p className="mt-4 text-sm text-muted">
+                    Aucun événement supplémentaire n'est annoncé pour le moment.
+                    <br className="hidden sm:block" />
+                    Les rendez-vous hebdomadaires ont lieu chaque semaine, sans inscription.
+                  </p>
                 </div>
-              ) : upcoming.length <= 1 && !loading && (
-                /* Past events as smaller grid if no upcoming */
-                filtered.length > 1 ? (
-                  <div className="grid gap-gutter sm:grid-cols-2 lg:grid-cols-3">
-                    {filtered.slice(1).map((event, i) => {
-                      const { day, month } = formatDate(event.event_date);
-                      return (
-                        <EvtReveal key={event.id} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
-                          <div className="glass card-parallax rounded-2xl overflow-hidden flex flex-col h-full">
-                            <div className="relative h-48 overflow-hidden">
-                              <img src={event.image_url || FALLBACK_IMG} alt={event.title} className="h-full w-full object-cover transition-transform duration-700 hover:scale-110" />
-                              <div className="absolute top-3 left-3 flex flex-col items-center justify-center w-12 h-14 rounded-lg bg-black/70 backdrop-blur-sm text-center">
-                                <span className="text-xl font-bold text-accent-400 font-playfair leading-none">{day}</span>
-                                <span className="text-[10px] uppercase tracking-widest text-white/70">{month}</span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col flex-1 p-5">
-                              <span className="mb-2 self-start rounded-full border border-accent-400/20 bg-accent-400/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-accent-400">{event.category}</span>
-                              <h3 className="font-playfair text-lg font-semibold text-cream flex-1">{event.title}</h3>
-                              <p className="mt-1 text-sm text-muted line-clamp-2">{event.description}</p>
-                              {event.location && (
-                                <div className="mt-3 flex items-center gap-1.5 text-xs text-muted">
-                                  <MapPin className="h-3.5 w-3.5 shrink-0" />{event.location}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </EvtReveal>
-                      );
-                    })}
-                  </div>
-                ) : null
-              )}
+              </RevealSection>
+            )}
+          </div>
+        </section>
 
-              {filtered.length === 0 && (
-                <div className="py-12 sm:py-16 md:py-20 text-center text-muted">
-                  <Calendar className="mx-auto mb-4 h-10 w-10 opacity-40" />
-                  <p className="font-be-vn">Aucun événement trouvé.</p>
-                </div>
-              )}
-            </>
-          )}
+        {/* ═══ CULTES HEBDOMADAIRES ═══ */}
+        <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-7xl">
+            <RevealSection>
+              <p className="section-label">Chaque semaine</p>
+              <h2 className="section-title mt-4">Cultes hebdomadaires</h2>
+              <div className="rule-accent mt-6" />
+              <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted">
+                Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle. Entrée libre.
+              </p>
+            </RevealSection>
 
-          {/* ═══════ WEEKLY SERVICES ═══════ */}
-          <EvtReveal className="mt-16 md:mt-24">
-            <div className="mb-10 text-center">
-              <p className="section-label justify-center">Chaque semaine</p>
-              <h2 className="mt-4 font-playfair text-2xl sm:text-3xl md:text-4xl font-bold text-cream">Cultes hebdomadaires</h2>
-              <p className="mt-3 text-muted max-w-xl mx-auto font-be-vn">Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {weeklyServices.map(({ title, day, time, Icon, desc }, i) => (
-                <EvtReveal key={title} delay={Math.min((i % 3) + 1, 3) as 1|2|3}>
-                  <div className="glass rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03] hover:shadow-lg hover:shadow-accent-500/5 group h-full">
-                    <IconBox pageKey="events" elementId={`service-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 text-accent-500 transition-colors group-hover:bg-accent-500 group-hover:text-white group-hover:border-accent-500">
-                      <Icon className="h-5 w-5" />
-                    </IconBox>
-                    <h3 className="font-playfair text-lg font-semibold text-cream">{title}</h3>
-                    <p className="mt-1 text-xs font-bold uppercase tracking-widest text-accent-500 font-be-vn">{day}</p>
-                    <p className="mt-1 text-sm text-muted font-be-vn">{time}</p>
-                    {desc && <p className="mt-2 text-xs text-muted/60 font-be-vn">{desc}</p>}
+            <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+              {SERVICE_TIMES.map(({ day, service, time }, i) => (
+                <RevealSection key={day} className={`reveal-delay-${(i % 4) + 1}`}>
+                  <div className="h-full bg-bg-card p-6">
+                    <span className="block h-1 w-10 bg-evangile-600" />
+                    <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-evangile-600">{day}</p>
+                    <h3 className="card-title mt-3">{service}</h3>
+                    <p className="mt-2 text-sm text-muted">{time}</p>
                   </div>
-                </EvtReveal>
+                </RevealSection>
               ))}
             </div>
-          </EvtReveal>
 
-          {/* ═══════ NEWSLETTER ═══════ */}
-          <EvtReveal className="mt-16 md:mt-24">
-            <div className="glass rounded-2xl p-8 md:p-12 bg-radial-primary text-center">
-              <MS className="text-accent-500 text-[40px] mb-4">mail</MS>
-              <h2 className="mt-2 font-playfair text-xl sm:text-2xl md:text-3xl font-bold text-cream">Ne Manquez Aucun Moment de Bénédiction</h2>
-              <p className="mt-3 text-muted max-w-2xl mx-auto font-be-vn">
-                Recevez les dernières mises à jour sur nos événements, séminaires et cultes directement dans votre boîte mail.
-              </p>
-              <form onSubmit={(e) => { e.preventDefault(); setEmail(''); }}
-                className="mt-8 flex flex-col sm:flex-row gap-3 max-w-lg mx-auto">
-                <input type="email" placeholder="Votre adresse e-mail" value={email}
-                  onChange={(e) => setEmail(e.target.value)} required
-                  className="input-surface flex-grow px-5 py-4 text-sm !rounded-lg" />
-                <button type="submit" className="btn-gold shrink-0 !rounded-lg !px-8 !py-4">
-                  S'abonner
-                </button>
-              </form>
+            <RevealSection className="mt-8">
+              <button onClick={() => onNavigate('activities')} className="btn-link">
+                Tout savoir sur les cultes <ArrowRight className="h-4 w-4" />
+              </button>
+            </RevealSection>
+          </div>
+        </section>
+
+        {/* ═══ RESTER EN LIEN ═══ */}
+        <section className="px-4 py-16 md:py-24">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-px bg-line lg:grid-cols-2">
+              <RevealSection>
+                <div className="h-full bg-bg-card p-8 md:p-10">
+                  <p className="section-eyebrow">Rester informé</p>
+                  <h2 className="card-title mt-3 text-[1.75rem]">Suivez la vie de l'église</h2>
+                  <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+                    Les annonces, communiqués et changements de programme sont publiés en premier sur nos canaux
+                    officiels. Aucune inscription n'est nécessaire.
+                  </p>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <a href={CHURCH.social.facebook} target="_blank" rel="noopener noreferrer" className="btn-primary">
+                      <Globe className="h-4 w-4" /> Facebook
+                    </a>
+                    <a href={`https://wa.me/${CHURCH.phone.href.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+                      <MessageCircle className="h-4 w-4" /> WhatsApp
+                    </a>
+                  </div>
+                </div>
+              </RevealSection>
+
+              <RevealSection className="reveal-delay-1">
+                <div className="h-full bg-bg-card p-8 md:p-10">
+                  <p className="section-eyebrow">Nous rejoindre</p>
+                  <h2 className="card-title mt-3 text-[1.75rem]">Une question sur un événement ?</h2>
+                  <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
+                    Le bureau pastoral répond du lundi au vendredi, de 10h à 18h00, au{' '}
+                    <a href={CHURCH.phone.href} className="font-semibold text-cream underline decoration-evangile-600 decoration-2 underline-offset-4">
+                      {CHURCH.phone.display}
+                    </a>.
+                  </p>
+                  <div className="mt-6">
+                    <button onClick={() => onNavigate('contact')} className="btn-ghost">
+                      Nous écrire <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </RevealSection>
             </div>
-          </EvtReveal>
+          </div>
         </section>
       </main>
 

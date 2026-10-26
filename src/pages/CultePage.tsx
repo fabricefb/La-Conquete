@@ -4,79 +4,53 @@ import { UniversalHero } from '../components/UniversalHero';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
-import { Clock, MonitorPlay, Navigation, Phone } from '../lib/icons';
+import { MonitorPlay, Navigation, Phone, ArrowRight, Globe } from '../lib/icons';
 import { Car, Bus, Baby } from 'lucide-react';
-import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 import { CHURCH } from '../lib/church';
-import { supabase, db, buildContentMap, getContent } from '../lib/supabase';
-
-// ─── Fallback Data ──────────────────────────────────────────────
-const FALLBACK_SCHEDULES = [
-  { day: 'Dimanche', time: '09h00', label: 'Culte du matin', desc: 'Louange, adoration et prédication' },
-  { day: 'Dimanche', time: '11h00', label: 'Culte principal', desc: 'Enseignement approfondi et ministère' },
-  { day: 'Mercredi', time: '18h00', label: 'Étude biblique', desc: 'Enseignement de la Parole pour tous' },
-  { day: 'Vendredi', time: '19h00', label: 'Veillée de prière', desc: 'Intercession et adoration nocturne' },
-] as const;
+import { SERVICE_TIMES } from '../lib/services';
+import { db, buildContentMap, getContent, isSupabaseConfigured } from '../lib/supabase';
 
 const PRACTICALS = [
-  { Icon: Car, title: 'Parking', desc: 'Parking gratuit disponible devant et autour de l\'église.' },
-  { Icon: Bus, title: 'Transport en commun', desc: 'Demandez le croisement Mama Yemo, sur l’avenue N’Djamena.' },
-  { Icon: Baby, title: 'Accueil enfants', desc: 'Salle dédiée pour les 0-5 ans pendant les cultes dominicaux.' },
-  { Icon: Phone, title: 'Information', desc: `Appelez-nous au ${CHURCH.phone.display} pour toute question.` },
+  { Icon: Car, title: 'Stationnement', desc: "Stationnement aux abords de l'église, sur l'avenue N'Djamena." },
+  { Icon: Bus, title: 'Transport en commun', desc: "Demandez le croisement Mama Yemo, sur l'avenue N'Djamena." },
+  { Icon: Baby, title: 'Enfants', desc: 'Les enfants sont les bienvenus : un temps leur est réservé pendant le culte dominical.' },
+  { Icon: Phone, title: 'Information', desc: `Appelez le ${CHURCH.phone.display} pour toute question pratique.` },
 ] as const;
 
-// ─── Component ─────────────────────────────────────────────────────
 export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [isLive, setIsLive] = useState(false);
-  const [schedules, setSchedules] = useState(FALLBACK_SCHEDULES);
   const [cm, setCm] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      supabase.from('worship_schedules').select('*').eq('is_active', true).order('sort_order'),
-      db.getPageContents('culte'),
-    ])
-      .then(([schedRes, contents]) => {
-        if (cancelled) return;
-        if (schedRes.data && schedRes.data.length > 0) {
-          setSchedules(schedRes.data.map((s: any) => ({
-            day: s.day ?? '',
-            time: s.time ?? '',
-            label: s.label ?? '',
-            desc: s.description ?? '',
-          })));
-        }
-        setCm(buildContentMap(contents));
-      })
-      .catch(() => {})
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, []);
 
-  useEffect(() => {
-    // Simulated live check — replace with real API
-    const day = new Date().getDay();
-    const hour = new Date().getHours();
-    setIsLive(day === 0 && (hour === 9 || hour === 11));
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+    } else {
+      db.getPageContents('culte')
+        .then((contents) => { if (!cancelled) setCm(buildContentMap(contents)); })
+        .catch(() => {})
+        .finally(() => { if (!cancelled) setLoading(false); });
+    }
 
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('in'); }),
       { threshold: 0.1 },
     );
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
-    return () => obs.disconnect();
+    document.querySelectorAll('.reveal').forEach((el) => obs.observe(el));
+    return () => { cancelled = true; obs.disconnect(); };
   }, []);
 
   const liveUrl = getContent(cm, 'culte', 'live_url', '');
+  const mapQuery = encodeURIComponent(CHURCH.address.full);
 
   if (loading) {
     return (
-      <div className="bg-bg min-h-screen flex items-center justify-center">
-        <div className="text-muted animate-pulse text-lg">Chargement…</div>
+      <div className="bg-bg min-h-screen">
+        <SiteHeader activePage="culte" onNavigate={onNavigate} />
+        <div className="flex min-h-[60vh] items-center justify-center text-muted animate-pulse">Chargement…</div>
       </div>
     );
   }
@@ -84,45 +58,44 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
   return (
     <div className="bg-bg min-h-screen mobile-bottom-pad">
       <SiteHeader activePage="culte" onNavigate={onNavigate} />
-      <MobileNav active="culte" onNavigate={onNavigate} />
 
-      {/* ═══ HERO ═══ */}
-      <UniversalHero pageKey="culte" defaultBadge="Rassemblés pour Lui" defaultTitle="Nos Cultes" defaultSubtitle="Rejoignez-nous pour des moments de louange, d'enseignement et de communion fraternelle." />
+      <UniversalHero pageKey="culte" defaultBadge="Rassemblés pour Lui" defaultTitle="Nos cultes" defaultSubtitle="Rejoignez-nous pour des moments de louange, d'enseignement et de communion fraternelle." bgImage="/church-photo-1.webp" />
 
       {/* ═══ HORAIRES ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="reveal section-label mb-3 text-center">Programme hebdomadaire</p>
-          <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Horaires des Cultes</h2>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {schedules.map((s, i) => (
-              <div key={i} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.03]`}>
-                <IconBox pageKey="culte" elementId={`schedule-clock-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
-                  <Clock className="h-5 w-5" />
-                </IconBox>
-                <p className="text-xs font-semibold uppercase tracking-widest text-accent-400">{s.day}</p>
-                <p className="mt-1 font-mono text-2xl font-bold text-cream">{s.time}</p>
-                <p className="mt-2 font-semibold text-cream/90">{s.label}</p>
-                <p className="mt-1 text-sm text-muted">{s.desc}</p>
+          <div className="reveal">
+            <p className="section-label">Programme hebdomadaire</p>
+            <h2 className="section-title mt-4">Horaires des cultes</h2>
+            <div className="rule-accent mt-6" />
+            <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted">
+              Quatre rendez-vous chaque semaine, au temple central de Lubumbashi. Entrée libre, sans inscription.
+            </p>
+          </div>
+
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {SERVICE_TIMES.map(({ day, service, time }, i) => (
+              <div key={day} className={`reveal reveal-delay-${i + 1} bg-bg-card p-6`}>
+                <span className="block h-1 w-10 bg-evangile-600" />
+                <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-evangile-600">{day}</p>
+                <h3 className="card-title mt-3">{service}</h3>
+                <p className="mt-2 font-mono text-sm text-muted">{time}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ LIVE STREAMING ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-primary">
+      {/* ═══ LIVE ═══ */}
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
         <div className="mx-auto max-w-4xl">
-          <div className="reveal mb-8 flex items-center justify-center gap-3">
-            <p className="section-label justify-center">En direct</p>
-            {isLive && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-400/20 px-3 py-1 text-xs font-bold uppercase text-accent-400">
-                <span className="live-dot" /> EN DIRECT
-              </span>
-            )}
+          <div className="reveal">
+            <p className="section-label">En direct</p>
+            <h2 className="section-title mt-4">Culte en ligne</h2>
+            <div className="rule-accent mt-6" />
           </div>
-          <h2 className="reveal reveal-delay-1 mb-8 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Live Streaming</h2>
-          <div className="reveal reveal-delay-2 glass-card rounded-2xl overflow-hidden">
+
+          <div className="reveal reveal-delay-1 mt-8 overflow-hidden border border-line">
             {liveUrl ? (
               <div className="relative aspect-video">
                 <iframe
@@ -130,62 +103,83 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
                   className="h-full w-full border-0"
                   allowFullScreen
                   allow="autoplay; encrypted-media"
-                  title="Live streaming"
+                  title="Culte en direct"
                 />
               </div>
             ) : (
-              <div className="relative aspect-video bg-conquete-700/60 flex items-center justify-center">
-                <div className="text-center">
-                  <MonitorPlay className="mx-auto mb-3 h-12 w-12 text-accent-400/60" />
-                  <p className="text-sm text-muted">Le direct sera disponible pendant les cultes</p>
-                  <p className="mt-1 text-xs text-muted/60">Dimanche 09h00 & 11h00</p>
-                </div>
+              <div className="flex aspect-video flex-col items-center justify-center bg-bg px-6 text-center">
+                <MonitorPlay className="h-10 w-10 text-evangile-600/60" />
+                <p className="mt-4 text-sm text-muted">Le direct est diffusé pendant le culte principal du dimanche.</p>
+                <p className="mt-1 text-xs text-muted/70">
+                  Le lien est publié sur la page Facebook officielle avant chaque diffusion.
+                </p>
               </div>
             )}
           </div>
-          <p className="reveal mt-4 text-center text-xs text-muted/60">
-            Rejoignez-nous sur{' '}
-            <a href="https://www.youtube.com/@LaConquete" target="_blank" rel="noopener noreferrer" className="text-accent-400 hover:underline">YouTube</a> et{' '}
-            <a href="https://www.facebook.com/LaConqueteEglise" target="_blank" rel="noopener noreferrer" className="text-accent-400 hover:underline">Facebook</a> pour le live.
+
+          <p className="reveal mt-5 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <Globe className="h-4 w-4 text-evangile-600" />
+            Suivez la diffusion sur
+            <a href={CHURCH.social.facebook} target="_blank" rel="noopener noreferrer" className="font-semibold text-cream underline decoration-evangile-600 decoration-2 underline-offset-4">
+              notre page Facebook
+            </a>.
           </p>
         </div>
       </section>
 
-      {/* ═══ CARTE ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      {/* ═══ LOCALISATION ═══ */}
+      <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="reveal section-label mb-3 text-center">Nous trouver</p>
-          <h2 className="reveal reveal-delay-1 mb-8 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Localisation</h2>
-          <div className="reveal reveal-delay-2 glass-card rounded-2xl overflow-hidden">
-            <iframe
-              title="Localisation de l'église"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3917.123456!2d29.2234!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTHCsDM5JzM2LjciTiAyOcKwMTMnMjQuMiJF!5e0!3m2!1sfr!2scd!4v1700000000000"
-              className="h-80 w-full border-0 sm:h-96"
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
+          <div className="reveal">
+            <p className="section-label">Nous trouver</p>
+            <h2 className="section-title mt-4">Localisation</h2>
+            <div className="rule-accent mt-6" />
           </div>
-          <div className="reveal mt-4 flex items-center justify-center gap-2 text-sm text-muted">
-            <Navigation className="h-4 w-4 text-accent-400" />
-            <span>{CHURCH.address.street}, {CHURCH.address.city}, {CHURCH.address.country}</span>
+
+          <div className="reveal reveal-delay-1 mt-8 grid gap-px bg-line lg:grid-cols-[1fr_320px]">
+            <div className="overflow-hidden border border-line bg-bg-card">
+              <iframe
+                title="Localisation de l'église"
+                src={`https://maps.google.com/maps?q=${mapQuery}&z=15&output=embed`}
+                className="h-80 w-full border-0 sm:h-[420px]"
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="flex flex-col justify-between bg-bg-card p-6">
+              <div>
+                <p className="person-role">Adresse</p>
+                <p className="mt-2 text-sm leading-relaxed text-cream">{CHURCH.address.full}</p>
+                <p className="mt-3 text-xs leading-relaxed text-muted">Repère : {CHURCH.address.landmark}.</p>
+              </div>
+              <a
+                href={`https://www.google.com/maps/dir/?api=1&destination=${mapQuery}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost mt-6"
+              >
+                <Navigation className="h-4 w-4" /> Itinéraire
+              </a>
+            </div>
           </div>
         </div>
       </section>
 
       {/* ═══ INFOS PRATIQUES ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-ember">
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="reveal section-label mb-3 text-center">Bon à savoir</p>
-          <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Infos Pratiques</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {PRACTICALS.map((p, i) => (
-              <div key={i} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-6 text-center transition-all duration-300 hover:scale-[1.03]`}>
-                <IconBox pageKey="culte" elementId={`practical-icon-${i}`} className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
-                  <p.Icon className="h-6 w-6" />
-                </IconBox>
-                <h3 className="font-semibold text-cream">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted">{p.desc}</p>
+          <div className="reveal">
+            <p className="section-label">Bon à savoir</p>
+            <h2 className="section-title mt-4">Infos pratiques</h2>
+            <div className="rule-accent mt-6" />
+          </div>
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
+            {PRACTICALS.map(({ Icon, title, desc }, i) => (
+              <div key={title} className={`reveal reveal-delay-${i + 1} bg-bg-card p-6`}>
+                <Icon className="h-5 w-5 text-evangile-600" />
+                <h3 className="mt-4 text-sm font-semibold uppercase tracking-[0.08em] text-cream">{title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{desc}</p>
               </div>
             ))}
           </div>
@@ -193,18 +187,24 @@ export function CultePage({ onNavigate }: { onNavigate: (page: Page) => void }) 
       </section>
 
       {/* ═══ CTA ═══ */}
-      <section className="py-20 px-4">
-        <div className="reveal mx-auto max-w-2xl text-center">
-          <p className="section-label mb-4">Planifiez votre visite</p>
-          <p className="mb-8 text-cream/70">
-            Première visite ? Nous serions ravis de vous accueillir et de répondre à toutes vos questions.
-          </p>
-          <button onClick={() => onNavigate('contact')} className="btn-primary">Nous contacter</button>
+      <section className="px-4 py-16 md:py-24">
+        <div className="reveal mx-auto flex max-w-4xl flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="section-eyebrow">Planifiez votre visite</p>
+            <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">Première visite ?</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
+              Nous serions ravis de vous accueillir et de répondre à vos questions avant votre venue.
+            </p>
+          </div>
+          <button onClick={() => onNavigate('contact')} className="btn-primary">
+            Nous contacter <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </section>
 
       <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+      <MobileNav active="culte" onNavigate={onNavigate} />
     </div>
   );
 }

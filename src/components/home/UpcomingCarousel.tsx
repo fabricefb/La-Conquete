@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, Bell, Calendar, Clock, MapPin } from '../../lib/icons';
 import { CHURCH } from '../../lib/church';
 import { SERVICE_TIMES } from '../../lib/services';
+import { imageSrcSet } from '../../lib/images';
 import type { Page } from '../../lib/navigation';
 import type { ChurchEvent } from '../../types';
 
@@ -24,22 +25,24 @@ const SERVICE_DESCRIPTIONS: Record<number, string> = {
 };
 
 const SERVICE_IMAGES: Record<number, string> = {
-  0: '/church-photo-3.jpg',
-  3: '/bible.jpg',
-  5: '/church-photo-1.jpg',
+  0: '/church-photo-3.webp',
+  3: '/bible.webp',
+  5: '/church-photo-1.webp',
 };
 
-const WEEKLY: Slide[] = SERVICE_TIMES.slice(0, 4).map((s) => ({
-  key: `service-${s.weekday}`,
-  label: 'Programme hebdomadaire',
-  badge: s.day,
-  title: s.service,
-  time: s.time,
-  description: SERVICE_DESCRIPTIONS[s.weekday],
-  image: SERVICE_IMAGES[s.weekday] ?? '/church-photo-2.jpg',
-  cta: 'Nos programmes',
-  page: 'culte',
-}));
+function weeklySlides(overrides: Record<number, string>): Slide[] {
+  return SERVICE_TIMES.slice(0, 4).map((s) => ({
+    key: `service-${s.weekday}`,
+    label: 'Programme hebdomadaire',
+    badge: s.day,
+    title: s.service,
+    time: s.time,
+    description: SERVICE_DESCRIPTIONS[s.weekday],
+    image: overrides[s.weekday] || SERVICE_IMAGES[s.weekday] || '/church-photo-2.webp',
+    cta: 'Nos programmes',
+    page: 'activities',
+  }));
+}
 
 function eventToSlide(evt: ChurchEvent): Slide {
   const date = new Date(evt.event_date);
@@ -54,7 +57,7 @@ function eventToSlide(evt: ChurchEvent): Slide {
     title: evt.title,
     time: evt.location || CHURCH.address.full,
     description: evt.description,
-    image: evt.image_url || '/priere.jpg',
+    image: evt.image_url || '/priere.webp',
     cta: "Voir l'événement",
     page: 'events',
   };
@@ -76,10 +79,11 @@ export interface AgendaSettings {
 interface UpcomingCarouselProps {
   events: ChurchEvent[];
   agenda: AgendaSettings;
+  serviceImages?: Record<number, string>;
   onNavigate: (page: Page) => void;
 }
 
-export function UpcomingCarousel({ events, agenda, onNavigate }: UpcomingCarouselProps) {
+export function UpcomingCarousel({ events, agenda, serviceImages = {}, onNavigate }: UpcomingCarouselProps) {
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
 
@@ -97,12 +101,12 @@ export function UpcomingCarousel({ events, agenda, onNavigate }: UpcomingCarouse
     title: agenda.featuredTitle,
     time: agenda.featuredTime,
     description: agenda.featuredDescription,
-    image: agenda.featuredImage || '/priere.jpg',
+    image: agenda.featuredImage || '/marathon-priere-2026-slide.webp',
     cta: agenda.featuredCta,
     page: 'events',
   };
 
-  const slides = [featured, ...upcoming.map(eventToSlide), ...WEEKLY];
+  const slides = [featured, ...upcoming.map(eventToSlide), ...weeklySlides(serviceImages)];
 
   const go = (next: number) => {
     setIndex(((next % slides.length) + slides.length) % slides.length);
@@ -179,9 +183,12 @@ export function UpcomingCarousel({ events, agenda, onNavigate }: UpcomingCarouse
               >
                 <img
                   src={slide.image}
+                  srcSet={imageSrcSet(slide.image)}
+                  sizes="100vw"
                   alt=""
                   className="photo-claro-strong absolute inset-0 h-full w-full object-cover"
                   loading={i === 0 ? 'eager' : 'lazy'}
+                  decoding="async"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-ink-950/95 via-ink-950/70 to-ink-950/20" />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-950/95 via-transparent to-transparent" />

@@ -4,6 +4,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import type { Location } from '../../../types';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Star, MapPin } from 'lucide-react';
+import ImageUpload from '../ImageUpload';
 
 interface LocationForm {
   name: string;
@@ -16,6 +17,8 @@ interface LocationForm {
   email: string;
   service_times: string;
   pastor_name: string;
+  description: string;
+  image_url: string;
   is_main: boolean;
   is_active: boolean;
   sort_order: string;
@@ -24,8 +27,8 @@ interface LocationForm {
 const emptyForm: LocationForm = {
   name: '', address: '', city: '', country: 'RDC',
   latitude: '', longitude: '', phone: '', email: '',
-  service_times: '', pastor_name: '', is_main: false,
-  is_active: true, sort_order: '0',
+  service_times: '', pastor_name: '', description: '', image_url: '',
+  is_main: false, is_active: true, sort_order: '0',
 };
 
 export function LocationsTab() {
@@ -42,9 +45,13 @@ export function LocationsTab() {
     setLoading(true);
     const { data, error } = await supabase
       .from('locations').select('*').order('sort_order');
-    if (!error && data) setLocations(data as Location[]);
+    if (error) {
+      addToast('Erreur lors du chargement des lieux : ' + error.message, 'error');
+    } else {
+      setLocations((data as Location[]) ?? []);
+    }
     setLoading(false);
-  }, []);
+  }, [addToast]);
 
   useEffect(() => { fetchLocations(); }, [fetchLocations]);
 
@@ -53,9 +60,11 @@ export function LocationsTab() {
     setEditingId(loc.id);
     setForm({
       name: loc.name, address: loc.address, city: loc.city, country: loc.country,
-      latitude: String(loc.latitude), longitude: String(loc.longitude),
+      latitude: loc.latitude != null ? String(loc.latitude) : '',
+      longitude: loc.longitude != null ? String(loc.longitude) : '',
       phone: loc.phone ?? '', email: loc.email ?? '',
       service_times: loc.service_times ?? '', pastor_name: loc.pastor_name ?? '',
+      description: loc.description ?? '', image_url: loc.image_url ?? '',
       is_main: loc.is_main, is_active: loc.is_active, sort_order: String(loc.sort_order),
     });
     setShowForm(true);
@@ -64,12 +73,23 @@ export function LocationsTab() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
+
+    const hasLat = form.latitude.trim() !== '';
+    const hasLng = form.longitude.trim() !== '';
+    if (hasLat !== hasLng) {
+      addToast('Renseignez la latitude et la longitude ensemble, ou laissez les deux vides.', 'error');
+      return;
+    }
+
     setSaving(true);
     const payload = {
       name: form.name, address: form.address, city: form.city, country: form.country,
-      latitude: parseFloat(form.latitude), longitude: parseFloat(form.longitude),
+      latitude: hasLat ? parseFloat(form.latitude) : null,
+      longitude: hasLng ? parseFloat(form.longitude) : null,
       phone: form.phone || null, email: form.email || null,
       service_times: form.service_times || null, pastor_name: form.pastor_name || null,
+      description: form.description.trim() || null,
+      image_url: form.image_url.trim() || null,
       is_main: form.is_main, is_active: form.is_active,
       sort_order: parseInt(form.sort_order, 10) || 0,
     };
@@ -105,7 +125,10 @@ export function LocationsTab() {
   return (
     <div>
       <div className="mb-6 flex items-center justify-between">
-        <h2 className="font-serif text-2xl font-semibold text-cream">Lieux de culte ({locations.length})</h2>
+        <div>
+          <h2 className="font-serif text-2xl font-semibold text-cream">Lieux & extensions ({locations.length})</h2>
+          <p className="mt-1 text-xs text-muted">Les lieux actifs, hors siège principal, apparaissent sur la page « Missions & extensions ».</p>
+        </div>
         {isFullAdmin && <button onClick={openAdd} className="btn-gold text-sm"><Plus className="h-4 w-4" /> Ajouter</button>}
       </div>
 
@@ -117,11 +140,20 @@ export function LocationsTab() {
           </div>
           <form onSubmit={handleSave} className="grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2"><label className="mb-1.5 block text-xs font-medium text-muted">Nom *</label><input type="text" required value={form.name} onChange={f('name')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
+            <div className="sm:col-span-2">
+              <ImageUpload
+                value={form.image_url}
+                onChange={(url) => setForm((p) => ({ ...p, image_url: url }))}
+                label="Photo du lieu ou de l'extension"
+                folder="locations"
+              />
+            </div>
+            <div className="sm:col-span-2"><label className="mb-1.5 block text-xs font-medium text-muted">Description</label><textarea rows={3} value={form.description} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} placeholder="Présentation courte de l'extension, du quartier ou du village…" className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div className="sm:col-span-2"><label className="mb-1.5 block text-xs font-medium text-muted">Adresse *</label><input type="text" required value={form.address} onChange={f('address')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Ville *</label><input type="text" required value={form.city} onChange={f('city')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Pays</label><input type="text" value={form.country} onChange={f('country')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
-            <div><label className="mb-1.5 block text-xs font-medium text-muted">Latitude *</label><input type="number" step="any" required value={form.latitude} onChange={f('latitude')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
-            <div><label className="mb-1.5 block text-xs font-medium text-muted">Longitude *</label><input type="number" step="any" required value={form.longitude} onChange={f('longitude')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
+            <div><label className="mb-1.5 block text-xs font-medium text-muted">Latitude (optionnel)</label><input type="number" step="any" value={form.latitude} onChange={f('latitude')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
+            <div><label className="mb-1.5 block text-xs font-medium text-muted">Longitude (optionnel)</label><input type="number" step="any" value={form.longitude} onChange={f('longitude')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Téléphone</label><input type="tel" value={form.phone} onChange={f('phone')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Email</label><input type="email" value={form.email} onChange={f('email')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
             <div><label className="mb-1.5 block text-xs font-medium text-muted">Horaires</label><input type="text" value={form.service_times} onChange={f('service_times')} className="input-surface w-full px-4 py-2.5 text-sm" /></div>
@@ -148,7 +180,11 @@ export function LocationsTab() {
           {locations.map((loc) => (
             <div key={loc.id} className="glass rounded-2xl p-4 flex items-start justify-between gap-4 transition hover:scale-[1.005]">
               <div className="flex items-start gap-3">
-                <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-accent-400' : 'text-ember-400'}`} />
+                {loc.image_url ? (
+                  <img src={loc.image_url} alt="" className="h-12 w-12 shrink-0 rounded-xl border border-line object-cover" />
+                ) : (
+                  <Star className={`mt-0.5 h-5 w-5 shrink-0 ${loc.is_main ? 'text-accent-400' : 'text-ember-400'}`} />
+                )}
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-semibold text-cream">{loc.name}</p>
@@ -156,7 +192,10 @@ export function LocationsTab() {
                     {!loc.is_active && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-muted">Inactif</span>}
                   </div>
                   <p className="text-sm text-muted">{loc.address}, {loc.city}</p>
-                  <p className="text-xs text-muted/60">GPS: {loc.latitude}, {loc.longitude}</p>
+                  {loc.pastor_name && <p className="text-xs text-muted/70">Pasteur : {loc.pastor_name}</p>}
+                  {loc.latitude != null && loc.longitude != null && (
+                    <p className="text-xs text-muted/60">GPS: {loc.latitude}, {loc.longitude}</p>
+                  )}
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-2">

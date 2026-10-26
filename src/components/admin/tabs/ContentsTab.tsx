@@ -4,12 +4,11 @@ import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import ImageUpload from '../ImageUpload';
 import {
-  Save, Plus, Trash2, X, ChevronDown, ChevronRight,
+  Save, Plus, Trash2, X, ChevronRight,
   Loader2, Home, Info, Flame, Compass, Quote, Users,
   MessageSquare, Calendar, Radio, Video, Building2,
-  Megaphone, Heart, MapPin, BookOpen, Eye, Newspaper,
+  Megaphone, Heart, MapPin, BookOpen, Eye, Newspaper, Mic,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { CHURCH } from '../../../lib/church';
 type IconComponent = React.ComponentType<any>;
 
@@ -46,22 +45,25 @@ interface PageDef {
   sections: SectionDef[];
 }
 
-const PAGES: PageDef[] = [
+export const PAGES: PageDef[] = [
   /* ══════════ ACCUEIL ══════════ */
   {
     key: 'home', label: 'Page d\'accueil', icon: Home,
-    description: 'Hero, Piliers, À propos, Citation, CTA',
+    description: 'Hero, Orateurs, Piliers, À propos, Citation, CTA',
     sections: [
       { key: 'topbar', label: 'Bande passante', icon: Megaphone, description: 'Téléphone, email, texte défilant' },
       { key: 'hero', label: 'Héro plein écran', icon: Home, description: 'Image de fond (photo modifiable), diaporama, titre, verset biblique' },
       { key: 'agenda', label: 'Événements — À ne pas manquer', icon: Calendar, description: 'Affiche du marathon (photo/PDF converti en image), dates, textes et en-tête du carrousel' },
+      { key: 'services', label: 'Photos des cultes hebdomadaires', icon: Calendar, description: 'Photo de fond de chaque culte dans le carrousel (dimanche, mercredi, vendredi, samedi)' },
       { key: 'pillars', label: 'Trois Piliers', icon: Flame, description: 'Foi, Communauté, Mission' },
       { key: 'pastor_word', label: 'Mot du pasteur', icon: Users, description: 'Portrait (photo modifiable), signature (image modifiable), textes et citation' },
+      { key: 'firstvisit', label: 'Premier dimanche', icon: Calendar, description: 'Photo (modifiable), horaires réels et coordonnées' },
       { key: 'news', label: 'Dernières nouvelles', icon: Newspaper, description: 'Titre et sous-titre de la section actualités' },
       { key: 'cta_map', label: 'CTA & Carte', icon: MapPin, description: 'Texte du CTA en superposition sur la carte' },
       { key: 'explore', label: 'Explorer — Découvrez nos activités', icon: Eye, description: 'Titre, sous-titre et description de la section Explorer. Pour modifier les cartes (miniatures, liens), utilisez l\'onglet « Cartes Explorer »' },
       { key: 'about', label: 'Qui sommes-nous (ancien)', icon: Info, description: 'Textes, photo (miniature modifiable) et citation' },
       { key: 'quote', label: 'Citation biblique', icon: Quote, description: 'Texte et référence' },
+      { key: 'testimonials', label: 'Témoignages', icon: MessageSquare, description: 'En-tête de la section témoignages' },
     ],
   },
   /* ══════════ À PROPOS ══════════ */
@@ -75,6 +77,7 @@ const PAGES: PageDef[] = [
       { key: 'mission', label: 'Mission', icon: Flame, description: 'Texte de la mission' },
       { key: 'values', label: 'Nos Valeurs', icon: Heart, description: 'Titre et sous-titre' },
       { key: 'giving', label: 'Dons & Soutien', icon: Heart, description: 'Section dons sur la page À propos' },
+      { key: 'cta', label: 'CTA — Nous rejoindre', icon: MapPin, description: 'Photo de fond (modifiable), titre et texte' },
       { key: 'vision_heading', label: 'En-tête Vision', icon: Eye, description: 'Label et titre de la section Vision' },
       { key: 'mission_heading', label: 'En-tête Mission', icon: Flame, description: 'Label et titre de la section Mission' },
       { key: 'team', label: 'Équipe Pastorale', icon: Users, description: 'Label, titre et description' },
@@ -95,6 +98,8 @@ const PAGES: PageDef[] = [
     description: 'Événements à venir et passés',
     sections: [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
+      { key: 'marathon', label: 'Marathon de prière — Affiche', icon: Calendar, description: 'Affiche officielle (photo modifiable), thème, horaires et référence' },
+      { key: 'speakers', label: 'Orateurs du Marathon', icon: Mic, description: 'Photos, noms, rôles et textes. Activez les orateurs à afficher.' },
       { key: 'upcoming', label: 'Événements à venir', icon: Calendar, description: 'Titre et description' },
       { key: 'weekly', label: 'Cultes hebdomadaires', icon: Calendar, description: 'Titre et description' },
       { key: 'weekly_heading', label: 'En-tête Cultes hebdomadaires', icon: Calendar, description: 'Label, titre et description' },
@@ -108,6 +113,7 @@ const PAGES: PageDef[] = [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'activities', label: 'Activités', icon: Users, description: 'Titre et description' },
       { key: 'program', label: 'Programme', icon: Calendar, description: 'Titre et description' },
+      { key: 'gallery', label: 'Galerie photos', icon: Eye, description: 'Les six photos de la galerie (modifiables)' },
     ],
   },
   {
@@ -119,6 +125,13 @@ const PAGES: PageDef[] = [
       { key: 'evangelisation', label: 'Évangélisation', icon: Compass, description: 'Titre et description' },
       { key: 'diaconie', label: 'Diaconie & Aide sociale', icon: Heart, description: 'Titre et description' },
       { key: 'groupes', label: 'Groupes (Hommes, Femmes, Enfants, Couples)', icon: Users, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'evangelisation', label: 'Évangélisation', icon: Compass,
+    description: 'Héro, mission et participation',
+    sections: [
+      { key: 'evangelisation', label: 'Héro & mission', icon: Heart, description: 'Photo de fond (modifiable), titres et textes' },
     ],
   },
   {
@@ -136,6 +149,19 @@ const PAGES: PageDef[] = [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'principaux', label: 'Pasteurs principaux', icon: Users, description: 'Titre et description' },
       { key: 'equipe', label: 'Reste de l\'équipe', icon: Users, description: 'Titre et description' },
+    ],
+  },
+  {
+    key: 'missions', label: 'Missions & extensions', icon: Compass,
+    description: 'Vision missionnaire, implantations et appel au soutien. Les fiches, photos et pasteurs des extensions se gèrent dans l\'onglet « Lieux & extensions »',
+    sections: [
+      { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
+      { key: 'vision', label: 'Vision missionnaire', icon: Compass, description: 'Label, titre et texte d\'introduction' },
+      { key: 'pillars', label: 'Trois piliers missionnaires', icon: Flame, description: 'Titres et textes des piliers (âmes, pasteurs, terres)' },
+      { key: 'implantations', label: 'Implantation à la une', icon: MapPin, description: 'En-tête de la section mise en avant' },
+      { key: 'network', label: 'Autres implantations', icon: MapPin, description: 'En-tête du réseau d\'extensions' },
+      { key: 'pastors', label: 'Pasteurs d\'extension', icon: Users, description: 'En-tête de la section des responsables' },
+      { key: 'cta', label: 'Appel au soutien', icon: Heart, description: 'Label, titre et texte du CTA' },
     ],
   },
   /* ══════════ VIE SPIRITUELLE ══════════ */
@@ -175,7 +201,7 @@ const PAGES: PageDef[] = [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
       { key: 'videos', label: 'Toutes les vidéos', icon: Video, description: 'Titre et description' },
       { key: 'emissions', label: 'Émissions', icon: Radio, description: 'Titre et description' },
-      { key: 'live', label: 'En direct', icon: Video, description: 'Titre et description' },
+      { key: 'live', label: 'En direct', icon: Video, description: 'Photo de fond (modifiable), titre et description' },
       { key: 'photos', label: 'Photos', icon: Eye, description: 'Titre et description' },
     ],
   },
@@ -256,7 +282,7 @@ interface SeedField {
   value: string;
 }
 
-const SEEDS: Record<string, Record<string, SeedField[]>> = {
+export const SEEDS: Record<string, Record<string, SeedField[]>> = {
   home: {
     topbar: [
       { field_key: 'phone', label: 'Téléphone', type: 'text', value: CHURCH.phone.display },
@@ -271,7 +297,9 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: `Église Évangélique La Conquête — ${CHURCH.address.city}, ${CHURCH.address.country}` },
       { field_key: 'bible_verse', label: 'Verset biblique (typing)', type: 'text', value: 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"' },
       { field_key: 'cta_primary', label: 'Bouton CTA principal', type: 'text', value: 'Rejoindre le culte' },
+      { field_key: 'cta_primary_link', label: 'Destination du CTA principal', type: 'text', value: 'activities' },
       { field_key: 'cta_secondary', label: 'Bouton CTA secondaire', type: 'text', value: 'Notre vision' },
+      { field_key: 'cta_secondary_link', label: 'Destination du CTA secondaire', type: 'text', value: 'about' },
     ],
     agenda: [
       { field_key: 'eyebrow', label: 'En-tête section (label)', type: 'text', value: 'Événements' },
@@ -280,20 +308,26 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'featured_kicker', label: 'Affiche — Sur-titre', type: 'text', value: 'À la une' },
       { field_key: 'featured_badge', label: 'Affiche — Date', type: 'text', value: '1er – 30 novembre 2026' },
       { field_key: 'featured_title', label: 'Affiche — Titre', type: 'text', value: 'Marathon de prière' },
-      { field_key: 'featured_time', label: 'Affiche — Horaires / lieu', type: 'text', value: 'Lundi – vendredi, 16h – 18h45 · Dimanche, 8h – 10h30' },
+      { field_key: 'featured_time', label: 'Affiche — Horaires / lieu', type: 'text', value: 'Lundi – vendredi, 16h00 – 18h45 · Dimanche, 08h00 – 10h30' },
       { field_key: 'featured_description', label: 'Affiche — Description', type: 'text', value: "« La mission de l'Église locale face au monde moderne » — Matthieu 28:19-20." },
-      { field_key: 'featured_image', label: 'Affiche — Photo officielle (upload)', type: 'image_url', value: '/priere.jpg' },
+      { field_key: 'featured_image', label: 'Affiche — Image du slide (paysage)', type: 'image_url', value: '/marathon-priere-2026-slide.webp' },
       { field_key: 'featured_cta', label: 'Affiche — Texte du bouton', type: 'text', value: "Voir l'événement" },
+    ],
+    services: [
+      { field_key: 'service_0_image', label: 'Dimanche — Culte principal', type: 'image_url', value: '/church-photo-3.webp' },
+      { field_key: 'service_3_image', label: 'Mercredi — Enseignement et prière', type: 'image_url', value: '/bible.webp' },
+      { field_key: 'service_5_image', label: 'Vendredi — Jeûne et prière', type: 'image_url', value: '/church-photo-1.webp' },
+      { field_key: 'service_6_image', label: 'Samedi — Génération Espoir', type: 'image_url', value: '/church-photo-2.webp' },
     ],
     pillars: [
       { field_key: 'heading_label', label: 'En-tête section (label)', type: 'text', value: 'Nos Fondements' },
       { field_key: 'heading_title', label: 'En-tête section (titre)', type: 'text', value: 'Trois piliers qui nous guident' },
       { field_key: 'pillar_1_title', label: 'Pilier 1 — Titre', type: 'text', value: 'Foi' },
-      { field_key: 'pillar_1_desc', label: 'Pilier 1 — Description', type: 'text', value: '' },
+      { field_key: 'pillar_1_desc', label: 'Pilier 1 — Description', type: 'text', value: 'Une foi ancrée dans la Parole de Dieu qui nous donne la force de tenir ferme dans les épreuves et de marcher avec confiance vers notre destinée.' },
       { field_key: 'pillar_2_title', label: 'Pilier 2 — Titre', type: 'text', value: 'Communauté' },
-      { field_key: 'pillar_2_desc', label: 'Pilier 2 — Description', type: 'text', value: '' },
+      { field_key: 'pillar_2_desc', label: 'Pilier 2 — Description', type: 'text', value: "Une famille soudée par l'amour du Christ, où chacun trouve sa place, son soutien et sa mission au service du corps." },
       { field_key: 'pillar_3_title', label: 'Pilier 3 — Titre', type: 'text', value: 'Mission' },
-      { field_key: 'pillar_3_desc', label: 'Pilier 3 — Description', type: 'text', value: '' },
+      { field_key: 'pillar_3_desc', label: 'Pilier 3 — Description', type: 'text', value: "Un appel à aller au-delà des murs, à porter l'Évangile aux nations et à faire des disciples pour la gloire de Dieu." },
     ],
     about: [
       { field_key: 'heading_label', label: 'En-tête section (label)', type: 'text', value: 'Qui sommes-nous' },
@@ -307,11 +341,11 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     pastor_word: [
       { field_key: 'label', label: 'Label de section', type: 'text', value: 'Mot du pasteur' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Conseils pastoraux' },
-      { field_key: 'text_1', label: 'Texte principal', type: 'text', value: '' },
-      { field_key: 'text_2', label: 'Texte secondaire', type: 'text', value: '' },
-      { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: '' },
-      { field_key: 'bible_ref', label: 'Référence biblique', type: 'text', value: '' },
-      { field_key: 'portrait_image', label: 'Photo portrait (PNG sans fond)', type: 'image_url', value: '' },
+      { field_key: 'text_1', label: 'Texte principal', type: 'text', value: 'Cher membre de la famille La Conquête, Dieu a un plan extraordinaire pour votre vie. Ne laissez pas les circonstances définir votre destinée, mais laissez la Parole de Dieu établir vos pas.' },
+      { field_key: 'text_2', label: 'Texte secondaire', type: 'text', value: "Nous sommes dans une saison où Dieu appelle son Église à se lever, à prendre position et à manifester sa gloire dans chaque domaine de la société." },
+      { field_key: 'bible_text', label: 'Citation biblique', type: 'text', value: "Car je connais les projets que j'ai formés sur vous, dit l'Éternel, projets de paix et non de malheur, afin de vous donner un avenir et de l'espérance." },
+      { field_key: 'bible_ref', label: 'Référence biblique', type: 'text', value: 'Jérémie 29:11' },
+      { field_key: 'portrait_image', label: 'Photo portrait', type: 'image_url', value: '/pasteur-romain-kazadi.webp' },
       { field_key: 'portrait_scale', label: 'Échelle du portrait (ex: 1, 1.2, 0.8)', type: 'text', value: '1.25' },
       { field_key: 'portrait_pos_x', label: 'Position horizontale (left / center / right)', type: 'text', value: 'center' },
       { field_key: 'portrait_pos_y', label: 'Position verticale (top / center / bottom)', type: 'text', value: 'top' },
@@ -319,27 +353,36 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'signature_scale', label: 'Échelle de la signature (ex: 1, 1.5, 0.7)', type: 'text', value: '1' },
       { field_key: 'signature_pos_x', label: 'Position signature (left / center / right)', type: 'text', value: 'center' },
     ],
+    firstvisit: [
+      { field_key: 'image', label: 'Photo — Premier dimanche', type: 'image_url', value: '/church-photo-2.webp' },
+    ],
     news: [
-      { field_key: 'title', label: 'Titre de la section', type: 'text', value: 'Dernières nouvelles' },
-      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
+      { field_key: 'eyebrow', label: 'En-tête (label)', type: 'text', value: 'Actualités' },
+      { field_key: 'title', label: 'Titre de la section', type: 'text', value: "La vie de l'église" },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: 'Enseignements, annonces et nouvelles de nos extensions — ce qui fait vivre la communauté.' },
     ],
     cta_map: [
       { field_key: 'title', label: 'Titre du CTA', type: 'text', value: 'Rejoignez notre famille' },
-      { field_key: 'text', label: 'Texte du CTA', type: 'text', value: '' },
+      { field_key: 'text', label: 'Texte du CTA', type: 'text', value: "Vous êtes appelé à faire partie de cette aventure extraordinaire. Venez rencontrer une communauté qui prie, qui aime et qui sert ensemble." },
     ],
     explore: [
       { field_key: 'heading_label', label: 'Label de section', type: 'text', value: 'Explorer' },
       { field_key: 'heading_title', label: 'Titre de la section', type: 'text', value: 'Découvrez nos activités' },
-      { field_key: 'description', label: 'Sous-titre / Description', type: 'text', value: 'Gérez les prédications affichées sur la page #predications et modifiez chaque carte depuis le back-office.' },
+      { field_key: 'subtitle', label: 'Sous-titre / Description', type: 'text', value: "Cinq portes d'entrée dans la vie de l'église : prédications, rendez-vous, ministères, médias et actualités." },
     ],
     pastors: [
       { field_key: 'label', label: 'Label de section', type: 'text', value: 'Bureau pastoral' },
       { field_key: 'title', label: 'Titre', type: 'text', value: "Une équipe au service de l'Église" },
     ],
     quote: [
-      { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: '' },
-      { field_key: 'text', label: 'Texte de la citation', type: 'text', value: '' },
-      { field_key: 'reference', label: 'Référence', type: 'text', value: '' },
+      { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: 'Verset' },
+      { field_key: 'text', label: 'Texte de la citation', type: 'text', value: "Car nous sommes son ouvrage, ayant été créés en Jésus-Christ pour de bonnes œuvres, que Dieu a préparées d'avance, afin que nous les pratiquions." },
+      { field_key: 'reference', label: 'Référence', type: 'text', value: 'Éphésiens 2:10' },
+    ],
+    testimonials: [
+      { field_key: 'heading_label', label: 'En-tête (label)', type: 'text', value: 'Témoignages' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: 'Ce que Dieu fait parmi nous' },
+      { field_key: 'description', label: 'Description', type: 'text', value: "Des membres de la communauté racontent ce que Dieu a accompli dans leur vie, pour la gloire de son nom." },
     ],
   },
 
@@ -368,6 +411,9 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Soutenir l\'œuvre' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'cta_text', label: 'Texte du bouton', type: 'text', value: 'Faire un don' },
+    ],
+    cta: [
+      { field_key: 'image', label: 'Photo de fond', type: 'image_url', value: '/church-photo-1.webp' },
     ],
     vision_heading: [
       { field_key: 'label', label: 'Label', type: 'text', value: 'Notre Vision' },
@@ -414,6 +460,35 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'À venir' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
     ],
+    marathon: [
+      { field_key: 'label', label: 'Sur-titre', type: 'text', value: 'À la une' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Marathon de prière' },
+      { field_key: 'period', label: 'Période', type: 'text', value: '1er – 30 novembre 2026' },
+      { field_key: 'theme', label: 'Thème', type: 'text', value: "La mission de l'Église locale face au monde moderne" },
+      { field_key: 'reference', label: 'Référence biblique', type: 'text', value: 'Matthieu 28:19-20' },
+      { field_key: 'hours', label: 'Horaires', type: 'text', value: 'Lundi – vendredi, 16h00 – 18h45 · Dimanche, 08h00 – 10h30' },
+      { field_key: 'image', label: 'Affiche officielle (upload)', type: 'image_url', value: '/marathon-priere-2026.webp' },
+    ],
+    speakers: [
+      { field_key: 'label', label: 'Label de section', type: 'text', value: 'Marathon de prière' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Orateurs' },
+      { field_key: 'description', label: 'Description', type: 'text', value: '' },
+      { field_key: 'speaker_1_active', label: 'Orateur 1 — Afficher sur le site', type: 'text', value: 'true' },
+      { field_key: 'speaker_1_image', label: 'Orateur 1 — Photo', type: 'image_url', value: '/pasteur-romain-kazadi.webp' },
+      { field_key: 'speaker_1_name', label: 'Orateur 1 — Nom', type: 'text', value: 'Josué Romain Kazadi' },
+      { field_key: 'speaker_1_role', label: 'Orateur 1 — Rôle', type: 'text', value: 'Pasteur Principal' },
+      { field_key: 'speaker_1_text', label: 'Orateur 1 — Texte sur la photo', type: 'text', value: '' },
+      { field_key: 'speaker_2_active', label: 'Orateur 2 — Afficher sur le site', type: 'text', value: 'true' },
+      { field_key: 'speaker_2_image', label: 'Orateur 2 — Photo', type: 'image_url', value: '/pasteur-david-kateba.webp' },
+      { field_key: 'speaker_2_name', label: 'Orateur 2 — Nom', type: 'text', value: 'David Kateba' },
+      { field_key: 'speaker_2_role', label: 'Orateur 2 — Rôle', type: 'text', value: 'Docteur' },
+      { field_key: 'speaker_2_text', label: 'Orateur 2 — Texte sur la photo', type: 'text', value: '' },
+      { field_key: 'speaker_3_active', label: 'Orateur 3 — Afficher sur le site', type: 'text', value: 'true' },
+      { field_key: 'speaker_3_image', label: 'Orateur 3 — Photo', type: 'image_url', value: '/pasteur-richard-mukendi.webp' },
+      { field_key: 'speaker_3_name', label: 'Orateur 3 — Nom', type: 'text', value: 'Richard Mukendi' },
+      { field_key: 'speaker_3_role', label: 'Orateur 3 — Rôle', type: 'text', value: 'Pasteur' },
+      { field_key: 'speaker_3_text', label: 'Orateur 3 — Texte sur la photo', type: 'text', value: '' },
+    ],
     weekly: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Cultes hebdomadaires' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
@@ -443,6 +518,14 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     program: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Programme' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+    gallery: [
+      { field_key: 'image_1', label: 'Photo 1', type: 'image_url', value: '/church-photo-1.webp' },
+      { field_key: 'image_2', label: 'Photo 2', type: 'image_url', value: '/church-photo-2.webp' },
+      { field_key: 'image_3', label: 'Photo 3', type: 'image_url', value: '/church-photo-3.webp' },
+      { field_key: 'image_4', label: 'Photo 4', type: 'image_url', value: '/predication-1.webp' },
+      { field_key: 'image_5', label: 'Photo 5', type: 'image_url', value: '/priere.webp' },
+      { field_key: 'image_6', label: 'Photo 6', type: 'image_url', value: '/bible.webp' },
     ],
   },
 
@@ -502,6 +585,45 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     equipe: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'L\'équipe' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+    ],
+  },
+
+  missions: {
+    hero: [
+      { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
+      { field_key: 'badge', label: 'Badge', type: 'text', value: 'Église missionnaire' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Missions & extensions' },
+      { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: "La conquête des âmes et des terres se vit aussi hors des murs du temple, dans les villages et les quartiers où l'église s'implante." },
+    ],
+    vision: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Pourquoi des extensions' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Une église qui envoie' },
+      { field_key: 'text', label: 'Texte', type: 'text', value: "La Conquête n'est pas seulement une communauté rassemblée à Lubumbashi. Elle est une église missionnaire : elle forme, envoie et accompagne des équipes pour que l'Évangile soit annoncé là où les gens vivent." },
+    ],
+    pillars: [
+      { field_key: 'pillar_1_title', label: 'Pilier 1 — Titre', type: 'text', value: 'Des âmes' },
+      { field_key: 'pillar_1_text', label: 'Pilier 1 — Texte', type: 'text', value: "Chaque extension naît d'un quartier ou d'un village où des familles vivent, travaillent et doivent entendre l'Évangile dans leur propre quotidien." },
+      { field_key: 'pillar_2_title', label: 'Pilier 2 — Titre', type: 'text', value: 'Des pasteurs' },
+      { field_key: 'pillar_2_text', label: 'Pilier 2 — Texte', type: 'text', value: 'Chaque implantation est portée par un pasteur et une équipe locale, en lien avec le bureau pastoral de Lubumbashi.' },
+      { field_key: 'pillar_3_title', label: 'Pilier 3 — Titre', type: 'text', value: 'Des terres' },
+      { field_key: 'pillar_3_text', label: 'Pilier 3 — Texte', type: 'text', value: 'La conquête des terres habitables et cultivables se traduit par des lieux de culte, des formations et un accompagnement durable des communautés.' },
+    ],
+    implantations: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Nos implantations' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: "Une présence qui s'étend" },
+    ],
+    network: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Le réseau' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Les autres implantations' },
+    ],
+    pastors: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Responsables' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: "Les pasteurs d'extension" },
+    ],
+    cta: [
+      { field_key: 'eyebrow', label: 'Sur-titre', type: 'text', value: 'Faire grandir le réseau' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Soutenir une implantation' },
+      { field_key: 'text', label: 'Texte', type: 'text', value: 'Vos dons et votre prière accompagnent les pasteurs, les équipes et les chantiers des extensions.' },
     ],
   },
 
@@ -578,6 +700,7 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
     live: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'En direct' },
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'image', label: 'Photo de fond', type: 'image_url', value: '/church-photo-1.webp' },
     ],
     photos: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Photos' },
@@ -700,6 +823,19 @@ const SEEDS: Record<string, Record<string, SeedField[]>> = {
       { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
       { field_key: 'title', label: 'Titre', type: 'text', value: 'Impliquez-vous' },
       { field_key: 'description', label: 'Description', type: 'text', value: '' },
+      { field_key: 'image', label: 'Photo de fond', type: 'image_url', value: '/church-photo-3.webp' },
+    ],
+  },
+
+  evangelisation: {
+    evangelisation: [
+      { field_key: 'hero_image', label: 'Photo de fond', type: 'image_url', value: '/church-photo-1.webp' },
+      { field_key: 'hero_title', label: 'Titre du héro', type: 'text', value: 'Allez dans le monde entier et prêchez la Bonne Nouvelle' },
+      { field_key: 'hero_subtitle', label: 'Sous-titre du héro', type: 'text', value: "L'évangélisation est au cœur de notre mission. Chaque âme compte, chaque vie a une destinée en Dieu." },
+      { field_key: 'mission_title', label: 'Titre — Notre Mission', type: 'text', value: 'Notre Mission' },
+      { field_key: 'mission_text', label: 'Texte — Notre Mission', type: 'text', value: "Nous sommes appelés à être des ambassadeurs du Christ, porteurs d'une message d'espérance et de transformation. Notre département d'évangélisation organise des sorties régulières dans les quartiers, les marchés et les espaces publics pour partager l'amour de Dieu avec ceux qui ne le connaissent pas encore." },
+      { field_key: 'participate_title', label: 'Titre — Comment participer', type: 'text', value: 'Comment participer' },
+      { field_key: 'participate_text', label: 'Texte — Comment participer', type: 'text', value: "Chaque membre de l'église est un évangéliste en puissance. Rejoignez notre équipe d'évangélisation et participez activement à la conquête des âmes pour le Royaume de Dieu." },
     ],
   },
 };
@@ -739,13 +875,7 @@ async function seedPageIfEmpty(pageKey: string) {
   // Page has some fields — seed only missing ones
   const existingKeys = new Set(existing.map((r: any) => `${r.section_key}.${r.field_key}`));
   const missing: any[] = [];
-  let maxOrder = 0;
-  for (const row of existing) {
-    // We don't know sort_order from this query, just use existing.length
-  }
-  // Use existing.length as base order to avoid conflicts
-  const baseOrder = existing.length;
-  let order = baseOrder;
+  let order = existing.length;
   for (const [sectionKey, fields] of Object.entries(pageSeeds)) {
     for (const f of fields) {
       if (!existingKeys.has(`${sectionKey}.${f.field_key}`)) {
@@ -804,7 +934,10 @@ export function ContentsTab() {
   const { addToast } = useToast();
   const { isFullAdmin } = useAdminAccess();
 
-  const [activePage, setActivePage] = useState(PAGES[0].key);
+  /* L'accueil possède son propre éditeur par sections : on l'écarte de la
+     liste « Autres pages » pour éviter deux endroits qui modifient la même chose. */
+  const otherPages = PAGES.filter((page) => page.key !== 'home');
+  const [activePage, setActivePage] = useState(otherPages[0]?.key ?? PAGES[0].key);
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [contents, setContents] = useState<PageContent[]>([]);
   const [draftValues, setDraftValues] = useState<Record<string, string>>({});
@@ -1023,6 +1156,35 @@ export function ContentsTab() {
   const renderInput = (item: PageContent) => {
     const val = draftValues[item.id] ?? '';
 
+    // Champs d'activation (ex. speaker_1_active) : interrupteur au lieu d'un texte brut.
+    if (item.type === 'text' && item.field_key.endsWith('_active')) {
+      const enabled = ['true', '1', 'oui', 'yes', 'on'].includes(val.trim().toLowerCase());
+      return (
+        <button
+          type="button"
+          role="switch"
+          aria-checked={enabled}
+          onClick={() => handleValueChange(item.id, enabled ? 'false' : 'true')}
+          className="flex items-center gap-3 py-1 text-sm"
+        >
+          <span
+            className={`relative h-6 w-11 rounded-full transition-colors ${
+              enabled ? 'bg-amber-500' : 'bg-cream/15'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+                enabled ? 'translate-x-5' : 'translate-x-0.5'
+              }`}
+            />
+          </span>
+          <span className={enabled ? 'text-amber-400' : 'text-muted/80'}>
+            {enabled ? 'Affiché sur le site' : 'Masqué'}
+          </span>
+        </button>
+      );
+    }
+
     switch (item.type) {
       case 'text':
         return (
@@ -1090,13 +1252,13 @@ export function ContentsTab() {
   return (
     <div className="flex h-full">
       {/* ─── Left Panel: Pages ─── */}
-      <aside className="flex w-72 flex-shrink-0 flex-col border-r border-white/10 bg-black/20">
-        <div className="border-b border-white/10 p-3">
-          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-white/40">Pages</p>
+      <aside className="flex w-72 flex-shrink-0 flex-col border-r border-line bg-bg-elevated/60">
+        <div className="border-b border-line p-3">
+          <p className="px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted/80">Pages</p>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          {PAGES.map((pg) => {
+          {otherPages.map((pg) => {
             const PgIcon = pg.icon;
             const isActive = activePage === pg.key;
             const fieldCount = contents.filter((c) => c.page === pg.key).length;
@@ -1106,19 +1268,19 @@ export function ContentsTab() {
                 key={pg.key}
                 type="button"
                 onClick={() => setActivePage(pg.key)}
-                className={`flex w-full items-center gap-2.5 border-b border-white/5 px-4 py-3 text-left transition-colors hover:bg-white/5 ${
+                className={`flex w-full items-center gap-2.5 border-b border-line/60 px-4 py-3 text-left transition-colors hover:bg-cream/5 ${
                   isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
                 }`}
               >
-                <PgIcon className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-white/40'}`} />
+                <PgIcon className={`h-4 w-4 shrink-0 ${isActive ? 'text-amber-400' : 'text-muted/80'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium truncate ${isActive ? 'text-amber-400' : 'text-white/80'}`}>
+                  <p className={`text-sm font-medium truncate ${isActive ? 'text-amber-400' : 'text-cream/80'}`}>
                     {pg.label}
                   </p>
-                  <p className="text-[10px] text-white/30 truncate">{pg.description}</p>
+                  <p className="text-[10px] text-muted/60 truncate">{pg.description}</p>
                 </div>
                 {isActive && fieldCount > 0 && (
-                  <span className="text-[10px] text-white/30">{fieldCount}</span>
+                  <span className="text-[10px] text-muted/60">{fieldCount}</span>
                 )}
               </button>
             );
@@ -1126,7 +1288,7 @@ export function ContentsTab() {
         </div>
 
         {/* Save button */}
-        <div className="border-t border-white/10 p-3">
+        <div className="border-t border-line p-3">
           <button
             type="button"
             onClick={() => void handleSave()}
@@ -1135,7 +1297,7 @@ export function ContentsTab() {
           >
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Enregistrer
-            {hasChanges && <span className="rounded-full bg-black/20 px-2 py-0.5 text-[10px]">modifié</span>}
+            {hasChanges && <span className="rounded-full bg-bg-elevated/60 px-2 py-0.5 text-[10px]">modifié</span>}
           </button>
         </div>
       </aside>
@@ -1143,12 +1305,12 @@ export function ContentsTab() {
       {/* ─── Right Panel: Sections & Fields ─── */}
       <main className="flex flex-1 flex-col overflow-y-auto">
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 border-b border-white/10 px-6 py-3">
-          <span className="text-sm text-white/40">{currentPage?.label ?? activePage}</span>
+        <div className="flex items-center gap-2 border-b border-line px-6 py-3">
+          <span className="text-sm text-muted/80">{currentPage?.label ?? activePage}</span>
           {activeSectionInfo && (
             <>
-              <ChevronRight className="h-3.5 w-3.5 text-white/20" />
-              <span className="text-sm text-white">{activeSectionInfo.label}</span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted/40" />
+              <span className="text-sm text-cream">{activeSectionInfo.label}</span>
             </>
           )}
         </div>
@@ -1156,15 +1318,15 @@ export function ContentsTab() {
         {contents.length === 0 ? (
           <div className="flex flex-1 items-center justify-center">
             <div className="text-center">
-              <FileText className="mx-auto mb-3 h-10 w-10 text-white/10" />
-              <p className="text-sm text-white/40">Aucun contenu pour cette page.</p>
-              <p className="mt-1 text-xs text-white/20">Ajoutez des sections et champs ci-dessous.</p>
+              <FileText className="mx-auto mb-3 h-10 w-10 text-muted/20" />
+              <p className="text-sm text-muted/80">Aucun contenu pour cette page.</p>
+              <p className="mt-1 text-xs text-muted/40">Ajoutez des sections et champs ci-dessous.</p>
             </div>
           </div>
         ) : (
           <div className="flex flex-1">
             {/* Sections list */}
-            <div className="w-56 flex-shrink-0 border-r border-white/5 py-2">
+            <div className="w-56 flex-shrink-0 border-r border-line/60 py-2">
               {sectionKeys.map((sk) => {
                 const info = getSectionLabel(activePage, sk);
                 const SecIcon = info.icon;
@@ -1176,17 +1338,17 @@ export function ContentsTab() {
                     key={sk}
                     type="button"
                     onClick={() => setActiveSection(sk)}
-                    className={`flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-white/5 ${
+                    className={`flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-cream/5 ${
                       isActive ? 'bg-amber-500/10 border-l-2 border-l-amber-500' : ''
                     }`}
                   >
-                    <SecIcon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-amber-400' : 'text-white/30'}`} />
+                    <SecIcon className={`h-3.5 w-3.5 shrink-0 ${isActive ? 'text-amber-400' : 'text-muted/60'}`} />
                     <div className="flex-1 min-w-0">
-                      <p className={`text-xs font-medium truncate ${isActive ? 'text-amber-400' : 'text-white/70'}`}>
+                      <p className={`text-xs font-medium truncate ${isActive ? 'text-amber-400' : 'text-cream/70'}`}>
                         {info.label}
                       </p>
                     </div>
-                    <span className="text-[10px] text-white/20">{count}</span>
+                    <span className="text-[10px] text-muted/40">{count}</span>
                   </button>
                 );
               })}
@@ -1203,7 +1365,7 @@ export function ContentsTab() {
                     setNewFieldLabel('');
                     setNewFieldType('text');
                   }}
-                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-white/30 hover:text-white/60 hover:bg-white/5 transition-colors"
+                  className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-muted/60 hover:text-cream/60 hover:bg-cream/5 transition-colors"
                 >
                   <Plus className="h-3.5 w-3.5" />
                   <span className="text-xs">Nouvelle section</span>
@@ -1218,9 +1380,9 @@ export function ContentsTab() {
                   {/* Section header */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-lg font-semibold text-white">{activeSectionInfo.label}</h3>
+                      <h3 className="text-lg font-semibold text-cream">{activeSectionInfo.label}</h3>
                       {activeSectionInfo.description && (
-                        <p className="mt-0.5 text-xs text-white/40">{activeSectionInfo.description}</p>
+                        <p className="mt-0.5 text-xs text-muted/80">{activeSectionInfo.description}</p>
                       )}
                     </div>
                     {isFullAdmin && (
@@ -1232,7 +1394,7 @@ export function ContentsTab() {
                           setNewFieldLabel('');
                           setNewFieldType('text');
                         }}
-                        className="flex items-center gap-1.5 rounded-xl border border-white/10 px-3 py-2 text-xs text-white/50 hover:border-amber-500/30 hover:text-amber-400 transition"
+                        className="flex items-center gap-1.5 rounded-xl border border-line px-3 py-2 text-xs text-muted hover:border-amber-500/30 hover:text-amber-400 transition"
                       >
                         <Plus className="h-3.5 w-3.5" />
                         Champ
@@ -1250,15 +1412,15 @@ export function ContentsTab() {
                         className={`rounded-xl border p-4 transition ${
                           isModified
                             ? 'border-amber-500/30 bg-amber-500/5'
-                            : 'border-white/5 bg-white/[0.02]'
+                            : 'border-line/60 bg-cream/[0.03]'
                         }`}
                       >
                         <div className="flex items-start justify-between gap-3 mb-3">
                           <div className="min-w-0 flex-1">
-                            <label className="text-sm font-medium text-white/90">{item.label}</label>
+                            <label className="text-sm font-medium text-cream">{item.label}</label>
                             <div className="mt-0.5 flex items-center gap-2">
-                              <code className="text-[10px] text-white/30 font-mono">{item.field_key}</code>
-                              <span className="rounded-full bg-white/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-white/30">
+                              <code className="text-[10px] text-muted/60 font-mono">{item.field_key}</code>
+                              <span className="rounded-full bg-cream/5 px-1.5 py-0.5 text-[9px] uppercase tracking-wider text-muted/60">
                                 {item.type}
                               </span>
                               {isModified && (
@@ -1280,7 +1442,7 @@ export function ContentsTab() {
                                   <button
                                     type="button"
                                     onClick={() => setDeleteConfirmId(null)}
-                                    className="text-[10px] text-white/40 hover:text-white/60 px-1.5 py-0.5 rounded"
+                                    className="text-[10px] text-muted/80 hover:text-cream/60 px-1.5 py-0.5 rounded"
                                   >
                                     Non
                                   </button>
@@ -1289,7 +1451,7 @@ export function ContentsTab() {
                                 <button
                                   type="button"
                                   onClick={() => setDeleteConfirmId(item.id)}
-                                  className="flex h-6 w-6 items-center justify-center rounded-lg text-white/20 hover:text-red-400 hover:bg-red-400/10 transition"
+                                  className="flex h-6 w-6 items-center justify-center rounded-lg text-muted/40 hover:text-red-400 hover:bg-red-400/10 transition"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -1304,8 +1466,8 @@ export function ContentsTab() {
                   })}
 
                   {activeSectionItems.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-white/10 p-8 text-center">
-                      <p className="text-xs text-white/30">Aucun champ dans cette section.</p>
+                    <div className="rounded-xl border border-dashed border-line p-8 text-center">
+                      <p className="text-xs text-muted/60">Aucun champ dans cette section.</p>
                       {isFullAdmin && (
                         <button
                           type="button"
@@ -1325,7 +1487,7 @@ export function ContentsTab() {
                 </div>
               ) : (
                 <div className="flex h-full items-center justify-center">
-                  <p className="text-sm text-white/30">Sélectionnez une section</p>
+                  <p className="text-sm text-muted/60">Sélectionnez une section</p>
                 </div>
               )}
             </div>
@@ -1344,15 +1506,15 @@ export function ContentsTab() {
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
-                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 text-white/50 hover:text-white transition"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-line text-muted hover:text-cream transition"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">
-                Clé du champ <span className="text-white/30">(identifiant unique, sans espaces)</span>
+              <label className="mb-1.5 block text-xs font-medium text-muted">
+                Clé du champ <span className="text-muted/60">(identifiant unique, sans espaces)</span>
               </label>
               <input
                 type="text"
@@ -1364,8 +1526,8 @@ export function ContentsTab() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">
-                Libellé <span className="text-white/30">(nom affiché dans le formulaire)</span>
+              <label className="mb-1.5 block text-xs font-medium text-muted">
+                Libellé <span className="text-muted/60">(nom affiché dans le formulaire)</span>
               </label>
               <input
                 type="text"
@@ -1377,7 +1539,7 @@ export function ContentsTab() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-medium text-white/50">Type de contenu</label>
+              <label className="mb-1.5 block text-xs font-medium text-muted">Type de contenu</label>
               <select
                 value={newFieldType}
                 onChange={(e) => setNewFieldType(e.target.value as ContentType)}
@@ -1394,7 +1556,7 @@ export function ContentsTab() {
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
-                className="px-4 py-2 text-sm text-white/50 hover:text-white rounded-xl border border-white/10 transition"
+                className="px-4 py-2 text-sm text-muted hover:text-cream rounded-xl border border-line transition"
               >
                 Annuler
               </button>

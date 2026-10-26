@@ -8,33 +8,29 @@ import { Cross, Users, Send, Flame, Star, Heart, Shield, BookOpen, Crown, ArrowR
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 import { db, buildContentMap, getContent } from '../lib/supabase';
+import { CHURCH } from '../lib/church';
 
-// ─── Fallback Data ──────────────────────────────────────────────
 const FALLBACK_MISSION = [
-  { Icon: Cross, title: 'Adorer', desc: 'Cultiver une vie d\'adoration authentique en esprit et en vérité, individuelle et communautaire.' },
-  { Icon: BookOpen, title: 'Équiper', desc: 'Former et discipler chaque croyant afin qu\'il devienne un disciple mature et productif.' },
-  { Icon: Send, title: 'Envoyer', desc: 'Dépêcher des hommes et des femmes transformés pour impacter les nations avec l\'Évangile.' },
+  { Icon: Cross, title: 'Adorer', desc: "Cultiver une vie d'adoration authentique en esprit et en vérité, individuelle et communautaire." },
+  { Icon: BookOpen, title: 'Équiper', desc: "Former et discipler chaque croyant afin qu'il devienne un disciple mature et productif." },
+  { Icon: Send, title: 'Envoyer', desc: "Dépêcher des hommes et des femmes transformés pour impacter les nations avec l'Évangile." },
 ] as const;
 
 const FALLBACK_VALUES = [
-  { Icon: Flame, title: 'Foi', desc: 'Nous croyons que rien n\'est impossible à celui qui croit.' },
+  { Icon: Flame, title: 'Foi', desc: "Nous croyons que rien n'est impossible à celui qui croit." },
   { Icon: Star, title: 'Excellence', desc: 'Nous servons Dieu avec le meilleur de nous-mêmes.' },
-  { Icon: Users, title: 'Unité', desc: 'L\'unité est notre force — un seul corps, un seul Esprit.' },
-  { Icon: Shield, title: 'Service', desc: 'Nous suivons l\'exemple du Christ qui est venu pour servir.' },
-  { Icon: Crown, title: 'Intégrité', desc: 'La transparence et l\'honnêteté guident toutes nos actions.' },
-  { Icon: Heart, title: 'Amour', desc: 'L\'amour de Christ est le fondement de tout ce que nous faisons.' },
+  { Icon: Users, title: 'Unité', desc: "L'unité est notre force — un seul corps, un seul Esprit." },
+  { Icon: Shield, title: 'Service', desc: "Nous suivons l'exemple du Christ qui est venu pour servir." },
+  { Icon: Crown, title: 'Intégrité', desc: "La transparence et l'honnêteté guident toutes nos actions." },
+  { Icon: Heart, title: 'Amour', desc: "L'amour de Christ est le fondement de tout ce que nous faisons." },
 ] as const;
 
+/* Repères publiés par l'église. Aucune date antérieure n'est documentée. */
 const FALLBACK_TIMELINE = [
-  { year: '2010', event: 'Fondation de l\'Église Évangélique La Conquête par le Pst Josué Romain KAZADI.' },
-  { year: '2013', event: 'Première campagne d\'évangélisation de quartier avec plus de 200 personnes touchées.' },
-  { year: '2016', event: 'Ouverture du département Jeunesse et lancement des cellules de maison.' },
-  { year: '2019', event: 'Inauguration du nouveau temple et lancement du live streaming.' },
-  { year: '2022', event: 'Création de la première église extension dans la commune de Kampemba.' },
-  { year: '2024', event: 'Plus de 1 000 membres réguliers et 4 églises extensions actives.' },
+  { year: '2025', event: "20 juillet — pose de la première pierre du Centre Évangélique Missionnaire La Conquête Kakana, à une cinquantaine de kilomètres de Lubumbashi." },
+  { year: '2026', event: "1er au 30 novembre — marathon de prière sur le thème « La mission de l'Église locale face au monde moderne »." },
 ] as const;
 
-// ─── Component ─────────────────────────────────────────────────────
 export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [cm, setCm] = useState<Record<string, string>>({});
@@ -42,19 +38,19 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
 
   useEffect(() => {
     db.getPageContents('vision')
-      .then(contents => setCm(buildContentMap(contents)))
+      .then((contents) => setCm(buildContentMap(contents)))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('in'); }),
       { threshold: 0.1 },
     );
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    document.querySelectorAll('.reveal').forEach((el) => obs.observe(el));
     return () => obs.disconnect();
-  }, []);
+  }, [loading]);
 
   if (loading) {
     return (
@@ -86,37 +82,46 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
       <SiteHeader activePage="vision" onNavigate={onNavigate} />
       <MobileNav active="vision" onNavigate={onNavigate} />
 
-      {/* ═══ HERO ═══ */}
-      <UniversalHero pageKey="vision" defaultBadge="Pourquoi nous existons" defaultTitle="Vision & Mission" />
+      <UniversalHero pageKey="vision" defaultBadge="Pourquoi nous existons" defaultTitle="Vision & Mission" bgImage="/church-photo-1.webp" />
 
-      {/* ═══ NOTRE VISION ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-primary">
-        <div className="mx-auto max-w-5xl text-center">
-          <p className="reveal section-label justify-center">Déclaration</p>
-          <h2 className="reveal reveal-delay-1 mt-6 font-serif text-3xl font-bold leading-snug text-cream sm:text-4xl lg:text-5xl">
-            La <span className="brand-text">Conquête</span> des âmes, la{' '}
-            <span className="brand-text">Conquête</span> des terres habitables et cultivables.
+      {/* ═══ DÉCLARATION ═══ */}
+      <section className="px-4 py-16 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <p className="reveal section-label">Déclaration</p>
+          <h2 className="reveal reveal-delay-1 mt-6 font-hero text-[clamp(2.2rem,5.5vw,4.25rem)] uppercase leading-[0.95] tracking-[0.01em] text-cream">
+            La conquête des âmes,<br />
+            la conquête des terres<br />
+            <span className="text-evangile-600">habitables et cultivables.</span>
           </h2>
-          <p className="reveal reveal-delay-2 mt-6 text-base leading-relaxed text-muted sm:text-lg max-w-3xl mx-auto">
-            {getContent(cm, 'vision', 'text', 'Notre vision est ancrée dans la Parole de Dieu. Nous croyons que chaque âme a une valeur éternelle et que chaque terrain de vie peut être transformé par la puissance de l\'Évangile.')}
-          </p>
+          <div className="reveal reveal-delay-2 mt-8 grid gap-px bg-line sm:grid-cols-[1fr_auto]">
+            <p className="bg-bg p-0 pr-6 text-[15px] leading-relaxed text-cream/80 sm:text-base">
+              {getContent(cm, 'vision', 'text', "Notre vision est ancrée dans la Parole de Dieu. Nous croyons que chaque âme a une valeur éternelle et que chaque terrain de vie peut être transformé par la puissance de l'Évangile.")}
+            </p>
+            <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600 sm:mt-0 sm:bg-bg sm:pl-6 sm:text-right">
+              {CHURCH.visionReference}
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ═══ NOTRE MISSION ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      {/* ═══ MISSION ═══ */}
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="reveal section-label mb-3 text-center">Notre Mission</p>
-          <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">
-            Trois piliers pour un seul but
-          </h2>
-          <div className="grid gap-8 sm:grid-cols-3">
+          <div className="reveal">
+            <p className="section-label">Notre mission</p>
+            <h2 className="section-title mt-4">Trois piliers pour un seul but</h2>
+            <div className="rule-accent mt-6" />
+          </div>
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-3">
             {mission.map((m, i) => (
-              <div key={m.title} className={`reveal reveal-delay-${i + 1} glass-card rounded-2xl p-8 text-center transition-all duration-300 hover:scale-[1.03]`}>
-                <IconBox pageKey="vision" elementId={`mission-icon-${i}`} className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
-                  <m.Icon className="h-7 w-7" />
-                </IconBox>
-                <h3 className="font-serif text-xl font-bold text-cream">{m.title}</h3>
+              <div key={m.title} className={`reveal reveal-delay-${i + 1} bg-bg-card p-8`}>
+                <div className="flex items-start justify-between">
+                  <IconBox pageKey="vision" elementId={`mission-icon-${i}`} className="inline-flex h-12 w-12 items-center justify-center border border-line text-evangile-600">
+                    <m.Icon className="h-6 w-6" />
+                  </IconBox>
+                  <span className="stat-figure text-[2.25rem] text-evangile-600/20">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="card-title mt-6">{m.title}</h3>
                 <p className="mt-3 text-sm leading-relaxed text-muted">{m.desc}</p>
               </div>
             ))}
@@ -124,18 +129,21 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
         </div>
       </section>
 
-      {/* ═══ NOS VALEURS ═══ */}
-      <section className="py-20 lg:py-28 px-4 bg-radial-ember">
+      {/* ═══ VALEURS ═══ */}
+      <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <p className="reveal section-label mb-3 text-center">Ce qui nous guide</p>
-          <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Nos Valeurs</h2>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="reveal">
+            <p className="section-label">Ce qui nous guide</p>
+            <h2 className="section-title mt-4">Nos valeurs</h2>
+            <div className="rule-accent mt-6" />
+          </div>
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-3">
             {values.map((v, i) => (
-              <div key={v.title} className={`reveal reveal-delay-${(i % 4) + 1} glass-card rounded-2xl p-6 transition-all duration-300 hover:scale-[1.02]`}>
-                <IconBox pageKey="vision" elementId={`values-icon-${i}`} className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
+              <div key={v.title} className={`reveal reveal-delay-${(i % 3) + 1} bg-bg p-6`}>
+                <IconBox pageKey="vision" elementId={`values-icon-${i}`} className="inline-flex h-10 w-10 items-center justify-center border border-line text-evangile-600">
                   <v.Icon className="h-5 w-5" />
                 </IconBox>
-                <h3 className="font-serif text-lg font-semibold text-cream">{v.title}</h3>
+                <h3 className="card-title mt-5 text-[1.25rem]">{v.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{v.desc}</p>
               </div>
             ))}
@@ -144,40 +152,54 @@ export function VisionPage({ onNavigate }: { onNavigate: (page: Page) => void })
       </section>
 
       {/* ═══ PSAUME 2:8 ═══ */}
-      <section className="py-16 px-4 bg-black">
-        <div className="reveal mx-auto max-w-4xl text-center">
-          <p className="font-serif text-2xl font-medium leading-relaxed text-accent-400 sm:text-3xl italic">
-            « Demande-moi, et je te donnerai les nations pour héritage, les extrémités de la terre pour possession. »
-          </p>
-          <p className="mt-4 text-sm font-semibold uppercase tracking-widest text-cream/40">Psaume 2:8</p>
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:py-20">
+        <div className="reveal mx-auto max-w-4xl">
+          <blockquote className="border-l-2 border-evangile-600 pl-6 md:pl-10">
+            <p className="verse-quote text-[clamp(1.35rem,2.6vw,1.9rem)] leading-snug">
+              « Demande-moi, et je te donnerai les nations pour héritage, les extrémités de la terre pour possession. »
+            </p>
+            <cite className="mt-5 block text-[11px] font-semibold uppercase not-italic tracking-[0.24em] text-evangile-600">
+              Psaume 2:8
+            </cite>
+          </blockquote>
         </div>
       </section>
 
-      {/* ═══ NOTRE HISTOIRE ═══ */}
-      <section className="py-20 lg:py-28 px-4">
+      {/* ═══ REPÈRES ═══ */}
+      <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-3xl">
-          <p className="reveal section-label mb-3 text-center">Notre parcours</p>
-          <h2 className="reveal reveal-delay-1 mb-12 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Notre Histoire</h2>
-          <div className="relative border-l-2 border-accent-400/20 pl-8 space-y-10">
-            {timeline.map((t, i) => (
-              <div key={t.year} className={`reveal reveal-delay-${(i % 4) + 1} relative`}>
-                <div className="absolute -left-[41px] top-1 h-4 w-4 rounded-full border-2 border-evangile-600 bg-bg" />
-                <p className="text-xs font-bold uppercase tracking-widest text-accent-400">{t.year}</p>
-                <p className="mt-1 text-sm leading-relaxed text-cream/80">{t.event}</p>
-              </div>
-            ))}
+          <div className="reveal">
+            <p className="section-label">Notre parcours</p>
+            <h2 className="section-title mt-4">Repères</h2>
+            <div className="rule-accent mt-6" />
           </div>
+          <ol className="mt-10 border-l border-line">
+            {timeline.map((t, i) => (
+              <li key={i} className={`reveal reveal-delay-${(i % 3) + 1} relative pl-8 pb-10 last:pb-0`}>
+                <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 bg-evangile-600" aria-hidden="true" />
+                <p className="font-hero text-2xl text-cream">{t.year}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t.event}</p>
+              </li>
+            ))}
+          </ol>
+          <p className="reveal mt-8 text-xs leading-relaxed text-muted/70">
+            Seuls les faits publiés par l'église sont mentionnés ici. Les dates antérieures seront ajoutées
+            lorsqu'elles auront été confirmées par le bureau pastoral.
+          </p>
         </div>
       </section>
 
       {/* ═══ CTA ═══ */}
-      <section className="py-20 px-4 bg-radial-primary">
-        <div className="reveal mx-auto max-w-2xl text-center">
-          <p className="section-label mb-4">Faites partie de l'histoire</p>
-          <p className="mb-8 text-cream/70">
-            Cette vision se réalise chaque jour grâce à des personnes comme vous.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+      <section className="border-t border-line px-4 py-16 md:py-24">
+        <div className="reveal mx-auto flex max-w-4xl flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="section-eyebrow">Faites partie de l'histoire</p>
+            <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">Cette vision se vit chaque jour</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
+              Elle se réalise grâce à des personnes comme vous, à Lubumbashi et au-delà.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3">
             <button onClick={() => onNavigate('about')} className="btn-primary">
               En savoir plus <ArrowRight className="h-4 w-4" />
             </button>

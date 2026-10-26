@@ -1,4 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  LocalQuery,
+  isLocalBackendAvailable,
+  shouldUseLocalBackend,
+  isLocalAdminSession,
+  enableLocalAdminSession,
+  disableLocalAdminSession,
+  localAdminUser,
+  localChannel,
+  localPublicUrl,
+  onLocalAuthChange,
+  rememberLocalPublicPath,
+  uploadLocalFile,
+} from './localBackend';
 import type {
   Location,
   ChurchEvent,
@@ -7,6 +21,7 @@ import type {
   Ministry,
   MediaItem,
   Testimonial,
+  SiteArticle,
   ContactMessage,
   ThemeSettings,
   UserProfile,
@@ -40,23 +55,198 @@ import type {
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
-// If env vars are missing, create a dummy client that won't crash
-// but all queries will gracefully return empty results.
-export const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
-  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : createClient('https://placeholder.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYzNjEwMTMsImV4cCI6MTk2MTkzNzAxM30.placeholder', {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+export const isCloudConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
 
-export const isSupabaseConfigured = !!(SUPABASE_URL && SUPABASE_ANON_KEY);
+/* En développement, le site fonctionne aussi sans Supabase : un back-office
+   local (plugin Vite) stocke les contenus dans `.local-admin/`. Cette
+   disponibilité n'existe que sur localhost, jamais en production. */
+export const isSupabaseConfigured = isCloudConfigured || isLocalBackendAvailable();
 
-if (!isSupabaseConfigured) {
+/* Sur une connexion faible — ou quand le backend est injoignable — on ne
+   laisse pas chaque composant relancer sa requête : une seule tentative,
+   puis un court disjoncteur pour le reste de la session. */
+const REQUEST_TIMEOUT_MS = 4_000;
+const BACKEND_COOLDOWN_MS = 60_000;
+let backendUnavailableUntil = 0;
+
+function unavailableResponse(): Response {
+  return new Response(JSON.stringify({ message: 'Service momentanément indisponible.' }), {
+    status: 503,
+    headers: { 'Content-Type': 'application/json' },
+  });
+}
+
+const resilientFetch: typeof fetch = (input, init) => {
+  if (!isCloudConfigured || Date.now() < backendUnavailableUntil) {
+    return Promise.resolve(unavailableResponse());
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const callerSignal = init?.signal;
+  if (callerSignal) {
+    if (callerSignal.aborted) controller.abort();
+    else callerSignal.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+
+  return fetch(input, { ...init, signal: controller.signal })
+    .catch((error) => {
+      backendUnavailableUntil = Date.now() + BACKEND_COOLDOWN_MS;
+      throw error;
+    })
+    .finally(() => clearTimeout(timer));
+};
+
+const cloudClient = createClient(
+  SUPABASE_URL || 'https://placeholder.supabase.co',
+  SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYzNjEwMTMsImV4cCI6MTk2MTkzNzAxM30.placeholder',
+  isCloudConfigured
+    ? { global: { fetch: resilientFetch } }
+    : {
+        global: { fetch: resilientFetch },
+        auth: { persistSession: false, autoRefreshToken: false },
+      },
+);
+
+// ─── Session locale ─────────────────────────────────────────────
+
+function localSession() {
+  if (!isLocalAdminSession()) return null;
+  const user = localAdminUser();
+  return {
+    access_token: 'local-admin',
+    refresh_token: 'local-admin',
+    token_type: 'bearer',
+    expires_in: 3600,
+    expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user,
+  };
+}
+
+const localActive = () => shouldUseLocalBackend() && isLocalAdminSession();
+
+/* Façade : la même API que Supabase, mais les requêtes sont servies par le
+   backend local quand il est actif. Le reste de l'application n'a donc rien
+   à changer, et la production continue d'utiliser Supabase. */
+const facade = {
+  from(table: string) {
+    if (shouldUseLocalBackend()) return new LocalQuery(table);
+    return cloudClient.from(table);
+  },
+
+  auth: {
+    async getSession() {
+      if (localActive()) return { data: { session: localSession() }, error: null };
+      return cloudClient.auth.getSession();
+    },
+    async getUser(userId?: string) {
+      if (localActive()) return { data: { user: localAdminUser() }, error: null };
+      return cloudClient.auth.getUser(userId);
+    },
+    async signInWithPassword(credentials: { email: string; password: string }) {
+      if (!isLocalBackendAvailable()) return cloudClient.auth.signInWithPassword(credentials);
+      if (!credentials.email?.trim() || !credentials.password?.trim()) {
+        return {
+          data: { user: null, session: null },
+          error: { name: 'AuthError', message: 'Renseignez un identifiant et un mot de passe.' },
+        };
+      }
+      enableLocalAdminSession();
+      return { data: { user: localAdminUser(), session: localSession() }, error: null };
+    },
+    async signUp(credentials: { email: string; password: string; options?: unknown }) {
+      if (!isLocalBackendAvailable()) return cloudClient.auth.signUp(credentials as never);
+      enableLocalAdminSession();
+      return { data: { user: localAdminUser(), session: localSession() }, error: null };
+    },
+    async signOut() {
+      if (localActive()) {
+        disableLocalAdminSession();
+        return { error: null };
+      }
+      return cloudClient.auth.signOut();
+    },
+    onAuthStateChange(callback: (event: string, session: unknown) => void) {
+      if (!isLocalBackendAvailable()) {
+        return cloudClient.auth.onAuthStateChange(callback as never);
+      }
+      const stopLocal = onLocalAuthChange((event, user) => {
+        callback(event, user ? localSession() : null);
+      });
+      return { data: { subscription: { unsubscribe: () => stopLocal() } } };
+    },
+    async resetPasswordForEmail(email: string, options?: unknown) {
+      if (isLocalBackendAvailable()) {
+        return {
+          data: {},
+          error: { name: 'AuthError', message: "Indisponible en mode local : aucun email n'est envoyé." },
+        };
+      }
+      return cloudClient.auth.resetPasswordForEmail(email, options as never);
+    },
+  },
+
+  storage: {
+    from(bucket: string) {
+      return {
+        async upload(path: string, file: unknown, options?: unknown) {
+          if (shouldUseLocalBackend()) {
+            const payload = typeof FormData !== 'undefined' && file instanceof FormData
+              ? file.get('file')
+              : file;
+            if (!(payload instanceof File)) {
+              return { data: null, error: { message: 'Fichier invalide.' } };
+            }
+            const folder = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : 'images';
+            const url = await uploadLocalFile(payload, folder || 'images');
+            rememberLocalPublicPath(path, url);
+            return { data: { path, id: path, fullPath: path }, error: null };
+          }
+          return cloudClient.storage.from(bucket).upload(path, file as File, options as never);
+        },
+        getPublicUrl(path: string) {
+          if (shouldUseLocalBackend()) return { data: { publicUrl: localPublicUrl(path) } };
+          return cloudClient.storage.from(bucket).getPublicUrl(path);
+        },
+        async remove(paths: string[]) {
+          if (shouldUseLocalBackend()) return { data: [], error: null };
+          return cloudClient.storage.from(bucket).remove(paths);
+        },
+      };
+    },
+  },
+
+  channel(name: string) {
+    if (shouldUseLocalBackend()) return localChannel();
+    return cloudClient.channel(name);
+  },
+  removeChannel(channel: unknown) {
+    if ((channel as { __local?: boolean } | null)?.__local) return Promise.resolve('ok');
+    return cloudClient.removeChannel(channel as never);
+  },
+  async rpc(fn: string) {
+    if (shouldUseLocalBackend()) {
+      return {
+        data: null,
+        error: { message: `Fonction « ${fn} » indisponible en mode local.`, code: 'LOCAL_RPC' },
+        status: 400,
+        statusText: 'Bad Request',
+      };
+    }
+    return cloudClient.rpc(fn);
+  },
+};
+
+export const supabase = facade as unknown as SupabaseClient;
+
+if (!isCloudConfigured && !isLocalBackendAvailable()) {
   console.warn(
     '[supabase] VITE_SUPABASE_URL et/ou VITE_SUPABASE_ANON_KEY ne sont pas definis. ' +
     'Toutes les requetes Supabase echoueront. ' +
     "Verifiez les variables d'environnement dans Cloudflare Pages > Settings > Environment variables."
   );
 }
+
 
 // ─── Re-export all types from a single import point ──────────────
 export type {
@@ -67,6 +257,7 @@ export type {
   Ministry,
   MediaItem,
   Testimonial,
+  SiteArticle,
   ContactMessage,
   ThemeSettings,
   UserProfile,
@@ -204,6 +395,17 @@ export const db = {
     return fetchTable<Testimonial>('testimonials', (q) => q.order('sort_order'));
   },
 
+  // Articles / actualités
+  async getPublishedArticles(): Promise<SiteArticle[]> {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('is_published', true)
+      .order('published_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return (data ?? []) as SiteArticle[];
+  },
+
   // Contact messages
   async getMessages(): Promise<ContactMessage[]> {
     return fetchTable<ContactMessage>('contact_messages', (q) => q.order('created_at', { ascending: false }));
@@ -218,8 +420,7 @@ export const db = {
   async updateThemeSettings(settings: Partial<ThemeSettings>): Promise<void> {
     const { error } = await supabase
       .from('theme_settings')
-      .update({ ...settings, updated_at: new Date().toISOString() })
-      .eq('id', 1);
+      .upsert({ ...settings, id: 1, updated_at: new Date().toISOString() });
     if (error) throw new Error(error.message);
   },
 
@@ -237,7 +438,7 @@ export const db = {
   // Contact form submission
   async submitContactMessage(name: string, phone: string, email: string | null, visitorType: string | null, subject: string, message: string): Promise<void> {
     const { error } = await supabase.from('contact_messages').insert({
-      name, phone, email: email || null, subject, message,
+      name, phone, email: email?.trim() || '', subject, message,
       visitor_type: visitorType || null,
       status: 'nouveau',
       created_at: new Date().toISOString(),
@@ -794,9 +995,11 @@ export function buildContentMap(contents: PageContent[]): Record<string, string>
 }
 
 // ─── Content helper: get a value with fallback ───────────────────
+// Une valeur vide en base ne doit jamais effacer le texte par défaut du site.
 export function getContent(map: Record<string, string>, section: string, field: string, fallback: string): string {
   const key = `${section}.${field}`;
-  return key in map ? map[key] : fallback;
+  const value = key in map ? map[key] : '';
+  return value && value.trim() ? value : fallback;
 }
 
 // ─── Settings helper: build a map from settings rows ─────────────

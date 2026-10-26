@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { db } from '../lib/supabase';
+import { db, isSupabaseConfigured } from '../lib/supabase';
 import type { ThemeSettings, Theme, BorderRadius } from '../types';
 
 // Font catalogues are defined locally in ThemeTab if needed for admin UI.
@@ -148,6 +148,10 @@ export function DynamicThemeProvider({ children }: { children: React.ReactNode }
   // ── Fetch theme settings on mount ─────────────────────────────
   useEffect(() => {
     let cancelled = false;
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
 
     async function load() {
       setLoading(true);

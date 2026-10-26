@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Smartphone, X } from '../lib/icons';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
@@ -7,50 +8,51 @@ interface BeforeInstallPromptEvent extends Event {
 
 const STORAGE_KEY = 'lc_pwa_dismissed';
 
+/* L'invite n'apparaît qu'une fois le premier écran dépassé : elle ne peut
+   plus recouvrir les CTA du hero. */
+const REVEAL_AFTER_VIEWPORT_RATIO = 0.9;
+
 export function PWAInstallPrompt() {
   const [visible, setVisible] = useState(false);
-  const [animating, setAnimating] = useState(false);
   const deferredPrompt = useRef<BeforeInstallPromptEvent | null>(null);
 
-  /* ── Capture the deferred prompt ── */
   useEffect(() => {
-    // Already dismissed?
     if (localStorage.getItem(STORAGE_KEY) === '1') return;
 
-    const handler = (e: Event) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      deferredPrompt.current = e as BeforeInstallPromptEvent;
-      // Small delay so the page settles before showing the banner
-      setTimeout(() => {
-        setAnimating(true);
-        setVisible(true);
-      }, 2500);
+    const reveal = () => {
+      if (window.scrollY < window.innerHeight * REVEAL_AFTER_VIEWPORT_RATIO) return;
+      setVisible(true);
+      window.removeEventListener('scroll', reveal);
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    const handleBeforeInstall = (event: Event) => {
+      event.preventDefault();
+      deferredPrompt.current = event as BeforeInstallPromptEvent;
+      window.addEventListener('scroll', reveal, { passive: true });
+      reveal();
+    };
 
-    // Auto-hide on successful install
-    const installedHandler = () => {
+    const handleInstalled = () => {
       setVisible(false);
       deferredPrompt.current = null;
+      window.removeEventListener('scroll', reveal);
     };
-    window.addEventListener('appinstalled', installedHandler);
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstall);
+    window.addEventListener('appinstalled', handleInstalled);
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', installedHandler);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstall);
+      window.removeEventListener('appinstalled', handleInstalled);
+      window.removeEventListener('scroll', reveal);
     };
   }, []);
 
-  /* ── Dismiss ── */
   const handleDismiss = useCallback(() => {
-    setAnimating(false);
-    setTimeout(() => setVisible(false), 300); // match animation duration
+    setVisible(false);
     localStorage.setItem(STORAGE_KEY, '1');
   }, []);
 
-  /* ── Trigger install ── */
   const handleInstall = useCallback(async () => {
     const prompt = deferredPrompt.current;
     if (!prompt) return;
@@ -59,9 +61,8 @@ export function PWAInstallPrompt() {
     const { outcome } = await prompt.userChoice;
 
     if (outcome === 'accepted') {
-      // `appinstalled` event will hide the banner
+      setVisible(false);
     } else {
-      // User declined — still dismiss the banner so we don't re-prompt
       handleDismiss();
     }
     deferredPrompt.current = null;
@@ -71,73 +72,48 @@ export function PWAInstallPrompt() {
 
   return (
     <div
-      className={`fixed bottom-0 left-0 right-0 z-50 flex justify-center p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] transition-all duration-300 ${
-        animating
-          ? 'translate-y-0 opacity-100'
-          : 'translate-y-full opacity-0'
-      }`}
-      aria-live="polite"
+      className="fixed bottom-24 left-4 z-[75] w-[calc(100%-5.5rem)] max-w-sm animate-fade-up sm:bottom-6 sm:left-8 sm:w-80"
       role="dialog"
+      aria-live="polite"
       aria-label="Installer l'application"
     >
-      <div
-        className="w-full max-w-lg rounded-t-2xl sm:rounded-2xl bg-bg/95 backdrop-blur-xl border-t border-line/30 sm:border sm:border-line/30 shadow-2xl shadow-black/40 p-4 sm:p-5"
-      >
-        <div className="flex items-center gap-4">
-          {/* Phone icon */}
-          <div className="flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl bg-accent-500/10 text-accent-400">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={1.5}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
-              <line x1="12" y1="18" x2="12.01" y2="18" />
-            </svg>
-          </div>
+      <div className="border border-line bg-bg-card/95 p-4 shadow-2xl shadow-black/40 backdrop-blur-sm">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-500">
+            <Smartphone className="h-5 w-5" />
+          </span>
 
-          {/* Text content */}
-          <div className="flex-1 min-w-0">
-            <p className="text-cream font-semibold text-sm sm:text-base leading-snug">
-              Installer l&apos;application
-            </p>
-            <p className="text-text-secondary text-xs sm:text-sm mt-0.5 leading-relaxed">
-              Accès rapide depuis votre écran d&apos;accueil
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold leading-snug text-cream">Installer La Conquête</p>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted">
+              Accès direct depuis l'écran d'accueil, sans passer par le navigateur.
             </p>
           </div>
 
-          {/* Install button */}
           <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Fermer"
+            className="-mr-1 -mt-1 flex h-7 w-7 shrink-0 items-center justify-center text-muted transition-colors hover:text-cream"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-3 flex gap-2">
+          <button
+            type="button"
             onClick={handleInstall}
-            className="flex-shrink-0 px-4 py-2 rounded-lg bg-accent-500 hover:bg-accent-600 active:scale-95 text-white font-semibold text-sm transition-all duration-200 cursor-pointer"
+            className="btn-primary flex-1 px-4 py-2.5 text-[11px]"
           >
             Installer
           </button>
-
-          {/* Dismiss button */}
           <button
+            type="button"
             onClick={handleDismiss}
-            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded-lg text-text-secondary hover:text-cream hover:bg-white/5 transition-colors duration-200 cursor-pointer"
-            aria-label="Fermer"
+            className="border border-line px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted transition-colors hover:border-white/25 hover:text-cream"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
+            Plus tard
           </button>
         </div>
       </div>

@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { isLocalAdminSession, shouldUseLocalBackend } from '../lib/localBackend';
 import type { UserProfile } from '../types';
 
 // ─── Context shape ───────────────────────────────────────────────
@@ -17,9 +18,11 @@ interface AuthContextValue {
   profile: UserProfile | null;
   isAdmin: boolean;
   isFullAdmin: boolean;
+  isLocalMode: boolean;
   loading: boolean;
   profileLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInLocal: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   unreadCount: number;
@@ -216,6 +219,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  /* Connexion locale : aucun mot de passe, aucun réseau. Le backend Vite
+     enregistre les contenus dans `.local-admin/` sur cet ordinateur. */
+  const signInLocal = useCallback(async () => {
+    const { error } = await supabase.auth.signInWithPassword({ email: 'admin@local', password: 'local' });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -223,6 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAdmin = profile?.is_admin === true;
   const isFullAdmin = profile?.is_admin === true && !profile?.is_principal_pastor;
+  const isLocalMode = shouldUseLocalBackend() && isLocalAdminSession();
 
   // Check if user is blocked
   const [blockedMessage, setBlockedMessage] = useState<string | null>(null);
@@ -263,8 +274,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount, blockedMessage }),
-    [user, profile, isAdmin, isFullAdmin, loading, profileLoading, signIn, signOut, refreshProfile, unreadCount, blockedMessage],
+    () => ({ user, profile, isAdmin, isFullAdmin, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage }),
+    [user, profile, isAdmin, isFullAdmin, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

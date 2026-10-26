@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { X, Calendar, Clock, ArrowUpRight, ArrowRight } from '../lib/icons';
+import { useEffect, useRef, useState } from 'react';
+import { X, Calendar, Clock, ArrowUpRight, ArrowRight, MessageCircle, Copy, Check } from '../lib/icons';
 import { articleDate, readingTime, type Article } from '../lib/articles';
 
 interface ArticleReaderProps {
@@ -10,6 +10,19 @@ interface ArticleReaderProps {
 
 export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setProgress(0);
+    setCopied(false);
+  }, [article?.slug]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = window.setTimeout(() => setCopied(false), 2200);
+    return () => window.clearTimeout(timer);
+  }, [copied]);
 
   useEffect(() => {
     if (!article) return;
@@ -29,6 +42,18 @@ export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderPro
 
   if (!article) return null;
 
+  const shareUrl = `${window.location.origin}${window.location.pathname}#blog/${encodeURIComponent(article.slug)}`;
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${article.title} — ${shareUrl}`)}`;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+    } catch {
+      window.prompt('Copier le lien de l’article :', shareUrl);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[130]" role="dialog" aria-modal="true" aria-labelledby="article-reader-title">
       <button
@@ -40,6 +65,12 @@ export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderPro
       />
 
       <div className="absolute inset-y-0 right-0 flex w-full max-w-3xl flex-col border-l border-line bg-bg shadow-2xl">
+        <div className="h-0.5 w-full shrink-0 bg-line" aria-hidden="true">
+          <div
+            className="h-full bg-evangile-600 transition-[width] duration-150"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
         <header className="flex items-center justify-between border-b border-line px-5 py-4 sm:px-8">
           <div className="flex items-center gap-3">
             <span className="rule-accent" />
@@ -56,7 +87,14 @@ export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderPro
           </button>
         </header>
 
-        <div className="flex-1 overflow-y-auto">
+        <div
+          className="flex-1 overflow-y-auto"
+          onScroll={(event) => {
+            const el = event.currentTarget;
+            const max = el.scrollHeight - el.clientHeight;
+            setProgress(max > 0 ? Math.min(100, (el.scrollTop / max) * 100) : 0);
+          }}
+        >
           <div className="relative h-56 overflow-hidden sm:h-72">
             <img src={article.image} alt="" className="photo-claro h-full w-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-bg via-bg/20 to-transparent" />
@@ -64,7 +102,7 @@ export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderPro
 
           <div className="px-5 pb-16 sm:px-8">
             <div className="-mt-10 relative">
-              <h1 id="article-reader-title" className="card-title max-w-2xl text-cream">
+              <h1 id="article-reader-title" className="editorial-title max-w-2xl text-cream text-3xl sm:text-4xl">
                 {article.title}
               </h1>
             </div>
@@ -110,6 +148,14 @@ export function ArticleReader({ article, onClose, onNavigate }: ArticleReaderPro
                   <ArrowUpRight className="h-4 w-4" />
                 </a>
               )}
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className="btn-ghost">
+                <MessageCircle className="h-4 w-4" />
+                Partager sur WhatsApp
+              </a>
+              <button type="button" onClick={handleCopy} className="btn-ghost" aria-live="polite">
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? 'Lien copié' : 'Copier le lien'}
+              </button>
             </div>
           </div>
         </div>

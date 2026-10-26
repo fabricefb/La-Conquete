@@ -1,4 +1,5 @@
 import { Facebook, MonitorPlay, Mail } from '../../lib/icons';
+import { imageSrcSet } from '../../lib/images';
 
 interface Pastor {
   id: string;
@@ -65,9 +66,12 @@ function PastorCard({ pastor, showBio = true }: { pastor: Pastor; showBio?: bool
       {pastor.photo_url ? (
         <img
           src={pastor.photo_url}
+          srcSet={imageSrcSet(pastor.photo_url || '')}
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
           alt={pastor.full_name}
           className="absolute inset-0 h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          decoding="async"
         />
       ) : (
         <div

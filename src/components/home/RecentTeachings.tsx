@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowRight, Play, Youtube } from '../../lib/icons';
-import { RECENT_TEACHINGS, YOUTUBE_CHANNEL, type Teaching } from '../../lib/teachings';
+import { YOUTUBE_CHANNEL, type Teaching } from '../../lib/teachings';
+import { useLiveTeachings } from '../../lib/liveTeachings';
 import type { Page } from '../../lib/navigation';
 
 function formatDate(iso: string): string {
@@ -20,7 +21,8 @@ function WatchLink({ item, className, children }: { item: Teaching; className: s
 }
 
 export function RecentTeachings({ onNavigate }: { onNavigate: (page: Page) => void }) {
-  const [featured, ...rest] = RECENT_TEACHINGS;
+  const { videos } = useLiveTeachings();
+  const [featured, ...rest] = videos.slice(0, 6);
   if (!featured) return null;
 
   return (
@@ -50,7 +52,7 @@ export function RecentTeachings({ onNavigate }: { onNavigate: (page: Page) => vo
             </a>
             <button
               type="button"
-              onClick={() => onNavigate('enseignements')}
+              onClick={() => onNavigate('predications')}
               className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap border border-line px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream transition-colors duration-200 hover:border-evangile-600/60 hover:text-evangile-400"
             >
               Tous les enseignements
@@ -68,7 +70,7 @@ export function RecentTeachings({ onNavigate }: { onNavigate: (page: Page) => vo
               <img
                 src={featured.thumbnail}
                 alt=""
-                className="photo-claro-strong h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="photo-claro-strong photo-hover-clear h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
                 loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/35 to-transparent" />

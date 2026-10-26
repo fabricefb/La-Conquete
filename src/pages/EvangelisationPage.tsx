@@ -106,6 +106,7 @@ export function EvangelisationPage({ onNavigate }: { onNavigate: (page: any) => 
   const missionText = getContent(content, 'evangelisation', 'mission_text', 'Nous sommes appelés à être des ambassadeurs du Christ, porteurs d\'une message d\'espérance et de transformation. Notre département d\'évangélisation organise des sorties régulières dans les quartiers, les marchés et les espaces publics pour partager l\'amour de Dieu avec ceux qui ne le connaissent pas encore.');
   const participateTitle = getContent(content, 'evangelisation', 'participate_title', 'Comment participer');
   const participateText = getContent(content, 'evangelisation', 'participate_text', 'Chaque membre de l\'église est un évangéliste en puissance. Rejoignez notre équipe d\'évangélisation et participez activement à la conquête des âmes pour le Royaume de Dieu.');
+  const heroImage = getContent(content, 'evangelisation', 'hero_image', '/church-photo-1.webp');
 
   return (
     <div className="bg-bg min-h-screen">
@@ -117,7 +118,7 @@ export function EvangelisationPage({ onNavigate }: { onNavigate: (page: any) => 
         {/* Background image */}
         <div className="absolute inset-0">
           <img
-            src="/church-photo-1.jpg"
+            src={heroImage}
             alt="Équipe en mission d'évangélisation"
             className="h-full w-full object-cover"
             loading="eager"

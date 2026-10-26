@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import { downloadLocalBackup } from '../../lib/localBackend';
 import {
   Settings, FileText, MapPin, Calendar, Users,
   Image, MessageSquare, Palette, LogOut, ChevronRight,
-  Menu, X, Landmark, Crown, Bell, Heart,
+  Menu, X, Crown, Bell, Heart,
   ClipboardList, Shield, Clock, Building2, LayoutDashboard,
-  UserCheck, LayoutGrid, BookOpen, Zap, Radio, MonitorPlay, Headphones,
-  Megaphone, Tv, ScrollText,
+  UserCheck, BookOpen, Zap, Radio, MonitorPlay, Headphones,
+  Megaphone, Tv, ScrollText, Newspaper, HardDrive, Download,
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
@@ -28,15 +29,16 @@ const tabGroups: TabGroup[] = [
   {
     title: 'Pages',
     tabs: [
-      { id: 'homepage_builder', label: "Page d'accueil", Icon: LayoutDashboard },
-      { id: 'page_builder', label: 'Constructeur', Icon: LayoutGrid },
+      { id: 'homepage_builder', label: "Accueil — sections", Icon: LayoutDashboard },
       { id: 'guide', label: 'Guide', Icon: BookOpen },
     ],
   },
   {
     title: 'Contenu',
     tabs: [
-      { id: 'contents', label: 'Contenus', Icon: FileText },
+      { id: 'contents', label: 'Autres pages', Icon: FileText },
+      { id: 'visuals', label: 'Photos & vidéos', Icon: Image },
+      { id: 'articles', label: 'Articles & actualités', Icon: Newspaper },
       { id: 'activity_cards', label: 'Cartes Explorer', Icon: Image },
       { id: 'predications', label: 'Prédications', Icon: Radio },
       { id: 'audio', label: 'Audio', Icon: Headphones },
@@ -57,7 +59,7 @@ const tabGroups: TabGroup[] = [
       { id: 'assignments', label: 'Affectations', Icon: Users },
       { id: 'creneaux', label: 'Créneaux', Icon: Clock },
       { id: 'events', label: 'Événements', Icon: Calendar },
-      { id: 'locations', label: 'Lieux', Icon: MapPin },
+      { id: 'locations', label: 'Lieux & extensions', Icon: MapPin },
       { id: 'media_communication', label: 'Média & Communication', Icon: MonitorPlay },
     ],
   },
@@ -92,7 +94,8 @@ interface AdminLayoutProps {
 const ALLOWED_TABS_FOR_PASTOR = new Set<AdminTab>([
   'homepage_builder', 'guide',
   'predications', 'audio', 'testimonials', 'messages',
-  'annonces', 'communiques', 'emissions',
+  'annonces', 'communiques', 'emissions', 'articles',
+  'visuals',
   'creneaux', 'media_communication',
   'pipeline', 'onboarding', 'protocol', 'evangelism',
 ]);
@@ -138,28 +141,33 @@ function SidebarNav({
     })).filter(g => g.tabs.length > 0);
 
   return (
-    <nav className="flex-1 overflow-y-auto p-3">
+    <nav className="flex-1 overflow-y-auto py-5">
       {visibleGroups.map((group, gi) => (
-        <div key={group.title} className={gi > 0 ? 'mt-4' : ''}>
+        <div key={group.title} className={gi > 0 ? 'mt-6' : ''}>
           {/* ── Section header ── */}
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-muted/60 mb-1 px-3">
-            {group.title}
+          <div className="mb-1 flex items-center gap-2 px-4">
+            <span className="h-1.5 w-1.5 shrink-0 bg-evangile-600" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.26em] text-muted">
+              {group.title}
+            </span>
           </div>
-          {/* ── Divider line ── */}
-          <div className="h-px bg-line mb-1 mx-3" />
           {/* ── Tab items ── */}
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col">
             {group.tabs.map(({ id, label, Icon }) => (
               <button
                 key={id}
                 onClick={() => { onTabChange(id); onClose?.(); }}
-                className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                className={`group flex items-center gap-2.5 border-l-2 py-2 pl-[14px] pr-4 text-left text-[13px] font-medium transition-colors duration-200 ${
                   activeTab === id
-                    ? 'bg-accent-400/10 text-accent-400'
-                    : 'text-muted hover:text-cream hover:bg-white/5'
+                    ? 'border-evangile-600 bg-white/[0.04] text-cream'
+                    : 'border-transparent text-muted hover:border-line hover:bg-white/[0.02] hover:text-cream'
                 }`}
               >
-                <Icon className="h-4 w-4 shrink-0" />
+                <Icon
+                  className={`h-4 w-4 shrink-0 transition-colors ${
+                    activeTab === id ? 'text-[rgb(var(--accent-red-rgb))]' : 'text-muted group-hover:text-cream'
+                  }`}
+                />
                 {label}
               </button>
             ))}
@@ -171,7 +179,7 @@ function SidebarNav({
 }
 
 export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFullAdmin = true }: AdminLayoutProps) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isLocalMode } = useAuth();
   const { addToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const userRoleLevel = profile?.role_level ?? 0;
@@ -186,66 +194,106 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
     }
   }
 
+  async function handleBackup() {
+    try {
+      await downloadLocalBackup();
+      addToast('Sauvegarde exportée', 'success');
+    } catch {
+      addToast('Export impossible', 'error');
+    }
+  }
+
   return (
     <div className="min-h-screen bg-bg text-cream">
       {/* ─── Top bar ─── */}
-      <header className="sticky top-0 z-40 flex h-14 items-center justify-between border-b border-line bg-bg/90 backdrop-blur-xl px-4 lg:px-6">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted hover:text-cream transition lg:hidden"
-            aria-label="Ouvrir le menu"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2">
-            <Landmark className="h-5 w-5 text-accent-400" />
-            <span className="font-serif text-lg font-semibold text-cream">Back-Office</span>
-            <span className="hidden text-xs text-muted sm:inline">La Conquête</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('home')}
-            className="hidden items-center gap-1.5 rounded-lg border border-line px-3 py-1.5 text-xs text-muted hover:text-cream transition sm:flex"
-          >
-            Voir le site
-            <ChevronRight className="h-3 w-3" />
-          </button>
-          <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-1.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-accent-400/20 text-[10px] font-bold text-accent-400">
-              {(profile?.full_name ?? profile?.email ?? 'A').charAt(0).toUpperCase()}
+      <header className="sticky top-0 z-40 border-b border-line bg-bg px-4 lg:px-6">
+        <div className="flex h-16 items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex h-9 w-9 items-center justify-center border border-line text-muted transition-colors hover:border-evangile-600/50 hover:text-cream lg:hidden"
+              aria-label="Ouvrir le menu"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => onNavigate('home')}
+              className="logo-plate transition-opacity duration-200 hover:opacity-80"
+              aria-label="La Conquête — Voir le site"
+            >
+              <img
+                src="/logo-conquete.png"
+                alt="Église Évangélique La Conquête"
+                className="h-9 w-auto object-contain"
+              />
+            </button>
+            <span className="hidden h-8 w-px shrink-0 bg-line sm:block" />
+            <div className="hidden items-center gap-2 sm:flex">
+              <span className="h-1.5 w-1.5 shrink-0 bg-evangile-600" />
+              <span className="font-hero text-lg uppercase leading-none tracking-[0.08em] text-cream">
+                Back-office
+              </span>
             </div>
-            <span className="hidden text-xs text-cream sm:inline max-w-[120px] truncate">
-              {profile?.full_name ?? profile?.email}
-            </span>
+            {isLocalMode && (
+              <span className="shrink-0 border border-evangile-600/60 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.18em] text-[rgb(var(--accent-red-rgb))]">
+                Local
+              </span>
+            )}
           </div>
-          <button
-            onClick={handleSignOut}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-line text-muted hover:text-ember-400 hover:border-ember-500/40 transition"
-            aria-label="Se déconnecter"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate('home')}
+              className="btn-ghost hidden px-3 py-2 text-[10px] uppercase tracking-[0.16em] sm:flex"
+            >
+              Voir le site
+              <ChevronRight className="h-3 w-3" />
+            </button>
+            <div className="flex items-center gap-2.5 border border-line bg-white/[0.03] px-2.5 py-1.5">
+              <span className="flex h-6 w-6 items-center justify-center bg-accent-400/15 font-hero text-[11px] leading-none text-accent-400">
+                {(profile?.full_name ?? profile?.email ?? 'A').charAt(0).toUpperCase()}
+              </span>
+              <span className="hidden max-w-[130px] truncate text-xs text-cream sm:inline">
+                {profile?.full_name ?? profile?.email}
+              </span>
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="flex h-9 w-9 items-center justify-center border border-line text-muted transition-colors hover:border-evangile-600/50 hover:text-[rgb(var(--accent-red-rgb))]"
+              aria-label="Se déconnecter"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </header>
 
       <div className="flex">
         {/* ─── Sidebar (desktop) ─── */}
-        <aside className="hidden lg:sticky lg:top-14 lg:flex lg:h-[calc(100vh-3.5rem)] lg:w-56 lg:flex-col lg:border-r border-line bg-bg/50">
+        <aside className="hidden border-r border-line bg-bg/50 lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:w-60 lg:flex-col">
           <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} userRoleLevel={userRoleLevel} isPrincipalPastor={isPrincipalPastor} />
         </aside>
 
         {/* ─── Mobile sidebar overlay ─── */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setSidebarOpen(false)} />
-            <aside className="relative flex h-full w-64 flex-col bg-bg border-r border-line">
-              <div className="flex h-14 items-center justify-between border-b border-line px-4">
-                <span className="font-serif font-semibold text-cream">Navigation</span>
+            <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
+            <aside className="relative flex h-full w-72 flex-col border-r border-line bg-bg">
+              <div className="flex h-16 items-center justify-between border-b border-line px-4">
+                <div className="flex items-center gap-3">
+                  <span className="logo-plate">
+                    <img
+                      src="/logo-conquete.png"
+                      alt="Église Évangélique La Conquête"
+                      className="h-8 w-auto object-contain"
+                    />
+                  </span>
+                  <span className="font-hero text-lg uppercase leading-none tracking-[0.06em] text-cream">
+                    Back-office
+                  </span>
+                </div>
                 <button
                   onClick={() => setSidebarOpen(false)}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:text-cream transition"
+                  className="flex h-8 w-8 items-center justify-center border border-line text-muted transition-colors hover:text-cream"
                   aria-label="Fermer"
                 >
                   <X className="h-4 w-4" />
@@ -257,8 +305,30 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
         )}
 
         {/* ─── Main content ─── */}
-        <main className="flex-1 min-w-0">
-          <div className="mx-auto max-w-5xl p-4 lg:p-8">
+        <main className="min-w-0 flex-1">
+          <div className="mx-auto max-w-6xl px-4 py-6 lg:px-8 lg:py-10">
+            {isLocalMode && (
+              <div className="mb-6 flex flex-col gap-3 border border-line border-l-2 border-l-evangile-600 bg-bg-card px-4 py-3 sm:flex-row sm:items-center">
+                <HardDrive className="h-4 w-4 shrink-0 text-[rgb(var(--accent-red-rgb))]" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-cream">
+                    Mode local
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    Aucune donnée envoyée sur Internet — tout est enregistré dans{' '}
+                    <code className="bg-white/10 px-1 text-cream">.local-admin/</code> sur cet ordinateur.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void handleBackup()}
+                  className="btn-ghost shrink-0 px-3 py-2 text-[10px] uppercase tracking-[0.14em]"
+                >
+                  <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                  Exporter
+                </button>
+              </div>
+            )}
             {children}
           </div>
         </main>

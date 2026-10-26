@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import { localBackendPlugin } from './vite-plugin-local-backend';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), localBackendPlugin()],
   server: { host: true, port: 5173 },
   build: {
     rollupOptions: {

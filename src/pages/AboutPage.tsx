@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { db, buildContentMap, getContent, isSupabaseConfigured } from '../lib/supabase';
 import { useReveal } from '../lib/hooks';
 import { CHURCH } from '../lib/church';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -8,49 +8,71 @@ import { IconBox } from '../components/IconBox';
 import { SiteFooter } from '../components/SiteFooter';
 import { UniversalHero } from '../components/UniversalHero';
 import { MobileNav } from '../components/MobileNav';
-import { MapPin, Phone, Mail, Heart, HandHeart, BookOpen } from '../lib/icons';
+import { BookOpen, Heart, ArrowRight, MapPin, Phone } from '../lib/icons';
+import { imageSrcSet } from '../lib/images';
 import type { Page } from '../lib/navigation';
 import type { Pastor } from '../types';
 
 interface PageProps { onNavigate: (page: Page) => void; }
 
-const DEFAULT_ABOUT_HERO_IMG =
-  '/church-photo-3.jpg';
+const DEFAULT_ABOUT_HERO_IMG = '/church-photo-2.webp';
 
-/* ── Hardcoded fallback pastors (used only if DB is empty) ── */
-const FALLBACK_PASTORS: Pastor[] = [
-  { id: 'fb-1', name: 'Pst Josué Romain KAZADI', role: 'Pasteur Principal — Fondateur', bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.', photo_url: '/pasteur-kazadi.jpg', thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.', sort_order: 0, is_main: true, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
-  { id: 'fb-2', name: 'Theresse KATEBA', role: "Épouse du Pasteur — Co-fondatrice", bio: '', photo_url: '/theresse-kateba.jpg', thought: '', sort_order: 1, is_main: false, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
-  { id: 'fb-3', name: 'Maurisse ESOSA', role: 'Pasteur Associé', bio: '', photo_url: '/maurisse-esosa.jpg', thought: '', sort_order: 2, is_main: false, is_active: true, video_url: '', social_links: {} as any, extended_bio: '', media_urls: [], email: '' as any, phone: '' as any, created_at: '', updated_at: '' },
-];
+const FALLBACK_MAIN_PASTOR: Pastor = {
+  id: 'fb-1',
+  name: 'Josué Romain Kazadi',
+  role: 'Pasteur Principal',
+  bio: 'Homme de Dieu visionnaire et passionné, le Pasteur Josué Romain KAZADI est le fondateur de l\'Église Évangélique La Conquête. Sous sa direction, l\'église poursuit sa mission de gagner des âmes, d\'équiper les croyants et de transformer les communautés à Lubumbashi et au-delà.',
+  photo_url: '/pasteur-romain-kazadi.webp',
+  thought: 'La Parole de Dieu est notre boussole. Elle guide nos pas, éclaire notre chemin et nous donne la force de conquérir chaque jour.',
+  sort_order: 0,
+  is_main: true,
+  is_active: true,
+  video_url: '',
+  social_links: {} as any,
+  extended_bio: '',
+  media_urls: [],
+  email: '' as any,
+  phone: '' as any,
+  created_at: '',
+  updated_at: '',
+};
 
-/* ── Predications ── */
-const PREDICATIONS = [
-  { title: 'La Conquête des Âmes', img: '/predication-1.jpg' },
-  { title: 'La Puissance de la Prière', img: '/priere.jpg' },
-  { title: 'La Parole qui Transforme', img: '/bible.jpg' },
-];
-
-/* ── Values ── */
-interface ValueItem { icon: string; title: string; description: string; }
+interface ValueItem { title: string; description: string; }
 
 const FALLBACK_VALUES: ValueItem[] = [
-  { icon: '❤️', title: 'Foi', description: 'Nous croyons en la puissance transformative de la foi en Jésus-Christ. Elle est le fondement de tout ce que nous faisons et la source de notre espérance.' },
-  { icon: '✝️', title: 'Amour', description: "L'amour de Dieu nous motive à aimer notre prochain authentiquement. Nous cultivons une communauté où chacun est accueilli et valorisé." },
-  { icon: '⭐', title: 'Excellence', description: 'Nous nous efforçons de servir Dieu avec excellence dans chaque domaine, offrant le meilleur de nous-mêmes pour honorer Celui qui nous a tout donné.' },
-  { icon: '🤲', title: 'Service', description: "Suivre l'exemple du Christ, c'est servir les autres. Chaque membre est encouragé à découvrir ses dons et à les mettre au service de la communauté." },
+  { title: 'Foi', description: 'Nous croyons en la puissance transformative de la foi en Jésus-Christ. Elle est le fondement de tout ce que nous faisons et la source de notre espérance.' },
+  { title: 'Amour', description: "L'amour de Dieu nous motive à aimer notre prochain authentiquement. Nous cultivons une communauté où chacun est accueilli et valorisé." },
+  { title: 'Unité', description: "Nous cultivons l'unité dans la diversité, conscients que chaque membre a sa place dans le corps du Christ." },
+  { title: 'Service', description: "Suivre l'exemple du Christ, c'est servir les autres. Chaque membre est encouragé à découvrir ses dons et à les mettre au service de la communauté." },
+  { title: 'Intégrité', description: 'Nous choisissons la vérité et la droiture dans nos actes comme dans nos paroles, devant Dieu et devant les hommes.' },
+  { title: 'Excellence', description: 'Nous nous efforçons de servir Dieu avec excellence dans chaque domaine, offrant le meilleur de nous-mêmes pour honorer Celui qui nous a tout donné.' },
 ];
 
-/* ── Giving info ── */
-const GIVING = [
-  { label: 'Mobile Money — M-Pesa / Orange Money', value: CHURCH.phone.display },
-  { label: 'EQUITY BCDC (USD)', value: '16610-00997-08928' },
-  { label: 'EQUITY BCDC (FC)', value: '16620-00997-10572' },
+/* Repères publiés par l'église. Aucune date antérieure n'est documentée. */
+const FALLBACK_TIMELINE = [
+  { year: '2004', event: "21 novembre — fondation de l'Église Évangélique La Conquête à Lubumbashi par une poignée de croyants passionnés." },
+  { year: '2025', event: "20 juillet — pose de la première pierre du Centre Évangélique Missionnaire La Conquête Kakana, à une cinquantaine de kilomètres de Lubumbashi." },
+  { year: '2026', event: "1er au 30 novembre — marathon de prière sur le thème « La mission de l'Église locale face au monde moderne »." },
 ];
 
 function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const { ref, visible } = useReveal();
   return <div ref={ref} className={`reveal ${visible ? 'in' : ''} ${className}`}>{children}</div>;
+}
+
+function SectionHead({ eyebrow, title, children }: { eyebrow: string; title: string; children?: React.ReactNode }) {
+  return (
+    <RevealSection className="mb-12">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="section-label">{eyebrow}</p>
+          <h2 className="section-title mt-4">{title}</h2>
+        </div>
+        {children}
+      </div>
+      <div className="rule-accent mt-6" />
+    </RevealSection>
+  );
 }
 
 export function AboutPage({ onNavigate }: PageProps) {
@@ -63,19 +85,22 @@ export function AboutPage({ onNavigate }: PageProps) {
 
   useEffect(() => {
     let cancelled = false;
+
     async function fetchData() {
-      try {
-        const [contents, pastorsData] = await Promise.all([
-          db.getPageContents('about'),
-          db.getActivePastors().catch(() => []),
-        ]);
-        if (!cancelled) {
-          setContentMap(buildContentMap(contents));
-          setPastors(pastorsData.length > 0 ? pastorsData : FALLBACK_PASTORS);
-          setLoading(false);
-        }
-      } catch { if (!cancelled) setLoading(false); }
+      if (!isSupabaseConfigured) {
+        setLoading(false);
+        return;
+      }
+      const [contents, pastorsData] = await Promise.all([
+        db.getPageContents('about').catch(() => []),
+        db.getActivePastors().catch(() => []),
+      ]);
+      if (cancelled) return;
+      setContentMap(buildContentMap(contents));
+      setPastors(pastorsData);
+      setLoading(false);
     }
+
     fetchData();
     return () => { cancelled = true; };
   }, []);
@@ -87,6 +112,7 @@ export function AboutPage({ onNavigate }: PageProps) {
 
   const valuesTitle = getContent(cm, 'values', 'title', '') || getContent(cm, 'values', 'heading_title', 'Nos Valeurs');
   const valuesSubtitle = getContent(cm, 'values', 'subtitle', '') || getContent(cm, 'values', 'heading_subtitle', 'Les piliers qui guident notre vie communautaire et notre engagement au service de Dieu.');
+  const ctaImage = getContent(cm, 'cta', 'image', '/church-photo-1.webp');
 
   const values: ValueItem[] = (() => {
     const dv: ValueItem[] = [];
@@ -94,11 +120,21 @@ export function AboutPage({ onNavigate }: PageProps) {
     while (true) {
       const t = getContent(contentMap, `value_${idx}`, 'title', '');
       if (!t) break;
-      dv.push({ icon: getContent(contentMap, `value_${idx}`, 'icon', FALLBACK_VALUES[(idx - 1) % FALLBACK_VALUES.length].icon), title: t, description: getContent(contentMap, `value_${idx}`, 'desc', FALLBACK_VALUES[(idx - 1) % FALLBACK_VALUES.length].description) });
+      dv.push({
+        title: t,
+        description: getContent(contentMap, `value_${idx}`, 'desc', FALLBACK_VALUES[(idx - 1) % FALLBACK_VALUES.length].description),
+      });
       idx++;
     }
     return dv.length > 0 ? dv : FALLBACK_VALUES;
   })();
+
+  const timeline = FALLBACK_TIMELINE.map((t, i) => ({
+    year: getContent(cm, 'timeline', `year_${i + 1}`, t.year),
+    event: getContent(cm, 'timeline', `event_${i + 1}`, t.event),
+  }));
+
+  const mainPastor = pastors.find(p => p.is_main) || FALLBACK_MAIN_PASTOR;
 
   if (loading) {
     return (
@@ -107,7 +143,7 @@ export function AboutPage({ onNavigate }: PageProps) {
         <MobileNav active="about" onNavigate={onNavigate} />
         <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" bgImage={DEFAULT_ABOUT_HERO_IMG} />
         <div className="footer-spacer" />
-      <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
+        <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
       </div>
     );
   }
@@ -117,290 +153,202 @@ export function AboutPage({ onNavigate }: PageProps) {
       <SiteHeader activePage="about" onNavigate={onNavigate} />
       <MobileNav active="about" onNavigate={onNavigate} />
 
-      {/* ═══ HERO ═══ */}
-      <UniversalHero pageKey="about" defaultBadge="À propos de nous" defaultTitle="Qui sommes-nous" bgImage={DEFAULT_ABOUT_HERO_IMG} />
+      <UniversalHero
+        pageKey="about"
+        defaultBadge="À propos de nous"
+        defaultTitle="Qui sommes-nous"
+        defaultSubtitle="Depuis 2004, une église, une vision, une famille réunie autour de la Parole de Dieu à Lubumbashi."
+        bgImage={DEFAULT_ABOUT_HERO_IMG}
+      />
 
       {/* ═══ VISION & MISSION ═══ */}
-      <section className="py-12 md:py-20 px-4">
+      <section className="py-16 px-4 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            {/* Vision */}
+          <div className="grid gap-px bg-line lg:grid-cols-2">
             <RevealSection>
-              <div className="glass rounded-3xl p-5 md:p-8 bg-radial-primary">
-                <div className="mb-4 flex items-center gap-3">
-                  <IconBox pageKey="about" elementId="vision-bookopen-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
-                    <BookOpen className="h-5 w-5" />
-                  </IconBox>
-                  <h2 className="section-label mb-0">{getContent(cm, 'vision_heading', 'label', 'Notre Vision')}</h2>
-                </div>
-                <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
+              <article className="h-full bg-bg-card p-8 md:p-10">
+                <IconBox pageKey="about" elementId="vision-bookopen-icon" className="mb-6 inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
+                  <BookOpen className="h-5 w-5" />
+                </IconBox>
+                <p className="section-eyebrow">{getContent(cm, 'vision_heading', 'label', 'Notre Vision')}</p>
+                <h2 className="card-title mt-3">Une vision de conquête</h2>
+                <p className="mt-5 text-[15px] leading-relaxed text-cream/80 sm:text-base">
                   {visionText}
                 </p>
-              </div>
+                <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600">
+                  {CHURCH.visionReference}
+                </p>
+              </article>
             </RevealSection>
-            {/* Mission */}
             <RevealSection className="reveal-delay-1">
-              <div className="glass rounded-3xl p-5 md:p-8">
-                <div className="mb-4 flex items-center gap-3">
-                  <IconBox pageKey="about" elementId="mission-heart-icon" className="flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
-                    <Heart className="h-5 w-5" />
-                  </IconBox>
-                  <h2 className="section-label mb-0">{getContent(cm, 'mission_heading', 'label', 'Notre Mission')}</h2>
-                </div>
-                <p className="mt-4 text-base leading-relaxed text-cream/90 sm:text-lg">
+              <article className="h-full bg-bg-card p-8 md:p-10">
+                <IconBox pageKey="about" elementId="mission-heart-icon" className="mb-6 inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
+                  <Heart className="h-5 w-5" />
+                </IconBox>
+                <p className="section-eyebrow">{getContent(cm, 'mission_heading', 'label', 'Notre Mission')}</p>
+                <h2 className="card-title mt-3">Une mission claire</h2>
+                <p className="mt-5 text-[15px] leading-relaxed text-cream/80 sm:text-base">
                   {missionText}
                 </p>
-              </div>
+              </article>
             </RevealSection>
           </div>
         </div>
       </section>
 
-      {/* ═══ PASTOR PRINCIPAL ═══ */}
-      {pastors.find(p => p.is_main) && (() => {
-        const main = pastors.find(p => p.is_main)!;
-        return (
-      <section className="py-12 md:py-20 px-4 bg-radial-ember">
+      {/* ═══ PASTEUR PRINCIPAL ═══ */}
+      <section className="border-y border-line py-16 px-4 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Direction spirituelle</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">Notre Pasteur</h2>
-          </RevealSection>
-
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <RevealSection>
-              <div className="flex justify-center">
-                <div className="relative">
-                  <div className="absolute -inset-3 rounded-3xl bg-gradient-to-br from-accent-600/30 to-ember-500/20 blur-xl" />
-                  <img
-                    src={main.photo_url || '/pasteur-kazadi.jpg'}
-                    alt={main.name}
-                    className="relative h-64 w-56 rounded-3xl object-cover shadow-2xl sm:h-80 sm:w-64 md:h-96 md:w-72"
-                  />
-                  <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-accent-500 px-5 py-1.5 text-xs font-bold uppercase tracking-widest text-black shadow-lg">
-                    Fondateur
-                  </div>
-                </div>
-              </div>
+          <SectionHead eyebrow="Direction spirituelle" title="Notre pasteur">
+            <button onClick={() => onNavigate('pasteurs')} className="btn-link">
+              Toute l'équipe pastorale <ArrowRight className="h-4 w-4" />
+            </button>
+          </SectionHead>
+          <div className="grid items-start gap-12 lg:grid-cols-12">
+            <RevealSection className="lg:col-span-4">
+              <figure className="portrait-frame">
+                <img
+                  src={mainPastor.photo_url || '/pasteur-romain-kazadi.webp'}
+                  srcSet={imageSrcSet(mainPastor.photo_url || '/pasteur-romain-kazadi.webp')}
+                  sizes="(min-width: 1024px) 33vw, 100vw"
+                  alt={mainPastor.name}
+                  className="photo-claro aspect-[3/4] w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption className="flex items-center justify-between border-t border-line bg-bg px-5 py-4">
+                  <span className="person-role">Fondateur</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">La Conquête</span>
+                </figcaption>
+              </figure>
             </RevealSection>
 
-            <RevealSection className="reveal-delay-1">
-              <h3 className="font-serif text-3xl font-bold text-cream sm:text-4xl">{main.name}</h3>
-              <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-accent-400">{main.role}</p>
-              <p className="mt-6 text-base leading-relaxed text-cream/80">{main.bio}</p>
+            <RevealSection className="reveal-delay-1 lg:col-span-8">
+              <h3 className="section-title text-[clamp(2rem,4vw,3rem)]">{mainPastor.name}</h3>
+              <p className="person-role mt-3">{mainPastor.role}</p>
+              <p className="mt-7 max-w-2xl text-[15px] leading-relaxed text-cream/80 sm:text-base">{mainPastor.bio}</p>
 
-              {main.thought && (
-                <blockquote className="mt-8 border-l-2 border-accent-400/40 pl-5">
-                  <p className="text-sm italic leading-relaxed text-muted">« {main.thought} »</p>
-                  <p className="mt-2 text-xs font-semibold text-accent-400">— {main.name}</p>
+              {mainPastor.thought && (
+                <blockquote className="mt-9 border-l-2 border-evangile-600 pl-6">
+                  <p className="verse-quote">« {mainPastor.thought} »</p>
+                  <cite className="mt-4 block text-[11px] font-semibold uppercase not-italic tracking-[0.22em] text-muted">
+                    {mainPastor.name}
+                  </cite>
                 </blockquote>
               )}
             </RevealSection>
           </div>
         </div>
       </section>
-        );
-      })()}
 
-      {/* ═══ EQUIPE PASTORALE ═══ */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="mx-auto max-w-6xl">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Ensemble au service</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">{getContent(cm, 'team', 'title', 'Équipe Pastorale')}</h2>
-            <p className="mt-4 text-muted max-w-2xl mx-auto">
-              Des hommes et des femmes dévoués qui accompagnent le pasteur principal dans la vision et l'œuvre de Dieu au sein de notre église.
-            </p>
-          </RevealSection>
-
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {pastors.map((member, i) => (
-              <RevealSection key={member.id} className={i < 3 ? `reveal-delay-${i + 1}` : ''}>
-                <div className="glass card-parallax rounded-3xl overflow-hidden">
-                  <div className="h-48 sm:h-64 overflow-hidden">
-                    <img src={member.photo_url || '/pasteur-kazadi.jpg'} alt={member.name} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="p-6 text-center">
-                    <h3 className="font-serif text-lg font-semibold text-cream">{member.name}</h3>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-accent-400">{member.role}</p>
-                  </div>
-                </div>
-              </RevealSection>
+      {/* ═══ REPÈRES ═══ */}
+      <section className="py-16 px-4 md:py-24">
+        <div className="mx-auto max-w-3xl">
+          <SectionHead eyebrow="Notre parcours" title="Repères" />
+          <ol className="border-l border-line">
+            {timeline.map((t, i) => (
+              <li key={i} className={`reveal reveal-delay-${(i % 3) + 1} relative pb-10 pl-8 last:pb-0`}>
+                <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 bg-evangile-600" aria-hidden="true" />
+                <p className="font-hero text-2xl text-cream">{t.year}</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted">{t.event}</p>
+              </li>
             ))}
-          </div>
-
-          {/* Placeholder for extension pastors */}
-          <RevealSection className="mt-12">
-            <div className="glass rounded-3xl p-8 text-center border border-dashed border-accent-400/20">
-              <p className="text-sm text-muted">
-                <span className="font-semibold text-accent-400">Pasteurs des extensions</span> — Les portraits des pasteurs responsables de nos églises extensions seront ajoutés prochainement.
-              </p>
-            </div>
-          </RevealSection>
+          </ol>
+          <p className="mt-8 text-xs leading-relaxed text-muted/70">
+            Seuls les faits publiés par l'église sont mentionnés ici. Les dates antérieures seront ajoutées
+            lorsqu'elles auront été confirmées par le bureau pastoral.
+          </p>
         </div>
       </section>
 
-      {/* ═══ GALERIE PHOTOS ═══ */}
-      <section className="py-12 md:py-20 px-4 bg-radial-primary">
+      {/* ═══ VALEURS ═══ */}
+      <section className="border-y border-line bg-bg-card py-16 px-4 md:py-24">
         <div className="mx-auto max-w-6xl">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Moments de grâce</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">Notre Galerie</h2>
-          </RevealSection>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { src: '/church-photo-1.jpg', alt: 'Vie de église' },
-              { src: '/church-photo-2.jpg', alt: 'Moment de prière' },
-              { src: '/church-photo-3.jpg', alt: 'Assemblée' },
-              { src: '/predication-1.jpg', alt: 'Prédication' },
-              { src: '/priere.jpg', alt: 'Prière' },
-              { src: '/bible.jpg', alt: 'Étude biblique' },
-            ].map((img, i) => (
-              <RevealSection key={img.src}>
-                <div className="overflow-hidden rounded-2xl">
-                  <img
-                    src={img.src}
-                    alt={img.alt}
-                    className="h-40 sm:h-56 w-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                </div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ PREDICATIONS ═══ */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="mx-auto max-w-6xl">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Écouter et grandir</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-cream">Prédications</h2>
-          </RevealSection>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {PREDICATIONS.map((pred, i) => (
-              <RevealSection key={pred.title} className={`reveal-delay-${i + 1}`}>
-                <div className="glass rounded-3xl overflow-hidden transition-transform duration-300 hover:scale-[1.02]">
-                  <div className="relative h-36 sm:h-48 overflow-hidden">
-                    <img src={pred.img} alt={pred.title} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <h3 className="font-serif text-lg font-semibold text-white">{pred.title}</h3>
-                    </div>
-                  </div>
-                </div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ DÎMES & OFFRANDES ═══ */}
-      <section className="py-12 md:py-20 px-4 bg-radial-ember">
-        <div className="mx-auto max-w-4xl">
-          <RevealSection className="text-center">
-            <div className="mb-4 flex justify-center">
-              <HandHeart className="h-8 w-8 text-accent-400/60" />
-            </div>
-            <p className="section-label justify-center">{getContent(cm, 'giving', 'heading_label', "Soutenir l'œuvre")}</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">{getContent(cm, 'giving', 'heading_title', 'Dîmes, Offrandes & Dons')}</h2>
-            <p className="mt-4 text-muted max-w-2xl mx-auto">
-              Vos contributions permettent à l'église de poursuivre sa mission d'évangélisation, de soutenir les plus vulnérables et d'équiper les croyants.
-            </p>
-          </RevealSection>
-
-          <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {GIVING.map((item, i) => (
-              <RevealSection key={item.label} className={`reveal-delay-${i + 1}`}>
-                <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-[1.02]">
-                  <p className="text-xs font-semibold uppercase tracking-widest text-accent-400">{item.label}</p>
-                  <p className="mt-2 font-mono text-lg font-semibold text-cream">{item.value}</p>
-                </div>
-              </RevealSection>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ VALUES ═══ */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="reveal section-label mb-3 text-center">{valuesTitle}</h2>
+          <SectionHead eyebrow="Ce qui nous tient" title={valuesTitle} />
           {valuesSubtitle && (
-            <p className="reveal reveal-delay-1 mb-12 text-center text-base text-muted sm:text-lg">{valuesSubtitle}</p>
+            <p className="reveal mb-10 max-w-2xl text-sm leading-relaxed text-muted">{valuesSubtitle}</p>
           )}
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
             {values.map((value, i) => (
-              <div
-                key={value.title}
-                className={`reveal ${i < 4 ? `reveal-delay-${i + 1}` : ''} glass rounded-3xl p-7 transition-transform duration-300 hover:scale-[1.02]`}
-              >
-                <span className="mb-4 block text-3xl">{value.icon}</span>
-                <h3 className="font-serif mb-3 text-xl font-semibold text-cream">{value.title}</h3>
-                <p className="text-sm leading-relaxed text-muted">{value.description}</p>
+              <div key={value.title} className={`reveal reveal-delay-${(i % 4) + 1} bg-bg-card p-7`}>
+                <span className="stat-figure block text-[2.75rem] text-evangile-600/30">{String(i + 1).padStart(2, '0')}</span>
+                <h3 className="card-title mt-5">{value.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{value.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══ CONTACT STRIP ═══ */}
-      <section className="py-12 md:py-20 px-4 bg-radial-primary">
-        <div className="mx-auto max-w-6xl">
-          <RevealSection className="text-center">
-            <p className="section-label justify-center">Nous rejoindre</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">SOYEZ LES BIENVENUS CHEZ VOUS</h2>
+      {/* ═══ ÉQUIPE & MINISTÈRES ═══ */}
+      <section className="py-16 px-4 md:py-24">
+        <div className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
+          <RevealSection>
+            <article className="panel h-full p-8 md:p-10">
+              <p className="section-eyebrow">Ensemble au service</p>
+              <h2 className="card-title mt-3">L'équipe pastorale</h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted">
+                Découvrez les pasteurs qui accompagnent la vision et l'œuvre de Dieu au sein de notre église,
+                ainsi que les responsables de nos extensions.
+              </p>
+              <button onClick={() => onNavigate('pasteurs')} className="btn-link mt-6">
+                Rencontrer l'équipe <ArrowRight className="h-4 w-4" />
+              </button>
+            </article>
           </RevealSection>
-
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              { Icon: MapPin, label: 'Adresse', value: `${CHURCH.address.street}, ${CHURCH.address.city}, ${CHURCH.address.country}` },
-              { Icon: Phone, label: 'Téléphone', value: CHURCH.phone.display, href: CHURCH.phone.href },
-              { Icon: Mail, label: 'Email', value: CHURCH.email, href: `mailto:${CHURCH.email}` },
-              
-            ].map(({ Icon, label, value, href }, i) => (
-              <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
-                {href ? (
-                  <a href={href} target="_blank" rel="noopener noreferrer" className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105 active:scale-95 block">
-                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400"><Icon className="h-5 w-5" /></IconBox>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
-                    <p className="text-sm font-medium text-cream">{value}</p>
-                  </a>
-                ) : (
-                  <div className="glass rounded-2xl p-5 text-center transition-all duration-300 hover:scale-105 active:scale-95">
-                    <IconBox pageKey="about" elementId={`contact-${label.toLowerCase().replace(/\s/g, '-')}-icon`} className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400"><Icon className="h-5 w-5" /></IconBox>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-muted">{label}</p>
-                    <p className="text-sm font-medium text-cream">{value}</p>
-                  </div>
-                )}
-              </RevealSection>
-            ))}
-          </div>
-
-          <RevealSection className="mt-10 text-center">
-            <p className="text-xs text-muted/60">
-              Réf. : à côté de la cour d'ordre militaire
-            </p>
+          <RevealSection className="reveal-delay-1">
+            <article className="panel h-full p-8 md:p-10">
+              <p className="section-eyebrow">Une maison, plusieurs services</p>
+              <h2 className="card-title mt-3">Nos ministères</h2>
+              <p className="mt-4 text-sm leading-relaxed text-muted">
+                Louange, accueil, enfants, évangélisation, diaconie : chaque membre a un rôle à jouer.
+                Trouvez le ministère où vos dons serviront la communauté.
+              </p>
+              <button onClick={() => onNavigate('ministeres')} className="btn-link mt-6">
+                Découvrir les ministères <ArrowRight className="h-4 w-4" />
+              </button>
+            </article>
           </RevealSection>
         </div>
       </section>
 
       {/* ═══ CTA ═══ */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="reveal mx-auto max-w-2xl text-center">
-          <h2 className="section-label mb-4">Rejoignez-nous</h2>
-          <p className="mb-8 text-cream/70">
-            Vous désirez en savoir plus sur notre communauté ou participer à notre prochaine rencontre ? Nous serions ravis de vous accueillir.
-          </p>
-          <button onClick={() => onNavigate('contact')} className="btn-gold">
-            Nous contacter
-          </button>
+      <section className="relative overflow-hidden border-t border-line" aria-label="Nous rendre visite">
+        <img
+          src={ctaImage}
+          srcSet={imageSrcSet(ctaImage)}
+          sizes="100vw"
+          alt=""
+          aria-hidden="true"
+          className="photo-claro-strong absolute inset-0 h-full w-full object-cover"
+          loading="lazy"
+          decoding="async"
+        />
+        <div className="photo-veil-strong absolute inset-0" />
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="section-eyebrow">Nous rejoindre</p>
+            <h2 className="section-title mt-4" style={{ color: '#FFFFFF' }}>
+              Soyez les bienvenus chez vous
+            </h2>
+            <div className="mt-5 h-px w-16 bg-evangile-600" />
+            <p className="mt-5 flex items-start gap-2 text-sm leading-relaxed text-white/70 sm:text-base">
+              <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              {CHURCH.address.full}
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button onClick={() => onNavigate('contact')} className="btn-primary">
+                Nous contacter <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <a href={CHURCH.phone.href} className="btn-ghost border-white/30 text-white hover:bg-white/10">
+                <Phone className="h-4 w-4" aria-hidden="true" /> {CHURCH.phone.display}
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-      <MobileNav active="about" onNavigate={onNavigate} />
     </div>
   );
 }

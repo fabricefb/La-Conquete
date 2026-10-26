@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import {
-  Users, Heart, Building2, Calendar, BarChart3,
+  Users, Heart, Building2, Calendar,
   TrendingUp, Clock, ChevronRight, RefreshCw, AlertTriangle,
   UserPlus, MessageSquare, Shield,
 } from '../../../lib/icons';
@@ -43,24 +43,50 @@ interface RecentPrayer {
 
 // ─── Role labels & colors ─────────────────────────────────────────
 const ROLE_MAP: Record<number, { label: string; color: string }> = {
-  1: { label: 'Membres', color: 'bg-blue-500' },
-  2: { label: 'Serviteurs', color: 'bg-emerald-500' },
-  3: { label: 'Chefs', color: 'bg-violet-500' },
-  4: { label: 'Pasteurs', color: 'bg-accent-500' },
-  5: { label: 'Super Admins', color: 'bg-rose-500' },
+  1: { label: 'Membres', color: 'bg-accent-300' },
+  2: { label: 'Serviteurs', color: 'bg-accent-400' },
+  3: { label: 'Chefs', color: 'bg-accent-500' },
+  4: { label: 'Pasteurs', color: 'bg-[rgb(var(--accent-red-rgb))]' },
+  5: { label: 'Super Admins', color: 'bg-evangile-600' },
 };
 
 // ─── Skeleton helpers ─────────────────────────────────────────────
 function Skeleton({ className }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-white/5 ${className ?? ''}`} />;
+  return <div className={`animate-pulse bg-white/5 ${className ?? ''}`} />;
 }
 
 function StatCardSkeleton() {
   return (
-    <div className="glass rounded-xl p-5">
-      <Skeleton className="h-4 w-24 mb-3" />
-      <Skeleton className="h-8 w-16 mb-2" />
-      <Skeleton className="h-3 w-20" />
+    <div className="panel p-5">
+      <Skeleton className="mb-3 h-3 w-24" />
+      <Skeleton className="mb-2 h-9 w-16" />
+      <Skeleton className="h-2.5 w-20" />
+    </div>
+  );
+}
+
+// ─── Panel title ──────────────────────────────────────────────────
+function PanelTitle({
+  label, title, icon: Icon,
+}: {
+  label: string;
+  title: string;
+  icon?: React.FC<{ className?: string }>;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 border-b border-line pb-4">
+      <div className="flex items-stretch gap-3">
+        <span className="mt-0.5 w-[2px] shrink-0 bg-evangile-600" aria-hidden="true" />
+        <div>
+          <p className="text-[9px] font-semibold uppercase tracking-[0.28em] text-[rgb(var(--accent-red-rgb))]">
+            {label}
+          </p>
+          <h2 className="mt-1 font-hero text-xl uppercase leading-none tracking-[0.04em] text-cream">
+            {title}
+          </h2>
+        </div>
+      </div>
+      {Icon && <Icon className="mt-1 h-4 w-4 shrink-0 text-muted" />}
     </div>
   );
 }
@@ -75,13 +101,24 @@ function StatCard({
   sub?: string;
 }) {
   return (
-    <div className="glass rounded-xl p-5 flex flex-col gap-2">
-      <div className="flex items-center gap-2 text-muted text-xs font-medium uppercase tracking-wider">
-        <Icon className="h-4 w-4" />
-        {label}
+    <div className="panel relative flex flex-col justify-between gap-6 p-5">
+      <span className="absolute left-0 top-0 h-10 w-[2px] bg-evangile-600" aria-hidden="true" />
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-[9px] font-semibold uppercase leading-4 tracking-[0.24em] text-muted">
+          {label}
+        </span>
+        <Icon className="h-4 w-4 shrink-0 text-muted/70" />
       </div>
-      <div className="text-3xl font-bold text-accent-400 tabular-nums">{value}</div>
-      {sub && <p className="text-[11px] text-muted">{sub}</p>}
+      <div>
+        <div className="font-hero text-[2.75rem] leading-[0.85] tracking-[0.01em] text-cream tabular-nums">
+          {value}
+        </div>
+        {sub && (
+          <p className="mt-3 border-t border-line pt-2 text-[10px] uppercase tracking-[0.12em] text-muted">
+            {sub}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -90,15 +127,15 @@ function StatCard({
 function RoleBar({ label, count, color, max }: { label: string; count: number; color: string; max: number }) {
   const pct = max > 0 ? (count / max) * 100 : 0;
   return (
-    <div className="flex items-center gap-3">
-      <span className="text-xs text-muted w-24 shrink-0 text-right">{label}</span>
-      <div className="flex-1 h-5 rounded-full bg-white/5 overflow-hidden">
+    <div className="grid grid-cols-[6.5rem_1fr_2rem] items-center gap-3">
+      <span className="truncate text-[11px] text-muted">{label}</span>
+      <div className="h-2 bg-white/[0.06]">
         <div
-          className={`h-full rounded-full ${color} transition-all duration-700`}
+          className={`h-full ${color} transition-all duration-700`}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs font-semibold text-cream tabular-nums w-8 text-right">{count}</span>
+      <span className="text-right font-hero text-base leading-none text-cream tabular-nums">{count}</span>
     </div>
   );
 }
@@ -115,14 +152,16 @@ function QuickAction({
   return (
     <button
       onClick={onClick}
-      className="glass rounded-xl p-4 text-left hover:bg-white/5 transition group"
+      className="group flex w-full items-center gap-3 border-b border-line py-3 text-left transition-colors last:border-0 hover:bg-white/[0.02]"
     >
-      <div className="flex items-center gap-3 mb-1">
-        <Icon className="h-4 w-4 text-accent-400" />
-        <span className="text-sm font-medium text-cream">{label}</span>
-        <ChevronRight className="h-3 w-3 text-muted ml-auto group-hover:text-accent-400 transition" />
-      </div>
-      <p className="text-xs text-muted">{desc}</p>
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line text-muted transition-colors group-hover:border-evangile-600/50 group-hover:text-[rgb(var(--accent-red-rgb))]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[13px] font-medium text-cream">{label}</span>
+        <span className="mt-0.5 block text-[11px] text-muted">{desc}</span>
+      </span>
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-[rgb(var(--accent-red-rgb))]" />
     </button>
   );
 }
@@ -262,10 +301,10 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
 
   const statusColor = (s: string) => {
     switch (s) {
-      case 'received': return 'text-blue-400 bg-blue-400/10';
-      case 'praying': return 'text-accent-400 bg-accent-400/10';
-      case 'answered': return 'text-emerald-400 bg-emerald-400/10';
-      default: return 'text-muted bg-white/5';
+      case 'received': return 'border-accent-400/40 text-accent-400';
+      case 'praying': return 'border-evangile-600/60 text-[rgb(var(--accent-red-rgb))]';
+      case 'answered': return 'border-emerald-500/40 text-emerald-400';
+      default: return 'border-line text-muted';
     }
   };
 
@@ -296,11 +335,13 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
   // ── Error state ──
   if (error) {
     return (
-      <div className="glass rounded-xl p-8 text-center">
-        <AlertTriangle className="h-10 w-10 text-ember-400 mx-auto mb-3" />
-        <p className="text-cream font-medium mb-1">Erreur de chargement</p>
-        <p className="text-sm text-muted mb-4">{error}</p>
-        <button onClick={fetchData} className="btn-gold inline-flex items-center gap-2">
+      <div className="panel border-l-2 border-l-evangile-600 p-8 text-center">
+        <AlertTriangle className="mx-auto h-9 w-9 text-[rgb(var(--accent-red-rgb))]" />
+        <p className="mt-4 font-hero text-xl uppercase leading-none tracking-[0.04em] text-cream">
+          Erreur de chargement
+        </p>
+        <p className="mt-2 text-sm text-muted">{error}</p>
+        <button onClick={fetchData} className="btn-primary mt-6">
           <RefreshCw className="h-4 w-4" />
           Réessayer
         </button>
@@ -311,20 +352,20 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
   return (
     <div className="space-y-6">
       {/* ─── Header ─── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col gap-4 border-b border-line pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="font-serif text-2xl font-bold text-cream flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-accent-400" />
+          <span className="section-label">Vue d'ensemble</span>
+          <h1 className="mt-3 font-hero text-[2.5rem] uppercase leading-none tracking-[0.02em] text-cream sm:text-[3rem]">
             Tableau de bord
           </h1>
-          <p className="text-sm text-muted mt-1">
-            Vue d'ensemble de l'activité de l'église
+          <p className="mt-2 text-sm text-muted">
+            Activité de l'église, en temps réel.
           </p>
         </div>
         <button
           onClick={fetchData}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-lg border border-line px-4 py-2 text-xs font-medium text-muted hover:text-cream hover:bg-white/5 transition disabled:opacity-50"
+          className="btn-ghost shrink-0 px-4 py-2.5 text-[10px] uppercase tracking-[0.16em] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
           Actualiser
@@ -333,14 +374,14 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
 
       {/* ─── Stats grid ─── */}
       {loading && !stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
           <StatCardSkeleton />
         </div>
       ) : stats ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard
             icon={Users}
             label="Membres actifs"
@@ -369,25 +410,22 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
       ) : null}
 
       {/* ─── Middle row: Role distribution + Quick actions ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Role distribution */}
-        <div className="lg:col-span-2 glass rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-accent-400" />
-            Distribution par rôle
-          </h2>
+        <div className="panel p-5 lg:col-span-2">
+          <PanelTitle label="Répartition" title="Par rôle" icon={TrendingUp} />
           {loading ? (
-            <div className="space-y-3">
+            <div className="mt-5 space-y-3">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-3 w-24" />
-                  <Skeleton className="h-5 flex-1 rounded-full" />
-                  <Skeleton className="h-3 w-6" />
+                <div key={i} className="grid grid-cols-[6.5rem_1fr_2rem] items-center gap-3">
+                  <Skeleton className="h-3 w-20" />
+                  <Skeleton className="h-2 w-full" />
+                  <Skeleton className="h-3 w-5" />
                 </div>
               ))}
             </div>
           ) : (
-            <div className="space-y-2.5">
+            <div className="mt-5 space-y-3">
               {roleDistribution.map(rd => (
                 <RoleBar
                   key={rd.label}
@@ -402,12 +440,9 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         </div>
 
         {/* Quick actions */}
-        <div className="glass rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-accent-400" />
-            Actions rapides
-          </h2>
-          <div className="flex flex-col gap-2">
+        <div className="panel p-5">
+          <PanelTitle label="Raccourcis" title="Actions rapides" icon={Clock} />
+          <div className="mt-1 flex flex-col">
             <QuickAction
               icon={UserPlus}
               label="Gérer les membres"
@@ -437,39 +472,36 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
       </div>
 
       {/* ─── Bottom row: Recent members + Recent prayers ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Recent members */}
-        <div className="glass rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Shield className="h-4 w-4 text-accent-400" />
-            Derniers inscrits
-          </h2>
+        <div className="panel p-5">
+          <PanelTitle label="Derniers arrivés" title="Inscrits" icon={Shield} />
           {loading ? (
-            <div className="space-y-3">
+            <div className="mt-3 space-y-1">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-9 w-9 rounded-full" />
+                <div key={i} className="flex items-center gap-3 border-b border-line py-3 last:border-0">
+                  <Skeleton className="h-9 w-9" />
                   <div className="flex-1">
-                    <Skeleton className="h-3.5 w-28 mb-1.5" />
+                    <Skeleton className="mb-1.5 h-3 w-28" />
                     <Skeleton className="h-2.5 w-20" />
                   </div>
                 </div>
               ))}
             </div>
           ) : recentMembers.length === 0 ? (
-            <p className="text-sm text-muted text-center py-6">Aucun membre inscrit</p>
+            <p className="py-8 text-center text-sm text-muted">Aucun membre inscrit</p>
           ) : (
-            <div className="space-y-3">
+            <div className="mt-1">
               {recentMembers.map(m => (
-                <div key={m.id} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-400/10 text-xs font-bold text-accent-400">
+                <div key={m.id} className="flex items-center gap-3 border-b border-line py-3 last:border-0">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center border border-line bg-white/[0.03] font-hero text-sm leading-none text-accent-400">
                     {(m.full_name ?? m.email).charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-cream truncate">
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-[13px] font-medium text-cream">
                       {m.full_name ?? m.email}
                     </p>
-                    <p className="text-[11px] text-muted">
+                    <p className="mt-0.5 text-[11px] text-muted">
                       {roleLabel(m.role_level)} · {fmtRelative(m.created_at)}
                     </p>
                   </div>
@@ -480,37 +512,34 @@ export function DashboardTab({ onTabChange }: DashboardTabProps) {
         </div>
 
         {/* Recent prayer requests */}
-        <div className="glass rounded-xl p-5">
-          <h2 className="text-sm font-semibold text-cream mb-4 flex items-center gap-2">
-            <Heart className="h-4 w-4 text-accent-400" />
-            Dernières demandes de prière
-          </h2>
+        <div className="panel p-5">
+          <PanelTitle label="Intercession" title="Dernières prières" icon={Heart} />
           {loading ? (
-            <div className="space-y-3">
+            <div className="mt-3 space-y-1">
               {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="rounded-lg bg-white/5 p-3">
-                  <Skeleton className="h-3.5 w-full mb-2" />
+                <div key={i} className="border-b border-line py-3 last:border-0">
+                  <Skeleton className="mb-2 h-3.5 w-full" />
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-2.5 w-16" />
-                    <Skeleton className="h-5 w-14 rounded-full" />
+                    <Skeleton className="h-4 w-14" />
                   </div>
                 </div>
               ))}
             </div>
           ) : recentPrayers.length === 0 ? (
-            <p className="text-sm text-muted text-center py-6">Aucune demande de prière</p>
+            <p className="py-8 text-center text-sm text-muted">Aucune demande de prière</p>
           ) : (
-            <div className="space-y-2.5">
+            <div className="mt-1">
               {recentPrayers.map(p => (
-                <div key={p.id} className="rounded-lg bg-white/5 p-3">
-                  <p className="text-sm text-cream line-clamp-2 mb-2">
+                <div key={p.id} className="border-b border-line py-3 last:border-0">
+                  <p className="line-clamp-2 text-[13px] leading-6 text-cream/90">
                     {p.content}
                   </p>
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] text-muted truncate">
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span className="truncate text-[11px] text-muted">
                       {p.is_anonymous ? 'Anonyme' : p.author_name} · {fmtRelative(p.created_at)}
                     </span>
-                    <span className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full ${statusColor(p.status)}`}>
+                    <span className={`shrink-0 border px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] ${statusColor(p.status)}`}>
                       {statusLabel(p.status)}
                     </span>
                   </div>

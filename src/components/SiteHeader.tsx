@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import {
   X, ChevronDown, Menu, LogIn, LogOut, User, Bell, Shield, Eye, Newspaper,
-  Church, BookOpen, Users, Heart, Music, Video, Image, Radio,
-  Calendar, HandHeart, Mic, Building2, MonitorPlay,
+  Church, BookOpen, Users, Heart, Music, Video, Image,
+  Calendar, HandHeart, Mic, Building2, MonitorPlay, Facebook, Youtube, Instagram, Globe,
 } from '../lib/icons';
 import { useAuth } from '../contexts/AuthContext';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -10,8 +10,9 @@ import { useLiveStatus } from '../lib/hooks/useLiveStatus';
 import { getFullRoleLabel, getRoleBadgeClass } from '../lib/permissions';
 import type { Page } from '../lib/navigation';
 import { ThemeToggle } from './ThemeToggle';
-import { db, buildSettingsMap } from '../lib/supabase';
+import { db, buildSettingsMap, isSupabaseConfigured } from '../lib/supabase';
 import { CHURCH } from '../lib/church';
+import { YOUTUBE_CHANNEL } from '../lib/teachings';
 
 // Default logo — overridable via Supabase site_settings (key: site_logo_url)
 // The wordmark is white-on-transparent, so it must always sit on a dark plate.
@@ -24,6 +25,8 @@ const DEFAULT_LOGO = '/logo-conquete.png';
 interface SubMenuItem {
   label: string;
   page?: Page;
+  href?: string; // lien externe (plateformes)
+  hint?: string;
   icon?: React.FC<{ className?: string }>;
   tag?: string;  // optional badge like "Bientôt"
 }
@@ -43,6 +46,7 @@ interface MegaImage {
 interface NavItem {
   label: string;
   page?: Page;
+  cta?: boolean;
   mega?: {
     columns: MegaColumn[];
     image: MegaImage;
@@ -51,41 +55,44 @@ interface NavItem {
 
 // Default mega menu images — overridable via site_settings keys:
 //   mega_menu_image_about, mega_menu_image_vie_eglise, mega_menu_image_media
-const DEFAULT_VISION_IMAGE = '/church-photo-2.jpg';
-const DEFAULT_MEDIA_IMAGE = '/predication-1.jpg';
-const DEFAULT_VIE_EGLISE_IMAGE = '/church-photo-3.jpg';
+const DEFAULT_VISION_IMAGE = '/church-photo-2.webp';
+const DEFAULT_MEDIA_IMAGE = '/predication-1.webp';
+const DEFAULT_VIE_EGLISE_IMAGE = '/church-photo-3.webp';
 
 const NAV_ITEMS: NavItem[] = [
   /* 1. Accueil */
   { label: 'Accueil', page: 'home' },
 
-  /* 2. À Propos */
+  /* 2. À propos */
   {
-    label: 'À Propos',
+    label: 'À propos',
     mega: {
       columns: [
         {
           title: 'Qui sommes-nous',
           items: [
             { label: 'Notre histoire', page: 'about', icon: Church },
-            { label: 'Notre vision', page: 'vision', icon: Eye },
-            { label: 'Notre foi', page: 'about', icon: BookOpen },
+            { label: 'Notre vision', page: 'about', icon: Eye },
+            { label: 'Nos valeurs', page: 'about', icon: Heart },
             { label: 'Équipe pastorale', page: 'pasteurs', icon: Shield },
           ],
         },
         {
           title: 'Communauté',
           items: [
-            { label: 'Nos valeurs', page: 'vision', icon: Heart },
-            { label: 'Partenariats', icon: HandHeart, tag: 'Bientôt' },
+            { label: 'Nos ministères', page: 'ministeres', icon: Building2 },
+            { label: 'Activités & horaires', page: 'activities', icon: Calendar },
+            { label: 'Événements', page: 'events', icon: Calendar },
+            { label: 'Contact', page: 'contact', icon: HandHeart },
           ],
         },
         {
           title: 'Vie spirituelle',
           items: [
-            { label: 'Enseignements', page: 'enseignements', icon: BookOpen },
             { label: 'Prédications', page: 'predications', icon: Mic },
             { label: 'Blog', page: 'blog', icon: Newspaper },
+            { label: 'Médias', page: 'media', icon: Video },
+            { label: 'Faire un don', page: 'dons', icon: HandHeart },
           ],
         },
       ],
@@ -99,11 +106,12 @@ const NAV_ITEMS: NavItem[] = [
     mega: {
       columns: [
         {
-          title: 'Culte & Rassemblements',
+          title: 'Rassemblements',
           items: [
-            { label: 'Horaires de culte', page: 'culte', icon: Calendar },
+            { label: 'Activités & horaires', page: 'activities', icon: Calendar },
             { label: 'Événements', page: 'events', icon: Calendar },
-            { label: 'Jeunesse', page: 'jeunesse', icon: Heart },
+            { label: 'Culte en direct', page: 'media', icon: MonitorPlay },
+            { label: 'Marathon de prière', page: 'events', icon: Heart },
           ],
         },
         {
@@ -111,17 +119,17 @@ const NAV_ITEMS: NavItem[] = [
           items: [
             { label: 'Tous les ministères', page: 'ministeres', icon: Building2 },
             { label: 'Louange & Adoration', page: 'ministeres', icon: Music },
-            { label: 'Évangélisation', page: 'ministeres', icon: Radio },
+            { label: 'Évangélisation', page: 'ministeres', icon: Users },
             { label: 'Diaconie', page: 'ministeres', icon: HandHeart },
           ],
         },
         {
-          title: 'Groupes',
+          title: 'S\'investir',
           items: [
-            { label: 'Hommes', page: 'ministeres', icon: Users },
-            { label: 'Femmes', page: 'ministeres', icon: Heart },
-            { label: 'Enfants', page: 'ministeres', icon: Users },
-            { label: 'Couples & Familles', page: 'ministeres', icon: Heart },
+            { label: 'Missions & extensions', page: 'missions', icon: Globe },
+            { label: 'Rejoindre un ministère', page: 'ministeres', icon: Users },
+            { label: 'Devenir bénévole', page: 'contact', icon: HandHeart },
+            { label: 'Faire un don', page: 'dons', icon: HandHeart },
           ],
         },
       ],
@@ -129,29 +137,36 @@ const NAV_ITEMS: NavItem[] = [
     },
   },
 
-  /* 4. Média */
+  /* 4. Médias */
   {
-    label: 'Média',
+    label: 'Médias',
     mega: {
       columns: [
         {
-          title: 'Contenus',
+          title: 'Vidéos',
           items: [
             { label: 'Toutes les vidéos', page: 'media', icon: Video },
-            { label: 'Émissions', page: 'emissions', icon: Radio },
+            { label: 'Prédications', page: 'predications', icon: Mic },
             { label: 'En direct', page: 'media', icon: MonitorPlay },
-            { label: 'Photos', page: 'media', icon: Image, tag: 'Bientôt' },
+            { label: 'Photos', page: 'media', icon: Image },
           ],
         },
         {
           title: 'Ressources',
           items: [
-            { label: 'Enseignements', page: 'enseignements', icon: BookOpen },
             { label: 'Blog', page: 'blog', icon: Newspaper },
-            { label: 'Téléchargements', icon: BookOpen, tag: 'Bientôt' },
+            { label: 'Événements', page: 'events', icon: Calendar },
+            { label: 'Activités', page: 'activities', icon: Calendar },
           ],
         },
-        { title: '', items: [] },
+        {
+          title: 'Nos plateformes',
+          items: [
+            { label: 'YouTube', href: YOUTUBE_CHANNEL.url, hint: YOUTUBE_CHANNEL.handle, icon: Youtube },
+            { label: 'Facebook', href: CHURCH.social.facebook, hint: '@laconquete.eec', icon: Facebook },
+            { label: 'Instagram', href: CHURCH.social.instagram, hint: '@laconquete_eec', icon: Instagram },
+          ],
+        },
       ],
       image: { src: DEFAULT_MEDIA_IMAGE, alt: 'Médias La Conquête', settingKey: 'mega_menu_image_media' },
     },
@@ -161,7 +176,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Contact', page: 'contact' },
 
   /* 6. Don */
-  { label: 'Don', page: 'dons' },
+  { label: 'Don', page: 'dons', cta: true },
 ];
 
 const ADMIN_PAGES: Page[] = ['admin', 'dashboard', 'pastoral', 'reports', 'communication', 'crm', 'annonces', 'communiques'];
@@ -240,10 +255,14 @@ function MegaMenu({
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const panelId = `mega-${item.label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z]/gi, '-').toLowerCase()}`;
 
-  const isActive = item.mega.columns.some(col =>
-    col.items.some(sub => sub.page === activePage)
+  // Ne jamais considérer un sous-menu sans page comme « actif » :
+  // sur l'accueil, activePage est undefined et les entrées « Bientôt » le sont aussi.
+  const isActive = Boolean(activePage) && item.mega.columns.some(col =>
+    col.items.some(sub => Boolean(sub.page) && sub.page === activePage)
   );
 
   const handleEnter = useCallback(() => {
@@ -252,7 +271,9 @@ function MegaMenu({
   }, []);
 
   const handleLeave = useCallback(() => {
-    timeoutRef.current = setTimeout(() => setOpen(false), 250);
+    timeoutRef.current = setTimeout(() => {
+      if (!ref.current?.contains(document.activeElement)) setOpen(false);
+    }, 250);
   }, []);
 
   const handleItemClick = (sub: SubMenuItem) => {
@@ -271,19 +292,60 @@ function MegaMenu({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [open]);
 
-  // Close on Escape
+  // Fermer au changement de page, au défilement ou avec Échap.
+  useEffect(() => { setOpen(false); }, [activePage]);
+
   useEffect(() => {
-    function handleEsc(e: KeyboardEvent) { if (e.key === 'Escape') setOpen(false); }
+    function closeOnScroll() { setOpen(false); }
+    if (!open) return;
+    window.addEventListener('scroll', closeOnScroll, { passive: true });
+    return () => window.removeEventListener('scroll', closeOnScroll);
+  }, [open]);
+
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
     if (open) window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [open]);
 
+  const focusFirstItem = () => {
+    requestAnimationFrame(() => {
+      ref.current?.querySelector<HTMLElement>('[data-mega-item]')?.focus();
+    });
+  };
+
   return (
-    <div ref={ref} className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div
+      ref={ref}
+      className="relative"
+      onMouseEnter={handleEnter}
+      onMouseLeave={handleLeave}
+      onBlur={(e) => {
+        if (!ref.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
       {/* Trigger button */}
       <button
-        className={`nav-item-zoom flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200 ${
-          isActive
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={() => setOpen((v) => !v)}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setOpen(true);
+            focusFirstItem();
+          }
+        }}
+        className={`nav-item-zoom flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px] font-medium tracking-wide transition-all duration-200 ${
+          isActive || open
             ? 'text-accent-400 bg-accent-400/10'
             : 'text-muted hover:text-cream hover:bg-white/5'
         }`}
@@ -294,13 +356,15 @@ function MegaMenu({
 
       {/* Mega panel — FULL WIDTH */}
       <div
+        id={panelId}
         className={`fixed left-0 right-0 top-16 z-30 transition-all duration-300 ${
           open
-            ? 'pointer-events-auto translate-y-0 opacity-100'
-            : 'pointer-events-none -translate-y-3 opacity-0'
+            ? 'visible pointer-events-auto translate-y-0 opacity-100'
+            : 'invisible pointer-events-none -translate-y-3 opacity-0'
         }`}
       >
         <div className="glass border-t border-white/[0.06] shadow-2xl shadow-black/50">
+          <div className="h-0.5 bg-gradient-to-r from-evangile-600 via-evangile-600/50 to-transparent" />
           <div className="mx-auto max-w-[1400px] flex min-h-[280px]">
             {/* Nav columns */}
             <div className="flex-1 grid grid-cols-3 gap-0 divide-x divide-white/[0.06] p-5">
@@ -314,20 +378,17 @@ function MegaMenu({
                   <div className="flex flex-col gap-0.5">
                     {col.items.map((sub, si) => {
                       const Icon = sub.icon;
-                      const disabled = !sub.page;
-                      return (
-                        <button
-                          key={si}
-                          onClick={() => !disabled && handleItemClick(sub)}
-                          disabled={disabled}
-                          className={`group flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ${
-                            disabled
-                              ? 'opacity-40 cursor-default'
-                              : activePage === sub.page
-                                ? 'text-accent-400 bg-accent-400/10'
-                                : 'text-cream/70 hover:text-cream hover:bg-white/[0.06] cursor-pointer'
-                          }`}
-                        >
+                      const external = Boolean(sub.href);
+                      const disabled = !sub.page && !external;
+                      const itemClass = `group flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-left transition-all duration-200 ${
+                        disabled
+                          ? 'opacity-40 cursor-default'
+                          : activePage && activePage === sub.page
+                            ? 'text-accent-400 bg-accent-400/10'
+                            : 'text-cream/70 hover:text-cream hover:bg-white/[0.06] cursor-pointer'
+                      }`;
+                      const inner = (
+                        <>
                           {Icon && (
                             <Icon className="w-4 h-4 shrink-0 text-muted group-hover:text-accent-500 transition-colors" />
                           )}
@@ -337,6 +398,35 @@ function MegaMenu({
                               {sub.tag}
                             </span>
                           )}
+                          {sub.hint && (
+                            <span className="ml-auto text-[10px] text-muted/60 group-hover:text-muted transition-colors">
+                              {sub.hint}
+                            </span>
+                          )}
+                        </>
+                      );
+                      return external ? (
+                        <a
+                          key={si}
+                          data-mega-item
+                          href={sub.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => { setOpen(false); onClose(); }}
+                          className={itemClass}
+                        >
+                          {inner}
+                        </a>
+                      ) : (
+                        <button
+                          key={si}
+                          data-mega-item
+                          type="button"
+                          onClick={() => !disabled && handleItemClick(sub)}
+                          disabled={disabled}
+                          className={itemClass}
+                        >
+                          {inner}
                         </button>
                       );
                     })}
@@ -386,13 +476,15 @@ function MobileMegaAccordion({
   onNavigate: (page: Page) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const isActive = item.mega.columns.some(col =>
-    col.items.some(sub => sub.page === activePage)
+  const isActive = Boolean(activePage) && item.mega.columns.some(col =>
+    col.items.some(sub => Boolean(sub.page) && sub.page === activePage)
   );
 
   return (
     <div>
       <button
+        type="button"
+        aria-expanded={open}
         onClick={() => setOpen(!open)}
         className={`flex w-full items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
           isActive || open ? 'text-accent-400 bg-accent-400/10' : 'text-cream hover:bg-white/5'
@@ -402,7 +494,7 @@ function MobileMegaAccordion({
         <ChevronDown className={`h-4 w-4 transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
       </button>
 
-      <div className={`overflow-hidden transition-all duration-300 ${open ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'}`}>
+      <div className={`overflow-hidden transition-all duration-300 ${open ? 'visible max-h-[1000px] opacity-100' : 'invisible max-h-0 opacity-0'}`}>
         <div className="pb-2 pl-2 space-y-3">
           {item.mega.columns.filter(c => c.items.length > 0).map((col, ci) => (
             <div key={ci}>
@@ -414,20 +506,17 @@ function MobileMegaAccordion({
               <div className="flex flex-col gap-0.5">
                 {col.items.map((sub, si) => {
                   const Icon = sub.icon;
-                  const disabled = !sub.page;
-                  return (
-                    <button
-                      key={si}
-                      onClick={() => !disabled && onNavigate(sub.page!)}
-                      disabled={disabled}
-                      className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-all duration-200 ${
-                        disabled
-                          ? 'opacity-30 cursor-default'
-                          : activePage === sub.page
-                            ? 'text-accent-400 bg-accent-400/10'
-                            : 'text-muted hover:text-cream hover:bg-white/5'
-                      }`}
-                    >
+                  const external = Boolean(sub.href);
+                  const disabled = !sub.page && !external;
+                  const itemClass = `flex items-center gap-3 rounded-lg px-4 py-3 text-sm transition-all duration-200 ${
+                    disabled
+                      ? 'opacity-30 cursor-default'
+                      : activePage && activePage === sub.page
+                        ? 'text-accent-400 bg-accent-400/10'
+                        : 'text-muted hover:text-cream hover:bg-white/5'
+                  }`;
+                  const inner = (
+                    <>
                       {Icon && <Icon className="w-4 h-4 shrink-0" />}
                       <span>{sub.label}</span>
                       {sub.tag && (
@@ -435,6 +524,31 @@ function MobileMegaAccordion({
                           {sub.tag}
                         </span>
                       )}
+                      {sub.hint && (
+                        <span className="ml-auto text-[10px] text-muted/60">{sub.hint}</span>
+                      )}
+                    </>
+                  );
+                  return external ? (
+                    <a
+                      key={si}
+                      href={sub.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={itemClass}
+                      onClick={() => setOpen(false)}
+                    >
+                      {inner}
+                    </a>
+                  ) : (
+                    <button
+                      key={si}
+                      type="button"
+                      onClick={() => !disabled && onNavigate(sub.page!)}
+                      disabled={disabled}
+                      className={itemClass}
+                    >
+                      {inner}
                     </button>
                   );
                 })}
@@ -552,6 +666,7 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
 
   // Fetch site_settings for dynamic mega menu images & logo
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     let cancelled = false;
     db.getSettings().then((settings) => {
       if (cancelled) return;
@@ -591,6 +706,19 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         />
       );
     }
+    if (item.cta) {
+      return (
+        <button
+          key={item.page}
+          onClick={() => handleNav(item.page!)}
+          aria-current={activePage === item.page ? 'page' : undefined}
+          className="ml-1 inline-flex items-center gap-1.5 rounded-lg bg-evangile-600 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-white transition-colors duration-200 hover:bg-evangile-500"
+        >
+          <HandHeart className="h-3.5 w-3.5" />
+          {item.label}
+        </button>
+      );
+    }
     return (
       <button
         key={item.page}
@@ -624,10 +752,13 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
         className={`flex items-center justify-between rounded-xl px-4 py-4 text-base font-medium transition-all duration-200 ${
           activePage === item.page
             ? 'text-accent-400 bg-accent-400/10'
-            : 'text-cream hover:bg-white/5'
+            : item.cta
+              ? 'text-evangile-400 hover:bg-evangile-600/10'
+              : 'text-cream hover:bg-white/5'
         }`}
       >
         {item.label}
+        {item.cta && <HandHeart className="h-4 w-4" />}
       </button>
     );
   };

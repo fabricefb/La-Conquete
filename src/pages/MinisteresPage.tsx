@@ -8,11 +8,10 @@ import { MobileNav } from '../components/MobileNav';
 import { IconBox } from '../components/IconBox';
 import {
   Music, BookOpen, Compass, HandHeart, Users, Star, Heart,
-  Shield, Sparkles, Send, Video, Flame, Crown, type LucideIcon,
+  Shield, Sparkles, Send, Video, Flame, Crown, ArrowRight, type LucideIcon,
 } from '../lib/icons';
 import type { Page } from '../lib/navigation';
 
-// ─── DB-backed ministry ─────────────────────────────────────────
 interface MinistryDB {
   id: string;
   title: string;
@@ -26,28 +25,25 @@ interface MinistryDB {
   sort_order: number;
 }
 
-// ─── Fallback (used when DB is empty or fails) ──────────────────
 interface MinistryItem {
   Icon: LucideIcon;
   title: string;
   description: string;
-  schedule: string;
-  contact: string;
+  groups?: string[];
 }
 
 const MINISTRIES_FALLBACK: MinistryItem[] = [
-  { Icon: Music, title: 'Louange & Adoration', description: 'Mener l\'assemblée dans la présence de Dieu par la louange et l\'adoration authentique.', schedule: 'Dimanche — Répétition le samedi 15h', contact: 'louange@laconquete.org' },
-  { Icon: BookOpen, title: 'Enseignement', description: 'Approfondir la connaissance de la Parole de Dieu à travers des études structurées et accessibles.', schedule: 'Mercredi 18h00', contact: 'enseignement@laconquete.org' },
-  { Icon: Compass, title: 'Évangélisation', description: 'Proclamer l\'Évangile dans les quartiers, les marchés et les lieux publics de Lubumbashi.', schedule: 'Samedi 08h00', contact: 'evangelisation@laconquete.org' },
-  { Icon: HandHeart, title: 'Diaconie', description: 'Assister les membres en difficulté et organiser des actions sociales au service de la communauté.', schedule: 'Vendredi 16h00', contact: 'diaconie@laconquete.org' },
-  { Icon: Users, title: 'Jeunesse', description: 'Accompagner les jeunes dans leur foi, leur identité et leur destinée à travers des activités dynamiques.', schedule: 'Jeudi 18h00', contact: 'jeunesse@laconquete.org' },
-  { Icon: Star, title: 'Enfants', description: 'Enseigner la Parole de Dieu aux enfants de manière ludique et adaptée à leur âge.', schedule: 'Dimanche 09h00', contact: 'enfants@laconquete.org' },
-  { Icon: Heart, title: 'Couples & Familles', description: 'Fortifier les mariages et les familles par des enseignements, des rencontres et un accompagnement personnalisé.', schedule: '1er samedi du mois 10h', contact: 'familles@laconquete.org' },
-  { Icon: Shield, title: 'Hommes', description: 'Rassembler les hommes autour de la Parole pour développer leur leadership spirituel et familial.', schedule: '2e samedi du mois 08h', contact: 'hommes@laconquete.org' },
-  { Icon: Sparkles, title: 'Femmes', description: 'Encourager les sœurs à vivre pleinement leur identité en Christ et à servir avec excellence.', schedule: '3e samedi du mois 10h', contact: 'femmes@laconquete.org' },
-  { Icon: Send, title: 'Communication', description: 'Gérer la communication interne et externe de l\'église à travers les réseaux et les médias.', schedule: 'Réunion hebdomadaire', contact: 'communication@laconquete.org' },
-  { Icon: Video, title: 'Multimédia', description: 'Assurer la production technique des cultes : son, vidéo, streaming et supports visuels.', schedule: 'Dimanche — Setup 07h30', contact: 'multimedia@laconquete.org' },
-  { Icon: Flame, title: 'Intercession', description: 'Porter les charges de l\'église, de la nation et des nations dans la prière fervente.', schedule: 'Vendredi 19h00', contact: 'intercession@laconquete.org' },
+  { Icon: Music, title: 'Louange', description: 'Ministère de la musique et de la louange pour glorifier Dieu.', groups: ['Groupe ARCO', 'Chorale des Mamans (Miriame)', 'Cano Vocal'] },
+  { Icon: BookOpen, title: 'Ecodime', description: 'École Dominicale — formation biblique pour tous les âges.', groups: ['Enfants', 'Adolescents', 'Jeunes', 'Adultes'] },
+  { Icon: Heart, title: 'Département des Sœurs', description: "Ministère dédié aux femmes de l'église : prière, conférences, œuvres sociales et mentorat spirituel.", groups: ['Femmes mariées', 'Jeunes femmes', 'Mamans'] },
+  { Icon: Users, title: 'Département des Papas', description: "Ministère dédié aux hommes de l'église : retraites spirituelles, mentorat et projets communautaires.", groups: ['Hommes mariés', 'Jeunes hommes', 'Pères'] },
+  { Icon: Shield, title: 'Protocole', description: "Organisation et coordination des événements, accueil des visiteurs et logistique des services.", groups: ["Équipe d'accueil", 'Coordination', 'Logistique'] },
+  { Icon: Video, title: 'Média et Communication', description: 'Diffusion des cultes, gestion des réseaux sociaux, communication interne et production multimédia.', groups: ['Équipe technique', 'Réseaux sociaux', 'Communication'] },
+  { Icon: Crown, title: 'Les Anciens', description: 'Conseil des anciens : gouvernance, conseil pastoral, mentorat et résolution de conflits.', groups: ['Conseil pastoral', 'Anciens', 'Conseillers'] },
+  { Icon: HandHeart, title: 'Les Diacres', description: "Service diaconal : assistance pastorale, visites aux malades et soutien aux nécessiteux.", groups: ['Diacres', 'Assistants', 'Serviteurs'] },
+  { Icon: Star, title: 'Social', description: "Œuvres sociales et soutien communautaire : aide aux nécessiteux, projets et assistance sociale.", groups: ['Aide humanitaire', 'Soutien social', 'Bénévoles'] },
+  { Icon: Sparkles, title: 'Propreté', description: "Entretien et maintenance des locaux, aménagement, hygiène et salubrité.", groups: ["Équipe d'entretien", 'Maintenance', 'Propreté'] },
+  { Icon: Flame, title: 'Intercession', description: "Ministère de la prière et de l'intercession : veillées, jeûne et prière pour les malades.", groups: ['Intercesseurs', 'Prière', 'Jeûne'] },
 ];
 
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -55,7 +51,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Shield, Sparkles, Send, Video, Flame, Crown,
 };
 
-// ─── Component ─────────────────────────────────────────────────────
 export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [dbMinistries, setDbMinistries] = useState<MinistryDB[]>([]);
@@ -76,10 +71,10 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
 
   useEffect(() => {
     const obs = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+      (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add('in'); }),
       { threshold: 0.1 },
     );
-    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    document.querySelectorAll('.reveal').forEach((el) => obs.observe(el));
     return () => obs.disconnect();
   }, [loaded]);
 
@@ -90,72 +85,79 @@ export function MinisteresPage({ onNavigate }: { onNavigate: (page: Page) => voi
       <SiteHeader activePage="ministeres" onNavigate={onNavigate} />
       <MobileNav active="ministeres" onNavigate={onNavigate} />
 
-      <UniversalHero pageKey="ministeres" defaultBadge="Servir ensemble" defaultTitle="Nos Ministères" defaultSubtitle="Chaque membre est un ministre. Découvrez les différents espaces de service où vous pouvez vous investir." />
+      <UniversalHero pageKey="ministeres" defaultBadge="Servir ensemble" defaultTitle="Nos ministères" defaultSubtitle="Chaque membre est un ministre. Découvrez les espaces de service où vous pouvez vous investir." bgImage="/church-photo-2.webp" />
 
-      <section className="py-20 lg:py-28 px-4">
+      <section className="px-4 py-16 md:py-24">
         <div className="mx-auto max-w-7xl">
-          <div className="relative mb-16 text-center">
-            <div className="absolute inset-0 -z-10 bg-radial-primary" style={{ minHeight: 200 }} />
-            <p className="reveal section-label justify-center">Découvrir</p>
-            <h2 className="reveal reveal-delay-1 mt-4 font-serif text-3xl font-semibold text-cream sm:text-4xl">
-              Les ministères de l'église
-            </h2>
+          <div className="reveal">
+            <p className="section-label">Découvrir</p>
+            <h2 className="section-title mt-4">Les ministères de l'église</h2>
+            <div className="rule-accent mt-6" />
+            <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted">
+              Onze départements portent la vie de l'église, du dimanche matin aux visites de quartier.
+              Les responsables de chaque ministère accueillent les nouveaux serviteurs.
+            </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-3">
             {useDB
               ? dbMinistries.map((m, i) => {
                   const IconComponent = ICON_MAP[m.icon_name] || Star;
                   return (
-                    <div
-                      key={m.id}
-                      className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
-                    >
-                      <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
-                        <IconComponent className="h-6 w-6" />
-                      </IconBox>
-                      <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
-                      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
-                      <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
-                        <p className="flex items-center gap-2 text-xs text-muted">
-                          <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
-                        </p>
+                    <article key={m.id} className={`reveal reveal-delay-${(i % 3) + 1} flex h-full flex-col bg-bg-card p-6`}>
+                      <div className="flex items-start justify-between">
+                        <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
+                          <IconComponent className="h-5 w-5" />
+                        </IconBox>
+                        <span className="stat-figure text-[2rem] text-evangile-600/20">{String(i + 1).padStart(2, '0')}</span>
                       </div>
-                    </div>
+                      <h3 className="card-title mt-5">{m.title}</h3>
+                      <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
+                      {m.schedule && (
+                        <p className="mt-4 border-t border-line pt-4 text-xs text-muted">
+                          <span className="font-semibold uppercase tracking-[0.12em] text-evangile-600">Horaires</span>
+                          <span className="mt-1 block">{m.schedule}</span>
+                        </p>
+                      )}
+                    </article>
                   );
                 })
               : MINISTRIES_FALLBACK.map((m, i) => (
-                  <div
-                    key={m.title}
-                    className={`reveal ${i < 3 ? `reveal-delay-${i + 1}` : ''} glass-card card-parallax rounded-2xl p-6 flex flex-col transition-all duration-300`}
-                  >
-                    <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-accent-400/20 bg-accent-400/5 text-accent-400">
-                      <m.Icon className="h-6 w-6" />
-                    </IconBox>
-                    <h3 className="font-serif text-xl font-semibold text-cream">{m.title}</h3>
-                    <p className="mt-2 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
-                    <div className="mt-4 space-y-2 border-t border-white/5 pt-4">
-                      <p className="flex items-center gap-2 text-xs text-muted">
-                        <span className="font-semibold text-accent-400">Horaires :</span> {m.schedule}
-                      </p>
-                      <p className="flex items-center gap-2 text-xs text-muted">
-                        <span className="font-semibold text-accent-400">Contact :</span> {m.contact}
-                      </p>
+                  <article key={m.title} className={`reveal reveal-delay-${(i % 3) + 1} flex h-full flex-col bg-bg-card p-6`}>
+                    <div className="flex items-start justify-between">
+                      <IconBox pageKey="ministeres" elementId={`ministere-icon-${i}`} className="inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
+                        <m.Icon className="h-5 w-5" />
+                      </IconBox>
+                      <span className="stat-figure text-[2rem] text-evangile-600/20">{String(i + 1).padStart(2, '0')}</span>
                     </div>
-                  </div>
+                    <h3 className="card-title mt-5">{m.title}</h3>
+                    <p className="mt-3 flex-1 text-sm leading-relaxed text-muted">{m.description}</p>
+                    {m.groups && (
+                      <p className="mt-4 border-t border-line pt-4 text-xs leading-relaxed text-muted">
+                        <span className="font-semibold uppercase tracking-[0.12em] text-evangile-600">Groupes</span>
+                        <span className="mt-1 block">{m.groups.join(' · ')}</span>
+                      </p>
+                    )}
+                  </article>
                 ))
             }
           </div>
         </div>
       </section>
 
-      <section className="py-20 px-4 bg-radial-ember">
-        <div className="reveal mx-auto max-w-2xl text-center">
-          <p className="section-label mb-4">Impliquez-vous</p>
-          <p className="mb-8 text-cream/70">
-            Vous désirez servir dans l'un de ces ministères ? Remplissez le formulaire de contact en précisant votre domaine d'intérêt.
-          </p>
-          <button onClick={() => onNavigate('contact')} className="btn-primary">Rejoindre un ministère</button>
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
+        <div className="reveal mx-auto flex max-w-4xl flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="section-eyebrow">Impliquez-vous</p>
+            <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">Servir dans un ministère</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted">
+              Dites-nous le domaine qui vous attire : un responsable vous contactera pour un entretien et une
+              intégration dans l'équipe.
+            </p>
+          </div>
+          <button onClick={() => onNavigate('contact')} className="btn-primary shrink-0">
+            Rejoindre un ministère <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </section>
 

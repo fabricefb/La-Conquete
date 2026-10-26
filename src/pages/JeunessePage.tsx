@@ -28,8 +28,8 @@ const FALLBACK_PROGRAM = [
 ] as const;
 
 const GALLERY = [
-  '/church-photo-1.jpg', '/church-photo-2.jpg', '/church-photo-3.jpg',
-  '/predication-1.jpg', '/priere.jpg', '/bible.jpg',
+  '/church-photo-1.webp', '/church-photo-2.webp', '/church-photo-3.webp',
+  '/predication-1.webp', '/priere.webp', '/bible.webp',
 ] as const;
 
 const FALLBACK_TESTIMONIALS = [
@@ -86,6 +86,8 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
   }));
 
   const introText = getContent(cm, 'intro', 'text', "Le ministère de la jeunesse rassemble les 15-35 ans de notre église autour de la Parole, de la louange et du service. Nous croyons que les jeunes ne sont pas seulement l'avenir de l'Église — ils en sont le <span className=\"text-accent-400 font-semibold\">présent</span>.");
+
+  const gallery = GALLERY.map((fallback, i) => getContent(cm, 'gallery', `image_${i + 1}`, fallback));
 
   return (
     <div className="bg-bg min-h-screen mobile-bottom-pad">
@@ -150,7 +152,7 @@ export function JeunessePage({ onNavigate }: { onNavigate: (page: Page) => void 
           <p className="reveal section-label mb-3 text-center">En images</p>
           <h2 className="reveal reveal-delay-1 mb-10 text-center font-serif text-3xl font-semibold text-cream sm:text-4xl">Galerie Photos</h2>
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-            {GALLERY.map((src, i) => (
+            {gallery.map((src, i) => (
               <div key={src} className={`reveal reveal-delay-${(i % 4) + 1} overflow-hidden rounded-2xl`}>
                 <img src={src} alt={`Jeunesse ${i + 1}`} className="h-40 sm:h-52 w-full object-cover transition-transform duration-500 hover:scale-110" />
               </div>

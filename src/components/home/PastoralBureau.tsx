@@ -1,4 +1,5 @@
 import { ArrowRight } from '../../lib/icons';
+import { imageSrcSet } from '../../lib/images';
 import type { Page } from '../../lib/navigation';
 
 export interface BureauPastor {
@@ -54,9 +55,12 @@ function PastorPortrait({ pastor, index, total, isPrincipal, className = '', onN
       {pastor.photo_url ? (
         <img
           src={pastor.photo_url}
+          srcSet={imageSrcSet(pastor.photo_url || '')}
+          sizes="(min-width: 1024px) 30vw, 100vw"
           alt={pastor.full_name}
-          className="photo-claro absolute inset-0 h-full w-full object-cover object-top transition-transform duration-700 group-hover:scale-[1.04]"
+          className="photo-claro photo-hover-clear absolute inset-0 h-full w-full object-cover object-top transition-[transform,filter] duration-700 group-hover:scale-[1.04]"
           loading="lazy"
+          decoding="async"
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center bg-ink-900 pb-16 sm:pb-0">

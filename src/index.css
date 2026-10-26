@@ -402,11 +402,20 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     letter-spacing: 0.28em;
   }
 
-  /* Citation / verset — seul usage résiduel de Playfair. */
+  /* Citation / verset — Playfair italique pour les paroles rapportées. */
   .verse-quote {
     @apply font-serif italic text-cream/75;
     font-size: 1.0625rem;
     line-height: 1.7;
+  }
+
+  /* Titres éditoriaux — Playfair pour les contenus rédactionnels
+     (actualités, articles). Les titres institutionnels restent en Bebas. */
+  .editorial-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    line-height: 1.14;
+    letter-spacing: -0.012em;
   }
 
   /* Filet de séparation fin — structure la page sans la surcharger. */
@@ -427,19 +436,81 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   }
 
   /* Étalonnage clair-obscur des photos d'église : on retire la saturation
-     crue, on monte le contraste, on noie les ombres dans le marine. */
+     crue, on monte le contraste, on noie les ombres dans le marine.
+     En mode clair, on ne noircit plus les photos : on garde une image
+     naturelle et lumineuse, le voile de marque suffit à la lisibilité. */
   .photo-claro {
     filter: grayscale(0.3) contrast(1.12) brightness(0.78) saturate(0.85);
   }
   .photo-claro-strong {
     filter: grayscale(0.5) contrast(1.18) brightness(0.6) saturate(0.72);
   }
+  .light .photo-claro {
+    filter: grayscale(0.08) contrast(1.03) brightness(0.98) saturate(1.04);
+  }
+  .light .photo-claro-strong {
+    filter: grayscale(0.12) contrast(1.05) brightness(0.9) saturate(1.02);
+  }
 
-  /* Voile marine appliqué sur une photo pour garder le texte lisible. */
+  /* Au survol d'une carte, la photo retrouve son rendu naturel pendant
+     le zoom : le filtre s'efface pour laisser voir l'image telle quelle.
+     Réservé aux photos de contenu, jamais aux fonds de heros. */
+  .photo-hover-clear:hover,
+  .group:hover .photo-hover-clear,
+  .group:focus-within .photo-hover-clear,
+  .light .photo-hover-clear:hover,
+  .light .group:hover .photo-hover-clear,
+  .light .group:focus-within .photo-hover-clear {
+    filter: none;
+  }
+
+  /* Voile marine appliqué sur une photo pour garder le texte lisible.
+     La lueur vient du rouge de marque, jamais d'un halo noir. */
   .hero-scrim {
     background:
       linear-gradient(to right, rgb(var(--bg-rgb) / 0.96) 0%, rgb(var(--bg-rgb) / 0.78) 45%, rgb(var(--bg-rgb) / 0.4) 100%),
       linear-gradient(to top, rgb(var(--bg-rgb) / 0.98) 0%, transparent 50%);
+  }
+
+  .photo-veil {
+    background:
+      radial-gradient(90% 130% at 8% 100%, rgb(var(--brand-red-rgb) / 0.22) 0%, transparent 58%),
+      linear-gradient(100deg, rgb(6 13 29 / 0.94) 0%, rgb(6 13 29 / 0.72) 42%, rgb(6 13 29 / 0.18) 76%, rgb(6 13 29 / 0.44) 100%);
+  }
+  .light .photo-veil {
+    background:
+      radial-gradient(70% 100% at 10% 100%, rgb(var(--brand-red-rgb) / 0.09) 0%, transparent 56%),
+      linear-gradient(100deg, rgb(15 18 72 / 0.86) 0%, rgb(15 18 72 / 0.56) 44%, rgb(15 18 72 / 0.16) 78%, rgb(15 18 72 / 0.36) 100%);
+  }
+  .photo-veil-strong {
+    background:
+      radial-gradient(90% 120% at 10% 100%, rgb(var(--brand-red-rgb) / 0.26) 0%, transparent 62%),
+      linear-gradient(100deg, rgb(6 13 29 / 0.94) 0%, rgb(6 13 29 / 0.82) 55%, rgb(6 13 29 / 0.64) 100%);
+  }
+  .light .photo-veil-strong {
+    background:
+      radial-gradient(70% 100% at 10% 100%, rgb(var(--brand-red-rgb) / 0.1) 0%, transparent 58%),
+      linear-gradient(100deg, rgb(15 18 72 / 0.88) 0%, rgb(15 18 72 / 0.74) 55%, rgb(15 18 72 / 0.54) 100%);
+  }
+
+  .light .hero-scrim {
+    background:
+      linear-gradient(to right, rgb(var(--bg-rgb) / 0.93) 0%, rgb(var(--bg-rgb) / 0.66) 44%, rgb(var(--bg-rgb) / 0.12) 100%),
+      linear-gradient(to top, rgb(var(--bg-rgb) / 0.88) 0%, transparent 46%);
+  }
+
+  @media (max-width: 767px) {
+    .light .hero-scrim {
+      background:
+        linear-gradient(to right, rgb(var(--bg-rgb) / 0.94) 0%, rgb(var(--bg-rgb) / 0.78) 68%, rgb(var(--bg-rgb) / 0.5) 100%),
+        linear-gradient(to top, rgb(var(--bg-rgb) / 0.9) 0%, transparent 54%);
+    }
+  }
+
+  .light .grid-lines {
+    background-image:
+      linear-gradient(rgb(var(--text-rgb) / 0.045) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--text-rgb) / 0.045) 1px, transparent 1px);
   }
 
   /* Trame de grille très discrète — signal « rigueur institutionnelle ». */
@@ -594,6 +665,20 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     background: radial-gradient(ellipse at center bottom, rgb(255 255 255 / 0.08), rgb(var(--brand-red-rgb) / 0.1) 38%, transparent 72%);
     filter: blur(16px);
     pointer-events: none;
+  }
+
+  /* En mode clair, le halo rouge se pose sur un fond crème : on le garde
+     comme simple filet lumineux pour éviter la brume rose sous le hero. */
+  .light .hero-glow-separator {
+    background: linear-gradient(90deg, transparent, rgb(var(--brand-red-rgb) / 0.6), transparent);
+    box-shadow:
+      0 0 12px 1px rgb(var(--brand-red-rgb) / 0.16),
+      0 0 40px 6px rgb(var(--brand-red-rgb) / 0.05);
+  }
+  .light .hero-glow-separator::before {
+    height: 88px;
+    background: radial-gradient(ellipse at center bottom, rgb(var(--brand-red-rgb) / 0.06), transparent 66%);
+    filter: blur(18px);
   }
 
   @media (prefers-reduced-motion: reduce) {

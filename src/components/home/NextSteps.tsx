@@ -4,6 +4,7 @@ import type { Page } from '../../lib/navigation';
 interface NextStepsProps {
   onNavigate: (page: Page) => void;
   onOpenAuth: (view?: 'login' | 'signup') => void;
+  onPrayer?: () => void;
 }
 
 interface Step {
@@ -14,7 +15,7 @@ interface Step {
   secondary?: { label: string; onAction: () => void };
 }
 
-export function NextSteps({ onNavigate, onOpenAuth }: NextStepsProps) {
+export function NextSteps({ onNavigate, onOpenAuth, onPrayer }: NextStepsProps) {
   const steps: Step[] = [
     {
       num: '01',
@@ -27,7 +28,7 @@ export function NextSteps({ onNavigate, onOpenAuth }: NextStepsProps) {
       num: '02',
       title: 'Demande de prière',
       description: 'Partagez vos sujets de prière avec notre équipe.',
-      onAction: () => onNavigate('contact'),
+      onAction: onPrayer ?? (() => onNavigate('contact')),
     },
     {
       num: '03',

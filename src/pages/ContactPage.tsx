@@ -9,9 +9,9 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
-import { MapPin, Phone, Mail, Globe, Clock, Send, Navigation } from '../lib/icons';
+import { MapPin, Phone, Mail, Globe, Send, Navigation } from '../lib/icons';
 import { SERVICE_TIMES } from '../lib/services';
-import { CHURCH } from '../lib/church';
+import { CHURCH, churchSetting } from '../lib/church';
 import { IconBox } from '../components/IconBox';
 import type { Page } from '../lib/navigation';
 
@@ -32,10 +32,10 @@ interface SocialLinkDef {
 }
 
 const SOCIAL_LINKS: SocialLinkDef[] = [
-  { key: 'facebook_url', label: 'Facebook', fallbackHref: '#', IconComponent: Globe },
-  { key: 'youtube_url', label: 'YouTube', fallbackHref: '#', IconComponent: Globe },
-  { key: 'whatsapp_url', label: 'WhatsApp', fallbackHref: '#', IconComponent: Globe },
-  { key: 'instagram_url', label: 'Instagram', fallbackHref: '#', IconComponent: Globe },
+  { key: 'facebook_url', label: 'Facebook', fallbackHref: CHURCH.social.facebook, IconComponent: Globe },
+  { key: 'instagram_url', label: 'Instagram', fallbackHref: CHURCH.social.instagram, IconComponent: Globe },
+  { key: 'whatsapp_url', label: 'WhatsApp', fallbackHref: `https://wa.me/${CHURCH.phone.href.replace(/\D/g, '')}`, IconComponent: Globe },
+  { key: 'youtube_url', label: 'YouTube', fallbackHref: '', IconComponent: Globe },
 ];
 
 // ─── Reveal wrapper ───────────────────────────────────────────────
@@ -74,10 +74,13 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
   const SUBJECT_SUGGESTIONS = [
     'Demande de prière',
     'Demande de visite pastorale',
+    'Conseil pastoral',
+    'Baptême',
+    'Mariage',
+    'Rejoindre un département',
     'Information sur un culte',
     'Question sur l\'église',
     'Témoignage',
-    'Demande d\'informations générales',
     'Autre',
   ];
 
@@ -125,11 +128,12 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     };
   }, []);
 
-  // ── Derived values from settings ───────────────────────────────
-  const phone = settingsMap['phone'] ?? '';
-  const email = settingsMap['email'] ?? '';
-  const address = settingsMap['address'] ?? '';
-  const city = settingsMap['city'] ?? '';
+  // ── Derived values — réglage admin prioritaire, sinon source unique ──
+  const phone = churchSetting(settingsMap, 'phone', CHURCH.phone.display);
+  const phoneHref = settingsMap['phone'] ? `tel:${phone.replace(/[^+\d]/g, '')}` : CHURCH.phone.href;
+  const email = churchSetting(settingsMap, 'email', CHURCH.email);
+  const address = churchSetting(settingsMap, 'address', CHURCH.address.street);
+  const city = churchSetting(settingsMap, 'city', CHURCH.address.city);
 
   // ── Form submission ────────────────────────────────────────────
   const handleSubmit = useCallback(
@@ -181,81 +185,64 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             {/* ─── LEFT: Contact info ─── */}
             <RevealSection className="lg:col-span-2">
               <div className="flex flex-col gap-6">
-                <h2 className="font-serif text-3xl font-semibold text-cream">Nos coordonnées</h2>
+                <div>
+                  <p className="section-label">Nous joindre</p>
+                  <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">Nos coordonnées</h2>
+                  <div className="rule-accent mt-5" />
+                </div>
 
-                {/* Contact cards */}
-                <div className="flex flex-col gap-4">
-                  {/* Address */}
-                  <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <IconBox pageKey="contact" elementId="info-mappin-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
+                <div className="border border-line bg-bg-card">
+                  <div className="flex items-start gap-4 border-b border-line p-5">
+                    <IconBox pageKey="contact" elementId="info-mappin-icon" className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600">
                       <MapPin className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted">Adresse</p>
-                      <p className="mt-1 text-sm text-cream">
-                        {address && city ? `${address}, ${city}` : 'Non renseigné'}
-                      </p>
+                      <p className="person-role">Adresse</p>
+                      <p className="mt-2 text-sm leading-relaxed text-cream">{address}, {city}</p>
+                      <p className="mt-1 text-xs text-muted">{CHURCH.address.landmark} · {CHURCH.address.country}</p>
                     </div>
                   </div>
 
-                  {/* Phone */}
-                  <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <IconBox pageKey="contact" elementId="info-phone-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
+                  <div className="flex items-start gap-4 border-b border-line p-5">
+                    <IconBox pageKey="contact" elementId="info-phone-icon" className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600">
                       <Phone className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted">Téléphone</p>
-                      {phone ? (
-                        <a
-                          href={`tel:${phone}`}
-                          className="mt-1 block text-sm text-cream hover:text-accent-400 transition-colors"
-                        >
-                          {phone}
-                        </a>
-                      ) : (
-                        <p className="mt-1 text-sm text-muted">Non renseigné</p>
-                      )}
+                      <p className="person-role">Téléphone</p>
+                      <a href={phoneHref} className="mt-2 block text-sm text-cream transition-colors hover:text-evangile-600">
+                        {phone}
+                      </a>
                     </div>
                   </div>
 
-                  {/* Email */}
-                  <div className="glass rounded-2xl p-5 flex items-start gap-4">
-                    <IconBox pageKey="contact" elementId="info-mail-icon" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-accent-400/20 text-accent-400">
+                  <div className="flex items-start gap-4 p-5">
+                    <IconBox pageKey="contact" elementId="info-mail-icon" className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600">
                       <Mail className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-muted">Email</p>
-                      {email ? (
-                        <a
-                          href={`mailto:${email}`}
-                          className="mt-1 block text-sm text-cream hover:text-accent-400 transition-colors"
-                        >
-                          {email}
-                        </a>
-                      ) : (
-                        <p className="mt-1 text-sm text-muted">Non renseigné</p>
-                      )}
+                      <p className="person-role">Email</p>
+                      <a href={`mailto:${email}`} className="mt-2 block break-all text-sm text-cream transition-colors hover:text-evangile-600">
+                        {email}
+                      </a>
                     </div>
                   </div>
                 </div>
 
                 {/* Social links */}
-                {SOCIAL_LINKS.some((s) => settingsMap[s.key]) && (
+                {SOCIAL_LINKS.some((s) => settingsMap[s.key] || s.fallbackHref) && (
                   <div>
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-widest text-muted">
-                      Réseaux sociaux
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3">
+                    <p className="person-role">Réseaux sociaux</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-px bg-line">
                       {SOCIAL_LINKS.map(({ key, label, fallbackHref, IconComponent }) => {
                         const href = settingsMap[key] || fallbackHref;
-                        if (!settingsMap[key]) return null;
+                        if (!href) return null;
                         return (
                           <a
                             key={key}
                             href={href}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-1.5 rounded-full border border-line px-4 py-1.5 text-xs font-medium text-muted transition-all duration-200 hover:border-accent-400/40 hover:text-accent-400"
+                            className="flex items-center gap-2 bg-bg px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:bg-bg-elevated hover:text-evangile-600"
                           >
                             <IconComponent className="h-3.5 w-3.5" />
                             {label}
@@ -270,18 +257,19 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
             {/* ─── RIGHT: Contact form ─── */}
             <RevealSection className="lg:col-span-3 reveal-delay-1">
-              <div className="glass rounded-4xl p-5 md:p-8">
-                <h2 className="mb-6 font-serif text-2xl font-semibold text-cream">
+              <div className="panel p-6 md:p-8">
+                <h2 className="card-title">
                   Envoyez-nous un message
                 </h2>
+                <div className="rule mt-5 mb-6" />
 
                 {sent ? (
                   <div className="py-12 text-center">
-                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-accent-400/20 text-accent-400">
-                      <Send className="h-7 w-7" />
+                    <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center bg-evangile-600 text-white">
+                      <Send className="h-6 w-6" />
                     </div>
-                    <h3 className="font-serif text-2xl font-semibold text-cream">
-                      Message envoyé !
+                    <h3 className="section-title text-[clamp(1.6rem,3vw,2.25rem)]">
+                      Message envoyé
                     </h3>
                     <p className="mt-2 text-muted">
                       Nous vous répondrons dans les plus brefs délais.
@@ -417,10 +405,10 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     <button
                       type="submit"
                       disabled={sending}
-                      className="btn-gold self-start"
+                      className="btn-primary self-start"
                     >
                       {sending ? (
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       ) : (
                         <Send className="h-4 w-4" />
                       )}
@@ -435,21 +423,20 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       </section>
 
       {/* ─── SERVICE TIMES ─── */}
-      <section className="py-12 md:py-20 lg:py-24 bg-radial-primary">
+      <section className="border-y border-line bg-bg-card py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Horaires</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">Nos cultes</h2>
+          <RevealSection className="mb-12">
+            <p className="section-label">Horaires</p>
+            <h2 className="section-title mt-4">Nos cultes</h2>
+            <div className="rule-accent mt-6" />
           </RevealSection>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
             {SERVICE_TIMES.map(({ day, service, time }, i) => (
               <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
-                <div className="panel p-6 text-center">
-                  <IconBox pageKey="contact" elementId={`service-clock-icon-${i}`} className="mx-auto mb-4 flex h-11 w-11 items-center justify-center border border-line text-accent-400">
-                    <Clock className="h-5 w-5" />
-                  </IconBox>
-                  <p className="text-xs font-bold uppercase tracking-widest" style={{ color: 'rgb(var(--accent-red-rgb))' }}>{day}</p>
-                  <h3 className="card-title mt-2">{service}</h3>
+                <div className="h-full bg-bg-card p-6">
+                  <span className="block h-1 w-10 bg-evangile-600" />
+                  <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-evangile-600">{day}</p>
+                  <h3 className="card-title mt-3">{service}</h3>
                   <p className="mt-2 text-sm text-muted">{time}</p>
                 </div>
               </RevealSection>
@@ -461,11 +448,10 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       {/* ─── MAP SECTION ─── */}
       <section className="py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-12 text-center">
-            <p className="section-label justify-center">Nous trouver</p>
-            <h2 className="mt-4 font-serif text-2xl sm:text-3xl md:text-4xl font-semibold text-cream">
-              Nos lieux de culte
-            </h2>
+          <RevealSection className="mb-12">
+            <p className="section-label">Nous trouver</p>
+            <h2 className="section-title mt-4">Nos lieux de culte</h2>
+            <div className="rule-accent mt-6" />
           </RevealSection>
 
           {locations.length > 0 && (
@@ -477,25 +463,25 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     <button
                       key={loc.id}
                       onClick={() => setSelectedLocation(loc)}
-                      className={`glass rounded-2xl p-4 text-left transition-all duration-200 hover:scale-[1.01] ${
+                      className={`border p-4 text-left transition-colors ${
                         selectedLocation?.id === loc.id
-                          ? 'border-accent-400/40 bg-accent-400/5'
-                          : ''
+                          ? 'border-evangile-600 bg-bg-card'
+                          : 'border-line hover:bg-bg-elevated'
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <MapPin
                           className={`mt-0.5 h-4 w-4 shrink-0 ${
-                            loc.is_main ? 'text-accent-400' : 'text-ember-400'
+                            selectedLocation?.id === loc.id ? 'text-evangile-600' : 'text-muted'
                           }`}
                         />
                         <div>
                           <p className="text-sm font-semibold text-cream">{loc.name}</p>
-                          <p className="mt-0.5 text-xs text-muted">
+                          <p className="mt-1 text-xs text-muted">
                             {loc.address}, {loc.city}
                           </p>
                           {loc.service_times && (
-                            <p className="mt-1 text-xs text-muted/60">{loc.service_times}</p>
+                            <p className="mt-1 text-xs text-muted/70">{loc.service_times}</p>
                           )}
                         </div>
                       </div>
@@ -518,16 +504,16 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
           {/* Selected location detail */}
           {selectedLocation && (
             <RevealSection className="mt-8">
-              <div className="glass rounded-3xl p-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="panel flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-start gap-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-accent-400/20 text-accent-400">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center border border-line text-evangile-600">
                     <MapPin className="h-5 w-5" />
                   </div>
                   <div>
-                    <h3 className="font-serif text-lg font-semibold text-cream">
+                    <h3 className="card-title text-xl">
                       {selectedLocation.name}
                     </h3>
-                    <p className="text-sm text-muted">
+                    <p className="mt-1 text-sm text-muted">
                       {selectedLocation.address}, {selectedLocation.city}
                       {selectedLocation.country ? `, ${selectedLocation.country}` : ''}
                     </p>
@@ -539,7 +525,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {selectedLocation.phone && (
                       <a
                         href={`tel:${selectedLocation.phone}`}
-                        className="mt-1 flex items-center gap-1.5 text-xs text-muted hover:text-accent-400 transition-colors"
+                        className="mt-1 flex items-center gap-1.5 text-xs text-muted transition-colors hover:text-evangile-600"
                       >
                         <Phone className="h-3 w-3" />
                         {selectedLocation.phone}
@@ -553,7 +539,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   )}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-ghost text-sm px-5 py-2.5 shrink-0 flex items-center gap-2"
+                  className="btn-ghost shrink-0 px-5 py-3 text-sm"
                 >
                   <Navigation className="h-4 w-4" />
                   Itinéraire

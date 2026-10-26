@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
+import { uploadFile } from '../../../lib/storage';
 import { useToast } from '../../../contexts/ToastContext';
 import { Plus, Trash2, Save, X, Edit3, Loader2, Check, Eye } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
@@ -341,15 +342,9 @@ export function MediaTab() {
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (!file) return;
-                    const formData = new FormData();
-                    formData.append('file', file);
                     try {
-                      const { data, error } = await supabase.storage
-                        .from('media')
-                        .upload(`thumbnails/${Date.now()}_${file.name}`, formData);
-                      if (error) throw error;
-                      const { data: urlData } = supabase.storage.from('media').getPublicUrl(data.path);
-                      updateForm('thumbnail_url', urlData.publicUrl);
+                      const url = await uploadFile(file, 'thumbnails');
+                      updateForm('thumbnail_url', url);
                       addToast('Miniature uploadée', 'success');
                     } catch (err: any) {
                       addToast('Erreur upload: ' + (err?.message || ''), 'error');

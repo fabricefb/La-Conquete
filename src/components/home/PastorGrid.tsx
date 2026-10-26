@@ -6,6 +6,7 @@
 
 import { useState } from 'react';
 import type { Pastor } from '../../types';
+import { imageSrcSet } from '../../lib/images';
 
 interface PastorGridProps {
   pastors: Pastor[];
@@ -45,7 +46,11 @@ function PastorCard({ pastor }: { pastor: Pastor }) {
       <div className="aspect-[3/4] overflow-hidden">
         <img
           src={pastor.photo_url}
+          srcSet={imageSrcSet(pastor.photo_url || '')}
+          sizes="(min-width: 1024px) 25vw, 50vw"
           alt={pastor.name}
+          loading="lazy"
+          decoding="async"
           className={`h-full w-full object-cover transition-transform duration-700 ${
             isHovered ? 'scale-110' : 'scale-100'
           }`}

@@ -4,7 +4,7 @@ import { openWhatsApp } from '../lib/whatsapp';
 import type { WorshipFormLink, WorshipService } from '../types';
 
 const LOGO_URL = 'https://la-conquete.pages.dev/logo-conquete.png';
-const CHURCH_PHOTO = 'https://la-conquete.pages.dev/church-photo-2.jpg';
+const CHURCH_PHOTO = 'https://la-conquete.pages.dev/church-photo-2.webp';
 const CHURCH_NAME = 'Eglise Evangélique La Conquête';
 
 /* CSS keyframes injected once */

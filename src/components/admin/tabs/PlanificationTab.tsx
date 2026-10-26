@@ -45,8 +45,8 @@ interface CulteTypeConfig {
 const WORSHIP_TYPE_CONFIGS: Record<WorshipServiceType, CulteTypeConfig> = {
   enseignement_priere: {
     label: "Culte d'enseignement et prière",
-    description: 'Mercredi — Enseignement biblique et prière (16h30–18h00)',
-    group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '16:30', endTime: '18:00',
+    description: 'Mercredi — Enseignement biblique et prière (16h30–18h30)',
+    group: 'hebdomadaire', dayOfWeek: 3, defaultTime: '16:30', endTime: '18:30',
     color: 'text-blue-300',
   },
   jeune_priere: {
@@ -56,15 +56,15 @@ const WORSHIP_TYPE_CONFIGS: Record<WorshipServiceType, CulteTypeConfig> = {
     color: 'text-purple-300',
   },
   jeune_gen_espoir: {
-    label: 'Culte de jeûne (Génération Espoir)',
-    description: 'Samedi — Jeûne des jeunes Génération Espoir (15h00–17h00)',
-    group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '15:00', endTime: '17:00',
+    label: 'Génération Espoir — Culte de la jeunesse',
+    description: 'Samedi — Culte de la jeunesse Génération Espoir (14h30–17h00)',
+    group: 'hebdomadaire', dayOfWeek: 6, defaultTime: '14:30', endTime: '17:00',
     color: 'text-emerald-300',
   },
   adoration_louange: {
     label: "Culte d'adoration et louange",
-    description: 'Dimanche — Culte principal d’adoration et louange (08h00–10h45)',
-    group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '08:00', endTime: '10:45',
+    description: 'Dimanche — Culte principal d’adoration et louange (08h00–10h30)',
+    group: 'hebdomadaire', dayOfWeek: 0, defaultTime: '08:00', endTime: '10:30',
     color: 'text-amber-300',
   },
   seminaire: {

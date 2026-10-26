@@ -118,12 +118,14 @@ export interface Location {
   address: string;
   city: string;
   country: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   phone: string | null;
   email: string | null;
   service_times: string | null;
   pastor_name: string | null;
+  description: string | null;
+  image_url: string | null;
   is_main: boolean;
   is_active: boolean;
   sort_order: number;
@@ -207,6 +209,25 @@ export interface Testimonial {
   reviewed_by: string | null;
   reviewed_at: string | null;
   reviewer_notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ─── Articles / Actualités ───────────────────────────────────────
+export interface SiteArticle {
+  id: string;
+  slug: string;
+  title: string;
+  category: 'Enseignement' | 'Événement' | 'Annonce' | 'Vision';
+  published_at: string;
+  excerpt: string;
+  image_url: string | null;
+  body: string[];
+  quote_text: string | null;
+  quote_reference: string | null;
+  source_url: string | null;
+  is_featured: boolean;
+  is_published: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -296,7 +317,9 @@ export type AdminTab =
   | 'annonces'
   | 'communiques'
   | 'emissions'
-  | 'activity_cards';
+  | 'articles'
+  | 'activity_cards'
+  | 'visuals';
 
 // ─── ERP Role System ──────────────────────────────────────────────
 export type UserRole = 'visitor' | 'member' | 'servant' | 'chief' | 'pastor' | 'super_admin';
@@ -1104,7 +1127,7 @@ export type WorshipServiceType =
   // ── Cultes hebdomadaires standards ──
   | 'enseignement_priere'   // Mercredi : Culte d'enseignement et prière
   | 'jeune_priere'          // Vendredi : Culte de jeûne et prière
-  | 'jeune_gen_espoir'      // Samedi : Culte de jeûne (Génération Espoir)
+  | 'jeune_gen_espoir'      // Samedi : Génération Espoir — Culte de la jeunesse
   | 'adoration_louange'     // Dimanche : Culte d'adoration et louange
   // ── Événements spéciaux ──
   | 'seminaire'

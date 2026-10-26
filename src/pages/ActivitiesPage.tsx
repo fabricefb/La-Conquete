@@ -1,344 +1,325 @@
-import { useState, useEffect, useMemo } from 'react';
-import { db, buildContentMap, getContent } from '../lib/supabase';
-import type { Ministry } from '../types';
-import { useReveal } from '../lib/hooks';
+import { useMemo, type ReactNode } from 'react';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { useReveal } from '../lib/hooks';
+import { usePageContents } from '../lib/hooks/usePageContents';
+import { getContent } from '../lib/supabase';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { UniversalHero } from '../components/UniversalHero';
-import type { Page } from '../lib/navigation';
+import { getNextService, SERVICE_TIMES } from '../lib/services';
+import { CHURCH } from '../lib/church';
+import { MARATHON } from '../lib/events';
+import { YOUTUBE_CHANNEL } from '../lib/teachings';
+import { imageSrcSet } from '../lib/images';
 import {
-  Users, Heart, Crown, BookOpen, Moon, Flame, HandHeart, Sparkles,
-  Music, GraduationCap, Globe, Mic, MapPin, Clock,
-  type LucideIcon,
+  ArrowRight, Clock3, Facebook, MapPin, Phone, Youtube,
 } from '../lib/icons';
+import type { Page } from '../lib/navigation';
 
 interface PageProps { onNavigate: (page: Page) => void; }
 
-const ICON_MAP: Record<string, LucideIcon> = {
-  Users,
-  Heart,
-  Crown,
-  BookOpen,
-  Moon,
-  Flame,
-  HandHeart,
-  Sparkles,
-  Music,
-  GraduationCap,
-  Globe,
-  Mic,
-};
-
-function getIcon(iconName: string): LucideIcon {
-  return ICON_MAP[iconName] ?? Users;
+function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
+  const { ref, visible } = useReveal();
+  return <div ref={ref} className={`reveal ${visible ? 'in' : ''} ${className}`}>{children}</div>;
 }
 
-const CARD_ACCENT_CLASSES = ['bg-radial-primary', 'bg-radial-ember'] as const;
-
-/* ─── Programme de la Semaine ─────────────────────────────────── */
-const LOGO = '/logo-conquete.png';
-
-interface WeeklySlot {
-  day: string; date: string; title: string; subtitle?: string;
-  time: string; endTime?: string; fullWidth?: boolean;
-}
-
-function getWeekLabel(): string {
-  const now = new Date();
-  const dayOfWeek = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'long' };
-  return `Du ${monday.toLocaleDateString('fr-FR', opts)} au ${sunday.toLocaleDateString('fr-FR', opts)}`;
-}
-
-function getDayDate(offset: number, base: Date): string {
-  const d = new Date(base);
-  d.setDate(base.getDate() + offset);
-  return d.getDate().toString().padStart(2, '0');
-}
-
-function WeeklySchedule() {
-  const base = useMemo(() => {
-    const now = new Date();
-    const dow = now.getDay();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - ((dow + 6) % 7));
-    return monday;
-  }, []);
-
-  const slots: WeeklySlot[] = [
-    { day: 'MARDI', date: getDayDate(1, base), title: 'Réunion des Mamans', time: '16h00', endTime: '18h00' },
-    { day: 'MERCREDI', date: getDayDate(2, base), title: 'Partage & Étude Biblique', subtitle: 'Croître dans la Parole', time: '16:30', endTime: '18:30' },
-    { day: 'VENDREDI', date: getDayDate(4, base), title: 'Jeûne & Prière', time: '09h00', endTime: '18h30' },
-    { day: 'SAMEDI', date: getDayDate(5, base), title: 'Réunion de la Jeunesse', subtitle: '"Bâtir une génération de conquérants"', time: '16:30', endTime: '18:30' },
-    { day: 'DIMANCHE', date: getDayDate(6, base), title: 'Culte Dominical', time: '08:00', endTime: '12:30', fullWidth: true },
-  ];
-
-  return (
-    <section className="relative overflow-hidden px-4 py-16 md:py-24">
-      <div className="absolute inset-0 bg-gradient-to-b from-bg via-ink-950/50 to-bg" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-accent-400/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-0 right-1/4 w-80 h-80 bg-evangile-700/5 rounded-full blur-[100px]" style={{ animationDelay: '3s' }} />
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="reveal flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-          <div className="flex items-center gap-4">
-            <img src={LOGO} alt="Logo" className="w-14 h-14 md:w-18 md:h-18 rounded-full object-cover opacity-90" />
-            <h2 className="font-serif text-3xl md:text-5xl font-black text-cream leading-tight">
-              Programme <span className="text-accent-400">de la Semaine</span>
-            </h2>
-          </div>
-          <div className="text-right">
-            <div className="inline-flex rounded-full border border-line bg-white/5 px-4 py-1.5 mb-2">
-              <span className="text-xs font-bold tracking-[0.2em] uppercase text-gold/70">{getWeekLabel()}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-nowrap gap-4 md:gap-6 overflow-x-auto pb-8 no-scrollbar snap-x snap-mandatory">
-          {slots.map((slot) =>
-            slot.fullWidth ? (
-              <article key={slot.day} className="reveal snap-center min-w-[320px] md:min-w-[700px] lg:min-w-full glass rounded-3xl p-6 md:p-10 relative overflow-hidden group flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-r from-ink-950 via-ink-950/90 to-evangile-600/10" />
-                <div className="absolute -right-10 -top-10 w-48 h-48 bg-accent-400/10 rounded-full blur-[80px] group-hover:scale-110 transition-transform duration-700" />
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                  <div className="text-center md:text-left">
-                    <div className="flex items-center justify-center md:justify-start gap-3 mb-3">
-                      <span className="bg-accent-500 text-ink-950 px-4 py-1 rounded-full text-xs font-bold tracking-[0.2em] uppercase">{slot.day}</span>
-                      <span className="font-serif text-4xl md:text-5xl font-black text-gold/30">{slot.date}</span>
-                    </div>
-                    <h3 className="font-serif text-3xl md:text-5xl font-black uppercase tracking-tight text-cream leading-none">{slot.title}</h3>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full md:w-auto">
-                    <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
-                      <p className="text-[10px] font-bold text-gold/60 uppercase mb-2 tracking-widest">1<sup>er</sup> Culte (FR)</p>
-                      <p className="text-2xl md:text-3xl font-serif font-black text-accent-400">08:00</p>
-                      <p className="text-xs text-muted/50 mt-1">Fin à 10:00</p>
-                    </div>
-                    <div className="glass bg-white/5 rounded-2xl p-5 hover:bg-white/10 transition-colors">
-                      <p className="text-[10px] font-bold text-gold/60 uppercase mb-2 tracking-widest">2<sup>ème</sup> Culte (Bilingue)</p>
-                      <p className="text-2xl md:text-3xl font-serif font-black text-cream">10:30</p>
-                      <p className="text-xs text-muted/50 mt-1">Fin à 12:30</p>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            ) : (
-              <article key={slot.day} className="reveal snap-center min-w-[280px] md:min-w-[320px] glass rounded-3xl p-6 md:p-8 relative overflow-hidden group flex-shrink-0 hover:scale-[1.02] hover:border-gold/30 transition-all duration-500">
-                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-gold/5 to-transparent pointer-events-none" />
-                <div className="relative z-10 flex flex-col h-full justify-between min-h-[220px]">
-                  <div>
-                    <div className="flex justify-between items-start mb-8">
-                      <span className="text-gold/60 font-bold text-[10px] uppercase tracking-[0.3em]">{slot.day}</span>
-                      <span className="font-serif text-4xl md:text-5xl font-black text-white/10 leading-none">{slot.date}</span>
-                    </div>
-                    <h3 className="font-serif text-xl md:text-2xl font-black uppercase tracking-tight text-cream leading-tight">{slot.title}</h3>
-                    {slot.subtitle && <p className="mt-2 text-sm text-gold/70 italic">{slot.subtitle}</p>}
-                  </div>
-                  <div className="mt-8 flex items-center gap-3">
-                    <div className="h-px flex-1 bg-line" />
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-gold/60" />
-                      <span className="font-bold text-sm text-cream/80">{slot.time}</span>
-                      {slot.endTime && <span className="text-muted/50 text-sm">— {slot.endTime}</span>}
-                    </div>
-                  </div>
-                </div>
-              </article>
-            )
-          )}
-        </div>
-
-        <div className="reveal mt-8 flex flex-col md:flex-row items-center gap-4 text-sm text-muted/60 border-t border-line/50 pt-6">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-gold/50" />
-            <span>Route du Poids Lours — Coin Av/ Colonel Freddy</span>
-          </div>
-          <span className="hidden md:block text-line">|</span>
-          <span className="italic text-gold/40">L'excellence au service de Dieu</span>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function getAccentClass(index: number): string {
-  return CARD_ACCENT_CLASSES[index % CARD_ACCENT_CLASSES.length];
+function formatNextDate(date: Date): string {
+  const label = date.toLocaleDateString('fr-FR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'Africa/Lubumbashi',
+  });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export function ActivitiesPage({ onNavigate }: PageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
-  const [ministries, setMinistries] = useState<Ministry[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useReveal();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchData() {
-      try {
-        const [contents, ministriesData] = await Promise.all([
-          db.getPageContents('activities'),
-          db.getActiveMinistries(),
-        ]);
-
-        if (!cancelled) {
-          setContentMap(buildContentMap(contents));
-          setMinistries(ministriesData);
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    fetchData();
-    return () => { cancelled = true; };
-  }, []);
-
-  const ministriesTitle = getContent(contentMap, 'ministries', 'title', 'Nos Ministères');
-  const ministriesSubtitle = getContent(
-    contentMap,
-    'ministries',
-    'subtitle',
-    'Chaque ministère est une opportunité de servir, grandir et bénir ceux qui nous entourent.',
-  );
-
-  const ctaTitle = getContent(contentMap, 'cta', 'title', 'Impliquez-vous');
-  const ctaText = getContent(
-    contentMap,
-    'cta',
-    'description',
-    'Vous avez un désir de servir ou une question sur nos activités ? N\'hésitez pas à nous écrire.',
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-bg text-cream font-sans">
-        <SiteHeader activePage="activities" onNavigate={onNavigate} />
-        <MobileNav active="activities" onNavigate={onNavigate} />
-
-        {/* Hero skeleton */}
-        <section className="relative flex min-h-[40vh] items-center justify-center overflow-hidden pt-16 bg-radial-primary">
-          <div className="mx-auto max-w-4xl px-4 text-center">
-            <div className="mb-4 h-6 w-32 animate-pulse rounded-full bg-white/10" />
-            <div className="mb-4 h-10 w-64 animate-pulse rounded-xl bg-white/10 mx-auto" />
-            <div className="h-5 w-96 max-w-full animate-pulse rounded-lg bg-white/10 mx-auto" />
-          </div>
-        </section>
-
-        {/* Ministries grid skeleton */}
-        <section className="py-12 md:py-20 px-4">
-          <div className="mx-auto max-w-6xl">
-            <div className="mb-3 h-8 w-52 animate-pulse rounded-lg bg-white/5 mx-auto text-center" />
-            <div className="mb-10 h-5 w-80 animate-pulse rounded bg-white/5 mx-auto" />
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-56 animate-pulse rounded-3xl bg-white/5" />
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA skeleton */}
-        <section className="py-12 md:py-20 px-4">
-          <div className="mx-auto max-w-4xl">
-            <div className="h-48 animate-pulse rounded-2xl bg-white/5" />
-          </div>
-        </section>
-
-        <div className="footer-spacer" />
-      <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
-      </div>
-    );
-  }
+  const cm = usePageContents('activities');
+  const ctaImage = getContent(cm, 'cta', 'image', '/church-photo-3.webp');
+  const next = useMemo(() => getNextService(), []);
 
   return (
-    <div className="bg-bg min-h-screen mobile-bottom-pad">
+    <div className="min-h-screen bg-bg font-sans text-cream mobile-bottom-pad">
       <SiteHeader activePage="activities" onNavigate={onNavigate} />
       <MobileNav active="activities" onNavigate={onNavigate} />
 
-      {/* ── Hero ── */}
-      <UniversalHero pageKey="activities" defaultBadge="Vie communautaire" defaultTitle="Nos Activités" defaultSubtitle="Découvrez les différents ministères et activités de notre église." />
+      <main>
+        <UniversalHero
+          pageKey="activities"
+          defaultBadge="Vie communautaire"
+          defaultTitle="Nos activités"
+          defaultSubtitle="Cultes, prière, jeunesse et service : une communauté qui vit sa foi toute la semaine, au cœur de Lubumbashi."
+          bgImage="/church-photo-1.webp"
+        >
+          <div className="flex flex-wrap gap-3">
+            <button onClick={() => onNavigate('events')} className="btn-primary">
+              Voir l'agenda <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              onClick={() => onNavigate('contact')}
+              className="btn-ghost border-white/30 text-white hover:bg-white/10"
+            >
+              Nous contacter
+            </button>
+          </div>
+        </UniversalHero>
 
-      {/* ── Programme de la Semaine ── */}
-      <WeeklySchedule />
+        <section className="border-b border-line bg-bg-card" aria-label="Informations pratiques">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-px bg-line md:grid-cols-3">
+              <div className="bg-bg-card py-6 md:pr-8">
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600">
+                  <Clock3 className="h-4 w-4" aria-hidden="true" /> Prochain culte
+                </p>
+                <p className="mt-3 font-hero text-2xl uppercase leading-snug text-cream sm:text-3xl">
+                  {formatNextDate(next.at)}
+                </p>
+                <p className="mt-2 text-sm text-muted">
+                  {next.service} · {next.time}
+                </p>
+              </div>
 
-      {/* ── Ministries Grid ── */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="reveal section-label mb-3 text-center">{ministriesTitle}</h2>
-          {ministriesSubtitle && (
-            <p className="reveal reveal-delay-1 mb-12 text-center text-base text-muted sm:text-lg">
-              {ministriesSubtitle}
-            </p>
-          )}
+              <div className="bg-bg-card py-6 md:px-8">
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600">
+                  <MapPin className="h-4 w-4" aria-hidden="true" /> Adresse
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-cream">
+                  {CHURCH.address.street}
+                  <br />
+                  {CHURCH.address.landmark}, {CHURCH.address.city}
+                </p>
+                <p className="mt-2 text-sm text-muted">Entrée libre</p>
+              </div>
 
-          {ministries.length > 0 ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {ministries.map((ministry, i) => {
-                const Icon = getIcon(ministry.icon_name ?? '');
-                const accentClass = getAccentClass(i);
-
-                return (
-                  <div
-                    key={ministry.id}
-                    className={`reveal ${i < 6 ? `reveal-delay-${(i % 3) + 1}` : ''} glass card-parallax rounded-3xl p-7 ${accentClass}`}
-                  >
-                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-gold/10">
-                      <Icon className="h-6 w-6 text-gold" />
-                    </div>
-                    <h3 className="font-serif mb-2 text-xl font-semibold text-cream">
-                      {ministry.title}
-                    </h3>
-                    <p className="mb-4 text-sm leading-relaxed text-muted">
-                      {ministry.description}
-                    </p>
-                    {ministry.schedule && (
-                      <div className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-xs text-cream/60">
-                        <Moon className="h-3.5 w-3.5 shrink-0 text-gold/70" />
-                        <span>{ministry.schedule}</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-center text-muted">
-              Aucun ministère n'est disponible pour le moment.
-            </p>
-          )}
-        </div>
-      </section>
-
-      {/* ── CTA Banner ── */}
-      <section className="py-12 md:py-20 px-4">
-        <div className="reveal mx-auto max-w-4xl">
-          <div className="relative overflow-hidden rounded-2xl">
-            {/* Background image placeholder */}
-            <div className="absolute inset-0 bg-radial-ember opacity-60" />
-            <div className="absolute inset-0 bg-bg/70" />
-            <div className="relative z-10 flex flex-col items-center px-6 py-16 text-center sm:py-20">
-              <h2 className="section-label mb-4">{ctaTitle}</h2>
-              <p className="mb-8 max-w-lg text-cream/70">
-                {ctaText}
-              </p>
-              <button onClick={() => onNavigate('contact')} className="btn-gold">
-                Nous contacter
-              </button>
+              <div className="bg-bg-card py-6 md:pl-8">
+                <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600">
+                  <Phone className="h-4 w-4" aria-hidden="true" /> Bureau pastoral
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-cream">
+                  Lundi – vendredi · 10h00 – 18h00
+                </p>
+                <a
+                  href={CHURCH.phone.href}
+                  className="mt-2 inline-block text-sm text-muted underline decoration-line underline-offset-4 transition-colors hover:text-evangile-600"
+                >
+                  {CHURCH.phone.display}
+                </a>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <div className="footer-spacer" />
+        <section id="semaine" className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
+              <Reveal className="lg:sticky lg:top-24 lg:self-start">
+                <p className="section-label">Rythme hebdomadaire</p>
+                <h2 className="section-title mt-4">La semaine à La Conquête</h2>
+                <div className="rule-accent mt-6" />
+                <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
+                  Quatre rendez-vous pour prier, écouter la Parole et grandir ensemble.
+                  Chaque culte se tient au même endroit, sans inscription.
+                </p>
+
+                <div className="mt-8 border border-line bg-bg-card p-6">
+                  <p className="person-role flex items-center gap-2">
+                    <MapPin className="h-3.5 w-3.5 text-evangile-600" aria-hidden="true" /> Lieu des cultes
+                  </p>
+                  <p className="mt-3 text-sm leading-relaxed text-cream">
+                    {CHURCH.address.full}
+                  </p>
+                  <button onClick={() => onNavigate('events')} className="btn-link mt-5">
+                    Voir tous les événements <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </Reveal>
+
+              <Reveal className="reveal-delay-1">
+                <div className="border-t border-line">
+                  {SERVICE_TIMES.map((service, index) => (
+                    <article
+                      key={service.day}
+                      className="group border-b border-line py-6 first:pt-0 sm:py-7"
+                    >
+                      <div className="flex items-start gap-4 sm:gap-5">
+                        <span className="w-8 shrink-0 font-hero text-2xl leading-none text-evangile-600/45 transition-colors group-hover:text-evangile-600 sm:w-10 sm:text-3xl">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-evangile-600">
+                            {service.day}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+                            <h3 className="card-title text-[1.35rem] sm:text-[1.6rem]">{service.service}</h3>
+                            <p className="whitespace-nowrap font-hero text-2xl leading-none text-cream sm:text-3xl">
+                              {service.time}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="border-y border-line bg-bg-card px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-px bg-line lg:grid-cols-2">
+              <Reveal>
+                <article className="flex h-full flex-col bg-bg-card p-8 md:p-10">
+                  <p className="section-label">Servir ensemble</p>
+                  <h2 className="section-title mt-4 text-[clamp(2rem,4vw,3rem)]">Chaque don a sa place</h2>
+                  <div className="rule-accent mt-6" />
+                  <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
+                    Louange, accueil, enfants, évangélisation, diaconie : les ministères de l'église
+                    accueillent de nouveaux serviteurs tout au long de l'année.
+                  </p>
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <button onClick={() => onNavigate('ministeres')} className="btn-primary">
+                      Découvrir les ministères <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button onClick={() => onNavigate('contact')} className="btn-ghost">
+                      Nous écrire
+                    </button>
+                  </div>
+                </article>
+              </Reveal>
+
+              <Reveal className="reveal-delay-1">
+                <article className="flex h-full flex-col bg-bg-card p-8 md:p-10">
+                  <p className="section-label">Où que vous soyez</p>
+                  <h2 className="section-title mt-4 text-[clamp(2rem,4vw,3rem)]">Suivre le culte en direct</h2>
+                  <div className="rule-accent mt-6" />
+                  <p className="mt-6 max-w-md text-sm leading-relaxed text-muted">
+                    Les cultes et les temps de prière sont diffusés sur YouTube et Facebook.
+                    Les vidéos restent disponibles après la diffusion.
+                  </p>
+                  <div className="mt-8 flex flex-wrap items-center gap-5">
+                    <a
+                      href={YOUTUBE_CHANNEL.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-link"
+                    >
+                      <Youtube className="h-4 w-4" /> YouTube
+                    </a>
+                    <a
+                      href={CHURCH.social.facebook}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-link"
+                    >
+                      <Facebook className="h-4 w-4" /> Facebook
+                    </a>
+                    <button onClick={() => onNavigate('media')} className="btn-ghost">
+                      Espace médias
+                    </button>
+                  </div>
+                </article>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-px bg-line lg:grid-cols-[minmax(0,380px)_1fr]">
+              <Reveal>
+                <figure className="flex h-full items-center justify-center bg-bg-card p-6 sm:p-8">
+                  <img
+                    src={MARATHON.image}
+                    alt={`Affiche officielle — ${MARATHON.title}, ${MARATHON.period}`}
+                    className="h-auto w-full object-contain"
+                    loading="lazy"
+                  />
+                </figure>
+              </Reveal>
+
+              <Reveal className="reveal-delay-1">
+                <div className="flex h-full flex-col justify-between gap-8 bg-bg-card p-8 md:p-10">
+                  <div>
+                    <p className="section-label">Temps fort</p>
+                    <h2 className="section-title mt-4 text-[2.5rem] sm:text-[3rem]">{MARATHON.title}</h2>
+                    <div className="rule-accent mt-5" />
+                    <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">
+                      {MARATHON.period}
+                    </p>
+                    <p className="mt-4 font-serif text-xl italic leading-snug text-cream sm:text-2xl">
+                      « {MARATHON.theme} »
+                    </p>
+                    <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">
+                      {MARATHON.reference}
+                    </p>
+                    <dl className="mt-8 grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <dt className="person-role">Horaires</dt>
+                        <dd className="mt-2 text-sm leading-relaxed text-muted">{MARATHON.hours}</dd>
+                      </div>
+                      <div>
+                        <dt className="person-role">Lieu</dt>
+                        <dd className="mt-2 text-sm leading-relaxed text-muted">{CHURCH.address.full}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <button onClick={() => onNavigate('events')} className="btn-primary">
+                      Voir l'agenda <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </button>
+                    <button onClick={() => onNavigate('contact')} className="btn-ghost">
+                      Poser une question
+                    </button>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </section>
+
+        <section className="relative overflow-hidden border-t border-line" aria-label="Venir à un culte">
+          <img
+            src={ctaImage}
+            srcSet={imageSrcSet(ctaImage)}
+            sizes="100vw"
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+            className="photo-claro-strong absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="photo-veil-strong absolute inset-0" />
+          <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="section-eyebrow">Venir nous voir</p>
+              <h2 className="section-title mt-4" style={{ color: '#FFFFFF' }}>
+                Vivez un culte avec nous
+              </h2>
+              <div className="mt-5 h-px w-16 bg-evangile-600" />
+              <p className="mt-5 text-sm leading-relaxed text-white/70 sm:text-base">
+                Le prochain rendez-vous : {formatNextDate(next.at).toLowerCase()} à{' '}
+                {next.start.replace(':', 'h')}, au {CHURCH.address.street}, {CHURCH.address.landmark},{' '}
+                {CHURCH.address.city}.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <button onClick={() => onNavigate('contact')} className="btn-primary">
+                  Nous contacter <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+                <a
+                  href={CHURCH.phone.href}
+                  className="btn-ghost border-white/30 text-white hover:bg-white/10"
+                >
+                  <Phone className="h-4 w-4" aria-hidden="true" /> {CHURCH.phone.display}
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />
     </div>
   );

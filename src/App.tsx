@@ -25,28 +25,37 @@ const CrmPage = lazy(() => import('./pages/CrmPage').then(m => ({ default: m.Crm
 const PastoralPage = lazy(() => import('./pages/PastoralPage').then(m => ({ default: m.PastoralPage })));
 const ReportsPage = lazy(() => import('./pages/ReportsPage').then(m => ({ default: m.ReportsPage })));
 const CommunicationPage = lazy(() => import('./pages/CommunicationPage').then(m => ({ default: m.CommunicationPage })));
-const EmissionsPage = lazy(() => import('./pages/EmissionsPage').then(m => ({ default: m.EmissionsPage })));
 const PredicationsPage = lazy(() => import('./pages/PredicationsPage').then(m => ({ default: m.PredicationsPage })));
-const DepartmentsPage = lazy(() => import('./pages/DepartmentsPage').then(m => ({ default: m.DepartmentsPage })));
 const CommuniquesPage = lazy(() => import('./pages/CommuniquesPage').then(m => ({ default: m.CommuniquesPage })));
 const AnnoncesPage = lazy(() => import('./pages/AnnoncesPage').then(m => ({ default: m.AnnoncesPage })));
 const DonsPage = lazy(() => import('./pages/DonsPage').then(m => ({ default: m.DonsPage })));
-const CultePage = lazy(() => import('./pages/CultePage').then(m => ({ default: m.CultePage })));
 const PasteursPage = lazy(() => import('./pages/PasteursPage').then(m => ({ default: m.PasteursPage })));
 const MinisteresPage = lazy(() => import('./pages/MinisteresPage').then(m => ({ default: m.MinisteresPage })));
-const VisionPage = lazy(() => import('./pages/VisionPage').then(m => ({ default: m.VisionPage })));
-const JeunessePage = lazy(() => import('./pages/JeunessePage').then(m => ({ default: m.JeunessePage })));
-const EnseignementsPage = lazy(() => import('./pages/EnseignementsPage').then(m => ({ default: m.EnseignementsPage })));
+const MissionsPage = lazy(() => import('./pages/MissionsPage').then(m => ({ default: m.MissionsPage })));
 const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
 const FormOrateurBrandedPage = lazy(() => import('./pages/FormOrateurBrandedPage').then(m => ({ default: m.FormOrateurBrandedPage })));
-const EvangelisationPage = lazy(() => import('./pages/EvangelisationPage').then(m => ({ default: m.EvangelisationPage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'emissions', 'predications', 'departments', 'annonces', 'communiques', 'culte', 'pasteurs', 'ministeres', 'vision', 'jeunesse', 'enseignements', 'blog', 'evangelisation'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'predications', 'annonces', 'communiques', 'pasteurs', 'ministeres', 'missions', 'blog'];
+
+/* Anciennes URL conservées : on redirige vers la page qui porte désormais
+   l'information, sans casser les liens déjà partagés. */
+const LEGACY_ROUTES: Record<string, Page> = {
+  vision: 'about',
+  culte: 'activities',
+  jeunesse: 'activities',
+  evangelisation: 'activities',
+  enseignements: 'blog',
+  emissions: 'media',
+  emision: 'media',
+  departments: 'ministeres',
+};
+
 function getPage(): Page {
-  let h = window.location.hash.replace('#', '').replace(/^\/+/, '');
-  if (h === 'emision') h = 'emissions';
-  return VALID_PAGES.includes(h as Page) ? (h as Page) : 'home';
+  const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
+  const base = h.split('/')[0];
+  const resolved = LEGACY_ROUTES[base] ?? base;
+  return VALID_PAGES.includes(resolved as Page) ? (resolved as Page) : 'home';
 }
 
 /* ─── Page loading spinner ─── */
@@ -121,6 +130,9 @@ function AppRouter() {
       window.location.hash = '#home';
       return;
     }
+    // Préserve un sous-chemin (ex. #blog/mon-article) tant qu'on reste sur la page.
+    const raw = window.location.hash.replace('#', '').replace(/^\/+/, '');
+    if (raw.split('/')[0] === page && raw !== page) return;
     window.location.hash = page;
   }, [page, openAuth, formToken, formOrateurToken]);
 
@@ -144,6 +156,9 @@ function AppRouter() {
       } else {
         setFormToken(null);
         setFormOrateurToken(null);
+        const raw = window.location.hash.replace('#', '').replace(/^\/+/, '');
+        const legacyTarget = LEGACY_ROUTES[raw.split('/')[0]];
+        if (legacyTarget) window.location.replace('#' + legacyTarget);
         setPage(getPage());
       }
     };
@@ -176,20 +191,14 @@ function AppRouter() {
               case 'pastoral': return <PastoralPage onNavigate={setPage} />;
               case 'reports': return <ReportsPage {...nav} />;
               case 'communication': return <CommunicationPage onNavigate={setPage} />;
-              case 'emissions': return <EmissionsPage {...nav} />;
               case 'predications': return <PredicationsPage {...nav} />;
-              case 'departments': return <DepartmentsPage {...nav} />;
               case 'communiques': return <CommuniquesPage {...nav} />;
               case 'annonces': return <AnnoncesPage {...nav} />;
               case 'dons': return <DonsPage {...nav} />;
-              case 'culte': return <CultePage {...nav} />;
               case 'pasteurs': return <PasteursPage {...nav} />;
               case 'ministeres': return <MinisteresPage {...nav} />;
-              case 'vision': return <VisionPage {...nav} />;
-              case 'jeunesse': return <JeunessePage {...nav} />;
-              case 'enseignements': return <EnseignementsPage {...nav} />;
+              case 'missions': return <MissionsPage {...nav} />;
               case 'blog': return <BlogPage {...nav} />;
-              case 'evangelisation': return <EvangelisationPage {...nav} />;
               default: return <HomePage {...nav} />;
             }
           })()

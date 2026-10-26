@@ -2,7 +2,11 @@
    l'église (pages Facebook « Laconquete Eec » et « Eglise évangélique la
    conquête »). Les faits datés et les citations bibliques sont sourcés. */
 
+import type { SiteArticle } from '../types';
+
 export type ArticleCategory = 'Enseignement' | 'Événement' | 'Annonce' | 'Vision';
+
+const ARTICLE_CATEGORIES: ArticleCategory[] = ['Enseignement', 'Événement', 'Annonce', 'Vision'];
 
 export interface Article {
   slug: string;
@@ -25,7 +29,7 @@ export const ARTICLES: Article[] = [
     date: '2026-10-11',
     excerpt:
       "Du 1er au 30 novembre 2026, l'Église Évangélique La Conquête consacre un mois entier à la prière autour du thème « La mission de l'Église locale face au monde moderne ».",
-    image: '/priere.jpg',
+    image: '/priere.webp',
     featured: true,
     source: 'https://web.facebook.com/laconquete.eec',
     body: [
@@ -48,7 +52,7 @@ export const ARTICLES: Article[] = [
     date: '2026-10-11',
     excerpt:
       "La Conquête porte une vision en deux mouvements, inscrite dans Psaumes 2:8 : gagner des âmes et ouvrir des terres où la vie peut s'enraciner.",
-    image: '/church-photo-1.jpg',
+    image: '/church-photo-1.webp',
     source: 'https://web.facebook.com/profile.php?id=61569888994546',
     body: [
       "La vision de l'Église Évangélique La Conquête s'énonce en une phrase : « La conquête des âmes, la conquête des terres habitables et cultivables ». Elle s'appuie sur Psaumes 2:8 : « Demande-moi, et je te donnerai les nations pour héritage, les extrémités de la terre pour possession. »",
@@ -70,7 +74,7 @@ export const ARTICLES: Article[] = [
     date: '2026-10-11',
     excerpt:
       "Série d'enseignement de la saison : comment l'Église locale demeure missionnaire dans un monde qui change de visage, sans rien perdre de l'essentiel.",
-    image: '/predication-1.jpg',
+    image: '/predication-1.webp',
     source: 'https://web.facebook.com/laconquete.eec',
     body: [
       "Depuis le mois d'octobre 2026, l'Église Évangélique La Conquête enseigne sur un thème unique : « La mission de l'Église locale face au monde moderne ». Le texte de référence est l'envoi de Jésus à ses disciples en Matthieu 28:19-20.",
@@ -92,7 +96,7 @@ export const ARTICLES: Article[] = [
     date: '2026-10-11',
     excerpt:
       "Sous-thème développé lors du culte du 11 octobre 2026 : ce que nous partageons, bien avant nos différences, c'est un même nom.",
-    image: '/bible.jpg',
+    image: '/bible.webp',
     source: 'https://web.facebook.com/laconquete.eec',
     body: [
       "Dans la série « La mission de l'Église locale face au monde moderne », le culte du dimanche 11 octobre 2026 a ouvert un sous-thème décisif : « Le nom de Jésus, l'héritage commun de tous les croyants ».",
@@ -114,7 +118,7 @@ export const ARTICLES: Article[] = [
     date: '2026-10-19',
     excerpt:
       "Sous-thème du culte du 19 octobre 2026 : s'engager n'est pas acheter la faveur de Dieu, mais répondre à une grâce qui nous a déjà précédés.",
-    image: '/church-photo-2.jpg',
+    image: '/church-photo-2.webp',
     source: 'https://web.facebook.com/laconquete.eec',
     body: [
       "Dans la série consacrée à la mission de l'Église locale, le culte du dimanche 19 octobre 2026 a mis en avant un sous-thème exigeant : « Engager avec Dieu et la récompense ».",
@@ -136,7 +140,7 @@ export const ARTICLES: Article[] = [
     date: '2025-07-23',
     excerpt:
       "Le dimanche 20 juillet 2025, l'église a posé la première pierre de sa nouvelle extension au village Kakana, à 50 km de Lubumbashi.",
-    image: '/church-photo-3.jpg',
+    image: '/church-photo-3.webp',
     source: 'https://web.facebook.com/laconquete.eec',
     body: [
       "Le dimanche 20 juillet 2025, en début d'après-midi, le pasteur Josué Romain Kazadi, représentant légal de la communauté des églises évangéliques La Conquête, a posé la première pierre du Centre Évangélique Missionnaire La Conquête Kakana.",
@@ -162,9 +166,30 @@ export function articleDate(iso: string): string {
   });
 }
 
-export function sortedArticles(): Article[] {
-  return [...ARTICLES].sort((a, b) => {
+export function sortArticles(list: Article[]): Article[] {
+  return [...list].sort((a, b) => {
     if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
     return a.date < b.date ? 1 : -1;
   });
+}
+
+export function sortedArticles(): Article[] {
+  return sortArticles(ARTICLES);
+}
+
+export function toArticle(row: SiteArticle): Article {
+  return {
+    slug: row.slug,
+    title: row.title,
+    category: ARTICLE_CATEGORIES.includes(row.category) ? row.category : 'Annonce',
+    date: row.published_at.slice(0, 10),
+    excerpt: row.excerpt,
+    image: row.image_url?.trim() || '/church-photo-1.webp',
+    featured: row.is_featured,
+    source: row.source_url ?? undefined,
+    body: Array.isArray(row.body) ? row.body : [],
+    quote: row.quote_text
+      ? { text: row.quote_text, reference: row.quote_reference ?? '' }
+      : undefined,
+  };
 }

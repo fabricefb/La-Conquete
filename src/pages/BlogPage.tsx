@@ -6,17 +6,32 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { ArticleReader } from '../components/ArticleReader';
 import { Search, ArrowRight, Clock } from '../lib/icons';
-import { articleDate, readingTime, sortedArticles, type Article } from '../lib/articles';
+import { articleDate, readingTime, sortArticles, type Article } from '../lib/articles';
+import { useArticles } from '../lib/hooks/useArticles';
+import { imageSrcSet } from '../lib/images';
 import type { Page } from '../lib/navigation';
 
 const CATEGORIES = ['Tous', 'Enseignement', 'Événement', 'Annonce', 'Vision'] as const;
 type Cat = (typeof CATEGORIES)[number];
+
+function articleSlugFromHash(): string | null {
+  const raw = window.location.hash.replace('#', '').replace(/^\/+/, '');
+  const [base, ...rest] = raw.split('/');
+  if (base !== 'blog' || rest.length === 0) return null;
+  return decodeURIComponent(rest.join('/'));
+}
+
+function writeArticleHash(slug: string | null) {
+  const hash = slug ? `#blog/${encodeURIComponent(slug)}` : '#blog';
+  window.history.replaceState(null, '', hash);
+}
 
 export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [activeCat, setActiveCat] = useState<Cat>('Tous');
   const [search, setSearch] = useState('');
   const [openArticle, setOpenArticle] = useState<Article | null>(null);
+  const articles = useArticles();
 
   useEffect(() => {
     const obs = new IntersectionObserver(
@@ -27,15 +42,45 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
     return () => obs.disconnect();
   }, [activeCat, search]);
 
+  // Lien direct : #blog/mon-article ouvre l'article après chargement.
+  useEffect(() => {
+    const sync = () => {
+      const slug = articleSlugFromHash();
+      if (!slug) {
+        setOpenArticle(null);
+        return;
+      }
+      const match = articles.find((article) => article.slug === slug);
+      if (match) {
+        setOpenArticle(match);
+        setActiveCat('Tous');
+        setSearch('');
+      }
+    };
+    sync();
+    window.addEventListener('hashchange', sync);
+    return () => window.removeEventListener('hashchange', sync);
+  }, [articles]);
+
+  const openArticlePage = (article: Article) => {
+    setOpenArticle(article);
+    writeArticleHash(article.slug);
+  };
+
+  const closeArticlePage = () => {
+    setOpenArticle(null);
+    writeArticleHash(null);
+  };
+
   const filtered = useMemo(() => {
-    let list = sortedArticles();
+    let list = sortArticles(articles);
     if (activeCat !== 'Tous') list = list.filter(a => a.category === activeCat);
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(a => `${a.title} ${a.excerpt}`.toLowerCase().includes(q));
     }
     return list;
-  }, [activeCat, search]);
+  }, [articles, activeCat, search]);
 
   const [featured, ...rest] = filtered;
 
@@ -89,8 +134,12 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
               <div className="relative h-64 overflow-hidden lg:h-auto">
                 <img
                   src={featured.image}
+                  srcSet={imageSrcSet(featured.image)}
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   alt=""
-                  className="photo-claro h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                  className="photo-claro photo-hover-clear h-full w-full object-cover transition-[transform,filter] duration-700 hover:scale-105"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div className="flex flex-col justify-center p-6 sm:p-10">
@@ -98,7 +147,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
                   <span className="rule-accent" />
                   <p className="section-eyebrow">{featured.category}</p>
                 </div>
-                <h2 className="card-title mt-4 text-cream">{featured.title}</h2>
+                <h2 className="editorial-title mt-4 text-3xl text-cream sm:text-4xl">{featured.title}</h2>
                 <p className="mt-4 text-sm leading-relaxed text-muted">{featured.excerpt}</p>
                 <div className="mt-6 flex items-center gap-5 text-xs uppercase tracking-[0.12em] text-muted">
                   <span>{articleDate(featured.date)}</span>
@@ -107,7 +156,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
                     {readingTime(featured)}
                   </span>
                 </div>
-                <button onClick={() => setOpenArticle(featured)} className="btn-primary mt-8 w-fit">
+                <button onClick={() => openArticlePage(featured)} className="btn-primary mt-8 w-fit">
                   Lire l'article
                   <ArrowRight className="h-4 w-4" />
                 </button>
@@ -119,14 +168,18 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
             {rest.map((a, i) => (
               <RevealCard key={a.slug} delay={i % 3}>
                 <button
-                  onClick={() => setOpenArticle(a)}
+                  onClick={() => openArticlePage(a)}
                   className="group flex h-full w-full flex-col border border-line bg-card text-left transition-colors hover:border-evangile-600/60"
                 >
                   <div className="relative h-48 overflow-hidden">
                     <img
                       src={a.image}
+                      srcSet={imageSrcSet(a.image)}
+                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       alt=""
-                      className="photo-claro h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="photo-claro photo-hover-clear h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <span className="absolute left-0 top-0 bg-evangile-600 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
                       {a.category}
@@ -134,7 +187,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
                   </div>
                   <div className="flex flex-1 flex-col p-5">
                     <p className="text-[10px] uppercase tracking-[0.14em] text-muted">{articleDate(a.date)}</p>
-                    <h3 className="mt-2 text-lg font-semibold leading-snug text-cream group-hover:text-accent-300 transition-colors">
+                    <h3 className="editorial-title mt-2 text-xl leading-snug text-cream group-hover:text-accent-300 transition-colors">
                       {a.title}
                     </h3>
                     <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted">{a.excerpt}</p>
@@ -150,7 +203,7 @@ export function BlogPage({ onNavigate }: { onNavigate: (page: Page) => void }) {
         </div>
       </section>
 
-      <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} onNavigate={onNavigate} />
+      <ArticleReader article={openArticle} onClose={closeArticlePage} onNavigate={onNavigate} />
 
       <div className="footer-spacer" />
       <SiteFooter theme={colorMode} onToggleTheme={toggleColorMode} onNavigate={onNavigate} />

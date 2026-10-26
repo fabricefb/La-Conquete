@@ -1,7 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { supabase, db, buildContentMap, getContent, buildSettingsMap } from '../lib/supabase';
+import {
+  supabase,
+  db,
+  buildContentMap,
+  getContent,
+  buildSettingsMap,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 import { loadSectionColors, type SectionColorMap } from '../lib/hooks/useSectionColors';
 import { useReveal } from '../lib/hooks';
+import { imageSrcSet } from '../lib/images';
+import { preparePortrait, type PreparedPortrait } from '../lib/portrait';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
@@ -10,19 +19,23 @@ import { TopBar } from '../components/home/TopBar';
 import { UpcomingCarousel, type AgendaSettings } from '../components/home/UpcomingCarousel';
 import { RecentTeachings } from '../components/home/RecentTeachings';
 import { NextSteps } from '../components/home/NextSteps';
+import { FirstVisit } from '../components/home/FirstVisit';
+import { PrayerTestimony } from '../components/home/PrayerTestimony';
 import { QuickActions } from '../components/home/QuickActions';
 import { ServiceCountdown } from '../components/home/ServiceCountdown';
 import { LiveStreamModal } from '../components/LiveStreamModal';
 import { ArticleReader } from '../components/ArticleReader';
 import { PastoralBureau, type BureauPastor } from '../components/home/PastoralBureau';
 import { TestimonialsCarousel } from '../components/home/TestimonialsCarousel';
-import { sortedArticles, articleDate, readingTime, type Article } from '../lib/articles';
+import { sortArticles, articleDate, readingTime, type Article } from '../lib/articles';
+import { useArticles } from '../lib/hooks/useArticles';
 import { CHURCH } from '../lib/church';
 import {
   Crown,
   Flame,
   Compass,
   Heart,
+  HandHeart,
   ArrowRight,
   Radio,
   MonitorPlay,
@@ -58,22 +71,22 @@ const FALLBACK_PASTORS: BureauPastor[] = [
   {
     id: 'bureau-1',
     full_name: 'Josué Romain Kazadi',
-    title: 'Pasteur Principal — Fondateur',
-    photo_url: '/pasteur-kazadi.jpg',
+    title: 'Pasteur Principal',
+    photo_url: '/pasteur-romain-kazadi.webp',
     pastor_category: 'pastor_principal',
   },
   {
     id: 'bureau-2',
-    full_name: 'Maurisse Esosa',
-    title: 'Pasteur Associé',
-    photo_url: '/maurisse-esosa.jpg',
-    pastor_category: 'assistant_pastor',
+    full_name: 'Dr David Kateba',
+    title: '1er Pasteur Assistant',
+    photo_url: '/pasteur-david-kateba.webp',
+    pastor_category: null,
   },
   {
     id: 'bureau-3',
-    full_name: 'Theresse Kateba',
-    title: 'Épouse du Pasteur — Co-fondatrice',
-    photo_url: '/theresse-kateba.jpg',
+    full_name: 'Richard Mukendi',
+    title: '2e Pasteur Assistant',
+    photo_url: '/pasteur-richard-mukendi.webp',
     pastor_category: null,
   },
 ];
@@ -84,13 +97,13 @@ const FALLBACK_PASTORS: BureauPastor[] = [
 
 /* Fallbacks only — each is overridable from the admin. These are the church's
    own photographs, shipped from /public so nothing depends on a third-party CDN. */
-const DEFAULT_HERO_IMG = '/church-photo-3.jpg';
-const DEFAULT_ABOUT_IMG = '/church-photo-1.jpg';
-const DEFAULT_SERMON_IMG = '/predication-1.jpg';
-const DEFAULT_EVENT_IMG = '/priere.jpg';
-const DEFAULT_MINISTRY_IMG = '/church-photo-2.jpg';
-const DEFAULT_MEDIA_IMG = '/bible.jpg';
-const DEFAULT_NEWS_IMG = '/church-photo-1.jpg';
+const DEFAULT_HERO_IMG = '/church-photo-3.webp';
+const DEFAULT_ABOUT_IMG = '/church-photo-1.webp';
+const DEFAULT_SERMON_IMG = '/predication-1.webp';
+const DEFAULT_EVENT_IMG = '/priere.webp';
+const DEFAULT_MINISTRY_IMG = '/church-photo-2.webp';
+const DEFAULT_MEDIA_IMG = '/bible.webp';
+const DEFAULT_NEWS_IMG = '/church-photo-1.webp';
 /* ═══════════════════════════════════════════════════════════════════
    RevealSection helper
    ═══════════════════════════════════════════════════════════════════ */
@@ -220,23 +233,35 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const [sectionColors, setSectionColors] = useState<SectionColorMap>({});
   const [activityCards, setActivityCards] = useState<ActivityCard[]>([]);
 
-  const news = sortedArticles();
+  const articles = useArticles();
+  const news = sortArticles(articles);
 
   /* ── Fetch on mount ──────────────────────────────────────────── */
   useEffect(() => {
     let cancelled = false;
 
     async function loadData() {
+      if (!isSupabaseConfigured) {
+        setPastors(FALLBACK_PASTORS);
+        setLoading(false);
+        return;
+      }
+
       try {
-        const [contents, settings, testimonialData, pastorData, builderData, colorsData, eventData, activityCardsData] = await Promise.all([
-          db.getPageContents('home'),
-          db.getSettings(),
-          db.getActiveTestimonials(),
-          db.getActivePastors(),
-          supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
-          supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
-          db.getEvents().catch(() => []),
-          supabase.from('activity_cards').select('*').eq('is_active', true).order('sort_order'),
+        const [contents, settings, testimonialData, pastorData, builderData, colorsData, eventData, activityCardsData] = await Promise.race([
+          Promise.all([
+            db.getPageContents('home'),
+            db.getSettings(),
+            db.getActiveTestimonials(),
+            db.getActivePastors(),
+            supabase.from('site_settings').select('value').eq('key', 'builder_config_home').single(),
+            supabase.from('site_settings').select('value').eq('key', 'section_colors_home').single(),
+            db.getEvents().catch(() => []),
+            supabase.from('activity_cards').select('*').eq('is_active', true).order('sort_order'),
+          ]),
+          new Promise<never>((_, reject) => {
+            window.setTimeout(() => reject(new Error('Supabase timeout')), 6000);
+          }),
         ]);
         if (cancelled) return;
         setContentMap(buildContentMap(contents));
@@ -402,7 +427,9 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const heroSubtitle = getContent(cm, 'hero', 'subtitle', 'Église Évangélique La Conquête — Lubumbashi, RDC');
   const heroBibleVerse = getContent(cm, 'hero', 'bible_verse', 'Psaumes 2:8 — "Demande-moi, et je te donnerai les nations pour héritage"');
   const heroCtaPrimary = getContent(cm, 'hero', 'cta_primary', 'Rejoindre le culte');
+  const heroCtaPrimaryLink = getContent(cm, 'hero', 'cta_primary_link', 'activities');
   const heroCtaSecondary = getContent(cm, 'hero', 'cta_secondary', 'Notre vision');
+  const heroCtaSecondaryLink = getContent(cm, 'hero', 'cta_secondary_link', 'about');
 
   // Agenda — textes et affiche de l'événement à la une (modifiables au back-office)
   const agenda: AgendaSettings = {
@@ -421,7 +448,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
       cm,
       'agenda',
       'featured_time',
-      'Lundi – vendredi, 16h – 18h45 · Dimanche, 8h – 10h30',
+      'Lundi – vendredi, 16h00 – 18h45 · Dimanche, 08h00 – 10h30',
     ),
     featuredDescription: getContent(
       cm,
@@ -429,11 +456,20 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
       'featured_description',
       "« La mission de l'Église locale face au monde moderne » — Matthieu 28:19-20.",
     ),
-    featuredImage: getContent(cm, 'agenda', 'featured_image', '/priere.jpg'),
+    featuredImage: getContent(cm, 'agenda', 'featured_image', '/marathon-priere-2026-slide.webp'),
     featuredCta: getContent(cm, 'agenda', 'featured_cta', "Voir l'événement"),
   };
 
+  const serviceImages: Record<number, string> = {
+    0: getContent(cm, 'services', 'service_0_image', '/church-photo-3.webp'),
+    3: getContent(cm, 'services', 'service_3_image', '/bible.webp'),
+    5: getContent(cm, 'services', 'service_5_image', '/church-photo-1.webp'),
+    6: getContent(cm, 'services', 'service_6_image', '/church-photo-2.webp'),
+  };
+
   // Pillars
+  const pillarsLabel = getContent(cm, 'pillars', 'heading_label', 'Nos Fondements');
+  const pillarsTitle = getContent(cm, 'pillars', 'heading_title', 'Trois piliers qui nous guident');
   const pillar1Title = getContent(cm, 'pillars', 'pillar_1_title', 'Foi');
   const pillar1Desc = getContent(
     cm,
@@ -461,7 +497,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
     cm,
     'about',
     'text_1',
-    "Fondée sur la Parole vivante de Dieu, l'Église Évangélique La Conquête est une communauté de foi qui croit en la puissance transformatrice de l'Évangile. Nous sommes appelés à bâtir des vies, à transformer des cœurs et à conquérir des nations pour la gloire de Dieu.",
+    "Depuis 2004, l'Église Évangélique La Conquête est une communauté de foi fondée sur la Parole vivante de Dieu, qui croit en la puissance transformatrice de l'Évangile. Nous sommes appelés à bâtir des vies, à transformer des cœurs et à conquérir des nations pour la gloire de Dieu.",
   );
   const aboutText2 = getContent(
     cm,
@@ -484,16 +520,82 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const pastorWordText2 = getContent(cm, 'pastor_word', 'text_2', 'Nous sommes dans une saison où Dieu appelle son Église à se lever, à prendre position et à manifester sa gloire dans chaque domaine de la société.');
   const pastorWordQuote = getContent(cm, 'pastor_word', 'bible_text', 'Car je connais les projets que j\'ai formés sur vous, dit l\'Éternel, projets de paix et non de malheur, afin de vous donner un avenir et de l\'espérance.');
   const pastorWordQuoteRef = getContent(cm, 'pastor_word', 'bible_ref', 'Jérémie 29:11');
-  const pastorWordMark = pastorWordQuoteRef.split(/\s+/).pop() || pastorWordQuoteRef;
-  const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', '/pasteur-kazadi.jpg');
+  const pastorName = getContent(cm, 'pastor_word', 'name', CHURCH.pastor.name);
+  const pastorRole = getContent(cm, 'pastor_word', 'role', CHURCH.pastor.title);
+  const pastorChurchLine = getContent(cm, 'pastor_word', 'church_line', 'Église Évangélique La Conquête');
+  const pastorVisionLabel = getContent(cm, 'pastor_word', 'vision_label', 'Notre vision');
+  const rawTextAlign = getContent(cm, 'pastor_word', 'text_align', 'center').trim().toLowerCase();
+  const pastorTextAlign: 'left' | 'center' | 'right' =
+    rawTextAlign === 'center' || rawTextAlign === 'right' ? rawTextAlign : rawTextAlign === 'left' ? 'left' : 'center';
+  const pastorTextRaise = Math.min(
+    180,
+    Math.max(0, Number.parseFloat(getContent(cm, 'pastor_word', 'text_raise', '0')) || 0),
+  );
+  const pastorMove = (prefix: string) => {
+    const axis = (suffix: string, fallback: number) => {
+      const raw = Number.parseFloat(getContent(cm, 'pastor_word', `${prefix}_${suffix}`, String(fallback)));
+      return Number.isFinite(raw) ? raw : fallback;
+    };
+    const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+    return {
+      x: clamp(axis('x', 0), -260, 260),
+      y: clamp(axis('y', 0), -200, 200),
+      scale: clamp(axis('scale', 1), 0.5, 2),
+    };
+  };
+  const moved = (position: { x: number; y: number; scale: number }) => ({
+    transform: `translate(${position.x}px, ${position.y}px) scale(${position.scale})`,
+  });
+  const posLabel = pastorMove('pos_label');
+  const posTitle = pastorMove('pos_title');
+  const posText1 = pastorMove('pos_text1');
+  const posText2 = pastorMove('pos_text2');
+  const posQuote = pastorMove('pos_quote');
+  const posRef = pastorMove('pos_ref');
+  const posName = pastorMove('pos_name');
+  const posRole = pastorMove('pos_role');
+  const posFooter = pastorMove('pos_footer');
+  const pastorPortrait = getContent(cm, 'pastor_word', 'portrait_image', '/pasteur-romain-kazadi.webp');
   const pastorSignature = getContent(cm, 'pastor_word', 'signature_image', '');
   const portraitScale = parseFloat(getContent(cm, 'pastor_word', 'portrait_scale', '1.25')) || 1.25;
-  const portraitPosX = getContent(cm, 'pastor_word', 'portrait_pos_x', 'center'); // left | center | right
-  const portraitPosY = getContent(cm, 'pastor_word', 'portrait_pos_y', 'top'); // top | center | bottom
+  const normalizePortraitPos = (raw: string, axis: 'x' | 'y') => {
+    const numeric = Number.parseFloat(raw);
+    if (Number.isFinite(numeric)) return Math.min(100, Math.max(0, numeric));
+    const keyword = raw.trim().toLowerCase();
+    if (axis === 'x') return keyword === 'left' ? 0 : keyword === 'right' ? 100 : 50;
+    return keyword === 'top' ? 0 : keyword === 'bottom' ? 100 : 50;
+  };
+  const portraitPosXPct = normalizePortraitPos(getContent(cm, 'pastor_word', 'portrait_pos_x', '50'), 'x');
+  const portraitPosYPct = normalizePortraitPos(getContent(cm, 'pastor_word', 'portrait_pos_y', '0'), 'y');
+  const [preparedPortrait, setPreparedPortrait] = useState<PreparedPortrait | null>(null);
+  const [portraitReady, setPortraitReady] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    setPreparedPortrait(null);
+    setPortraitReady(false);
+    if (!pastorPortrait) return;
+    preparePortrait(pastorPortrait).then((next) => {
+      if (!alive) return;
+      setPreparedPortrait(next);
+      setPortraitReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [pastorPortrait]);
+
+  const pastorPortraitSrc = preparedPortrait?.src ?? pastorPortrait;
+  const pastorPortraitMode = preparedPortrait?.mode ?? 'photo';
+  const portraitUsesCutout = portraitReady && pastorPortraitMode === 'cutout';
   const signaturePosX = getContent(cm, 'pastor_word', 'signature_pos_x', 'center'); // left | center | right
   const signatureScale = parseFloat(getContent(cm, 'pastor_word', 'signature_scale', '1')) || 1;
 
+  // Premier dimanche
+  const firstVisitImage = getContent(cm, 'firstvisit', 'image', '/church-photo-2.webp');
+
   // News section
+  const newsEyebrow = getContent(cm, 'news', 'eyebrow', 'Actualités');
   const newsTitle = getContent(cm, 'news', 'title', "La vie de l'église");
   const newsSubtitle = getContent(cm, 'news', 'subtitle', 'Enseignements, annonces et nouvelles de nos extensions — ce qui fait vivre la communauté.');
 
@@ -509,6 +611,27 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
     "Car nous sommes son ouvrage, ayant été créés en Jésus-Christ pour de bonnes œuvres, que Dieu a préparées d'avance, afin que nous les pratiquions.",
   );
   const quoteRef = getContent(cm, 'quote', 'reference', 'Éphésiens 2:10');
+  const quoteLabel = getContent(cm, 'quote', 'heading_label', 'Verset');
+
+  // Explorer section
+  const exploreLabel = getContent(cm, 'explore', 'heading_label', 'Explorer');
+  const exploreTitle = getContent(cm, 'explore', 'heading_title', 'Découvrez nos activités');
+  const exploreDescription = getContent(
+    cm,
+    'explore',
+    'subtitle',
+    "Cinq portes d'entrée dans la vie de l'église : prédications, rendez-vous, ministères, médias et actualités.",
+  );
+
+  // Testimonials section
+  const testimonialsLabel = getContent(cm, 'testimonials', 'heading_label', 'Témoignages');
+  const testimonialsTitle = getContent(cm, 'testimonials', 'heading_title', 'Ce que Dieu fait parmi nous');
+  const testimonialsDescription = getContent(
+    cm,
+    'testimonials',
+    'description',
+    "Des membres de la communauté racontent ce que Dieu a accompli dans leur vie, pour la gloire de son nom.",
+  );
 
   /* ── Loading ─────────────────────────────────────────────────── */
   if (loading) return <SkeletonPage />;
@@ -518,10 +641,11 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
      ════════════════════════════════════════════════════════════════ */
   return (
     <div className="min-h-screen mobile-bottom-pad">
-      <SiteHeader onNavigate={onNavigate} />
+      <SiteHeader onNavigate={onNavigate} activePage="home" />
       <MobileNav onNavigate={onNavigate} active="home" />
 
       {/* ═══════ HERO — pleine largeur, photo réelle, implantation à gauche ═══════ */}
+      {isSectionVisible('hero') && (
       <section className="relative w-full h-[100dvh] m-0 overflow-hidden flex items-end" style={{ marginTop: 0 }}>
         {/* Photo de reportage — calée en clair-obscur sur le marine */}
         <div
@@ -531,19 +655,29 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
         >
           {heroImages.length > 1 ? (
             heroImages.map((img: string, i: number) => (
-              <div
+              <img
                 key={i}
-                className="photo-claro-strong hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-[1500ms] ease-in-out"
-                style={{
-                  backgroundImage: `url(${img})`,
-                  opacity: i === heroIndex ? 1 : 0,
-                }}
+                src={img}
+                srcSet={imageSrcSet(img)}
+                sizes="100vw"
+                alt=""
+                aria-hidden="true"
+                {...{ fetchpriority: i === 0 ? 'high' : 'low' }}
+                decoding="async"
+                className="photo-claro-strong hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-[1500ms] ease-in-out"
+                style={{ opacity: i === heroIndex ? 1 : 0 }}
               />
             ))
           ) : (
-            <div
-              className="photo-claro-strong hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: `url(${heroImg})` }}
+            <img
+              src={heroImg}
+              srcSet={imageSrcSet(heroImg)}
+              sizes="100vw"
+              alt=""
+              aria-hidden="true"
+              {...{ fetchpriority: 'high' }}
+              decoding="async"
+              className="photo-claro-strong hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center"
             />
           )}
         </div>
@@ -600,14 +734,14 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                 style={{ animationDelay: '0.32s' }}
               >
                 <button
-                  onClick={() => onNavigate('culte')}
+                  onClick={() => onNavigate(heroCtaPrimaryLink as Page)}
                   className="btn-primary px-6 py-2.5 text-[12.5px]"
                 >
                   {heroCtaPrimary}
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
                 <button
-                  onClick={() => onNavigate('about')}
+                  onClick={() => onNavigate(heroCtaSecondaryLink as Page)}
                   className="btn-ghost px-6 py-2.5 text-[12.5px]"
                 >
                   {heroCtaSecondary}
@@ -622,12 +756,13 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
           <ChevronDown className="h-5 w-5 text-cream/40" />
         </div>
       </section>
+      )}
 
       {/* ═══════ BANDE PASSANTE — Communiqués & Countdown ═══════ */}
       {isSectionVisible('topbar') && <TopBar onNavigate={(page: string) => onNavigate(page as Page)} onLiveClick={() => setLiveModalOpen(true)} phone={topbarPhone} email={topbarEmail} marqueeOverride={topbarMarquee} textColor={topbarTextColor} bgColor={topbarBgColor} />}
 
       {/* ═══════ SECTION: À NE PAS MANQUER (carrousel) ═══════ */}
-      {isSectionVisible('agenda') && <UpcomingCarousel events={events} agenda={agenda} onNavigate={onNavigate} />}
+      {isSectionVisible('agenda') && <UpcomingCarousel events={events} agenda={agenda} serviceImages={serviceImages} onNavigate={onNavigate} />}
 
       {/* ═══════ SECTION: NOS FONDEMENTS + MOT DU PASTEUR ═══════ */}
       {(isSectionVisible('pillars') || isSectionVisible('unique')) && (
@@ -638,10 +773,10 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
             <RevealSection className="mb-12">
               <div className="flex items-center gap-4">
                 <span className="rule-accent" />
-                <p className="section-eyebrow">Nos Fondements</p>
+                <p className="section-eyebrow">{pillarsLabel}</p>
               </div>
               <h2 className="section-title mt-4">
-                Trois piliers qui nous guident
+                {pillarsTitle}
               </h2>
             </RevealSection>
 
@@ -665,109 +800,154 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
           )}
 
           {isSectionVisible('unique') && (
-          <div className={isSectionVisible('pillars') ? 'mt-16 border-t border-line pt-16 md:mt-24 md:pt-24' : ''}>
-            <div id="mot-du-pasteur" className="grid border border-line bg-bg-card lg:grid-cols-12">
-              {/* Portrait éditorial — le titre et le verset vivent sur la photo */}
-              <RevealSection className="relative lg:col-span-7">
-                <div className="relative h-full min-h-[520px] overflow-hidden sm:min-h-[600px] lg:min-h-[680px]">
-                  <img
-                    src={pastorPortrait}
-                    alt={CHURCH.pastor.name}
-                    className="photo-claro-strong absolute inset-0 h-full w-full object-cover"
-                    style={{
-                      objectPosition: `${portraitPosX} ${portraitPosY}`,
-                      transform: `scale(${portraitScale})`,
-                    }}
-                    loading="lazy"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/45 to-ink-950/10" />
-                  <div className="absolute inset-0 bg-gradient-to-r from-ink-950/50 via-transparent to-transparent" />
-                  <div className="grid-lines absolute inset-0 opacity-30" />
-
-                  <span className="pointer-events-none absolute right-2 top-5 font-hero text-[clamp(3.25rem,8vw,6.5rem)] leading-none text-white/[0.07] sm:right-5">
-                    {pastorWordMark}
-                  </span>
-
-                  <div className="absolute left-0 top-0 flex items-center gap-2.5 border-b border-r border-white/15 bg-ink-950/60 px-4 py-2.5 backdrop-blur-sm">
-                    <span className="h-1.5 w-1.5 bg-evangile-500" />
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-white/70">
-                      {pastorWordLabel}
-                    </p>
-                  </div>
-
-                  <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8 lg:p-10">
-                    <div className="flex items-center gap-3">
-                      <span className="h-px w-10 bg-evangile-500" />
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-white/55">
-                        Lettre pastorale
-                      </p>
-                    </div>
-                    <h2
-                      className="mt-3 font-hero uppercase text-white"
-                      style={{ fontSize: 'clamp(2.5rem, 6vw, 4.25rem)', lineHeight: 0.9, letterSpacing: '0.02em' }}
-                    >
-                      {pastorWordTitle}
-                    </h2>
-                    <blockquote
-                      className="mt-6 max-w-xl border-l-2 pl-4 sm:pl-5"
-                      style={{ borderColor: 'rgb(var(--brand-red-rgb))' }}
-                    >
-                      <p className="verse-quote text-white/85">&laquo; {pastorWordQuote} &raquo;</p>
-                      <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.22em] text-white/55">
-                        &mdash; {pastorWordQuoteRef}
-                      </p>
-                    </blockquote>
-                    <div className="mt-7 flex flex-wrap items-end justify-between gap-4 border-t border-white/15 pt-5">
-                      <div>
-                        <p className="person-name text-white">{CHURCH.pastor.name}</p>
-                        <p className="person-role mt-1 text-white/55">{CHURCH.pastor.title}</p>
-                      </div>
-                      <span className="hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-white/30 sm:block">
-                        Église Évangélique La Conquête
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </RevealSection>
-
-              {/* La lettre — texte courant, lisible hors de la photo */}
-              <RevealSection className="reveal-delay-1 relative flex flex-col justify-center border-t border-line p-6 sm:p-10 lg:col-span-5 lg:border-l lg:border-t-0 lg:p-12 xl:p-14">
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute right-5 top-0 font-serif text-[7rem] leading-none text-evangile-600/10 sm:right-8 sm:text-[9rem]"
-                >
-                  &ldquo;
-                </span>
-                <p className="relative leading-relaxed text-muted">
-                  <span className="float-left mr-3 mt-0.5 font-hero text-[4.25rem] leading-[0.72] text-evangile-500">
-                    {pastorWordText1.trim().charAt(0)}
-                  </span>
-                  {pastorWordText1.trim().slice(1)}
-                </p>
-                <p className="relative mt-5 leading-relaxed text-muted">{pastorWordText2}</p>
-
-                <div className="mt-9 flex flex-wrap items-end justify-between gap-6 border-t border-line pt-6">
-                  {pastorSignature ? (
+          <div id="mot-du-pasteur" className={isSectionVisible('pillars') ? 'relative mt-20 md:mt-28 lg:mt-32' : 'relative'}>
+            <RevealSection className="relative mx-auto w-full max-w-6xl">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute left-1/2 top-[54%] h-[56%] w-[56%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-evangile-600/10 blur-3xl"
+              />
+              <div className="relative flex min-h-[780px] w-full items-end justify-center overflow-hidden sm:min-h-[880px] lg:min-h-[960px]">
+                {pastorPortrait && portraitUsesCutout && (
+                  <div className="absolute inset-0 flex items-end justify-center">
                     <img
-                      src={pastorSignature}
-                      alt="Signature du pasteur"
-                      className="h-12 w-auto object-contain opacity-80"
+                      src={pastorPortraitSrc}
+                      alt={pastorName}
+                      className="h-[78%] w-auto max-w-[92%] object-contain drop-shadow-[0_30px_50px_rgba(0,0,0,0.35)]"
                       style={{
-                        transform: `scale(${signatureScale})`,
-                        transformOrigin: signaturePosX === 'left' ? 'left center' : signaturePosX === 'right' ? 'right center' : 'center',
+                        transform: `scale(${portraitScale})`,
+                        transformOrigin: 'center bottom',
                       }}
                       loading="lazy"
                     />
-                  ) : (
-                    <p className="person-role">{CHURCH.pastor.title}</p>
-                  )}
-                  <button onClick={() => onNavigate('about')} className="btn-link -mr-2 self-start">
-                    Notre vision
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
+                  </div>
+                )}
+
+                {pastorPortrait && !portraitUsesCutout && (
+                  <div className="absolute inset-y-0 left-1/2 w-full max-w-[620px] -translate-x-1/2">
+                    <img
+                      src={pastorPortraitSrc}
+                      alt={pastorName}
+                      className="h-full w-full object-cover"
+                      style={{
+                        objectPosition: `${portraitPosXPct}% ${portraitPosYPct}%`,
+                        transform: `scale(${portraitScale})`,
+                        maskImage:
+                          'linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 14%, #000 56%, transparent 100%)',
+                        WebkitMaskImage:
+                          'linear-gradient(to right, transparent 0%, #000 10%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0%, #000 14%, #000 56%, transparent 100%)',
+                        maskComposite: 'intersect',
+                        WebkitMaskComposite: 'source-in',
+                      }}
+                      loading="lazy"
+                    />
+                  </div>
+                )}
+
+                {/* Volets : le titre se détache en haut, la lettre se pose en bas */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 top-0 h-[26%]"
+                  style={{
+                    background:
+                      'linear-gradient(to bottom, rgb(var(--bg-rgb)) 0%, rgb(var(--bg-rgb) / 0.72) 55%, transparent 100%)',
+                  }}
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-[76%] sm:h-[66%]"
+                  style={{
+                    background:
+                      'linear-gradient(to top, rgb(var(--bg-rgb)) 0%, rgb(var(--bg-rgb) / 0.96) 36%, rgb(var(--bg-rgb) / 0.8) 62%, transparent 100%)',
+                  }}
+                />
+
+                <div className="absolute inset-x-0 top-0 z-10 px-4 pb-4 pt-6 sm:pt-8" style={{ textAlign: pastorTextAlign }}>
+                  <div style={moved(posLabel)}>
+                    <div
+                      className={`flex items-center gap-3 ${
+                        pastorTextAlign === 'center'
+                          ? 'justify-center'
+                          : pastorTextAlign === 'right'
+                            ? 'justify-end'
+                            : 'justify-start'
+                      }`}
+                    >
+                      <span className="h-px w-9 bg-evangile-600" />
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-muted">
+                        {pastorWordLabel}
+                      </p>
+                      <span className="h-px w-9 bg-evangile-600" />
+                    </div>
+                  </div>
+                  <h2
+                    className="mt-3 font-hero uppercase text-cream"
+                    style={{
+                      ...moved(posTitle),
+                      fontSize: 'clamp(2.35rem, 6vw, 4rem)',
+                      lineHeight: 0.92,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {pastorWordTitle}
+                  </h2>
                 </div>
-              </RevealSection>
-            </div>
+
+                <div
+                  className="absolute inset-x-0 bottom-0 z-10 px-4 sm:px-8"
+                  style={{ textAlign: pastorTextAlign, paddingBottom: `${28 + pastorTextRaise}px` }}
+                >
+                  <p className="mx-auto max-w-3xl leading-[1.85] text-muted" style={moved(posText1)}>
+                    {pastorWordText1}
+                  </p>
+                  <p className="mx-auto mt-4 max-w-3xl leading-[1.85] text-muted" style={moved(posText2)}>
+                    {pastorWordText2}
+                  </p>
+                  <blockquote className="mx-auto mt-6 max-w-3xl" style={moved(posQuote)}>
+                    <p className="verse-quote">&laquo; {pastorWordQuote} &raquo;</p>
+                  </blockquote>
+                  <p
+                    className="mt-2.5 text-[10px] font-semibold uppercase tracking-[0.24em] text-muted"
+                    style={moved(posRef)}
+                  >
+                    &mdash; {pastorWordQuoteRef}
+                  </p>
+                  <p className="person-name mt-5" style={moved(posName)}>
+                    {pastorName}
+                  </p>
+                  <p className="person-role mt-1" style={moved(posRole)}>
+                    {pastorRole}
+                  </p>
+                  <div
+                    className="mt-6 flex flex-wrap items-center justify-center gap-x-7 gap-y-3"
+                    style={moved(posFooter)}
+                  >
+                    {pastorSignature ? (
+                      <img
+                        src={pastorSignature}
+                        alt="Signature du pasteur"
+                        className="h-11 w-auto object-contain opacity-75"
+                        style={{
+                          transform: `scale(${signatureScale})`,
+                          transformOrigin:
+                            signaturePosX === 'left'
+                              ? 'left center'
+                              : signaturePosX === 'right'
+                                ? 'right center'
+                                : 'center',
+                        }}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span className="person-role">{pastorChurchLine}</span>
+                    )}
+                    <button onClick={() => onNavigate('about')} className="btn-link">
+                      {pastorVisionLabel}
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </RevealSection>
           </div>
           )}
         </div>
@@ -788,19 +968,28 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
       {isSectionVisible('teachings') && <RecentTeachings onNavigate={onNavigate} />}
 
       {/* ═══════ SECTION: PROCHAIN PAS ═══════ */}
-      {isSectionVisible('nextsteps') && <NextSteps onNavigate={onNavigate} onOpenAuth={openAuth} />}
+      {isSectionVisible('nextsteps') && (
+        <NextSteps
+          onNavigate={onNavigate}
+          onOpenAuth={openAuth}
+          onPrayer={() => document.getElementById('priere')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        />
+      )}
+
+      {/* ═══════ SECTION: PREMIER DIMANCHE ═══════ */}
+      {isSectionVisible('firstvisit') && <FirstVisit onNavigate={onNavigate} image={firstVisitImage} />}
 
       {/* ═══════ SECTION: EXPLORER ═══════ */}
       {isSectionVisible('explore') && (
       <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('explore')}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-14 text-center">
-            <p className="section-label justify-center">Explorer</p>
+            <p className="section-label justify-center">{exploreLabel}</p>
             <h2 className="section-title mt-4">
-              Découvrez nos activités
+              {exploreTitle}
             </h2>
             <p className="mt-3 text-sm text-muted max-w-2xl mx-auto">
-              Cinq portes d'entrée dans la vie de l'église : prédications, rendez-vous, ministères, médias et actualités.
+              {exploreDescription}
             </p>
           </RevealSection>
 
@@ -818,7 +1007,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                     <img
                       src={imgUrl}
                       alt={card.title}
-                      className="photo-claro absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="photo-claro photo-hover-clear absolute inset-0 h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/45 to-ink-950/10" />
@@ -859,7 +1048,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
             <div>
               <div className="flex items-center gap-4">
                 <span className="rule-accent" />
-                <p className="section-eyebrow">Actualités</p>
+                <p className="section-eyebrow">{newsEyebrow}</p>
               </div>
               <h2 className="section-title mt-4">{newsTitle}</h2>
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">{newsSubtitle}</p>
@@ -878,7 +1067,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                     <img
                       src={news[0].image}
                       alt=""
-                      className="photo-claro-strong h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      className="photo-claro-strong photo-hover-clear h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
                       loading="lazy"
                     />
                     <span className="absolute left-0 top-0 bg-evangile-600 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-white">
@@ -890,7 +1079,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                     <span className="h-3 w-px bg-line" />
                     <span>Lecture {readingTime(news[0])}</span>
                   </div>
-                  <h3 className="card-title mt-3 text-cream transition-colors group-hover:text-evangile-400">{news[0].title}</h3>
+                  <h3 className="editorial-title mt-3 text-2xl text-cream transition-colors group-hover:text-evangile-400 sm:text-3xl">{news[0].title}</h3>
                   <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">{news[0].excerpt}</p>
                   <span className="btn-link mt-6 inline-flex">
                     Lire l'article
@@ -909,7 +1098,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                           <p className="text-[10px] uppercase tracking-[0.16em] text-muted">
                             {a.category} — {articleDate(a.date)}
                           </p>
-                          <h3 className="mt-2 text-base font-semibold leading-snug text-cream transition-colors group-hover:text-evangile-400">
+                          <h3 className="editorial-title mt-2 text-lg leading-snug text-cream transition-colors group-hover:text-evangile-400">
                             {a.title}
                           </h3>
                           <span className="mt-2 inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-evangile-500">
@@ -945,7 +1134,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
           <RevealSection>
             <div className="mx-auto flex max-w-xs items-center gap-4">
               <span className="rule h-px flex-1" />
-              <span className="section-eyebrow">Verset</span>
+              <span className="section-eyebrow">{quoteLabel}</span>
               <span className="rule h-px flex-1" />
             </div>
 
@@ -962,21 +1151,30 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
 
       {/* ═══════ SECTION: TESTIMONIALS ═══════ */}
       {isSectionVisible('testimonials') && testimonials.length > 0 && (
-        <section className="py-12 md:py-20 lg:py-24 bg-radial-primary" style={getSectionStyle('testimonials')}>
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-            <RevealSection className="mb-14 text-center">
-              <p className="section-label justify-center">Témoignages</p>
-              <h2 className="section-title mt-4">
-                Ce que Dieu fait parmi nous
-              </h2>
-            </RevealSection>
+        <section id="temoignages" className="border-y border-line bg-bg-card px-4 py-16 md:py-24" style={getSectionStyle('testimonials')}>
+          <div className="mx-auto max-w-6xl">
+            <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
+              <RevealSection className="lg:col-span-7">
+                <p className="section-label">{testimonialsLabel}</p>
+                <h2 className="section-title mt-4">{testimonialsTitle}</h2>
+                <div className="rule-accent mt-6" />
+              </RevealSection>
+              <RevealSection className="lg:col-span-5">
+                <p className="max-w-md text-sm leading-relaxed text-muted lg:ml-auto lg:pb-1">
+                  {testimonialsDescription}
+                </p>
+              </RevealSection>
+            </div>
 
-            <RevealSection>
-              <TestimonialsCarousel testimonials={testimonials} />
+            <RevealSection className="mt-10">
+              <TestimonialsCarousel testimonials={testimonials} onShare={() => onNavigate('contact')} />
             </RevealSection>
           </div>
         </section>
       )}
+
+      {/* ═══════ SECTION: PRIÈRE & TÉMOIGNAGE ═══════ */}
+      {isSectionVisible('prayer') && <PrayerTestimony />}
 
       {/* ═══════ SECTION: MAP + CTA FINAL ═══════ */}
       {isSectionVisible('cta') && (
@@ -1005,10 +1203,10 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
               </div>
 
               <p className="section-eyebrow">Nous rejoindre</p>
-              <h2 className="section-title mt-4">
+              <h2 className="section-title mt-4 text-white">
                 {ctaTitle}
               </h2>
-              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-cream/85">
+              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/85">
                 {ctaText}
               </p>
 
@@ -1021,6 +1219,14 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                   En savoir plus
                 </button>
               </div>
+
+              <button
+                onClick={() => onNavigate('dons')}
+                className="mt-6 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/65 transition-colors hover:text-white"
+              >
+                <HandHeart className="h-3.5 w-3.5" />
+                Soutenir l'œuvre
+              </button>
             </RevealSection>
           </div>
         </div>

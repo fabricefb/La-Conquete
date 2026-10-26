@@ -45,16 +45,19 @@ interface PageDefinition {
 const HOMEPAGE_SECTIONS: SectionConfig[] = [
   { id: 'topbar', label: 'Barre supérieure', visible: true, order: 0, config: { show_clock: true, show_marquee: true, show_live: true } },
   { id: 'hero', label: 'Héro plein écran', visible: true, order: 1, config: { overlay_opacity: 75, animation_speed: 70, show_scroll_indicator: true, show_stats: true } },
-  { id: 'verses', label: 'Versets bibliques', visible: true, order: 2, config: { auto_play: true, interval: 6, columns: 4 } },
-  { id: 'pillars', label: 'Trois Piliers', visible: true, order: 3, config: { columns: 3, hover_scale: 102 } },
-  { id: 'unique', label: 'Nous sommes uniques', visible: true, order: 4, config: { show_signature: true, image_offset: 40 } },
-  { id: 'explore', label: 'Explorer', visible: true, order: 5, config: { columns: 4, hover_zoom: 110 } },
-  { id: 'quote', label: 'Citation biblique', visible: true, order: 6, config: { show: true } },
-  { id: 'pastors', label: 'Équipe pastorale', visible: true, order: 7, config: { columns: 4, show_bio: true, max_display: 8 } },
-  { id: 'testimonials', label: 'Témoignages', visible: true, order: 8, config: { auto_play: true, interval: 5 } },
-  { id: 'blog', label: 'Blog / Actualités', visible: true, order: 9, config: { columns: 3, max_posts: 3 } },
-  { id: 'cta', label: 'Appel à action', visible: true, order: 10, config: { overlay_opacity: 85, show_heart: true } },
-  { id: 'map', label: 'Carte de localisation', visible: true, order: 11, config: { embed_url: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15881.0!2d29.2223!3d-11.6602!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x1c6c1e4e5e5e5e5%3A0x5e5e5e5e5e5e5e5!2sLubumbashi!5e0!3m2!1sfr!2scd!4v1700000000000', height: 400 } },
+  { id: 'agenda', label: 'Événements — À la une', visible: true, order: 2, config: {} },
+  { id: 'pillars', label: 'Trois Piliers', visible: true, order: 4, config: { columns: 3, hover_scale: 102 } },
+  { id: 'unique', label: 'Mot du pasteur', visible: true, order: 5, config: { show_signature: true, image_offset: 40 } },
+  { id: 'pastors', label: 'Bureau pastoral', visible: true, order: 6, config: { columns: 4, show_bio: true, max_display: 8 } },
+  { id: 'teachings', label: 'Messages récents', visible: true, order: 7, config: {} },
+  { id: 'nextsteps', label: 'Prochain pas', visible: true, order: 8, config: {} },
+  { id: 'firstvisit', label: 'Premier dimanche', visible: true, order: 9, config: {} },
+  { id: 'explore', label: 'Explorer', visible: true, order: 10, config: { columns: 4, hover_zoom: 110 } },
+  { id: 'news', label: 'Actualités', visible: true, order: 11, config: { columns: 3, max_posts: 3 } },
+  { id: 'quote', label: 'Citation biblique', visible: true, order: 12, config: { show: true } },
+  { id: 'testimonials', label: 'Témoignages', visible: true, order: 13, config: { auto_play: true, interval: 5 } },
+  { id: 'prayer', label: 'Prière & témoignage', visible: true, order: 14, config: {} },
+  { id: 'cta', label: 'Carte & appel à action', visible: true, order: 15, config: { overlay_opacity: 85, show_heart: true } },
 ];
 
 function makePageSections(pageId: string): SectionConfig[] {
@@ -154,6 +157,8 @@ const SECTION_ICONS: Record<string, LucideIcon> = {
   recherche: Compass, predications: Video, series: BookOpen,
   etudes: BookOpen, telechargements: FileText, filtres: Compass,
   featured: Star, pagination: ChevronLeft, content: FileText,
+  agenda: Calendar, teachings: Video, nextsteps: Compass,
+  firstvisit: MapPin, news: Newspaper, prayer: Heart,
 };
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -637,14 +642,12 @@ function SectionConfigEditor({
     );
   }
 
-  if (section.id === 'verses') {
+  if (section.id === 'firstvisit') {
     return (
       <>
-        <ControlRow label="Lecture automatique">
-          <Toggle value={!!c.auto_play} onChange={(v) => update('auto_play', v)} />
-        </ControlRow>
-        <Slider label="Intervalle (secondes)" value={Number(c.interval ?? 6)} onChange={(v) => update('interval', v)} min={3} max={15} />
-        <Slider label="Colonnes" value={Number(c.columns ?? 4)} onChange={(v) => update('columns', v)} min={2} max={4} />
+        <p className="rounded-md border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-relaxed text-white/50">
+          La photo du bloc « Premier dimanche » se modifie dans <span className="text-amber-400">Contenus → Page d&apos;accueil → Premier dimanche</span>.
+        </p>
         <SectionColorControls section={section} onColorChange={onColorChange} />
       </>
     );
@@ -798,7 +801,21 @@ export function HomepageBuilderTab() {
         try {
           const parsed = JSON.parse(configData.value) as SectionConfig[];
           if (Array.isArray(parsed) && parsed.length > 0) {
-            loaded = parsed;
+            // Fusionner avec les sections par défaut pour que les nouvelles
+            // sections (ex. Orateurs à la une) apparaissent aussi sur les
+            // configurations déjà enregistrées.
+            const savedById = new Map(parsed.map((s) => [s.id, s]));
+            loaded = defaults.map((def) => {
+              const saved = savedById.get(def.id);
+              return saved
+                ? {
+                    ...def,
+                    visible: saved.visible,
+                    order: saved.order ?? def.order,
+                    config: { ...def.config, ...(saved.config || {}) },
+                  }
+                : def;
+            });
           }
         } catch { /* keep defaults */ }
       }

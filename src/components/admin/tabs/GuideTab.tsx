@@ -1,7 +1,7 @@
 import {
   Eye, EyeOff, GripVertical, Palette,
   Image as ImageIcon, MapPin, ChevronDown, ChevronRight,
-  BookOpen, Info, Lightbulb, AlertTriangle,
+  BookOpen, Info, Lightbulb, AlertTriangle, Newspaper,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -430,7 +430,86 @@ https://pub-344d6377f96445089f6ad71c3ab2fc80.r2.dev/hero/mon-image.jpg`}</CodeBl
         </p>
       </AccordionItem>
 
-      {/* ─── Section 12: Parametres globaux ─── */}
+      {/* ─── Section 12: Articles ─── */}
+      <AccordionItem title="Publier un article ou une actualité" icon={Newspaper} accent="text-sky-400">
+        <p>
+          Les actualités du blog et de l'accueil se gèrent depuis l'onglet
+          <strong className="text-white"> « Articles & actualités »</strong> (menu Contenu).
+        </p>
+        <div className="mt-3">
+          <Step num={1}>
+            <p className="text-white/80">Cliquez sur <strong className="text-white">Nouvel article</strong>.</p>
+          </Step>
+          <Step num={2}>
+            <p className="text-white/80">
+              Renseignez le titre, la catégorie, la date et le résumé. L'adresse (slug) se génère
+              automatiquement à partir du titre.
+            </p>
+          </Step>
+          <Step num={3}>
+            <p className="text-white/80">
+              Ajoutez une photo, puis le corps de l'article. Séparez les paragraphes par une ligne vide :
+              chacun deviendra un bloc de texte sur le site.
+            </p>
+          </Step>
+          <Step num={4}>
+            <p className="text-white/80">
+              Cochez <strong className="text-white">Publié</strong> pour le rendre visible. Cochez
+              <strong className="text-white"> À la une</strong> pour le placer en tête du blog et de l'accueil.
+            </p>
+          </Step>
+        </div>
+        <TipBox>
+          Les articles sont classés automatiquement : l'article à la une d'abord, puis du plus récent au
+          plus ancien. Le site affiche donc toujours les nouvelles publications en premier, sans manipulation.
+        </TipBox>
+        <WarningBox>
+          Tant que la table <strong>articles</strong> est vide ou indisponible, le site conserve les
+          6 articles historiques déjà publiés. Ne saisissez que des informations vérifiées.
+        </WarningBox>
+      </AccordionItem>
+
+      {/* ─── Section 13: Extensions ─── */}
+      <AccordionItem title="Gérer les extensions et leurs pasteurs" icon={MapPin} accent="text-emerald-400">
+        <p>
+          Une extension se crée dans <strong className="text-white">« Lieux & extensions »</strong> (menu
+          Vie de l'église). Elle apparaît ensuite sur la page publique Missions & extensions.
+        </p>
+        <div className="mt-3">
+          <Step num={1}>
+            <p className="text-white/80">Cliquez sur <strong className="text-white">Ajouter</strong> ou sur le crayon d'une fiche existante.</p>
+          </Step>
+          <Step num={2}>
+            <p className="text-white/80">
+              Renseignez le nom, l'adresse, la ville et le pays. Ajoutez la photo et une description
+              si vous les avez.
+            </p>
+          </Step>
+          <Step num={3}>
+            <p className="text-white/80">
+              La latitude et la longitude sont facultatives. Sans GPS, le bouton d'itinéraire utilise
+              l'adresse écrite ; s'il n'y a aucune adresse, aucun itinéraire n'est proposé.
+            </p>
+          </Step>
+          <Step num={4}>
+            <p className="text-white/80">
+              Indiquez le pasteur, les horaires et le téléphone, puis cochez <strong className="text-white">Actif</strong>.
+              L'ordre d'affichage se règle avec le champ <strong className="text-white">Ordre</strong>.
+            </p>
+          </Step>
+        </div>
+        <TipBox>
+          Le lieu marqué <strong>Siège principal</strong> n'est pas compté comme une extension : il reste
+          sur la page Contact. Les textes de la page Missions se modifient dans
+          <strong> Pages → Contenus → Missions & extensions</strong>.
+        </TipBox>
+        <WarningBox>
+          N'ajoutez une extension que lorsque son nom, son adresse et son pasteur sont confirmés.
+          Les photos et informations inventées sont interdites.
+        </WarningBox>
+      </AccordionItem>
+
+      {/* ─── Section 14: Parametres globaux ─── */}
       <AccordionItem title="Parametres globaux du site" icon={Info} accent="text-slate-400">
         <p>
           L'onglet <strong className="text-white">"Parametres"</strong> (en bas du menu, categorie "Systeme")

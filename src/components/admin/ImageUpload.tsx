@@ -12,6 +12,10 @@ interface ImageUploadProps {
   maxSizeMB?: number;
   folder?: string;
   className?: string;
+  allowReplace?: boolean;
+  compact?: boolean;
+  previewClassName?: string;
+  hideDropzone?: boolean;
 }
 
 export default function ImageUpload({
@@ -22,6 +26,10 @@ export default function ImageUpload({
   maxSizeMB = 5,
   folder = 'images',
   className = '',
+  allowReplace = false,
+  compact = false,
+  previewClassName = 'h-48',
+  hideDropzone = false,
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,9 +132,9 @@ export default function ImageUpload({
       {label && <label className="text-sm font-medium text-cream">{label}</label>}
 
       {/* ═══ PREVIEW ═══ */}
-      {displayUrl && (
+      {displayUrl && !compact && (
         <div className="relative group rounded-2xl overflow-hidden border border-line">
-          <img src={displayUrl} alt={label} className="w-full h-48 object-cover" />
+          <img src={displayUrl} alt={label} className={`w-full ${previewClassName} object-cover`} />
           {currentBackend && (
             <div className="absolute top-2 left-2 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1">
               {currentBackend === 'r2' ? (
@@ -155,7 +163,7 @@ export default function ImageUpload({
       )}
 
       {/* ═══ UPLOAD CONTROLS ═══ */}
-      {(!displayUrl || uploading) && (
+      {(!displayUrl || uploading || allowReplace) && (
         <div className="flex flex-col gap-3">
 
           {/* ── Hidden file input ── */}
@@ -168,8 +176,8 @@ export default function ImageUpload({
           />
 
           {/* ── Row 1: URL field + Parcourir button ── */}
-          <div className="flex gap-2">
-            <div className="relative flex-1">
+          <div className="flex flex-wrap gap-2">
+            <div className={`relative ${compact ? 'w-full' : 'min-w-[160px] flex-1'}`}>
               <Cloud size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
               <input
                 type="url"
@@ -184,7 +192,7 @@ export default function ImageUpload({
               type="button"
               onClick={handleBrowseClick}
               disabled={uploading}
-              className="flex items-center gap-2 rounded-xl border border-line bg-white/5 px-4 py-3 text-sm font-medium text-cream hover:border-accent-400/40 hover:bg-white/10 transition-colors disabled:opacity-40 whitespace-nowrap"
+              className="flex shrink-0 items-center gap-2 rounded-xl border border-line bg-white/5 px-4 py-3 text-sm font-medium text-cream hover:border-accent-400/40 hover:bg-white/10 transition-colors disabled:opacity-40 whitespace-nowrap"
             >
               <FolderOpen size={16} />
               Parcourir
@@ -193,13 +201,14 @@ export default function ImageUpload({
               type="button"
               onClick={handleApplyUrl}
               disabled={!urlInput.trim()}
-              className="btn-gold px-4 py-3 text-sm whitespace-nowrap disabled:opacity-40"
+              className="btn-gold shrink-0 px-4 py-3 text-sm whitespace-nowrap disabled:opacity-40"
             >
               Appliquer
             </button>
           </div>
 
           {/* ── Drag & drop zone ── */}
+          {!compact && !hideDropzone && (
           <div
             role="button" tabIndex={0}
             onClick={handleBrowseClick}
@@ -225,6 +234,7 @@ export default function ImageUpload({
               </>
             )}
           </div>
+          )}
 
         </div>
       )}

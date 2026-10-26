@@ -7,3 +7,5 @@ skills/
 .env
 .env.local
 .github-env
+.local-admin/
+supabase/.temp/

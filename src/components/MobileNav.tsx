@@ -3,22 +3,24 @@ import type { Page } from '../lib/navigation';
 
 interface MobileNavProps { onNavigate: (page: Page) => void; active: Page; }
 
-// Map new/admin page names to the closest bottom-nav tab for active state highlighting
+// Map secondary pages to the closest bottom-nav tab for active state highlighting
 const ACTIVE_ALIAS: Partial<Record<Page, Page>> = {
-  emissions: 'media',
   predications: 'media',
-  departments: 'home',
+  blog: 'media',
+  about: 'home',
+  activities: 'home',
+  ministeres: 'home',
+  missions: 'home',
+  pasteurs: 'home',
+  dons: 'home',
+  connexion: 'home',
+  annonces: 'home',
+  communiques: 'home',
+  admin: 'dashboard',
   pastoral: 'dashboard',
   communication: 'dashboard',
   reports: 'dashboard',
   crm: 'dashboard',
-  about: 'home',
-  activities: 'home',
-  connexion: 'home',
-  annonces: 'home',
-  communiques: 'home',
-  extensions: 'home',
-  admin: 'dashboard',
 };
 
 export function MobileNav({ onNavigate, active }: MobileNavProps) {

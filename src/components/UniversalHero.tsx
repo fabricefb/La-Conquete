@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
-import { db, buildContentMap, getContent } from '../lib/supabase';
+import { db, buildContentMap, getContent, isSupabaseConfigured } from '../lib/supabase';
+import { imageSrcSet } from '../lib/images';
+import { PAGE_HERO_IMAGES } from '../lib/heroImages';
 
 interface UniversalHeroProps {
   pageKey: string;
@@ -9,23 +11,6 @@ interface UniversalHeroProps {
   bgImage?: string;
   children?: React.ReactNode;
 }
-
-/* Photo de reportage par défaut quand la page n'en déclare pas encore.
-   Remplaçable depuis l'admin (page_contents.hero.bg_image). */
-const PAGE_HERO_IMAGES: Record<string, string> = {
-  activities: '/church-photo-2.jpg',
-  annonces: '/church-photo-3.jpg',
-  blog: '/church-photo-3.jpg',
-  communiques: '/church-photo-1.jpg',
-  contact: '/church-photo-2.jpg',
-  departments: '/church-photo-2.jpg',
-  dons: '/church-photo-1.jpg',
-  emissions: '/church-photo-1.jpg',
-  enseignements: '/church-photo-3.jpg',
-  jeunesse: '/church-photo-2.jpg',
-  media: '/church-photo-3.jpg',
-  predications: '/church-photo-1.jpg',
-};
 
 /**
  * Hero institutionnel partagé par toutes les pages intérieures.
@@ -43,6 +28,7 @@ export function UniversalHero({
   const [cm, setCm] = useState<Record<string, string>>({});
 
   useEffect(() => {
+    if (!isSupabaseConfigured) return;
     let cancelled = false;
     db.getPageContents(pageKey)
       .then((contents) => {
@@ -55,7 +41,7 @@ export function UniversalHero({
   const badge = getContent(cm, 'hero', 'badge', defaultBadge);
   const title = getContent(cm, 'hero', 'title', defaultTitle);
   const subtitle = getContent(cm, 'hero', 'subtitle', defaultSubtitle);
-  const heroBg = bgImage || getContent(cm, 'hero', 'bg_image', '') || PAGE_HERO_IMAGES[pageKey] || '';
+  const heroBg = getContent(cm, 'hero', 'bg_image', '') || bgImage || PAGE_HERO_IMAGES[pageKey] || '';
   const onImage = Boolean(heroBg);
 
   const titleColor = onImage ? '#FFFFFF' : 'rgb(var(--text-rgb))';
@@ -66,19 +52,17 @@ export function UniversalHero({
     <section className="relative flex min-h-[62vh] items-end overflow-hidden border-b border-line sm:min-h-[68vh] lg:min-h-[76vh]">
       {heroBg ? (
         <>
-          <div
-            className="photo-claro-strong hero-reveal-wipe hero-slide-zoom absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: `url(${heroBg})` }}
+          <img
+            src={heroBg}
+            srcSet={imageSrcSet(heroBg)}
+            sizes="100vw"
+            alt=""
+            aria-hidden="true"
+            {...{ fetchpriority: 'high' }}
+            decoding="async"
+            className="photo-claro-strong hero-reveal-wipe hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-ink-950/40" />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                'linear-gradient(100deg, rgba(6,13,29,0.94) 0%, rgba(6,13,29,0.7) 42%, rgba(6,13,29,0.18) 74%, rgba(6,13,29,0.45) 100%)',
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-transparent to-ink-950/35" />
+          <div className="photo-veil absolute inset-0" />
         </>
       ) : (
         <div className="absolute inset-0 bg-radial-primary" />

@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { isLocalAdminSession } from '../lib/localBackend';
 import AdminLogin from '../components/admin/AdminLogin';
 import { AdminLayout } from '../components/admin/AdminLayout';
 import { DashboardTab } from '../components/admin/tabs/DashboardTab';
 import { SettingsTab } from '../components/admin/tabs/SettingsTab';
 import { ContentsTab } from '../components/admin/tabs/ContentsTab';
+import { ArticlesTab } from '../components/admin/tabs/ArticlesTab';
 import { LocationsTab } from '../components/admin/tabs/LocationsTab';
 import { EventsTab } from '../components/admin/tabs/EventsTab';
 import { DepartmentsTab } from '../components/admin/tabs/DepartmentsTab';
@@ -21,8 +23,7 @@ import { OnboardingTab } from '../components/admin/tabs/OnboardingTab';
 import { UsersTab } from '../components/admin/tabs/UsersTab';
 import { CreneauxTab } from '../components/admin/tabs/CreneauxTab';
 import { ProtocolTab } from '../components/admin/tabs/ProtocolTab';
-import { HomepageBuilderTab } from '../components/admin/tabs/HomepageBuilderTab';
-import { PageBuilderTab } from '../components/admin/tabs/PageBuilderTab';
+import { HomeEditorTab } from '../components/admin/tabs/HomeEditorTab';
 import { AnimationsTab } from '../components/admin/tabs/AnimationsTab';
 import { LiveStreamTab } from '../components/admin/tabs/LiveStreamTab';
 import { AudioTab } from '../components/admin/tabs/AudioTab';
@@ -33,6 +34,7 @@ import { AnnoncesTab } from '../components/admin/tabs/AnnoncesTab';
 import { CommuniquesTab } from '../components/admin/tabs/CommuniquesTab';
 import { EmissionsTab } from '../components/admin/tabs/EmissionsTab';
 import { ActivityCardsTab } from '../components/admin/tabs/ActivityCardsTab';
+import { VisualsTab } from '../components/admin/tabs/VisualsTab';
 import { ShieldOff, Eye } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
 import type { AdminTab } from '../types';
@@ -44,15 +46,27 @@ interface AdminPageProps {
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
   const { user, isAdmin, isFullAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
-  const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => (isLocalAdminSession() ? 'homepage_builder' : 'dashboard'));
+  const [tabChosen, setTabChosen] = useState(false);
+
+  /* En local, on ouvre l'éditeur de la page d'accueil : c'est le point
+     d'entrée qui suit l'ordre visuel du site. */
+  useEffect(() => {
+    if (user && !tabChosen && isLocalAdminSession()) setActiveTab('homepage_builder');
+  }, [user, tabChosen]);
+
+  function changeTab(tab: AdminTab) {
+    setTabChosen(true);
+    setActiveTab(tab);
+  }
 
   // While checking auth session or loading profile after login
   if (loading || profileLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-500" />
-          <p className="text-sm text-muted">Chargement…</p>
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-8 w-8 animate-spin border-2 border-line border-t-evangile-600" />
+          <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted">Chargement</p>
         </div>
       </div>
     );
@@ -66,14 +80,19 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   // Logged in but not admin → show diagnostic + fix button
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-bg text-cream px-4">
-        <div className="glass rounded-2xl p-10 text-center max-w-lg w-full">
-          <ShieldOff className="h-12 w-12 text-red-400 mx-auto mb-4" />
-          <p className="font-serif text-xl font-semibold mb-2">Accès refusé</p>
-          <p className="text-sm text-muted mb-4">Votre compte n'a pas les droits d'administration.</p>
+      <div className="flex min-h-screen items-center justify-center bg-bg px-4 text-cream">
+        <div className="panel w-full max-w-lg border-t-2 border-t-evangile-600 p-10 text-center">
+          <ShieldOff className="mx-auto h-10 w-10 text-[rgb(var(--accent-red-rgb))]" />
+          <span className="section-label mt-5 justify-center">Accès restreint</span>
+          <p className="mt-2 font-hero text-2xl uppercase leading-none tracking-[0.04em] text-cream">
+            Accès refusé
+          </p>
+          <p className="mt-3 text-sm text-muted">
+            Votre compte n'a pas les droits d'administration.
+          </p>
 
           {/* Diagnostic info */}
-          <div className="bg-white/5 rounded-xl p-4 mb-4 text-left text-xs font-mono space-y-1 border border-white/10">
+          <div className="mt-5 border border-line bg-white/[0.03] p-4 text-left font-mono text-xs">
             <p><span className="text-muted">User ID:</span> {user.id}</p>
             <p><span className="text-muted">Email:</span> {user.email}</p>
             <p><span className="text-muted">Profile:</span> {profile ? 'Chargé' : 'NULL'}</p>
@@ -85,10 +104,10 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
             )}
           </div>
 
-          <p className="text-xs text-muted mb-6">
+          <p className="mt-5 text-xs text-muted">
             Contactez l'administrateur principal si vous pensez que c'est une erreur.
           </p>
-          <button onClick={() => onNavigate('home')} className="btn-ghost">
+          <button onClick={() => onNavigate('home')} className="btn-ghost mt-6">
             Retour au site
           </button>
         </div>
@@ -99,9 +118,10 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
   // Admin → show back-office
   function renderTab() {
     switch (activeTab) {
-      case 'dashboard': return <DashboardTab onTabChange={setActiveTab} />;
+      case 'dashboard': return <DashboardTab onTabChange={changeTab} />;
       case 'settings': return <SettingsTab />;
       case 'contents': return <ContentsTab />;
+      case 'articles': return <ArticlesTab />;
       case 'locations': return <LocationsTab />;
       case 'events': return <EventsTab />;
       case 'departments': return <DepartmentsTab />;
@@ -118,8 +138,7 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'users': return <UsersTab />;
       case 'theme': return <ThemeTab />;
       case 'protocol': return <ProtocolTab />;
-      case 'homepage_builder': return <HomepageBuilderTab />;
-      case 'page_builder': return <PageBuilderTab />;
+      case 'homepage_builder': return <HomeEditorTab onOpenTab={changeTab} />;
       case 'guide': return <GuideTab />;
       case 'animations': return <AnimationsTab />;
       case 'live_stream': return <LiveStreamTab />;
@@ -130,13 +149,14 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
       case 'communiques': return <CommuniquesTab />;
       case 'emissions': return <EmissionsTab />;
       case 'activity_cards': return <ActivityCardsTab />;
-      default: return <DashboardTab onTabChange={setActiveTab} />;
+      case 'visuals': return <VisualsTab onTabChange={changeTab} />;
+      default: return <DashboardTab onTabChange={changeTab} />;
     }
   }
 
   return (
     <AdminAccessProvider isFullAdmin={isFullAdmin}>
-    <AdminLayout activeTab={activeTab} onTabChange={setActiveTab} onNavigate={onNavigate} isFullAdmin={isFullAdmin}>
+    <AdminLayout activeTab={activeTab} onTabChange={changeTab} onNavigate={onNavigate} isFullAdmin={isFullAdmin}>
       {/* Bannière lecture seule pour Pasteur principal */}
       {isAdmin && !isFullAdmin && (
         <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">

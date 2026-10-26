@@ -5,226 +5,262 @@ import { SiteHeader } from '../components/SiteHeader';
 import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { UniversalHero } from '../components/UniversalHero';
-import { Heart, CreditCard, Smartphone, MessageCircle, Phone, Mail, Shield, Users, BookOpen, Radio, HandHeart } from '../lib/icons';
+import { MessageCircle, BookOpen, Users, Shield, Check, Copy, ArrowRight } from '../lib/icons';
 import type { Page } from '../lib/navigation';
-import { CHURCH } from '../lib/church';
+import { CHURCH, GIVING_ACCOUNTS, churchSetting } from '../lib/church';
 
-/* ─── Types ───────────────────────────────────────────────────────── */
 interface DonsPageProps {
   onNavigate: (page: Page) => void;
 }
 
-/* ─── Verse ───────────────────────────────────────────────────────── */
-const QUOTE_TEXT = "Nous ne bâtissons pas seulement des murs, nous élevons des destinées pour la gloire éternelle.";
+const QUOTE_TEXT = 'Nous ne bâtissons pas seulement des murs, nous élevons des destinées pour la gloire éternelle.';
 const QUOTE_AUTHOR = CHURCH.pastor.name;
 
-/* ─── Don amounts ─────────────────────────────────────────────────── */
-const AMOUNTS = ['$20', '$50', '$100', 'Autre'];
+const AMOUNTS = ['20', '50', '100', 'Autre'];
 
-/* ═══════════════════════════════════════════════════════════════════
-   Component
-   ═══════════════════════════════════════════════════════════════════ */
+const IMPACT = [
+  { icon: BookOpen, title: 'Enseignement', desc: 'Financer les études bibliques, les supports de formation et l\u2019équipement des responsables.' },
+  { icon: Users, title: 'Entraide', desc: 'Soutenir les familles dans le besoin, les actions sociales et l\u2019assistance communautaire.' },
+  { icon: Shield, title: 'Infrastructure', desc: 'Entretenir les lieux de culte et accompagner le développement des extensions.' },
+];
+
 export function DonsPage({ onNavigate }: DonsPageProps) {
   const { resetTheme } = useDynamicTheme();
-  const [selectedAmount, setSelectedAmount] = useState('$50');
+  const [selectedAmount, setSelectedAmount] = useState('50');
+  const [customAmount, setCustomAmount] = useState('');
   const [frequency, setFrequency] = useState<'once' | 'monthly'>('once');
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => { resetTheme(); }, [resetTheme]);
 
-  // Load settings (phone, bank details, etc.)
   useEffect(() => {
-    db.getSettings().then(settings => setSettings(buildSettingsMap(settings) || {})).catch(() => {});
+    db.getSettings().then((s) => setSettings(buildSettingsMap(s) || {})).catch(() => {});
   }, []);
 
-  const churchPhone = settings['church_phone'] || CHURCH.phone.display;
+  const churchPhone = churchSetting(settings, 'church_phone', CHURCH.phone.display);
   const whatsappNumber = settings['whatsapp'] || CHURCH.phone.href.replace(/\D/g, '');
+  const isCustom = selectedAmount === 'Autre';
+  const chosenAmount = isCustom ? customAmount.trim() : selectedAmount;
 
   const handleWhatsAppDon = () => {
-    const msg = encodeURIComponent('Bonjour, je souhaite faire un don à l\'Église Évangélique La Conquête. Pourriez-vous me donner les informations de paiement ?');
+    const montant = chosenAmount ? `${chosenAmount} USD` : 'un don libre';
+    const rythme = frequency === 'once' ? 'don unique' : 'don mensuel';
+    const msg = encodeURIComponent(
+      `Bonjour, je souhaite soutenir l'Église Évangélique La Conquête. Montant : ${montant} (${rythme}). Pourriez-vous m'indiquer les modalités de paiement ? Merci.`,
+    );
     window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, '_blank');
+  };
+
+  const copyValue = async (value: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(value);
+      window.setTimeout(() => setCopied(null), 1800);
+    } catch {
+      setCopied(null);
+    }
   };
 
   return (
     <div className="min-h-screen bg-bg">
       <SiteHeader onNavigate={onNavigate} activePage="dons" />
 
-      {/* ── Hero ──────────────────────────────────────────────── */}
       <UniversalHero pageKey="dons" defaultBadge="Soutenir l'œuvre" defaultTitle="Faire un don" defaultSubtitle="Votre générosité permet à l'église de poursuivre sa mission d'enseignement, d'entraide communautaire et d'évangélisation. Chaque don compte." />
 
-      {/* ── Quote Section ─────────────────────────────────────── */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden px-4 md:px-8">
-        <div className="relative z-10 text-center max-w-4xl mx-auto">
-          <div className="animate-fade-up mb-6 block">
-            <span className="text-accent-400 text-5xl mb-4 block">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="currentColor" className="mx-auto text-accent-400/60">
-                <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"/>
-              </svg>
-            </span>
-          </div>
-          <h2 className="animate-fade-up font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-cream mb-6 italic leading-tight" style={{ animationDelay: '0.1s' }}>
-            &laquo; {QUOTE_TEXT.split('destinées').map((part, i) =>
-              i === 0 ? <>{part}<span className="gold-text">destinées</span></> : part
-            )} &raquo;
-          </h2>
-          <div className="animate-fade-up w-16 h-px bg-accent-400/30 mx-auto mb-4" style={{ animationDelay: '0.2s' }} />
-          <p className="animate-fade-up text-sm font-semibold uppercase tracking-widest text-muted" style={{ animationDelay: '0.3s' }}>
-            {QUOTE_AUTHOR}
-          </p>
+      {/* ── Citation ─────────────────────────────────────────── */}
+      <section className="border-b border-line px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-3xl">
+          <span className="block h-1 w-12 bg-evangile-600" aria-hidden="true" />
+          <blockquote className="mt-8">
+            <p className="verse-quote text-[clamp(1.4rem,2.6vw,2rem)] leading-snug">
+              « {QUOTE_TEXT} »
+            </p>
+            <cite className="mt-6 block text-[11px] font-semibold uppercase not-italic tracking-[0.24em] text-muted">
+              {QUOTE_AUTHOR}
+            </cite>
+          </blockquote>
         </div>
       </section>
 
-      {/* ── Donation Section ──────────────────────────────────── */}
-      <section className="py-20 px-4 md:px-8 relative">
-        {/* Decorative blurs */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-accent-400/10 blur-[120px] rounded-full -mr-48 -mt-48 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-conquete-blue/20 blur-[120px] rounded-full -ml-48 -mb-48 pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto relative z-10 grid md:grid-cols-2 gap-12 items-center">
-          {/* Left — Text */}
-          <div className="animate-fade-up">
-            <h2 className="font-serif text-3xl md:text-4xl font-semibold text-cream mb-6">
-              Soutenir la Mission
-            </h2>
-            <p className="text-lg leading-relaxed text-muted mb-8">
-              Votre générosité permet à l'Évangile de franchir de nouvelles frontières. Par vos dons, vous soutenez non seulement nos programmes locaux, mais aussi notre expansion numérique mondiale et nos actions humanitaires.
+      {/* ── Don ──────────────────────────────────────────────── */}
+      <section className="px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-2 lg:items-start">
+          <div>
+            <p className="section-label">La mission</p>
+            <h2 className="section-title mt-4">Soutenir la mission</h2>
+            <div className="rule-accent mt-6" />
+            <p className="mt-6 max-w-lg text-[15px] leading-relaxed text-cream/80">
+              Votre générosité permet à l'Évangile de franchir de nouvelles frontières. Par vos dons, vous soutenez
+              nos programmes locaux, l'accompagnement des familles et le développement de nos extensions.
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-              <div className="flex items-start gap-3">
-                <div className="bg-accent-400/10 p-3 rounded-lg shrink-0">
-                  <Radio className="h-5 w-5 text-accent-400" />
+            <div className="mt-8 grid grid-cols-1 gap-px bg-line sm:grid-cols-2">
+              {IMPACT.slice(0, 2).map(({ icon: Icon, title, desc }) => (
+                <div key={title} className="bg-bg p-5">
+                  <Icon className="h-5 w-5 text-evangile-600" />
+                  <h3 className="mt-3 text-sm font-semibold text-cream">{title}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-muted">{desc}</p>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-cream">Streaming HD</h4>
-                  <p className="text-xs text-muted">Maintenir la qualité broadcast mondiale.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="bg-accent-400/10 p-3 rounded-lg shrink-0">
-                  <HandHeart className="h-5 w-5 text-accent-400" />
-                </div>
-                <div>
-                  <h4 className="font-semibold text-cream">Impact Social</h4>
-                  <p className="text-xs text-muted">Aide directe aux familles démunies.</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Right — Donation Card */}
-          <div className="animate-fade-up glass-card p-8 rounded-xl shadow-2xl border border-white/10" style={{ animationDelay: '0.15s' }}>
-            <h3 className="font-serif text-2xl font-semibold text-cream mb-6 text-center">
-              Faire un Don
-            </h3>
-
-            {/* Amount buttons */}
-            <div className="flex flex-wrap justify-center gap-3 mb-6">
-              {AMOUNTS.map(amt => (
-                <button
-                  key={amt}
-                  onClick={() => setSelectedAmount(amt)}
-                  className={`px-5 py-2.5 border rounded-lg font-semibold text-sm transition-all cursor-pointer ${
-                    selectedAmount === amt
-                      ? 'border-accent-400 text-accent-400 bg-accent-400/10'
-                      : 'border-white/20 text-muted hover:border-accent-400/50 hover:text-accent-400'
-                  }`}
-                >
-                  {amt}
-                </button>
-              ))}
+          <div className="panel">
+            <div className="border-b border-line px-6 py-5">
+              <h3 className="card-title">Faire un don</h3>
+              <p className="mt-1 text-xs text-muted">Choisissez un montant, puis finalisez par WhatsApp avec le bureau pastoral.</p>
             </div>
 
-            {/* Frequency toggle */}
-            <div className="mb-6">
-              <label className="block font-semibold text-cream mb-2 text-sm opacity-70">Fréquence</label>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="px-6 py-6">
+              <p className="person-role">Montant</p>
+              <div className="mt-3 grid grid-cols-4 gap-px bg-line">
+                {AMOUNTS.map((amt) => {
+                  const active = selectedAmount === amt;
+                  return (
+                    <button
+                      key={amt}
+                      onClick={() => setSelectedAmount(amt)}
+                      aria-pressed={active}
+                      className={`bg-bg py-3 text-sm font-semibold transition-colors ${
+                        active ? 'bg-evangile-600 text-white' : 'text-muted hover:text-cream'
+                      }`}
+                    >
+                      {amt === 'Autre' ? 'Autre' : `$${amt}`}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {isCustom && (
+                <div className="mt-3">
+                  <label htmlFor="don-montant" className="sr-only">Montant personnalisé en dollars</label>
+                  <input
+                    id="don-montant"
+                    inputMode="decimal"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value.replace(/[^\d.]/g, ''))}
+                    placeholder="Montant en USD"
+                    className="input-surface w-full px-4 py-3 text-sm"
+                  />
+                </div>
+              )}
+
+              <p className="person-role mt-6">Fréquence</p>
+              <div className="mt-3 grid grid-cols-2 gap-px bg-line">
                 <button
                   onClick={() => setFrequency('once')}
-                  className={`py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
-                    frequency === 'once'
-                      ? 'bg-accent-400/15 text-accent-400 border border-accent-400/40'
-                      : 'bg-white/5 text-muted border border-transparent'
+                  aria-pressed={frequency === 'once'}
+                  className={`py-3 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors ${
+                    frequency === 'once' ? 'bg-evangile-600 text-white' : 'bg-bg text-muted hover:text-cream'
                   }`}
                 >
                   Une seule fois
                 </button>
                 <button
                   onClick={() => setFrequency('monthly')}
-                  className={`py-2.5 rounded-lg font-bold text-xs uppercase tracking-widest transition-all cursor-pointer ${
-                    frequency === 'monthly'
-                      ? 'bg-accent-400/15 text-accent-400 border border-accent-400/40'
-                      : 'bg-white/5 text-muted border border-transparent'
+                  aria-pressed={frequency === 'monthly'}
+                  className={`py-3 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors ${
+                    frequency === 'monthly' ? 'bg-evangile-600 text-white' : 'bg-bg text-muted hover:text-cream'
                   }`}
                 >
                   Mensuel
                 </button>
               </div>
+
+              <button onClick={handleWhatsAppDon} className="btn-primary mt-6 w-full">
+                <MessageCircle className="h-4 w-4" />
+                Continuer sur WhatsApp
+              </button>
+              <p className="mt-3 text-center text-[11px] leading-relaxed text-muted">
+                Le message s'ouvre pré-rempli. Aucun paiement n'est prélevé sur ce site.
+              </p>
             </div>
-
-            {/* CTA Button */}
-            <button
-              onClick={handleWhatsAppDon}
-              className="w-full py-3.5 bg-accent-400 text-white rounded-xl font-semibold uppercase tracking-widest hover:opacity-90 transition-all flex items-center justify-center gap-2 text-sm cursor-pointer"
-            >
-              <Heart className="h-4 w-4" />
-              Contribuer maintenant
-            </button>
-            <p className="text-center text-[10px] text-muted opacity-50 uppercase tracking-widest mt-3">
-              Paiement sécurisé via Mobile Money &amp; Virement
-            </p>
           </div>
         </div>
       </section>
 
-      {/* ── Impact Section ─────────────────────────────────────── */}
-      <section className="py-20 px-4 md:px-8">
-        <div className="mx-auto max-w-5xl">
-          <h2 className="animate-fade-up font-serif text-3xl md:text-4xl font-semibold text-center text-cream mb-12">
-            Votre don <span className="gold-text">change des vies</span>
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-6">
-            {[
-              { icon: BookOpen, title: 'Enseignement', desc: 'Financer les études bibliques, les matériaux et la formation des leaders.' },
-              { icon: Users, title: 'Entraide', desc: "Soutenir les familles dans le besoin, les actions sociales et l'assistance communautaire." },
-              { icon: Shield, title: 'Infrastructure', desc: "Contribuer à l'entretien et au développement des lieux de culte et extensions." },
-            ].map((item, i) => {
-              const Icon = item.icon;
-              return (
-                <div key={i} className="animate-fade-up glass-card rounded-2xl p-6 text-center" style={{ animationDelay: `${i * 0.1}s` }}>
-                  <div className="w-12 h-12 rounded-xl bg-accent-400/10 border border-accent-400/20 flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-6 h-6 text-accent-400" />
-                  </div>
-                  <h3 className="text-base font-bold text-cream mb-2">{item.title}</h3>
-                  <p className="text-sm text-muted leading-relaxed">{item.desc}</p>
+      {/* ── Comptes ──────────────────────────────────────────── */}
+      <section className="border-y border-line bg-bg-card px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-4xl">
+          <p className="section-label">Coordonnées de don</p>
+          <h2 className="section-title mt-4">Où envoyer votre don</h2>
+          <div className="rule-accent mt-6" />
+
+          <div className="mt-8 border border-line bg-bg">
+            {GIVING_ACCOUNTS.map((account, i) => (
+              <div
+                key={account.label}
+                className={`flex flex-col gap-3 px-5 py-5 sm:flex-row sm:items-center sm:justify-between ${
+                  i > 0 ? 'border-t border-line' : ''
+                }`}
+              >
+                <div>
+                  <p className="person-role">{account.label}</p>
+                  <p className="mt-2 font-mono text-base font-semibold tracking-wide text-cream">{account.value}</p>
                 </div>
-              );
-            })}
+                <button
+                  onClick={() => copyValue(account.value)}
+                  className="inline-flex items-center gap-2 border border-line px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted transition-colors hover:border-evangile-600 hover:text-evangile-600"
+                >
+                  {copied === account.value ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied === account.value ? 'Copié' : 'Copier'}
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-5 text-sm leading-relaxed text-muted">
+            Une question sur votre don ? Appelez le{' '}
+            <a href={CHURCH.phone.href} className="font-semibold text-cream underline decoration-evangile-600 decoration-2 underline-offset-4">
+              {churchPhone}
+            </a>{' '}
+            ou écrivez à{' '}
+            <a href={`mailto:${CHURCH.email}`} className="font-semibold text-cream underline decoration-evangile-600 decoration-2 underline-offset-4">
+              {CHURCH.email}
+            </a>.
+          </p>
+        </div>
+      </section>
+
+      {/* ── Impact ───────────────────────────────────────────── */}
+      <section className="px-4 py-16 md:px-8 md:py-24">
+        <div className="mx-auto max-w-5xl">
+          <p className="section-label">Votre impact</p>
+          <h2 className="section-title mt-4">Votre don change des vies</h2>
+          <div className="rule-accent mt-6" />
+
+          <div className="mt-10 grid gap-px bg-line sm:grid-cols-3">
+            {IMPACT.map(({ icon: Icon, title, desc }, i) => (
+              <article key={title} className="bg-bg p-7">
+                <div className="flex items-start justify-between">
+                  <Icon className="h-6 w-6 text-evangile-600" />
+                  <span className="stat-figure text-[2.25rem] text-evangile-600/25">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="card-title mt-5">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-muted">{desc}</p>
+              </article>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Trust Badges ───────────────────────────────────────── */}
-      <section className="py-10 px-4 md:px-8 border-t border-white/5">
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-muted">
-          <div className="flex items-center gap-2">
-            <Shield className="h-4 w-4 text-accent-400" />
-            <span>Paiement Sécurisé</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Heart className="h-4 w-4 text-accent-400" />
-            <span>Reçu Fiscal Disponible</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Phone className="h-4 w-4 text-accent-400" />
-            <a href={`tel:${churchPhone.replace(/\s/g, '')}`} className="hover:text-cream transition-colors">{churchPhone}</a>
-          </div>
+      {/* ── Rappel ───────────────────────────────────────────── */}
+      <section className="border-t border-line px-4 py-12 md:px-8">
+        <div className="mx-auto flex max-w-5xl flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl text-sm leading-relaxed text-muted">
+            Les dîmes et offrandes sont reçues au bureau pastoral, du lundi au vendredi de 10h à 18h00, et le dimanche
+            avant et après le culte.
+          </p>
+          <button onClick={() => onNavigate('contact')} className="btn-ghost">
+            Nous contacter <ArrowRight className="h-4 w-4" />
+          </button>
         </div>
       </section>
 
       <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} />
-      <MobileNav onNavigate={onNavigate} active={"home" as Page} />
+      <MobileNav onNavigate={onNavigate} active={'home' as Page} />
     </div>
   );
 }

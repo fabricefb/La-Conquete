@@ -21,6 +21,7 @@ export type Page =
   | 'culte'
   | 'pasteurs'
   | 'ministeres'
+  | 'missions'
   | 'vision'
   | 'jeunesse'
   | 'enseignements'
