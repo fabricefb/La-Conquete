@@ -79,21 +79,20 @@ export function ForgotPasswordForm({ onBack, onSwitchToLogin }: ForgotPasswordFo
       // Look up the user's profile by phone number
       const cleanPhone = phone.replace(/[\s\-\+\(\)]/g, '');
 
-      const { data: profiles, error: lookupErr } = await supabase
-        .from('user_profiles')
-        .select('id, email, full_name, phone')
-        .or(`phone.ilike.%${cleanPhone}%,phone.ilike.%+${cleanPhone}%,phone.ilike.%${phone}%`);
+      // Recherche côté serveur (table verrouillée par RLS) ; repli direct en mode local.
+      const { data: rpcEmail, error: lookupErr } = await supabase.rpc('lookup_email_by_phone', { p_phone: cleanPhone });
+      let userEmail = typeof rpcEmail === 'string' ? rpcEmail : '';
 
-      if (lookupErr || !profiles || profiles.length === 0) {
-        addToast('Aucun compte trouvé avec ce numéro.', 'error');
-        return;
+      if (lookupErr?.code === 'LOCAL_RPC') {
+        const { data: profiles } = await supabase
+          .from('user_profiles')
+          .select('email')
+          .or(`phone.ilike.%${cleanPhone}%,phone.ilike.%+${cleanPhone}%,phone.ilike.%${phone}%`);
+        userEmail = (profiles?.[0] as { email?: string } | undefined)?.email ?? '';
       }
 
-      const profile = profiles[0] as any;
-      const userEmail = profile.email;
-
       if (!userEmail) {
-        addToast("Compte trouvé mais sans email associé. Contactez l'administrateur.", 'error');
+        addToast('Aucun compte trouvé avec ce numéro.', 'error');
         return;
       }
 

@@ -224,7 +224,7 @@ const facade = {
     if ((channel as { __local?: boolean } | null)?.__local) return Promise.resolve('ok');
     return cloudClient.removeChannel(channel as never);
   },
-  async rpc(fn: string) {
+  async rpc(fn: string, args?: Record<string, unknown>) {
     if (shouldUseLocalBackend()) {
       return {
         data: null,
@@ -233,7 +233,7 @@ const facade = {
         statusText: 'Bad Request',
       };
     }
-    return cloudClient.rpc(fn);
+    return cloudClient.rpc(fn, args);
   },
 };
 
