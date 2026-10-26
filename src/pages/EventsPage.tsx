@@ -18,8 +18,6 @@ import type { Page } from '../lib/navigation';
 
 interface EventsPageProps { onNavigate: (page: Page) => void; }
 
-const CATEGORIES = ['Tous', 'Cultes', 'Missions', 'Jeunesse', 'Communion', 'Formation', 'Évangélisation', 'Spécial', 'Autre'] as const;
-
 const FALLBACK_SPEAKERS: FeaturedSpeaker[] = [
   {
     id: 1,
@@ -53,8 +51,8 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const [events, setEvents] = useState<ChurchEvent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeCategory, setActiveCategory] = useState<string>('Tous');
+  const [error, setError] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
 
@@ -73,7 +71,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
         setEvents(evts);
         setContentMap(buildContentMap(contents));
       } catch {
-        if (!cancelled) setError('Agenda momentanément indisponible. Les rendez-vous hebdomadaires restent affichés ci-dessous.');
+        if (!cancelled) setError(true);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -83,7 +81,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
   }, []);
 
   const filtered = events.filter((e) => {
-    const matchCat = activeCategory === 'Tous' || e.category === activeCategory;
+    const matchCat = activeCategory === null || e.category === activeCategory;
     const term = search.trim().toLowerCase();
     const matchSearch = !term || (e.title || '').toLowerCase().includes(term) || (e.description || '').toLowerCase().includes(term);
     return matchCat && matchSearch;
@@ -94,7 +92,40 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
     .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
   const featured = events.find((e) => e.is_featured && new Date(e.event_date) >= new Date());
+  const showFilters = !loading && events.some((e) => new Date(e.event_date) >= new Date());
   const heroTitle = getContent(contentMap, 'hero', 'title', 'Événements');
+
+  const calendarLabel = getContent(contentMap, 'calendar', 'label', 'Calendrier');
+  const calendarTitle = getContent(contentMap, 'calendar', 'title', 'Prochains rendez-vous');
+  const searchPlaceholder = getContent(contentMap, 'calendar', 'search_placeholder', 'Rechercher un événement…');
+  const categories = getContent(
+    contentMap,
+    'calendar',
+    'categories',
+    'Tous, Cultes, Missions, Jeunesse, Communion, Formation, Évangélisation, Spécial, Autre',
+  )
+    .split(',')
+    .map((c) => c.trim())
+    .filter(Boolean);
+  const agendaError = getContent(
+    contentMap,
+    'calendar',
+    'error_text',
+    'Agenda momentanément indisponible. Les rendez-vous hebdomadaires restent affichés ci-dessous.',
+  );
+  const emptyTitle = getContent(
+    contentMap,
+    'calendar',
+    'empty_title',
+    "Aucun événement supplémentaire n'est annoncé pour le moment.",
+  );
+  const emptyText = getContent(
+    contentMap,
+    'calendar',
+    'empty_text',
+    'Les rendez-vous hebdomadaires ont lieu chaque semaine, sans inscription.',
+  );
+  const liveBadge = getContent(contentMap, 'calendar', 'live_badge', 'En direct');
 
   const marathon = {
     label: getContent(contentMap, 'marathon', 'label', MARATHON.label),
@@ -104,6 +135,11 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
     reference: getContent(contentMap, 'marathon', 'reference', MARATHON.reference),
     hours: getContent(contentMap, 'marathon', 'hours', MARATHON.hours),
     image: getContent(contentMap, 'marathon', 'image', MARATHON.image),
+    themeLabel: getContent(contentMap, 'marathon', 'theme_label', 'Thème'),
+    hoursLabel: getContent(contentMap, 'marathon', 'hours_label', 'Horaires'),
+    locationLabel: getContent(contentMap, 'marathon', 'location_label', 'Lieu'),
+    ctaPrimary: getContent(contentMap, 'marathon', 'cta_primary', "Lire l'annonce"),
+    ctaSecondary: getContent(contentMap, 'marathon', 'cta_secondary', 'Poser une question'),
   };
 
   const speakersLabel = getContent(contentMap, 'speakers', 'label', 'Marathon de prière');
@@ -113,18 +149,47 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
     const raw = getContent(contentMap, 'speakers', `speaker_${position}_active`, 'true');
     return ['true', '1', 'oui', 'yes', 'on'].includes(raw.trim().toLowerCase());
   };
-  const eventSpeakers: FeaturedSpeaker[] = [1, 2, 3]
+  const eventSpeakers: FeaturedSpeaker[] = [1, 2, 3, 4, 5]
     .map((position) => {
       const fallback = FALLBACK_SPEAKERS[position - 1];
       return {
         id: position,
-        image: getContent(contentMap, 'speakers', `speaker_${position}_image`, fallback.image),
-        name: getContent(contentMap, 'speakers', `speaker_${position}_name`, fallback.name),
-        role: getContent(contentMap, 'speakers', `speaker_${position}_role`, fallback.role),
-        text: getContent(contentMap, 'speakers', `speaker_${position}_text`, fallback.text),
+        image: getContent(contentMap, 'speakers', `speaker_${position}_image`, fallback?.image ?? ''),
+        name: getContent(contentMap, 'speakers', `speaker_${position}_name`, fallback?.name ?? ''),
+        role: getContent(contentMap, 'speakers', `speaker_${position}_role`, fallback?.role ?? ''),
+        text: getContent(contentMap, 'speakers', `speaker_${position}_text`, fallback?.text ?? ''),
+        tag: position === 5 ? 'Hôte' : `Orateur ${position}`,
       };
     })
     .filter((speaker) => isSpeakerActive(speaker.id) && speaker.image && speaker.name);
+
+  const weeklyLabel = getContent(contentMap, 'weekly', 'label', 'Chaque semaine');
+  const weeklyTitle = getContent(contentMap, 'weekly', 'title', 'Cultes hebdomadaires');
+  const weeklyDescription = getContent(
+    contentMap,
+    'weekly',
+    'description',
+    'Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle. Entrée libre.',
+  );
+  const weeklyCta = getContent(contentMap, 'weekly', 'cta_text', 'Tout savoir sur les cultes');
+
+  const newsLabel = getContent(contentMap, 'stay_connected', 'news_label', 'Rester informé');
+  const newsTitle = getContent(contentMap, 'stay_connected', 'news_title', "Suivez la vie de l'église");
+  const newsText = getContent(
+    contentMap,
+    'stay_connected',
+    'news_text',
+    "Les annonces, communiqués et changements de programme sont publiés en premier sur nos canaux officiels. Aucune inscription n'est nécessaire.",
+  );
+  const joinLabel = getContent(contentMap, 'stay_connected', 'join_label', 'Nous rejoindre');
+  const joinTitle = getContent(contentMap, 'stay_connected', 'join_title', 'Une question sur un événement ?');
+  const joinText = getContent(
+    contentMap,
+    'stay_connected',
+    'join_text',
+    'Le bureau pastoral répond du lundi au vendredi, de 10h à 18h00, au',
+  );
+  const joinCta = getContent(contentMap, 'stay_connected', 'join_cta', 'Nous écrire');
 
   return (
     <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
@@ -166,7 +231,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                     <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">
                       {marathon.period}
                     </p>
-                    <p className="person-role mt-6">Thème</p>
+                    <p className="person-role mt-6">{marathon.themeLabel}</p>
                     <p className="mt-2 font-serif text-xl italic leading-snug text-cream sm:text-2xl">
                       « {marathon.theme} »
                     </p>
@@ -175,21 +240,21 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                     </p>
                     <dl className="mt-8 grid gap-4 sm:grid-cols-2">
                       <div>
-                        <dt className="person-role">Horaires</dt>
+                        <dt className="person-role">{marathon.hoursLabel}</dt>
                         <dd className="mt-2 text-sm leading-relaxed text-muted">{marathon.hours}</dd>
                       </div>
                       <div>
-                        <dt className="person-role">Lieu</dt>
+                        <dt className="person-role">{marathon.locationLabel}</dt>
                         <dd className="mt-2 text-sm leading-relaxed text-muted">{CHURCH.address.full}</dd>
                       </div>
                     </dl>
                   </div>
                   <div className="flex flex-wrap gap-3">
                     <button onClick={() => onNavigate('blog')} className="btn-primary">
-                      Lire l'annonce <ArrowRight className="h-4 w-4" />
+                      {marathon.ctaPrimary} <ArrowRight className="h-4 w-4" />
                     </button>
                     <button onClick={() => onNavigate('contact')} className="btn-ghost">
-                      Poser une question
+                      {marathon.ctaSecondary}
                     </button>
                   </div>
                 </div>
@@ -215,44 +280,51 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
             <RevealSection>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="section-label">Calendrier</p>
-                  <h2 className="section-title mt-4">Prochains rendez-vous</h2>
+                  <p className="section-label">{calendarLabel}</p>
+                  <h2 className="section-title mt-4">{calendarTitle}</h2>
                 </div>
-                <div className="relative w-full sm:w-72">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-                  <label htmlFor="events-search" className="sr-only">Rechercher un événement</label>
-                  <input
-                    id="events-search"
-                    type="text"
-                    placeholder="Rechercher un événement…"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="input-surface w-full py-2.5 pl-10 pr-4 text-sm"
-                  />
-                </div>
+                {showFilters && (
+                  <div className="relative w-full sm:w-72">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                    <label htmlFor="events-search" className="sr-only">{searchPlaceholder}</label>
+                    <input
+                      id="events-search"
+                      type="text"
+                      placeholder={searchPlaceholder}
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="input-surface w-full py-2.5 pl-10 pr-4 text-sm"
+                    />
+                  </div>
+                )}
               </div>
               <div className="rule-accent mt-6" />
 
-              <div className="mt-5 flex flex-wrap gap-2">
-                {CATEGORIES.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setActiveCategory(cat)}
-                    aria-pressed={activeCategory === cat}
-                    className={`border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
-                      activeCategory === cat
-                        ? 'border-evangile-600 bg-evangile-600 text-white'
-                        : 'border-line text-muted hover:border-evangile-600 hover:text-evangile-600'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              {showFilters && (
+                <div className="mt-5 flex flex-wrap gap-2">
+                  {categories.map((cat) => {
+                    const isActive = activeCategory === cat || (activeCategory === null && cat === categories[0]);
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat === categories[0] ? null : cat)}
+                        aria-pressed={isActive}
+                        className={`border px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] transition-colors ${
+                          isActive
+                            ? 'border-evangile-600 bg-evangile-600 text-white'
+                            : 'border-line text-muted hover:border-evangile-600 hover:text-evangile-600'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </RevealSection>
 
             {error && (
-              <div className="mt-8 border border-line bg-bg-card px-5 py-4 text-sm text-muted">{error}</div>
+              <div className="mt-8 border border-line bg-bg-card px-5 py-4 text-sm text-muted">{agendaError}</div>
             )}
 
             {loading ? (
@@ -294,7 +366,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
                           <span className="relative mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-evangile-600">{month}</span>
                           {event.is_live && (
                             <span className="relative mt-3 inline-flex w-fit items-center gap-1.5 bg-evangile-600 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white">
-                              En direct
+                              {liveBadge}
                             </span>
                           )}
                         </div>
@@ -324,10 +396,9 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
               <RevealSection className="mt-10">
                 <div className="border border-dashed border-line px-6 py-10 text-center">
                   <Calendar className="mx-auto h-8 w-8 text-muted/50" />
-                  <p className="mt-4 text-sm text-muted">
-                    Aucun événement supplémentaire n'est annoncé pour le moment.
-                    <br className="hidden sm:block" />
-                    Les rendez-vous hebdomadaires ont lieu chaque semaine, sans inscription.
+                  <p className="mt-4 text-sm leading-relaxed text-muted">
+                    <span className="block">{emptyTitle}</span>
+                    <span className="mt-1 block">{emptyText}</span>
                   </p>
                 </div>
               </RevealSection>
@@ -339,11 +410,11 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
         <section className="border-y border-line bg-bg-card px-4 py-16 md:py-24">
           <div className="mx-auto max-w-7xl">
             <RevealSection>
-              <p className="section-label">Chaque semaine</p>
-              <h2 className="section-title mt-4">Cultes hebdomadaires</h2>
+              <p className="section-label">{weeklyLabel}</p>
+              <h2 className="section-title mt-4">{weeklyTitle}</h2>
               <div className="rule-accent mt-6" />
               <p className="mt-6 max-w-xl text-sm leading-relaxed text-muted">
-                Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle. Entrée libre.
+                {weeklyDescription}
               </p>
             </RevealSection>
 
@@ -362,7 +433,7 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
             <RevealSection className="mt-8">
               <button onClick={() => onNavigate('activities')} className="btn-link">
-                Tout savoir sur les cultes <ArrowRight className="h-4 w-4" />
+                {weeklyCta} <ArrowRight className="h-4 w-4" />
               </button>
             </RevealSection>
           </div>
@@ -374,11 +445,10 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
             <div className="grid gap-px bg-line lg:grid-cols-2">
               <RevealSection>
                 <div className="h-full bg-bg-card p-8 md:p-10">
-                  <p className="section-eyebrow">Rester informé</p>
-                  <h2 className="card-title mt-3 text-[1.75rem]">Suivez la vie de l'église</h2>
+                  <p className="section-eyebrow">{newsLabel}</p>
+                  <h2 className="card-title mt-3 text-[1.75rem]">{newsTitle}</h2>
                   <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
-                    Les annonces, communiqués et changements de programme sont publiés en premier sur nos canaux
-                    officiels. Aucune inscription n'est nécessaire.
+                    {newsText}
                   </p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <a href={CHURCH.social.facebook} target="_blank" rel="noopener noreferrer" className="btn-primary">
@@ -393,17 +463,17 @@ export function EventsPage({ onNavigate }: EventsPageProps) {
 
               <RevealSection className="reveal-delay-1">
                 <div className="h-full bg-bg-card p-8 md:p-10">
-                  <p className="section-eyebrow">Nous rejoindre</p>
-                  <h2 className="card-title mt-3 text-[1.75rem]">Une question sur un événement ?</h2>
+                  <p className="section-eyebrow">{joinLabel}</p>
+                  <h2 className="card-title mt-3 text-[1.75rem]">{joinTitle}</h2>
                   <p className="mt-4 max-w-md text-sm leading-relaxed text-muted">
-                    Le bureau pastoral répond du lundi au vendredi, de 10h à 18h00, au{' '}
+                    {joinText}{' '}
                     <a href={CHURCH.phone.href} className="font-semibold text-cream underline decoration-evangile-600 decoration-2 underline-offset-4">
                       {CHURCH.phone.display}
                     </a>.
                   </p>
                   <div className="mt-6">
                     <button onClick={() => onNavigate('contact')} className="btn-ghost">
-                      Nous écrire <ArrowRight className="h-4 w-4" />
+                      {joinCta} <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
                 </div>

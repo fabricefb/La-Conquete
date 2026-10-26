@@ -605,6 +605,35 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .reveal-delay-3 { transition-delay: 0.3s; }
   .reveal-delay-4 { transition-delay: 0.4s; }
 
+  /* ─── Entrée en cascade des textes à l'intérieur des blocs révélés ───
+     Quand un bloc .reveal devient visible, ses textes montent en fondu
+     l'un après l'autre. Les éléments qui gèrent leur propre opacité
+     (survol, hints) sont exclus via [class*="opacity"]. */
+  @keyframes text-in {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes rule-in {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+  .reveal.in :is(.section-label, .section-eyebrow) {
+    animation: text-in 0.7s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  }
+  .reveal.in :is(.section-title, .card-title, h3) {
+    animation: text-in 0.8s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.08s both;
+  }
+  .reveal.in .rule-accent {
+    transform-origin: left center;
+    animation: rule-in 0.9s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.1s both;
+  }
+  .reveal.in p:not([class*="opacity"]) {
+    animation: text-in 0.75s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.16s both;
+  }
+  .reveal.in :is(.btn-primary, .btn-ghost, .btn-link) {
+    animation: text-in 0.7s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) 0.22s both;
+  }
+
   /* ─── Keyframe Animations ─── */
   .animate-fade-up   { animation: fadeUp 1s cubic-bezier(0.22,1,0.36,1) forwards; }
   .animate-fade-in   { animation: fadeIn 0.8s ease-out forwards; }
