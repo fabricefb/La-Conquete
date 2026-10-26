@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { db, buildSettingsMap } from '../lib/supabase';
+import { db, buildSettingsMap, buildContentMap, getContent } from '../lib/supabase';
 import type { Location } from '../types';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -9,7 +9,7 @@ import { SiteFooter } from '../components/SiteFooter';
 import { MobileNav } from '../components/MobileNav';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { UniversalHero } from '../components/UniversalHero';
-import { MapPin, Phone, Mail, Globe, Send, Navigation } from '../lib/icons';
+import { MapPin, Phone, Mail, Globe, Send, Navigation, ArrowRight } from '../lib/icons';
 import { SERVICE_TIMES } from '../lib/services';
 import { CHURCH, churchSetting } from '../lib/church';
 import { IconBox } from '../components/IconBox';
@@ -55,6 +55,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
 
   // ── Data state ─────────────────────────────────────────────────
   const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
+  const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [locations, setLocations] = useState<Location[]>([]);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
@@ -128,12 +129,93 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
     };
   }, []);
 
+  // ── Fetch page content (Autres pages → Contact) ────────────────
+  useEffect(() => {
+    let cancelled = false;
+
+    db.getPageContents('contact')
+      .then((rows) => {
+        if (!cancelled) setContentMap(buildContentMap(rows));
+      })
+      .catch(() => {
+        // Les fallbacks ci-dessous gardent la page lisible
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // ── Derived values — réglage admin prioritaire, sinon source unique ──
   const phone = churchSetting(settingsMap, 'phone', CHURCH.phone.display);
   const phoneHref = settingsMap['phone'] ? `tel:${phone.replace(/[^+\d]/g, '')}` : CHURCH.phone.href;
   const email = churchSetting(settingsMap, 'email', CHURCH.email);
   const address = churchSetting(settingsMap, 'address', CHURCH.address.street);
   const city = churchSetting(settingsMap, 'city', CHURCH.address.city);
+
+  // ── Textes pilotés au back-office ─────────────────────────────
+  const infoLabel = getContent(contentMap, 'info', 'label', 'Nous joindre');
+  const infoTitle = getContent(contentMap, 'info', 'title', 'Nos coordonnées');
+  const addressLabel = getContent(contentMap, 'info', 'address_label', 'Adresse');
+  const infoPhoneLabel = getContent(contentMap, 'info', 'phone_label', 'Téléphone');
+  const infoEmailLabel = getContent(contentMap, 'info', 'email_label', 'Email');
+  const officeLabel = getContent(contentMap, 'info', 'office_label', 'Bureau pastoral');
+  const officeText = getContent(
+    contentMap,
+    'info',
+    'office_text',
+    'Le bureau pastoral répond du lundi au vendredi, de 10h à 18h00.',
+  );
+
+  const formLabel = getContent(contentMap, 'form', 'heading_label', 'Nous écrire');
+  const formTitle = getContent(contentMap, 'form', 'heading_title', 'Envoyez-nous un message');
+  const formDescription = getContent(
+    contentMap,
+    'form',
+    'description',
+    'Les champs marqués d’un astérisque sont obligatoires.',
+  );
+  const visitorLabel = getContent(contentMap, 'form', 'visitor_label', 'Vous êtes');
+  const nameLabel = getContent(contentMap, 'form', 'name_label', 'Nom complet');
+  const formPhoneLabel = getContent(contentMap, 'form', 'phone_label', 'Téléphone');
+  const formEmailLabel = getContent(contentMap, 'form', 'email_label', 'Adresse email');
+  const subjectLabel = getContent(contentMap, 'form', 'subject_label', 'Sujet');
+  const subjectPlaceholder = getContent(contentMap, 'form', 'subject_placeholder', 'Décrivez votre sujet…');
+  const messageLabel = getContent(contentMap, 'form', 'message_label', 'Message');
+  const messagePlaceholder = getContent(contentMap, 'form', 'message_placeholder', 'Votre message…');
+  const submitText = getContent(contentMap, 'form', 'submit_text', 'Envoyer');
+  const sendingText = getContent(contentMap, 'form', 'sending_text', 'Envoi…');
+  const successTitle = getContent(contentMap, 'form', 'success_title', 'Message envoyé');
+  const successText = getContent(
+    contentMap,
+    'form',
+    'success_text',
+    'Nous vous répondrons dans les plus brefs délais.',
+  );
+  const anotherText = getContent(contentMap, 'form', 'another_text', 'Envoyer un autre message');
+  const subjectSuggestions = getContent(contentMap, 'form', 'subject_suggestions', SUBJECT_SUGGESTIONS.join(', '))
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const servicesLabel = getContent(contentMap, 'services', 'heading_label', 'Horaires');
+  const servicesTitle = getContent(contentMap, 'services', 'heading_title', 'Nos cultes');
+  const servicesDescription = getContent(
+    contentMap,
+    'services',
+    'description',
+    'Des rendez-vous réguliers pour grandir dans la foi et la communion fraternelle. Entrée libre.',
+  );
+  const todayLabel = getContent(contentMap, 'services', 'today_label', "Aujourd'hui");
+  const servicesCta = getContent(contentMap, 'services', 'cta_text', 'Voir tous les rendez-vous');
+
+  const mapLabel = getContent(contentMap, 'map', 'label', 'Nous trouver');
+  const mapTitle = getContent(contentMap, 'map', 'title', 'Nos lieux de culte');
+  const mapDescription = getContent(contentMap, 'map', 'description', '');
+  const directionsText = getContent(contentMap, 'map', 'cta_text', 'Itinéraire');
+
+  const socialLabel = getContent(contentMap, 'social', 'heading_label', 'Réseaux sociaux');
+  const todayWeekday = new Date(Date.now() + 120 * 60000).getUTCDay();
 
   // ── Form submission ────────────────────────────────────────────
   const handleSubmit = useCallback(
@@ -177,6 +259,55 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       {/* ─── HERO ─── */}
       <UniversalHero pageKey="contact" defaultBadge="Contactez-nous" defaultTitle="Contact" defaultSubtitle="Que vous ayez une question, un témoignage ou souhaitiez en savoir plus, nous sommes là pour vous." />
 
+      {/* ─── ACCÈS RAPIDE ─── */}
+      <section className="border-b border-line bg-bg-card" aria-label="Accès rapide">
+        <div className="mx-auto grid max-w-7xl gap-px bg-line sm:grid-cols-3">
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${address}, ${city}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group flex items-start gap-4 bg-bg-card p-5 transition-colors hover:bg-bg-elevated sm:p-6"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600 transition-colors group-hover:border-evangile-600">
+              <MapPin className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="person-role">{addressLabel}</span>
+              <span className="mt-1.5 block truncate text-sm font-medium text-cream">{address}</span>
+              <span className="mt-0.5 block text-xs text-muted">
+                {city} · {directionsText}
+              </span>
+            </span>
+          </a>
+
+          <a
+            href={phoneHref}
+            className="group flex items-start gap-4 bg-bg-card p-5 transition-colors hover:bg-bg-elevated sm:p-6"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600 transition-colors group-hover:border-evangile-600">
+              <Phone className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="person-role">{infoPhoneLabel}</span>
+              <span className="mt-1.5 block text-sm font-medium text-cream">{phone}</span>
+            </span>
+          </a>
+
+          <a
+            href={`mailto:${email}`}
+            className="group flex items-start gap-4 bg-bg-card p-5 transition-colors hover:bg-bg-elevated sm:p-6"
+          >
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-line text-evangile-600 transition-colors group-hover:border-evangile-600">
+              <Mail className="h-4 w-4" />
+            </span>
+            <span className="min-w-0">
+              <span className="person-role">{infoEmailLabel}</span>
+              <span className="mt-1.5 block break-all text-sm font-medium text-cream">{email}</span>
+            </span>
+          </a>
+        </div>
+      </section>
+
       {/* ─── CONTACT INFO + FORM ─── */}
       <section className="py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -186,8 +317,8 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             <RevealSection className="lg:col-span-2">
               <div className="flex flex-col gap-6">
                 <div>
-                  <p className="section-label">Nous joindre</p>
-                  <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">Nos coordonnées</h2>
+                  <p className="section-label">{infoLabel}</p>
+                  <h2 className="section-title mt-4 text-[clamp(1.8rem,3.4vw,2.5rem)]">{infoTitle}</h2>
                   <div className="rule-accent mt-5" />
                 </div>
 
@@ -197,7 +328,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       <MapPin className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="person-role">Adresse</p>
+                      <p className="person-role">{addressLabel}</p>
                       <p className="mt-2 text-sm leading-relaxed text-cream">{address}, {city}</p>
                       <p className="mt-1 text-xs text-muted">{CHURCH.address.landmark} · {CHURCH.address.country}</p>
                     </div>
@@ -208,7 +339,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       <Phone className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="person-role">Téléphone</p>
+                      <p className="person-role">{infoPhoneLabel}</p>
                       <a href={phoneHref} className="mt-2 block text-sm text-cream transition-colors hover:text-evangile-600">
                         {phone}
                       </a>
@@ -220,7 +351,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       <Mail className="h-4 w-4" />
                     </IconBox>
                     <div>
-                      <p className="person-role">Email</p>
+                      <p className="person-role">{infoEmailLabel}</p>
                       <a href={`mailto:${email}`} className="mt-2 block break-all text-sm text-cream transition-colors hover:text-evangile-600">
                         {email}
                       </a>
@@ -228,10 +359,22 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   </div>
                 </div>
 
+                <div className="panel p-5">
+                  <p className="person-role">{officeLabel}</p>
+                  <p className="mt-2 text-sm leading-relaxed text-muted">{officeText}</p>
+                  <a
+                    href={phoneHref}
+                    className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-cream transition-colors hover:text-evangile-600"
+                  >
+                    <Phone className="h-3.5 w-3.5 text-evangile-600" />
+                    {phone}
+                  </a>
+                </div>
+
                 {/* Social links */}
                 {SOCIAL_LINKS.some((s) => settingsMap[s.key] || s.fallbackHref) && (
                   <div>
-                    <p className="person-role">Réseaux sociaux</p>
+                    <p className="person-role">{socialLabel}</p>
                     <div className="mt-3 flex flex-wrap items-center gap-px bg-line">
                       {SOCIAL_LINKS.map(({ key, label, fallbackHref, IconComponent }) => {
                         const href = settingsMap[key] || fallbackHref;
@@ -258,9 +401,11 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
             {/* ─── RIGHT: Contact form ─── */}
             <RevealSection className="lg:col-span-3 reveal-delay-1">
               <div className="panel p-6 md:p-8">
-                <h2 className="card-title">
-                  Envoyez-nous un message
-                </h2>
+                <p className="section-label">{formLabel}</p>
+                <h2 className="section-title mt-3 text-[clamp(1.8rem,3.4vw,2.5rem)]">{formTitle}</h2>
+                {formDescription && (
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted">{formDescription}</p>
+                )}
                 <div className="rule mt-5 mb-6" />
 
                 {sent ? (
@@ -269,16 +414,14 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       <Send className="h-6 w-6" />
                     </div>
                     <h3 className="section-title text-[clamp(1.6rem,3vw,2.25rem)]">
-                      Message envoyé
+                      {successTitle}
                     </h3>
-                    <p className="mt-2 text-muted">
-                      Nous vous répondrons dans les plus brefs délais.
-                    </p>
+                    <p className="mt-2 text-muted">{successText}</p>
                     <button
                       onClick={() => setSent(false)}
                       className="btn-ghost mt-6 text-sm px-5 py-2.5"
                     >
-                      Envoyer un autre message
+                      {anotherText}
                     </button>
                   </div>
                 ) : (
@@ -286,7 +429,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {/* Type de visiteur */}
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Vous êtes <span className="text-accent-400">*</span>
+                        {visitorLabel} <span className="text-accent-400">*</span>
                       </label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
@@ -314,20 +457,20 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
-                          Nom complet <span className="text-accent-400">*</span>
+                          {nameLabel} <span className="text-accent-400">*</span>
                         </label>
                         <input
                           type="text"
                           required
                           value={form.name}
                           onChange={(e) => updateField('name', e.target.value)}
-                          placeholder="Jean Dupont"
+                          placeholder="Votre nom et prénom"
                           className="input-surface w-full px-4 py-3 text-sm"
                         />
                       </div>
                       <div>
                         <label className="mb-1.5 block text-xs font-medium text-muted">
-                          Téléphone <span className="text-accent-400">*</span>
+                          {formPhoneLabel} <span className="text-accent-400">*</span>
                         </label>
                         <input
                           type="tel"
@@ -341,7 +484,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     </div>
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Adresse email <span className="text-muted/50">(optionnel)</span>
+                        {formEmailLabel} <span className="text-muted/50">(optionnel)</span>
                       </label>
                       <input
                         type="email"
@@ -354,10 +497,10 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                     {/* Sujets suggérés */}
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Sujet <span className="text-accent-400">*</span>
+                        {subjectLabel} <span className="text-accent-400">*</span>
                       </label>
                       <div className="flex flex-wrap gap-2 mb-2">
-                        {SUBJECT_SUGGESTIONS.map(s => (
+                        {subjectSuggestions.map(s => (
                           <button
                             key={s}
                             type="button"
@@ -384,21 +527,21 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                               setForm(f => ({ ...f, customSubject: e.target.value }));
                             }
                           }}
-                          placeholder="Décrivez votre sujet..."
+                          placeholder={subjectPlaceholder}
                           className="input-surface w-full px-4 py-3 text-sm"
                         />
                       )}
                     </div>
                     <div>
                       <label className="mb-1.5 block text-xs font-medium text-muted">
-                        Message <span className="text-accent-400">*</span>
+                        {messageLabel} <span className="text-accent-400">*</span>
                       </label>
                       <textarea
                         required
                         rows={4}
                         value={form.message}
                         onChange={(e) => updateField('message', e.target.value)}
-                        placeholder="Votre message…"
+                        placeholder={messagePlaceholder}
                         className="input-surface w-full resize-none px-4 py-3 text-sm"
                       />
                     </div>
@@ -412,7 +555,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                       ) : (
                         <Send className="h-4 w-4" />
                       )}
-                      {sending ? 'Envoi…' : 'Envoyer'}
+                      {sending ? sendingText : submitText}
                     </button>
                   </form>
                 )}
@@ -425,22 +568,44 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       {/* ─── SERVICE TIMES ─── */}
       <section className="border-y border-line bg-bg-card py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <RevealSection className="mb-12">
-            <p className="section-label">Horaires</p>
-            <h2 className="section-title mt-4">Nos cultes</h2>
-            <div className="rule-accent mt-6" />
+          <RevealSection className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="section-label">{servicesLabel}</p>
+              <h2 className="section-title mt-4">{servicesTitle}</h2>
+              {servicesDescription && (
+                <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">{servicesDescription}</p>
+              )}
+              <div className="rule-accent mt-6" />
+            </div>
+            <button
+              onClick={() => onNavigate('events')}
+              className="btn-ghost shrink-0 self-start px-5 py-3 text-sm sm:self-auto"
+            >
+              {servicesCta}
+              <ArrowRight className="h-4 w-4" />
+            </button>
           </RevealSection>
           <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-4">
-            {SERVICE_TIMES.map(({ day, service, time }, i) => (
-              <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
-                <div className="h-full bg-bg-card p-6">
-                  <span className="block h-1 w-10 bg-evangile-600" />
-                  <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-evangile-600">{day}</p>
-                  <h3 className="card-title mt-3">{service}</h3>
-                  <p className="mt-2 text-sm text-muted">{time}</p>
-                </div>
-              </RevealSection>
-            ))}
+            {SERVICE_TIMES.map(({ day, service, time, weekday }, i) => {
+              const isToday = weekday === todayWeekday;
+              return (
+                <RevealSection key={day} className={`reveal-delay-${i + 1}`}>
+                  <div className={`h-full p-6 ${isToday ? 'bg-bg-elevated' : 'bg-bg-card'}`}>
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="block h-1 w-10 bg-evangile-600" />
+                      {isToday && (
+                        <span className="border border-evangile-600 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-evangile-600">
+                          {todayLabel}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.24em] text-evangile-600">{day}</p>
+                    <h3 className="card-title mt-3">{service}</h3>
+                    <p className="mt-2 text-sm text-muted">{time}</p>
+                  </div>
+                </RevealSection>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -449,8 +614,11 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
       <section className="py-12 md:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <RevealSection className="mb-12">
-            <p className="section-label">Nous trouver</p>
-            <h2 className="section-title mt-4">Nos lieux de culte</h2>
+            <p className="section-label">{mapLabel}</p>
+            <h2 className="section-title mt-4">{mapTitle}</h2>
+            {mapDescription && (
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted">{mapDescription}</p>
+            )}
             <div className="rule-accent mt-6" />
           </RevealSection>
 
@@ -542,7 +710,7 @@ export function ContactPage({ onNavigate }: ContactPageProps) {
                   className="btn-ghost shrink-0 px-5 py-3 text-sm"
                 >
                   <Navigation className="h-4 w-4" />
-                  Itinéraire
+                  {directionsText}
                 </a>
               </div>
             </RevealSection>
