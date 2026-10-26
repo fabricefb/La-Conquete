@@ -1,3 +1,12 @@
 name = "la-conquete"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-12-01"
+
+# Variables lues a l execution par les Pages Functions (functions/api/*).
+# Cle anon publique : elle est de toute facon integree au bundle JavaScript.
+# Secret (ex. DEPLOY_HOOK_URL) : tableau de bord > Secrets, ou via wrangler pages secret put.
+[vars]
+VITE_SUPABASE_URL = "https://yltlpljqhjnescqufibx.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsdGxwbGpxaGpuZXNjcXVmaWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMjczMDcsImV4cCI6MjA5MjYwMzMwN30.PJ-U_eT5QASuL6nGePofht-b1v6sYvskLGRZ6wJUZ2c"
+SUPABASE_URL = "https://yltlpljqhjnescqufibx.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsdGxwbGpxaGpuZXNjcXVmaWJ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcwMjczMDcsImV4cCI6MjA5MjYwMzMwN30.PJ-U_eT5QASuL6nGePofht-b1v6sYvskLGRZ6wJUZ2c"
