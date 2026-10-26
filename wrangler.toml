@@ -2,6 +2,9 @@ name = "la-conquete"
 pages_build_output_dir = "dist"
 compatibility_date = "2024-12-01"
 
+# Build Git (Cloudflare Pages) : commande `npm run build`, sortie `dist`, racine `/`.
+# Node 22 (voir .node-version). Les VITE_* ci-dessous alimentent aussi le build
+# quand .env.production est absent (voir vite.config.ts).
 # Variables lues a l execution par les Pages Functions (functions/api/*).
 # Cle anon publique : elle est de toute facon integree au bundle JavaScript.
 # Secret (ex. DEPLOY_HOOK_URL) : tableau de bord > Secrets, ou via wrangler pages secret put.
