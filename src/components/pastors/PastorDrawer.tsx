@@ -2,11 +2,12 @@ import { useEffect, useRef } from 'react';
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, X } from '../../lib/icons';
 import { imageSrcSet } from '../../lib/images';
 import { initials, isExternal, linkLabel, pastorLinks } from '../../lib/pastors';
-import type { Pastor } from '../../types';
+import type { Pastor, PastorItem } from '../../types';
 
 interface PastorDrawerProps {
   pastor: Pastor | null;
   all: Pastor[];
+  items: PastorItem[];
   onClose: () => void;
   onOpen: (pastor: Pastor) => void;
   onFull: (pastor: Pastor) => void;
@@ -15,7 +16,7 @@ interface PastorDrawerProps {
 
 /* Tiroir de fiche : la page reste visible mais floutée derrière, seul un
    résumé du pasteur choisi est proposé avec un accès au dossier complet. */
-export function PastorDrawer({ pastor, all, onClose, onOpen, onFull, onContact }: PastorDrawerProps) {
+export function PastorDrawer({ pastor, all, items, onClose, onOpen, onFull, onContact }: PastorDrawerProps) {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const open = !!pastor;
@@ -50,6 +51,11 @@ export function PastorDrawer({ pastor, all, onClose, onOpen, onFull, onContact }
   const next = all.length > 1 ? all[(index + 1) % all.length] : null;
   const links = pastorLinks(pastor);
   const summary = (pastor.bio || pastor.extended_bio || '').trim();
+  const counts = [
+    { n: items.filter((i) => i.kind === 'predication').length, label: 'prédication' },
+    { n: items.filter((i) => i.kind === 'article').length, label: 'article' },
+    { n: items.filter((i) => i.kind === 'photo' && i.image_url).length, label: 'photo' },
+  ].filter((count) => count.n > 0);
 
   return (
     <dialog
@@ -94,6 +100,11 @@ export function PastorDrawer({ pastor, all, onClose, onOpen, onFull, onContact }
               {pastor.name}
             </h2>
             {pastor.role && <p className="person-role mt-2 text-white/60">{pastor.role}</p>}
+            {counts.length > 0 && (
+              <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.18em] text-white/45">
+                {counts.map((c) => `${c.n} ${c.label}${c.n > 1 ? 's' : ''}`).join(' · ')}
+              </p>
+            )}
           </div>
         </div>
 

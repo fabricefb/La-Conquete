@@ -98,3 +98,33 @@ export function mediaHost(url: string): string {
     return url;
   }
 }
+
+/* ── Répertoires de fiche : prédications, articles, galerie ───────── */
+
+export function youtubeVideoId(url: string): string | null {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/i);
+  return match ? match[1] : null;
+}
+
+export function itemSourceLabel(url: string): string {
+  if (!url) return '';
+  if (url.startsWith('#')) return 'Sur le site';
+  const host = mediaHost(url);
+  if (/youtu\.?be/.test(host)) return 'YouTube';
+  if (/facebook/.test(host)) return 'Facebook';
+  if (/instagram/.test(host)) return 'Instagram';
+  return host;
+}
+
+export function itemThumbnail(item: { image_url: string; url: string }): string | null {
+  if (item.image_url && item.image_url.trim()) return item.image_url;
+  const id = youtubeVideoId(item.url);
+  return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : null;
+}
+
+export function formatItemDate(value: string | null): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}

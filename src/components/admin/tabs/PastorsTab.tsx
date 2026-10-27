@@ -2,9 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
-import { Plus, Trash2, Save, X, Edit3, Loader2, Star, StarOff, Image, ChevronDown, ChevronRight, Video, ExternalLink, Globe, Phone, Mail, Music } from 'lucide-react';
+import { Plus, Trash2, Save, X, Edit3, Loader2, Star, StarOff, Image, ChevronDown, ChevronRight, Video, ExternalLink, Globe, Phone, Mail, Music, FileText, Library } from 'lucide-react';
 import ImageUpload from '../ImageUpload';
-import type { PastorSocialLinks } from '../../../types';
+import type { PastorSocialLinks, PastorItem } from '../../../types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -49,6 +49,223 @@ const SOCIAL_FIELDS: { key: keyof PastorSocialLinks; label: string; icon: typeof
 ];
 
 // ---------------------------------------------------------------------------
+// Répertoires : prédications, articles et galerie de chaque pasteur
+// ---------------------------------------------------------------------------
+
+const ITEM_KINDS: {
+  kind: PastorItem['kind'];
+  label: string;
+  hint: string;
+  Icon: typeof Globe;
+}[] = [
+  {
+    kind: 'predication',
+    label: 'Prédications',
+    hint: 'Lien vers une vidéo ou une playlist YouTube / Facebook.',
+    Icon: Video,
+  },
+  {
+    kind: 'article',
+    label: 'Articles',
+    hint: 'Adresse interne #blog/slug ou lien externe.',
+    Icon: FileText,
+  },
+  {
+    kind: 'photo',
+    label: 'Galerie',
+    hint: 'Photos ajoutées une par une, avec une légende courte.',
+    Icon: Image,
+  },
+];
+
+interface RepositoryGroupProps {
+  pastorId: string;
+  kind: PastorItem['kind'];
+  label: string;
+  hint: string;
+  Icon: typeof Globe;
+  list: PastorItem[];
+  canEdit: boolean;
+  addToast: (message: string, type: 'success' | 'error') => void;
+  onChanged: () => Promise<void>;
+}
+
+function RepositoryGroup({ pastorId, kind, label, hint, Icon, list, canEdit, addToast, onChanged }: RepositoryGroupProps) {
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [title, setTitle] = useState('');
+  const [url, setUrl] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  const [date, setDate] = useState('');
+  const [description, setDescription] = useState('');
+
+  function reset() {
+    setOpen(false);
+    setTitle('');
+    setUrl('');
+    setImageUrl('');
+    setDate('');
+    setDescription('');
+  }
+
+  async function handleAdd() {
+    if (kind === 'photo' ? !imageUrl.trim() : !url.trim()) {
+      addToast(kind === 'photo' ? 'Ajoutez une photo' : 'Le lien est obligatoire', 'error');
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('pastor_items').insert({
+        pastor_id: pastorId,
+        kind,
+        title: title.trim(),
+        url: kind === 'photo' ? '' : url.trim(),
+        image_url: imageUrl.trim(),
+        description: description.trim(),
+        // Midi local : évite de basculer la date au jour précédent en UTC.
+        published_at: date ? new Date(`${date}T12:00:00`).toISOString() : null,
+        sort_order: list.length,
+        is_active: true,
+      });
+      if (error) throw error;
+      addToast('Élément ajouté au répertoire', 'success');
+      reset();
+      await onChanged();
+    } catch {
+      addToast('Erreur d\'ajout', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('Retirer cet élément du répertoire ?')) return;
+    try {
+      const { error } = await supabase.from('pastor_items').delete().eq('id', id);
+      if (error) throw error;
+      addToast('Élément retiré', 'success');
+      await onChanged();
+    } catch {
+      addToast('Erreur de suppression', 'error');
+    }
+  }
+
+  return (
+    <div className="rounded-xl border border-line bg-white/[0.02] p-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <Icon className="h-3.5 w-3.5 shrink-0 text-muted" />
+          <span className="text-xs font-semibold uppercase tracking-widest text-cream">{label}</span>
+          <span className="text-[10px] text-muted">{list.length}</span>
+        </div>
+        {canEdit && (
+          <button
+            onClick={() => (open ? reset() : setOpen(true))}
+            className="flex shrink-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-widest text-accent-400 transition hover:text-cream"
+          >
+            {open ? <X className="h-3 w-3" /> : <Plus className="h-3 w-3" />}
+            {open ? 'Fermer' : 'Ajouter'}
+          </button>
+        )}
+      </div>
+      <p className="mt-1 text-[10px] leading-relaxed text-muted/70">{hint}</p>
+
+      {list.length > 0 && (
+        <ul className="mt-3 space-y-1">
+          {list.map((item) => (
+            <li key={item.id} className="flex items-center gap-2 rounded-lg bg-white/5 px-2 py-1.5">
+              {kind === 'photo' && item.image_url && (
+                <img src={item.image_url} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs text-cream/85">
+                  {item.title || (kind === 'photo' ? 'Photo' : item.url)}
+                </p>
+                {item.published_at && (
+                  <p className="text-[10px] text-muted">
+                    {new Date(item.published_at).toLocaleDateString('fr-FR')}
+                  </p>
+                )}
+              </div>
+              {kind !== 'photo' && item.url && (
+                <a
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted transition hover:text-cream"
+                  aria-label="Ouvrir le lien"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
+              {canEdit && (
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="text-muted transition hover:text-ember-400"
+                  aria-label="Retirer du répertoire"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {open && (
+        <div className="mt-3 space-y-2 border-t border-line pt-3">
+          {kind === 'photo' ? (
+            <ImageUpload value={imageUrl} onChange={setImageUrl} folder="pastors" label="Photo" compact />
+          ) : (
+            <>
+              <input
+                type="url"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder={kind === 'predication' ? 'https://www.youtube.com/watch?v=… ou playlist' : '#blog/slug ou https://…'}
+                className="input-surface w-full px-3 py-2 text-xs"
+              />
+              <ImageUpload value={imageUrl} onChange={setImageUrl} folder="pastors" label="Vignette (facultatif)" compact />
+            </>
+          )}
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={kind === 'photo' ? 'Légende de la photo' : 'Titre'}
+            className="input-surface w-full px-3 py-2 text-xs"
+          />
+          <div className="grid gap-2 sm:grid-cols-2">
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="input-surface w-full px-3 py-2 text-xs"
+            />
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Description courte (facultatif)"
+              className="input-surface w-full px-3 py-2 text-xs"
+            />
+          </div>
+          <div className="flex justify-end gap-2">
+            <button onClick={reset} className="rounded-lg border border-line px-3 py-1.5 text-xs text-muted transition hover:text-cream">
+              Annuler
+            </button>
+            <button onClick={handleAdd} disabled={saving} className="btn-gold flex items-center gap-1.5 px-3 py-1.5 text-xs">
+              {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+              Ajouter
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -66,6 +283,8 @@ export function PastorsTab() {
   // Les colonnes famille/ministère n'existent qu'après le script 29 :
   // on sonde une fois pour éviter une sauvegarde en erreur.
   const [hasProfileFields, setHasProfileFields] = useState(false);
+  const [items, setItems] = useState<PastorItem[]>([]);
+  const [hasItemsTable, setHasItemsTable] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -86,6 +305,10 @@ export function PastorsTab() {
         family: supported ? (p.family || '') : '',
         ministry: supported ? (p.ministry || '') : '',
       })));
+
+      const repo = await supabase.from('pastor_items').select('*').order('sort_order');
+      setHasItemsTable(!repo.error);
+      setItems(repo.error ? [] : ((repo.data ?? []) as PastorItem[]));
     } catch {
       addToast('Erreur de chargement', 'error');
     } finally {
@@ -364,8 +587,10 @@ export function PastorsTab() {
           {pastors.map((p) => {
             const isExpanded = expandedId === p.id;
             const socials = p.social_links || {};
+            const pastorItems = items.filter((item) => item.pastor_id === p.id);
             const hasDetails = p.extended_bio || p.video_url || p.thought ||
-              Object.values(socials).some(Boolean) || (p.media_urls && p.media_urls.length > 0);
+              Object.values(socials).some(Boolean) || (p.media_urls && p.media_urls.length > 0) ||
+              pastorItems.length > 0 || (hasItemsTable && isFullAdmin);
 
             return (
               <div key={p.id} className="glass rounded-2xl overflow-hidden transition-all duration-200 hover:bg-white/[0.02]">
@@ -404,6 +629,7 @@ export function PastorsTab() {
                       {socials.whatsapp && <span className="text-[10px] text-green-400">WhatsApp</span>}
                       {p.video_url && <span className="text-[10px] text-purple-400">Vidéo</span>}
                       {p.media_urls?.length > 0 && <span className="text-[10px] text-cyan-400">{p.media_urls.length} média(s)</span>}
+                      {pastorItems.length > 0 && <span className="text-[10px] text-accent-400">{pastorItems.length} répertoire(s)</span>}
                     </div>
                   </div>
 
@@ -509,6 +735,37 @@ export function PastorsTab() {
                         </div>
                       </div>
                     )}
+
+                    {/* Répertoires */}
+                    {hasItemsTable ? (
+                      <div>
+                        <h4 className="text-xs font-semibold uppercase tracking-widest text-muted mb-2 flex items-center gap-1.5">
+                          <Library className="h-3 w-3" /> Répertoires
+                        </h4>
+                        <div className="space-y-3">
+                          {ITEM_KINDS.map((group) => (
+                            <RepositoryGroup
+                              key={group.kind}
+                              pastorId={p.id}
+                              kind={group.kind}
+                              label={group.label}
+                              hint={group.hint}
+                              Icon={group.Icon}
+                              list={pastorItems.filter((item) => item.kind === group.kind)}
+                              canEdit={isFullAdmin}
+                              addToast={addToast}
+                              onChanged={load}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    ) : isFullAdmin ? (
+                      <p className="rounded-xl border border-line bg-white/[0.02] p-3 text-xs leading-relaxed text-muted">
+                        Les répertoires (prédications, articles, galerie) s'activent avec la table{' '}
+                        <code className="text-cream">pastor_items</code>. Exécutez{' '}
+                        <code className="text-cream">30_pastor_repositories.sql</code> dans Supabase, puis rechargez cette page.
+                      </p>
+                    ) : null}
                   </div>
                 )}
               </div>

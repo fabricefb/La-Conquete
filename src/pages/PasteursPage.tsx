@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { getContent, supabase } from '../lib/supabase';
 import { usePageContents } from '../lib/hooks/usePageContents';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
@@ -12,7 +12,7 @@ import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronDown } from '../lib/icons';
 import { imageSrcSet } from '../lib/images';
 import { findPastorBySlug, initials, pastorLinks, pastorSlug, withProtocol } from '../lib/pastors';
 import type { Page } from '../lib/navigation';
-import type { Pastor } from '../types';
+import type { Pastor, PastorItem } from '../types';
 
 const FALLBACK: Pastor[] = [
   { id: 'fb-1', name: 'Josué Romain Kazadi', role: 'Pasteur Principal', bio: 'Homme de Dieu visionnaire et passionné, il conduit l\'église avec sagesse et détermination.', photo_url: '/pasteur-romain-kazadi.webp', thought: 'La Parole de Dieu est notre boussole.', sort_order: 0, is_main: true, is_active: true, video_url: '', social_links: {}, extended_bio: '', media_urls: [], email: '', phone: '', created_at: '', updated_at: '' },
@@ -174,6 +174,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
   const { colorMode, toggleColorMode } = useDynamicTheme();
   const cm = usePageContents('pasteurs');
   const [pastors, setPastors] = useState<Pastor[]>([]);
+  const [items, setItems] = useState<PastorItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Pastor | null>(null);
   const [slug, setSlug] = useState<string | null>(getSlugFromHash);
@@ -182,8 +183,16 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
     let cancelled = false;
     async function fetchPastors() {
       try {
-        const { data } = await supabase.from('pastors').select('*').eq('is_active', true).order('sort_order');
-        if (!cancelled) setPastors((data && data.length > 0 ? data : FALLBACK) as Pastor[]);
+        const [pastorResult, itemResult] = await Promise.all([
+          supabase.from('pastors').select('*').eq('is_active', true).order('sort_order'),
+          supabase.from('pastor_items').select('*').eq('is_active', true).order('sort_order'),
+        ]);
+        if (cancelled) return;
+        const rows = pastorResult.data;
+        setPastors((rows && rows.length > 0 ? rows : FALLBACK) as Pastor[]);
+        // La table pastor_items n'existe qu'après le script 30 : son absence
+        // ne doit pas vider la page.
+        setItems((itemResult.data ?? []) as PastorItem[]);
       } catch {
         if (!cancelled) setPastors(FALLBACK);
       } finally {
@@ -193,6 +202,16 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
     fetchPastors();
     return () => { cancelled = true; };
   }, []);
+
+  const itemsByPastor = useMemo(() => {
+    const map = new Map<string, PastorItem[]>();
+    for (const item of items) {
+      const list = map.get(item.pastor_id) ?? [];
+      list.push(item);
+      map.set(item.pastor_id, list);
+    }
+    return map;
+  }, [items]);
 
   useEffect(() => {
     const onHashChange = () => setSlug(getSlugFromHash());
@@ -274,6 +293,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
       <PastorProfile
         pastor={profile}
         all={pastors}
+        items={itemsByPastor.get(profile.id) ?? []}
         onBack={leaveDossier}
         onHome={() => onNavigate('home')}
         onContact={() => onNavigate('contact')}
@@ -507,6 +527,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
       <PastorDrawer
         pastor={selected}
         all={pastors}
+        items={selected ? (itemsByPastor.get(selected.id) ?? []) : []}
         onClose={() => setSelected(null)}
         onOpen={setSelected}
         onFull={openDossier}

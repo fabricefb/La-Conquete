@@ -1,10 +1,12 @@
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  ArrowRight, ArrowUpRight, ArrowLeft,
+  ArrowRight, ArrowUpRight, ArrowLeft, ChevronLeft, ChevronRight, Play, X,
 } from '../../lib/icons';
 import { imageSrcSet } from '../../lib/images';
-import { initials, isExternal, linkLabel, mediaHost, pastorLinks } from '../../lib/pastors';
-import type { Pastor } from '../../types';
+import {
+  formatItemDate, initials, isExternal, itemSourceLabel, itemThumbnail, linkLabel, mediaHost, pastorLinks, withProtocol,
+} from '../../lib/pastors';
+import type { Pastor, PastorItem } from '../../types';
 
 const PAPER = '#f4f0e9';
 const INK = '#0f1248';
@@ -31,16 +33,112 @@ function ProfileSection({ id, number, title, children }: ProfileSectionProps) {
   );
 }
 
+/* Visionneuse de la galerie : dialogue natif, flèches clavier, fond marine. */
+interface GalleryLightboxProps {
+  photos: PastorItem[];
+  index: number | null;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}
+
+function GalleryLightbox({ photos, index, onClose, onNavigate }: GalleryLightboxProps) {
+  const dialogRef = useRef<HTMLDialogElement | null>(null);
+  const photo = index !== null ? photos[index] : null;
+  const open = !!photo;
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) {
+      dialog.showModal();
+      document.body.style.overflow = 'hidden';
+    }
+    if (!open && dialog.open) {
+      dialog.close();
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
+
+  if (!photo || index === null) return <dialog ref={dialogRef} className="hidden" aria-hidden="true" />;
+
+  const go = (delta: number) => onNavigate((index + delta + photos.length) % photos.length);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      onClick={(event) => { if (event.target === event.currentTarget) onClose(); }}
+      onKeyDown={(event) => {
+        if (photos.length < 2) return;
+        if (event.key === 'ArrowLeft') go(-1);
+        if (event.key === 'ArrowRight') go(1);
+      }}
+      aria-label={`Galerie de ${photos.length} photo${photos.length > 1 ? 's' : ''}`}
+      className="m-auto w-[calc(100%-1.5rem)] max-w-[1100px] bg-transparent p-0 text-[#f4f0e9] [&::backdrop]:bg-[#0f1248]/92 [&::backdrop]:backdrop-blur-sm"
+    >
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[#f4f0e9]/60">
+            {index + 1} / {photos.length}
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Fermer la galerie"
+            className="inline-flex h-9 w-9 items-center justify-center border border-[#f4f0e9]/30 transition-colors hover:border-[#f4f0e9]/70 hover:bg-[#f4f0e9]/10"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <img
+          src={photo.image_url}
+          alt={photo.title || ''}
+          className="mx-auto max-h-[72vh] w-auto max-w-full object-contain"
+        />
+
+        <div className="flex items-end justify-between gap-4">
+          <div className="min-w-0">
+            {photo.title && <p className="text-sm font-semibold">{photo.title}</p>}
+            {photo.description && (
+              <p className="mt-1 text-xs leading-relaxed text-[#f4f0e9]/60">{photo.description}</p>
+            )}
+          </div>
+          {photos.length > 1 && (
+            <div className="flex shrink-0 gap-px">
+              <button
+                onClick={() => go(-1)}
+                aria-label="Photo précédente"
+                className="inline-flex h-10 w-10 items-center justify-center border border-[#f4f0e9]/25 transition-colors hover:bg-[#f4f0e9]/10"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                onClick={() => go(1)}
+                aria-label="Photo suivante"
+                className="inline-flex h-10 w-10 items-center justify-center border border-[#f4f0e9]/25 transition-colors hover:bg-[#f4f0e9]/10"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </dialog>
+  );
+}
+
 interface PastorProfileProps {
   pastor: Pastor;
   all: Pastor[];
+  items: PastorItem[];
   onBack: () => void;
   onHome: () => void;
   onOpen: (pastor: Pastor) => void;
   onContact: () => void;
 }
 
-export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }: PastorProfileProps) {
+export function PastorProfile({ pastor, all, items, onBack, onHome, onOpen, onContact }: PastorProfileProps) {
   const index = all.findIndex((p) => p.id === pastor.id);
   const next = all.length > 1 ? all[(index + 1) % all.length] : null;
   const links = pastorLinks(pastor);
@@ -50,19 +148,32 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
   const ministry = (pastor.ministry || '').trim();
   const hasLinks = links.length > 0 || mediaUrls.length > 0;
 
+  const predications = items.filter((item) => item.kind === 'predication' && item.url.trim());
+  const articles = items.filter((item) => item.kind === 'article' && item.url.trim());
+  const photos = items.filter((item) => item.kind === 'photo' && item.image_url.trim());
+  const [zoom, setZoom] = useState<number | null>(null);
+
   useEffect(() => {
     document.title = `${pastor.name} — ${pastor.role} | La Conquête`;
     return () => { document.title = 'Église Évangélique La Conquête — Lubumbashi, RDC'; };
   }, [pastor.name, pastor.role]);
 
-  const sections = useMemo(() => {
+  useEffect(() => { setZoom(null); }, [pastor.id]);
+
+  // Le sommaire suit l'ordre réel des sections affichées.
+  const blocks = useMemo(() => {
     const list: { id: string; label: string }[] = [];
     if (bio) list.push({ id: 'biographie', label: 'Biographie' });
     if (family) list.push({ id: 'famille', label: 'Famille' });
     if (ministry) list.push({ id: 'ministere', label: 'Ministère' });
+    if (predications.length) list.push({ id: 'predications', label: 'Prédications' });
+    if (articles.length) list.push({ id: 'articles', label: 'Articles' });
+    if (photos.length) list.push({ id: 'galerie', label: 'Galerie' });
     if (hasLinks) list.push({ id: 'reseaux', label: 'Réseaux & médias' });
     return list;
-  }, [bio, family, ministry, hasLinks]);
+  }, [bio, family, ministry, hasLinks, predications.length, articles.length, photos.length]);
+
+  const num = (id: string) => String(blocks.findIndex((block) => block.id === id) + 1).padStart(2, '0');
 
   const number = index >= 0 ? String(index + 1).padStart(2, '0') : '01';
 
@@ -190,9 +301,9 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
           <div className="mx-auto grid max-w-[1400px] gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16">
             <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
               <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-[#0f1248]/40">Sommaire</p>
-              {sections.length > 0 ? (
+              {blocks.length > 0 ? (
                 <ul className="mt-4 space-y-3 border-t border-[#0f1248]/15 pt-4">
-                  {sections.map((section, i) => (
+                  {blocks.map((section, i) => (
                     <li key={section.id}>
                       <button
                         onClick={() => scrollTo(section.id)}
@@ -217,7 +328,7 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
             </aside>
 
             <div className="space-y-14">
-              {sections.length === 0 && (
+              {blocks.length === 0 && (
                 <ProfileSection id="redaction" number="01" title="Fiche en cours de rédaction">
                   <p className="max-w-xl text-[15px] leading-[1.85] text-[#0f1248]/70">
                     Le dossier détaillé de {pastor.name} n'est pas encore publié. Le bureau pastoral reste joignable
@@ -235,7 +346,7 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
               )}
 
               {bio && (
-                <ProfileSection id="biographie" number="01" title="Biographie">
+                <ProfileSection id="biographie" number={num('biographie')} title="Biographie">
                   <p className="whitespace-pre-line text-[15px] leading-[1.85] text-[#0f1248]/80 first-letter:float-left first-letter:mr-3 first-letter:font-hero first-letter:text-[4.2rem] first-letter:leading-[0.78] first-letter:text-[#c61a18]">
                     {bio}
                   </p>
@@ -243,21 +354,140 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
               )}
 
               {family && (
-                <ProfileSection id="famille" number={bio ? '02' : '01'} title="Famille">
+                <ProfileSection id="famille" number={num('famille')} title="Famille">
                   <p className="whitespace-pre-line text-[15px] leading-[1.85] text-[#0f1248]/80">{family}</p>
                 </ProfileSection>
               )}
 
               {ministry && (
-                <ProfileSection id="ministere" number={String((bio ? 1 : 0) + (family ? 1 : 0) + 1).padStart(2, '0')} title="Ministère">
+                <ProfileSection id="ministere" number={num('ministere')} title="Ministère">
                   <p className="whitespace-pre-line text-[15px] leading-[1.85] text-[#0f1248]/80">{ministry}</p>
+                </ProfileSection>
+              )}
+
+              {predications.length > 0 && (
+                <ProfileSection id="predications" number={num('predications')} title="Prédications">
+                  <div className="grid gap-px border border-[#0f1248]/15 bg-[#0f1248]/15 sm:grid-cols-2">
+                    {predications.map((item) => {
+                      const thumb = itemThumbnail(item);
+                      const href = item.url.startsWith('#') ? item.url : withProtocol(item.url);
+                      return (
+                        <a
+                          key={item.id}
+                          href={href}
+                          target={isExternal(href) ? '_blank' : undefined}
+                          rel={isExternal(href) ? 'noopener noreferrer' : undefined}
+                          className="group flex flex-col bg-[#f4f0e9] p-3 transition-colors hover:bg-white"
+                        >
+                          <span className="relative block aspect-video w-full overflow-hidden" style={{ backgroundColor: INK }}>
+                            {thumb ? (
+                              <img
+                                src={thumb}
+                                alt=""
+                                loading="lazy"
+                                decoding="async"
+                                className="h-full w-full object-cover opacity-90 transition-transform duration-500 group-hover:scale-[1.03]"
+                              />
+                            ) : (
+                              <span className="absolute inset-0 grid-lines opacity-40" aria-hidden="true" />
+                            )}
+                            <span className="absolute inset-0 flex items-center justify-center">
+                              <span className="flex h-10 w-10 items-center justify-center rounded-full" style={{ backgroundColor: RED }}>
+                                <Play className="ml-0.5 h-4 w-4 fill-white text-white" />
+                              </span>
+                            </span>
+                          </span>
+                          <span className="mt-3 flex flex-1 flex-col">
+                            <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#0f1248]/45">
+                              {[formatItemDate(item.published_at), itemSourceLabel(href)].filter(Boolean).join(' · ')}
+                            </span>
+                            <span className="mt-1.5 line-clamp-2 text-[15px] font-semibold leading-snug" style={{ color: INK }}>
+                              {item.title || 'Prédication'}
+                            </span>
+                            {item.description && (
+                              <span className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-[#0f1248]/60">
+                                {item.description}
+                              </span>
+                            )}
+                            <span className="mt-3 inline-flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.2em]" style={{ color: RED }}>
+                              Regarder
+                              <ArrowUpRight className="h-3 w-3 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                            </span>
+                          </span>
+                        </a>
+                      );
+                    })}
+                  </div>
+                </ProfileSection>
+              )}
+
+              {articles.length > 0 && (
+                <ProfileSection id="articles" number={num('articles')} title="Articles">
+                  <ul className="divide-y divide-[#0f1248]/10 border-y border-[#0f1248]/15">
+                    {articles.map((item) => {
+                      const href = item.url.startsWith('#') ? item.url : withProtocol(item.url);
+                      return (
+                        <li key={item.id}>
+                          <a
+                            href={href}
+                            target={isExternal(href) ? '_blank' : undefined}
+                            rel={isExternal(href) ? 'noopener noreferrer' : undefined}
+                            className="group flex items-start justify-between gap-4 py-4"
+                          >
+                            <span className="min-w-0">
+                              <span className="block text-[9px] font-semibold uppercase tracking-[0.2em] text-[#0f1248]/45">
+                                {[formatItemDate(item.published_at), itemSourceLabel(href)].filter(Boolean).join(' · ')}
+                              </span>
+                              <span className="mt-1.5 block text-[15px] font-semibold leading-snug" style={{ color: INK }}>
+                                {item.title || 'Article'}
+                              </span>
+                              {item.description && (
+                                <span className="mt-1 block line-clamp-2 text-[13px] leading-relaxed text-[#0f1248]/60">
+                                  {item.description}
+                                </span>
+                              )}
+                            </span>
+                            <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-[#0f1248]/40 transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[#c61a18]" />
+                          </a>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </ProfileSection>
+              )}
+
+              {photos.length > 0 && (
+                <ProfileSection id="galerie" number={num('galerie')} title="Galerie">
+                  <div className="grid grid-cols-2 gap-1 sm:grid-cols-3">
+                    {photos.map((item, i) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setZoom(i)}
+                        className="group relative block aspect-square overflow-hidden"
+                        style={{ backgroundColor: INK }}
+                        aria-label={item.title ? `Agrandir : ${item.title}` : 'Agrandir la photo'}
+                      >
+                        <img
+                          src={item.image_url}
+                          alt={item.title || ''}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                        />
+                        <span className="absolute inset-x-0 bottom-0 translate-y-2 bg-gradient-to-t from-[#0f1248]/85 to-transparent p-2 text-left opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                          <span className="line-clamp-1 text-[10px] font-medium text-white">{item.title || 'Agrandir'}</span>
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </ProfileSection>
               )}
 
               {hasLinks && (
                 <ProfileSection
                   id="reseaux"
-                  number={String((bio ? 1 : 0) + (family ? 1 : 0) + (ministry ? 1 : 0) + 1).padStart(2, '0')}
+                  number={num('reseaux')}
                   title="Réseaux & médias"
                 >
                   {links.length > 0 && (
@@ -352,6 +582,15 @@ export function PastorProfile({ pastor, all, onBack, onHome, onOpen, onContact }
           </button>
         </div>
       </footer>
+
+      {photos.length > 0 && (
+        <GalleryLightbox
+          photos={photos}
+          index={zoom}
+          onClose={() => setZoom(null)}
+          onNavigate={setZoom}
+        />
+      )}
     </div>
   );
 }

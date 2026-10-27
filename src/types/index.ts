@@ -461,6 +461,25 @@ export interface Pastor {
   updated_at: string;
 }
 
+export type PastorItemKind = 'predication' | 'article' | 'photo';
+
+/* Répertoire d'une fiche pastorale : prédications, articles et galerie.
+   Alimenté depuis la fiche du pasteur dans le back-office. */
+export interface PastorItem {
+  id: string;
+  pastor_id: string;
+  kind: PastorItemKind;
+  title: string;
+  description: string;
+  url: string;
+  image_url: string;
+  published_at: string | null;
+  sort_order: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 // ═════════════════════════════════════════════════════
 // MODULE 1 — Programs & Events (Operations)
 // ═════════════════════════════════════════════════════
