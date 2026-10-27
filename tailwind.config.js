@@ -1,6 +1,12 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  /* Les délais sont composés à l'exécution (`reveal-delay-${i + 1}`) :
+     sans safelist, Tailwind n'émet que les classes écrites en clair. */
+  safelist: [
+    'reveal-delay-1', 'reveal-delay-2', 'reveal-delay-3', 'reveal-delay-4', 'reveal-delay-5',
+    'evt-reveal-delay-1', 'evt-reveal-delay-2', 'evt-reveal-delay-3', 'evt-reveal-delay-4',
+  ],
   darkMode: 'class',
   plugins: [],
   theme: {

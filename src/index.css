@@ -617,6 +617,21 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
   .reveal-delay-2 { transition-delay: 0.2s; }
   .reveal-delay-3 { transition-delay: 0.3s; }
   .reveal-delay-4 { transition-delay: 0.4s; }
+  .reveal-delay-5 { transition-delay: 0.5s; }
+
+  /* ─── Cartes Explorer : socle clair, puis la photo arrive ───
+     La carte se pose d'abord sur un aplat grisé ; la photo se révèle
+     ensuite en fondu, avec un léger recul, une carte après l'autre.
+     L'animation porte sur l'enveloppe pour laisser le zoom de survol
+     à l'image elle-même. */
+  .explore-card-plate { background-color: rgb(var(--text-rgb) / 0.07); }
+  @keyframes explore-photo-in {
+    from { opacity: 0; transform: scale(1.06); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .reveal.in .explore-card-photo {
+    animation: explore-photo-in 1.15s var(--anim-reveal-ease, cubic-bezier(0.22, 1, 0.36, 1)) both;
+  }
 
   /* ─── Entrée en cascade des textes à l'intérieur des blocs révélés ───
      Quand un bloc .reveal devient visible, ses textes montent en fondu

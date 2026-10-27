@@ -1035,12 +1035,19 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                     onClick={() => onNavigate(navigateTo as Page)}
                     className="group relative h-64 w-full overflow-hidden bg-bg-card text-left"
                   >
-                    <img
-                      src={imgUrl}
-                      alt={card.title}
-                      className="photo-claro photo-hover-clear absolute inset-0 h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
-                      loading="lazy"
-                    />
+                    {/* Socle clair : la carte se pose d'abord à plat, la photo arrive ensuite */}
+                    <span className="explore-card-plate absolute inset-0" aria-hidden="true" />
+                    <span
+                      className="explore-card-photo absolute inset-0 block"
+                      style={{ animationDelay: `${0.18 + i * 0.09}s` }}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={card.title}
+                        className="photo-claro photo-hover-clear h-full w-full object-cover transition-[transform,filter] duration-700 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    </span>
                     <div className="absolute inset-0 bg-gradient-to-t from-ink-950 via-ink-950/45 to-ink-950/10" />
 
                     <span className="absolute left-4 top-4 z-10 font-hero text-lg text-white/45">
