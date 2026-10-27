@@ -387,7 +387,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
 
                       <div className="mt-8 flex flex-wrap items-center gap-4">
                         <button onClick={() => setSelected(principal)} className="btn-primary">
-                          Lire la fiche complète
+                          Ouvrir la fiche
                           <ArrowRight className="h-4 w-4" />
                         </button>
                         <PastorLinks pastor={principal} />
@@ -469,7 +469,7 @@ export function PasteursPage({ onNavigate }: { onNavigate: (page: Page) => void 
                               onClick={() => setSelected(pastor)}
                               className="inline-flex shrink-0 items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.2em] text-evangile-600 transition-opacity hover:opacity-80"
                             >
-                              Lire la fiche
+                              Ouvrir la fiche
                               <ArrowRight className="h-3 w-3" />
                             </button>
                           </div>
