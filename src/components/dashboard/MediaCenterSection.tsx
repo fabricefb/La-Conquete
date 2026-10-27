@@ -8,11 +8,11 @@ import {
   RefreshCw, MessageSquare, CheckCircle, Plus, Trash2, Edit3, X, Save,
 } from '../../lib/icons';
 import {
-  WORSHIP_TYPE_CONFIGS, SERVICE_TYPE_LABELS, STATUS_CONFIG,
+  WORSHIP_TYPE_CONFIGS, SERVICE_TYPE_LABELS, STATUS_CONFIG, CULTE_TYPE_GROUPS,
   isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, ORDER_ITEM_TYPES,
   enrichServicesWithDeadlines, BIBLE_BOOKS,
 } from '../admin/tabs/PlanificationTab';
-import type { WorshipService, WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem, WorshipFormLink, WorshipOrderItemType } from '../../types';
+import type { WorshipService, WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem, WorshipFormLink, WorshipOrderItemType, WorshipServiceType } from '../../types';
 import { openWhatsApp } from '../../lib/whatsapp';
 
 // ---------------------------------------------------------------------------
@@ -28,6 +28,27 @@ function generateToken(): string {
   const arr = new Uint8Array(24);
   crypto.getRandomValues(arr);
   return Array.from(arr, b => b.toString(16).padStart(2, '0')).join('');
+}
+
+/** Numéro congolais saisi en local (09…) → format international 243… */
+function normalizeCongolesePhone(raw: string): string {
+  const digits = raw.replace(/[^0-9]/g, '');
+  if (!digits) return '';
+  if (digits.startsWith('00')) return digits.slice(2);
+  if (digits.startsWith('0')) return `243${digits.slice(1)}`;
+  return digits;
+}
+
+function buildOratorMessage(service: Pick<WorshipService, 'date' | 'time' | 'type'>, url: string, name: string): string {
+  const typeLabel = SERVICE_TYPE_LABELS[service.type] ?? service.type;
+  return (
+    `Bonjour${name ? ` ${name}` : ''},\n\n` +
+    `Voici le lien pour remplir le formulaire de l'orateur du culte du ${formatDate(service.date)} (${formatTime(service.time)}) — ${typeLabel} :\n\n` +
+    `${url}\n\n` +
+    `Merci de le remplir au moins une heure avant le culte.\n` +
+    `Ce lien expire dans 7 jours.\n\n` +
+    `— Département Média & Communication`
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -213,22 +234,9 @@ function SendOratorPanel({
   const url = `${BASE_URL}/#/form-culte/${token}`;
   const typeLabel = SERVICE_TYPE_LABELS[service.type] ?? service.type;
   const greeting = name.trim() || service.orator_name || '';
-  const message =
-    `Bonjour${greeting ? ` ${greeting}` : ''},\n\n` +
-    `Voici le lien pour remplir le formulaire de l'orateur du culte du ${formatDate(service.date)} (${formatTime(service.time)}) — ${typeLabel} :\n\n` +
-    `${url}\n\n` +
-    `Merci de le remplir au moins une heure avant le culte.\n` +
-    `Ce lien expire dans 7 jours.\n\n` +
-    `— Département Média & Communication`;
+  const message = buildOratorMessage(service, url, greeting);
 
-  // Numéro congolais saisi en local (09…) → format international 243…
-  const normalizePhone = (raw: string): string => {
-    const digits = raw.replace(/[^0-9]/g, '');
-    if (!digits) return '';
-    if (digits.startsWith('00')) return digits.slice(2);
-    if (digits.startsWith('0')) return `243${digits.slice(1)}`;
-    return digits;
-  };
+  const normalizePhone = normalizeCongolesePhone;
 
   const expiryFor = (): string => {
     const sevenDays = Date.now() + 7 * 24 * 60 * 60 * 1000;
@@ -348,6 +356,158 @@ function SendOratorPanel({
         >
           {saving === 'copy' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
           Copier le lien
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Programmation d'un culte + envoi immédiat du formulaire à l'orateur */
+function ScheduleServicePanel({
+  onCreated, onCancel,
+}: {
+  onCreated: () => void;
+  onCancel: () => void;
+}) {
+  const { user } = useAuth();
+  const { addToast } = useToast();
+  const [type, setType] = useState<WorshipServiceType>('adoration_louange');
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState(WORSHIP_TYPE_CONFIGS.adoration_louange.defaultTime);
+  const [oratorName, setOratorName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [saving, setSaving] = useState<'send' | 'save' | null>(null);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const handleTypeChange = (value: WorshipServiceType) => {
+    setType(value);
+    setTime(WORSHIP_TYPE_CONFIGS[value].defaultTime);
+  };
+
+  const create = async (send: boolean) => {
+    if (!date) {
+      addToast({ type: 'error', message: 'Choisissez la date du culte.' });
+      return;
+    }
+    if (send && !oratorName.trim()) {
+      addToast({ type: 'error', message: "Indiquez le nom de l'orateur." });
+      return;
+    }
+
+    setSaving(send ? 'send' : 'save');
+    try {
+      const { data, error } = await supabase
+        .from('worship_services')
+        .insert({
+          date,
+          time,
+          type,
+          orator_name: oratorName.trim() || null,
+          status: 'planned',
+          created_by: user?.id ?? null,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const service = data as WorshipService;
+
+      if (send) {
+        const token = generateToken();
+        const cleanPhone = normalizeCongolesePhone(phone);
+        const culteAt = new Date(`${date}T${time}`).getTime() - 12 * 60 * 60 * 1000;
+        const expiresAt = new Date(Math.max(Date.now() + 7 * 24 * 60 * 60 * 1000, culteAt)).toISOString();
+
+        const { error: linkErr } = await supabase.from('worship_form_links').insert({
+          service_id: service.id,
+          link_type: 'orator',
+          token,
+          recipient_name: oratorName.trim(),
+          recipient_phone: cleanPhone || null,
+          is_used: false,
+          expires_at: expiresAt,
+          sent_at: new Date().toISOString(),
+        });
+        if (linkErr) throw linkErr;
+
+        openWhatsApp(
+          cleanPhone || null,
+          buildOratorMessage({ date, time, type }, `${BASE_URL}/#/form-culte/${token}`, oratorName.trim()),
+        );
+        addToast({ type: 'success', message: 'Culte programmé — WhatsApp ouvert sur le formulaire.' });
+      } else {
+        addToast({ type: 'success', message: 'Culte programmé.' });
+      }
+
+      onCreated();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err?.message || 'Impossible de programmer le culte' });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const inputCls = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-cream placeholder-muted/50 focus:outline-none focus:border-accent-400/40 focus:ring-1 focus:ring-accent-400/20 transition-colors';
+  const labelCls = 'block text-[11px] font-medium text-muted mb-1';
+
+  return (
+    <div className="glass-card rounded-xl border border-accent-400/20 bg-accent-400/[0.03] p-4 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Programmer un culte</p>
+          <p className="mt-0.5 text-[11px] text-muted">Le formulaire peut être envoyé à l'orateur dans la foulée.</p>
+        </div>
+        <button onClick={onCancel} className="text-muted hover:text-cream transition-colors" aria-label="Fermer">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="sm:col-span-2">
+          <label className={labelCls}>Type de culte</label>
+          <select className={inputCls} value={type} onChange={e => handleTypeChange(e.target.value as WorshipServiceType)}>
+            {CULTE_TYPE_GROUPS.map(group => (
+              <optgroup key={group.label} label={group.label}>
+                {group.types.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+              </optgroup>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className={labelCls}>Date *</label>
+          <input type="date" min={today} className={inputCls} value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Heure *</label>
+          <input type="time" className={inputCls} value={time} onChange={e => setTime(e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Orateur</label>
+          <input className={inputCls} value={oratorName} onChange={e => setOratorName(e.target.value)} placeholder="Nom du prédicateur" />
+        </div>
+        <div>
+          <label className={labelCls}>WhatsApp de l'orateur</label>
+          <input className={inputCls} value={phone} onChange={e => setPhone(e.target.value)} placeholder="09… ou +243…" inputMode="tel" />
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <button
+          onClick={() => create(true)}
+          disabled={saving !== null}
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-green-500/25 bg-green-500/15 px-4 py-2.5 text-sm font-medium text-green-300 transition-colors hover:bg-green-500/25 disabled:opacity-50"
+        >
+          {saving === 'send' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          Programmer et envoyer
+        </button>
+        <button
+          onClick={() => create(false)}
+          disabled={saving !== null}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-white/10 hover:text-cream disabled:opacity-50"
+        >
+          {saving === 'save' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Calendar className="h-4 w-4" />}
+          Programmer seulement
         </button>
       </div>
     </div>
@@ -779,6 +939,9 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   const [deptMessages, setDeptMessages] = useState<any[]>([]);
   const [showInbox, setShowInbox] = useState(false);
 
+  // ── Programmation d'un culte ──
+  const [showSchedule, setShowSchedule] = useState(false);
+
   // -----------------------------------------------------------------------
   // Fetch — optimized: batch links, parallel forms/orders per service
   // -----------------------------------------------------------------------
@@ -942,16 +1105,6 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
     );
   }
 
-  if (services.length === 0) {
-    return (
-      <div className="glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-muted">
-        <Calendar className="h-8 w-8 opacity-40" />
-        <span className="text-sm">Aucun culte à venir</span>
-        <span className="text-xs text-muted/60">Les prochaines planifications apparaîtront ici.</span>
-      </div>
-    );
-  }
-
   const renderGroup = (group: { type: string; label: string; items: WorshipService[] }) => (
     <div key={group.type} className="space-y-2.5">
       <div className="flex items-center gap-2 pt-1">
@@ -978,11 +1131,27 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <MonitorPlay className={`h-5 w-5 ${accentColor ?? 'text-cream'}`} />
-        <h3 className="text-base font-semibold text-cream">Centre Média et Communication</h3>
-        <span className="text-[10px] text-muted ml-1">Planification complète des cultes</span>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <MonitorPlay className={`h-5 w-5 ${accentColor ?? 'text-cream'}`} />
+          <h3 className="text-base font-semibold text-cream">Centre Média et Communication</h3>
+          <span className="text-[10px] text-muted ml-1">Planification complète des cultes</span>
+        </div>
+        <button
+          onClick={() => setShowSchedule(v => !v)}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-accent-400/25 bg-accent-400/15 px-3 py-1.5 text-[11px] font-medium text-accent-300 transition-colors hover:bg-accent-400/25"
+        >
+          <Plus className="h-3.5 w-3.5" />
+          Programmer un culte
+        </button>
       </div>
+
+      {showSchedule && (
+        <ScheduleServicePanel
+          onCreated={() => { setShowSchedule(false); fetchServices(); }}
+          onCancel={() => setShowSchedule(false)}
+        />
+      )}
 
       {/* Stats bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1021,6 +1190,24 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
             <span className="text-sm font-medium text-cream/80">Événements spéciaux</span>
           </div>
           {groupedSpecial.map(renderGroup)}
+        </div>
+      )}
+
+      {/* Empty state */}
+      {services.length === 0 && (
+        <div className="glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-muted">
+          <Calendar className="h-8 w-8 opacity-40" />
+          <span className="text-sm">Aucun culte à venir</span>
+          <span className="text-xs text-muted/60 text-center">
+            Programmez un culte pour envoyer le formulaire à l'orateur.
+          </span>
+          <button
+            onClick={() => setShowSchedule(true)}
+            className="mt-1 inline-flex items-center gap-1.5 rounded-lg border border-accent-400/25 bg-accent-400/15 px-3 py-1.5 text-[11px] font-medium text-accent-300 transition-colors hover:bg-accent-400/25"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Programmer un culte
+          </button>
         </div>
       )}
 
