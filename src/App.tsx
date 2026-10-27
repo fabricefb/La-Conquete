@@ -112,14 +112,14 @@ export const useAuthModal = () => {
 function AppRouter() {
   const [page, setPage] = useState<Page>(getPage);
   const { authOpen, authView, openAuth, closeAuth } = useAuthModal();
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, hasBackOffice, loading: authLoading } = useAuth();
   const [bibleOpen, setBibleOpen] = useState(false);
   const [formToken, setFormToken] = useState<string | null>(getFormCulteToken);
   const [formOrateurToken, setFormOrateurToken] = useState<string | null>(getFormOrateurToken);
 
   // ── Redirect admin/pastor to #bo after login ──
   useEffect(() => {
-    if (!authLoading && user && isAdmin && page === 'home') {
+    if (!authLoading && user && hasBackOffice && page === 'home') {
       // Only auto-redirect if user just landed on home after login
       // (not if they manually navigated back to home)
       const redirected = sessionStorage.getItem('lc_admin_redirected');
@@ -132,15 +132,15 @@ function AppRouter() {
     if (!user) {
       sessionStorage.removeItem('lc_admin_redirected');
     }
-  }, [authLoading, user, isAdmin, page, setPage]);
+  }, [authLoading, user, hasBackOffice, page, setPage]);
 
   // ── Retour de la connexion Google : ouvrir l'espace personnel ──
   useEffect(() => {
-    if (authLoading || !user || isAdmin) return;
+    if (authLoading || !user || hasBackOffice) return;
     if (sessionStorage.getItem('lc_oauth_pending') !== '1') return;
     sessionStorage.removeItem('lc_oauth_pending');
     setPage('dashboard');
-  }, [authLoading, user, isAdmin, setPage]);
+  }, [authLoading, user, hasBackOffice, setPage]);
 
   useEffect(() => {
     // Do NOT overwrite hash if we're showing a form — form URLs must stay intact
@@ -244,7 +244,7 @@ function AppRouter() {
 
 /* ─── Global onboarding gate ─────────────────────────────────── */
 function OnboardingOverlay() {
-  const { user, profile, isAdmin, loading } = useAuth();
+  const { user, profile, hasBackOffice, loading } = useAuth();
 
   // Safety net: if localStorage says onboarding was done, never block
   const localDone = user ? localStorage.getItem('lc_onboarding_done') === user.id : false;
@@ -255,7 +255,7 @@ function OnboardingOverlay() {
     !loading &&
     !localDone &&
     user !== null &&
-    !isAdmin &&
+    !hasBackOffice &&
     profile !== null &&
     !profile.onboarding_completed;
 

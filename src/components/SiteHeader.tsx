@@ -626,10 +626,10 @@ function DesktopUserMenu({
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
             <User className="h-4 w-4 text-muted" /> Mon profil
           </button>
-          {profile?.is_admin && (
+          {(profile?.is_admin || profile?.is_principal_pastor) && (
             <button onClick={() => { onNavigate('admin'); setOpen(false); }}
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors">
-              <Shield className="h-4 w-4 text-accent-500" /> Administration
+              <Shield className="h-4 w-4 text-accent-500" /> {profile?.is_principal_pastor ? 'Espace pastoral' : 'Administration'}
             </button>
           )}
           <button onClick={() => { onNavigate('dashboard'); setOpen(false); }}
@@ -882,12 +882,12 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
             {user && profile && (
               <>
                 <div className="mx-4 my-4 h-px bg-line" />
-                {profile?.is_admin && (
+                {(profile?.is_admin || profile?.is_principal_pastor) && (
                   <button
                     onClick={() => handleNav('admin')}
                     className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm text-cream/80 hover:text-cream hover:bg-white/5 transition-colors"
                   >
-                    <Shield className="h-4 w-4 text-accent-500" /> Administration
+                    <Shield className="h-4 w-4 text-accent-500" /> {profile.is_principal_pastor ? 'Espace pastoral' : 'Administration'}
                   </button>
                 )}
                 <button

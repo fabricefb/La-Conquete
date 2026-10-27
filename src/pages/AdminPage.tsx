@@ -35,8 +35,9 @@ import { CommuniquesTab } from '../components/admin/tabs/CommuniquesTab';
 import { EmissionsTab } from '../components/admin/tabs/EmissionsTab';
 import { ActivityCardsTab } from '../components/admin/tabs/ActivityCardsTab';
 import { VisualsTab } from '../components/admin/tabs/VisualsTab';
-import { ShieldOff, Eye } from '../lib/icons';
+import { ShieldOff, Eye, Shield } from '../lib/icons';
 import { AdminAccessProvider } from '../contexts/AdminAccessContext';
+import { PASTORAL_TABS } from '../lib/adminAccess';
 import type { AdminTab } from '../types';
 import type { Page } from '../lib/navigation';
 
@@ -45,7 +46,7 @@ interface AdminPageProps {
 }
 
 export function AdminPage({ onNavigate }: AdminPageProps) {
-  const { user, isAdmin, isFullAdmin, loading, profileLoading, profile, refreshProfile } = useAuth();
+  const { user, isFullAdmin, hasBackOffice, loading, profileLoading, profile, refreshProfile } = useAuth();
   const [activeTab, setActiveTab] = useState<AdminTab>(() => (isLocalAdminSession() ? 'homepage_builder' : 'dashboard'));
   const [tabChosen, setTabChosen] = useState(false);
 
@@ -77,8 +78,8 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     return <AdminLogin />;
   }
 
-  // Logged in but not admin → show diagnostic + fix button
-  if (!isAdmin) {
+  // Logged in but without management access → show diagnostic + fix button
+  if (!hasBackOffice) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg px-4 text-cream">
         <div className="panel w-full max-w-lg border-t-2 border-t-evangile-600 p-10 text-center">
@@ -154,20 +155,36 @@ export function AdminPage({ onNavigate }: AdminPageProps) {
     }
   }
 
+  const activeTabAllowed = isFullAdmin || PASTORAL_TABS.has(activeTab);
+
   return (
     <AdminAccessProvider isFullAdmin={isFullAdmin}>
     <AdminLayout activeTab={activeTab} onTabChange={changeTab} onNavigate={onNavigate} isFullAdmin={isFullAdmin}>
-      {/* Bannière lecture seule pour Pasteur principal */}
-      {isAdmin && !isFullAdmin && (
-        <div className="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
-          <Eye className="h-5 w-5 text-amber-400 shrink-0" />
+      {/* Espace pastoral : périmètre volontairement séparé du back-office */}
+      {!isFullAdmin && (
+        <div className="mb-4 flex items-start gap-3 border border-line border-l-2 border-l-evangile-600 bg-bg-card px-4 py-3">
+          <Eye className="mt-0.5 h-4 w-4 shrink-0 text-[rgb(var(--accent-red-rgb))]" />
           <div>
-            <p className="text-sm font-medium text-amber-300">Mode Pasteur principal — Consultation</p>
-            <p className="text-xs text-amber-300/70 mt-0.5">Vous pouvez voir les statistiques et rapports. Les ajouts, suppressions et assignations de rôles sont réservés à l'Admin.</p>
+            <p className="text-sm font-medium text-cream">Espace pastoral</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted">
+              Vous gérez la vie de l'église et les contenus. Les comptes, les paramètres
+              et la validation des chefs de département relèvent de l'administration.
+            </p>
           </div>
         </div>
       )}
-      {renderTab()}
+      {activeTabAllowed ? renderTab() : (
+        <div className="panel flex flex-col items-center px-6 py-14 text-center">
+          <Shield className="h-9 w-9 text-[rgb(var(--accent-red-rgb))]" />
+          <p className="mt-4 font-hero text-2xl uppercase leading-none text-cream">
+            Réservé à l'administration
+          </p>
+          <p className="mt-3 max-w-sm text-sm leading-relaxed text-muted">
+            Cet écran fait partie du back-office. Les comptes, les rôles et les paramètres
+            du site sont gérés par l'administrateur.
+          </p>
+        </div>
+      )}
     </AdminLayout>
     </AdminAccessProvider>
   );

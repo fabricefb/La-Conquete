@@ -23,9 +23,9 @@ interface AuthModalProps {
    ═══════════════════════════════════════════════════════════════════ */
 export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalProps) {
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'success'>(initialView);
-  const { isAdmin } = useAuth();
-  const isAdminRef = useRef(isAdmin);
-  isAdminRef.current = isAdmin;
+  const { hasBackOffice } = useAuth();
+  const backOfficeRef = useRef(hasBackOffice);
+  backOfficeRef.current = hasBackOffice;
 
   useEffect(() => {
     setView(initialView);
@@ -59,7 +59,7 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
       if (from === 'forgot') return;
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
-      window.location.hash = isAdminRef.current ? '#bo' : '#dashboard';
+      window.location.hash = backOfficeRef.current ? '#bo' : '#dashboard';
     }, 2000);
   };
 

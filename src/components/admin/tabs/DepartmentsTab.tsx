@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import type { Department, Position, DepartmentMember, DeptMemberRole } from '../../../types';
 import {
   Plus,
@@ -179,6 +180,8 @@ function SkeletonCard() {
 
 export function DepartmentsTab() {
   const { addToast } = useToast();
+  // Nommer un chef de département reste une décision de l'administration.
+  const { isFullAdmin } = useAdminAccess();
 
   // ---- Sub-tab state -------------------------------------------------------
   const [subTab, setSubTab] = useState<SubTab>('departments');
@@ -1394,7 +1397,7 @@ export function DepartmentsTab() {
                                   <CheckCircle className="h-3.5 w-3.5" />
                                 </button>
                               )}
-                              {mem.role_in_dept !== 'leader' && (
+                              {isFullAdmin && mem.role_in_dept !== 'leader' && (
                                 <button
                                   onClick={() => promoteToLeader(mem.id)}
                                   title="Promouvoir en leader"
@@ -1412,7 +1415,7 @@ export function DepartmentsTab() {
                                   <UserCheck className="h-3.5 w-3.5" />
                                 </button>
                               )}
-                              {mem.role_in_dept === 'leader' && (
+                              {isFullAdmin && mem.role_in_dept === 'leader' && (
                                 <button
                                   onClick={() => approveMember(mem.id)}
                                   title="Rétrograder en membre"

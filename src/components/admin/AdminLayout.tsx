@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { AdminTab } from '../../types';
 import type { Page } from '../../lib/navigation';
+import { PASTORAL_TABS } from '../../lib/adminAccess';
 
 // ─── Grouped tab definitions ──────────────────────────────────────
 interface TabDef { id: AdminTab; label: string; Icon: typeof Settings }
@@ -90,55 +91,27 @@ interface AdminLayoutProps {
   isFullAdmin?: boolean;
 }
 
-// Onglets autorisés pour les pasteurs (liste blanche)
-const ALLOWED_TABS_FOR_PASTOR = new Set<AdminTab>([
-  'homepage_builder', 'guide',
-  'predications', 'audio', 'testimonials', 'messages',
-  'annonces', 'communiques', 'emissions', 'articles',
-  'visuals',
-  'creneaux', 'media_communication',
-  'pipeline', 'onboarding', 'protocol', 'evangelism',
-]);
-
-// Onglets masqués pour les utilisateurs niveau 4 (diacre, collaborateur, etc.)
-const HIDDEN_TABS_FOR_LEVEL4 = new Set<AdminTab>([
-  'theme', 'settings',
-  'pipeline', 'creneaux',
-]);
-
 function SidebarNav({
   activeTab,
   onTabChange,
   onClose,
   isFullAdmin = true,
-  userRoleLevel = 0,
-  isPrincipalPastor = false,
 }: {
   activeTab: AdminTab;
   onTabChange: (tab: AdminTab) => void;
   onClose?: () => void;
   isFullAdmin?: boolean;
-  userRoleLevel?: number;
-  isPrincipalPastor?: boolean;
 }) {
-  // Filtrer les onglets selon le rôle
-  let allowedTabs: Set<AdminTab> | null = null;
-  let hiddenTabs = new Set<AdminTab>();
-  if (isPrincipalPastor || (!isFullAdmin && userRoleLevel >= 5)) {
-    allowedTabs = ALLOWED_TABS_FOR_PASTOR;
-  } else if (!isFullAdmin && userRoleLevel >= 4) {
-    hiddenTabs = HIDDEN_TABS_FOR_LEVEL4;
-  } else if (!isFullAdmin) {
-    allowedTabs = ALLOWED_TABS_FOR_PASTOR;
-  }
-
-  const visibleGroups = (allowedTabs === null && hiddenTabs.size === 0) ? tabGroups
-    : tabGroups.map(g => ({
-      ...g,
-      tabs: g.tabs.filter(t =>
-        (allowedTabs === null || allowedTabs.has(t.id)) && !hiddenTabs.has(t.id)
-      ),
-    })).filter(g => g.tabs.length > 0);
+  // Le pasteur principal ne voit que les onglets de l'espace pastoral ;
+  // les écrans d'administration restent hors de sa navigation.
+  const visibleGroups = isFullAdmin
+    ? tabGroups
+    : tabGroups
+        .map((group) => ({
+          ...group,
+          tabs: group.tabs.filter((tab) => PASTORAL_TABS.has(tab.id)),
+        }))
+        .filter((group) => group.tabs.length > 0);
 
   return (
     <nav className="flex-1 overflow-y-auto py-5">
@@ -182,8 +155,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
   const { profile, signOut, isLocalMode } = useAuth();
   const { addToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const userRoleLevel = profile?.role_level ?? 0;
-  const isPrincipalPastor = profile?.is_principal_pastor ?? false;
+  const spaceLabel = isFullAdmin ? 'Back-office' : 'Espace pastoral';
 
   async function handleSignOut() {
     try {
@@ -231,7 +203,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
             <div className="hidden items-center gap-2 sm:flex">
               <span className="h-1.5 w-1.5 shrink-0 bg-evangile-600" />
               <span className="font-hero text-lg uppercase leading-none tracking-[0.08em] text-cream">
-                Back-office
+                {spaceLabel}
               </span>
             </div>
             {isLocalMode && (
@@ -270,7 +242,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
       <div className="flex">
         {/* ─── Sidebar (desktop) ─── */}
         <aside className="hidden border-r border-line bg-bg/50 lg:sticky lg:top-16 lg:flex lg:h-[calc(100vh-4rem)] lg:w-60 lg:flex-col">
-          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} userRoleLevel={userRoleLevel} isPrincipalPastor={isPrincipalPastor} />
+          <SidebarNav activeTab={activeTab} onTabChange={onTabChange} isFullAdmin={isFullAdmin} />
         </aside>
 
         {/* ─── Mobile sidebar overlay ─── */}
@@ -288,7 +260,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
                     />
                   </span>
                   <span className="font-hero text-lg uppercase leading-none tracking-[0.06em] text-cream">
-                    Back-office
+                    {spaceLabel}
                   </span>
                 </div>
                 <button
@@ -299,7 +271,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} isFullAdmin={isFullAdmin} userRoleLevel={userRoleLevel} isPrincipalPastor={isPrincipalPastor} />
+              <SidebarNav activeTab={activeTab} onTabChange={onTabChange} onClose={() => setSidebarOpen(false)} isFullAdmin={isFullAdmin} />
             </aside>
           </div>
         )}

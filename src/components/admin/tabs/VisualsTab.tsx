@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { supabase, db } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
+import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import type { AdminTab } from '../../../types';
 import ImageUpload from '../ImageUpload';
 import { PAGES, SEEDS } from './ContentsTab';
@@ -117,6 +118,7 @@ interface VisualsTabProps {
 
 export function VisualsTab({ onTabChange }: VisualsTabProps) {
   const { addToast } = useToast();
+  const { isFullAdmin } = useAdminAccess();
 
   const [rows, setRows] = useState<PageContentRow[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -613,14 +615,16 @@ export function VisualsTab({ onTabChange }: VisualsTabProps) {
               <span className="block text-sm font-semibold text-cream">Diaporama du héro</span>
               <span className="mt-1 block text-xs text-muted">Slides de la page d'accueil</span>
             </button>
-            <button
-              type="button"
-              onClick={() => onTabChange('pastors')}
-              className="bg-bg-card px-4 py-4 text-left transition-colors hover:bg-bg-card-hover"
-            >
-              <span className="block text-sm font-semibold text-cream">Équipe pastorale</span>
-              <span className="mt-1 block text-xs text-muted">Portraits et fiches des pasteurs</span>
-            </button>
+            {isFullAdmin && (
+              <button
+                type="button"
+                onClick={() => onTabChange('pastors')}
+                className="bg-bg-card px-4 py-4 text-left transition-colors hover:bg-bg-card-hover"
+              >
+                <span className="block text-sm font-semibold text-cream">Équipe pastorale</span>
+                <span className="mt-1 block text-xs text-muted">Portraits et fiches des pasteurs</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => onTabChange('activity_cards')}

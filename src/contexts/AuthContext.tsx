@@ -18,6 +18,10 @@ interface AuthContextValue {
   profile: UserProfile | null;
   isAdmin: boolean;
   isFullAdmin: boolean;
+  /** Le compte est un pasteur principal : espace pastoral, jamais back-office. */
+  isPastorSpace: boolean;
+  /** Peut entrer dans l'espace de gestion (administration ou pastorale). */
+  hasBackOffice: boolean;
   isLocalMode: boolean;
   loading: boolean;
   profileLoading: boolean;
@@ -236,7 +240,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const isAdmin = profile?.is_admin === true;
-  const isFullAdmin = profile?.is_admin === true && !profile?.is_principal_pastor;
+  const isPrincipalPastor = profile?.is_principal_pastor === true;
+  const isFullAdmin = profile?.is_admin === true && !isPrincipalPastor;
+  // Le pasteur gère la vie de l'église et les contenus depuis un espace
+  // distinct : comptes, paramètres et validation des chefs de département
+  // restent à l'administration.
+  const isPastorSpace = isPrincipalPastor;
+  const hasBackOffice = isAdmin || isPastorSpace;
   const isLocalMode = shouldUseLocalBackend() && isLocalAdminSession();
 
   // Check if user is blocked
@@ -278,8 +288,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile]);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ user, profile, isAdmin, isFullAdmin, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage }),
-    [user, profile, isAdmin, isFullAdmin, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage],
+    () => ({ user, profile, isAdmin, isFullAdmin, isPastorSpace, hasBackOffice, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage }),
+    [user, profile, isAdmin, isFullAdmin, isPastorSpace, hasBackOffice, isLocalMode, loading, profileLoading, signIn, signInLocal, signOut, refreshProfile, unreadCount, blockedMessage],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
