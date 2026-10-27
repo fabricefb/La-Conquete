@@ -26,7 +26,7 @@ export const ROLE_LEVELS = {
 
 export type RoleLevel = (typeof ROLE_LEVELS)[keyof typeof ROLE_LEVELS];
 
-export type PastorCategory = null | 'ancien' | 'diacre' | 'collaborateur' | 'partenaire' | 'assistant_pastor';
+export type PastorCategory = null | 'ancien' | 'diacre' | 'collaborateur' | 'partenaire' | 'assistant_pastor' | 'secretaire';
 
 export const PASTOR_CATEGORY_LABELS: Record<NonNullable<PastorCategory>, string> = {
   ancien: 'Ancien',
@@ -34,6 +34,7 @@ export const PASTOR_CATEGORY_LABELS: Record<NonNullable<PastorCategory>, string>
   collaborateur: 'Collaborateur',
   partenaire: 'Partenaire',
   assistant_pastor: 'Assistant pasteur',
+  secretaire: 'Secrétaire',
 };
 
 export const ROLE_LABELS: Record<number, string> = {

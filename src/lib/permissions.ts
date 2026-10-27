@@ -166,6 +166,16 @@ const CATEGORY_PERMISSIONS: Record<NonNullable<PastorCategory>, CategoryPermissi
     viewAllExtensions: false,
     manageMembers: false,
   },
+  secretaire: {
+    publishSpiritual: false,
+    publishLogistic: true,
+    financialFull: false,
+    financialRead: true,
+    sacramentsPreside: false,
+    sacramentsAssist: false,
+    viewAllExtensions: true,
+    manageMembers: true,
+  },
 };
 
 export function getCategoryPermissions(user: UserProfile | null): CategoryPermissions {

@@ -230,6 +230,8 @@ export function UsersTab() {
   const [saving, setSaving] = useState(false);
   const [roleModal, setRoleModal] = useState<{ userId: string; userName: string; currentLevel: number; currentCategory: string | null; isAdmin: boolean; isPrincipal: boolean } | null>(null);
   const [roleSaving, setRoleSaving] = useState(false);
+  const [chefDeptOpen, setChefDeptOpen] = useState(false);
+  const [departments, setDepartments] = useState<{ id: string; name: string; leader_id: string | null }[]>([]);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [userDetail, setUserDetail] = useState<UserDetail>({ departments: [], recentActivity: [], roleRequests: [], deptRequests: [] });
   const [detailLoading, setDetailLoading] = useState(false);
@@ -401,6 +403,14 @@ export function UsersTab() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
+  useEffect(() => {
+    supabase
+      .from('departments')
+      .select('id, name, leader_id')
+      .order('name')
+      .then(({ data }) => setDepartments((data as any[]) || []));
+  }, []);
+
   const statusOf = (u: UserProfileExt) => u.church_status || 'member';
   const isPlainMember = (u: UserProfileExt) =>
     !u.is_admin && !u.is_principal_pastor && !u.pastor_category && u.role_level <= 1;
@@ -448,43 +458,98 @@ export function UsersTab() {
     setSaving(false);
   };
 
-  const assignRole = async (roleLevel: number, pastorCat: string | null, makeAdmin: boolean, makePrincipal: boolean) => {
+  const assignRole = async (
+    roleLevel: number,
+    pastorCat: string | null,
+    makeAdmin: boolean,
+    makePrincipal: boolean,
+    deptId?: string,
+  ) => {
     if (!roleModal) return;
     setRoleSaving(true);
     try {
-      const updates: any = { role_level: roleLevel, pastor_category: pastorCat };
-      if (makeAdmin) {
-        updates.is_admin = true;
-        updates.is_principal_pastor = makePrincipal;
-      } else if (roleLevel >= ROLE_LEVELS.PASTOR_PRINCIPAL) {
-        updates.is_admin = true;
-        updates.is_principal_pastor = makePrincipal;
-      } else {
-        updates.is_admin = false;
-        updates.is_principal_pastor = false;
-      }
+      const updates: any = {
+        role_level: roleLevel,
+        pastor_category: pastorCat,
+        is_admin: makeAdmin,
+        is_principal_pastor: makePrincipal,
+      };
 
       const { error } = await supabase.from('user_profiles').update(updates).eq('id', roleModal.userId);
       if (error) throw error;
 
+      // Chef de département : leadership porté par department_members + departments.leader_id
+      if (deptId) {
+        // L'ancien chef de ce département redescend membre
+        await supabase
+          .from('department_members')
+          .update({ role_in_dept: 'member' })
+          .eq('department_id', deptId)
+          .eq('role_in_dept', 'leader')
+          .neq('user_id', roleModal.userId);
+
+        await supabase
+          .from('department_members')
+          .update({ role_in_dept: 'member' })
+          .eq('user_id', roleModal.userId)
+          .eq('role_in_dept', 'leader')
+          .neq('department_id', deptId);
+
+        const { id: memberId } = await supabase
+          .from('department_members')
+          .select('id')
+          .eq('user_id', roleModal.userId)
+          .eq('department_id', deptId)
+          .maybeSingle();
+
+        if (memberId?.id) {
+          await supabase
+            .from('department_members')
+            .update({ role_in_dept: 'leader', is_active: true })
+            .eq('id', memberId.id);
+        } else {
+          await supabase.from('department_members').insert({
+            user_id: roleModal.userId,
+            department_id: deptId,
+            role_in_dept: 'leader',
+            is_active: true,
+          });
+        }
+
+        await supabase.from('departments').update({ leader_id: null }).eq('id', deptId).neq('leader_id', roleModal.userId);
+        await supabase.from('departments').update({ leader_id: null }).eq('leader_id', roleModal.userId);
+        await supabase.from('departments').update({ leader_id: roleModal.userId }).eq('id', deptId);
+      } else if (roleLevel !== ROLE_LEVELS.DEPT_LEADER) {
+        await supabase
+          .from('department_members')
+          .update({ role_in_dept: 'member' })
+          .eq('user_id', roleModal.userId)
+          .eq('role_in_dept', 'leader');
+        await supabase.from('departments').update({ leader_id: null }).eq('leader_id', roleModal.userId);
+      }
+
       const roleNames: Record<string, string> = {
         '0': 'Visiteur', '1': 'Membre', '3': 'Chef de département',
         '4_ancien': 'Ancien', '4_diacre': 'Diacre', '4_collaborateur': 'Collaborateur',
-        '5': 'Pasteur associé', '5_principal': 'Pasteur principal', '6': 'Admin',
+        '4_secretaire': 'Secrétaire', '4_assistant_pastor': 'Pasteur associé',
+        '5_principal': 'Pasteur principal', '6': 'Admin',
       };
-      const key = pastorCat ? `4_${pastorCat}` : makePrincipal && roleLevel >= 5 ? '5_principal' : String(roleLevel);
-      addToast(`${roleModal.userName} → ${roleNames[key] || 'Rôle mis à jour'}`, 'success');
+      const key = makePrincipal ? '5_principal' : pastorCat ? `4_${pastorCat}` : String(roleLevel);
+      const deptName = deptId ? departments.find((d) => d.id === deptId)?.name : null;
+      const label = roleNames[key] || 'Rôle mis à jour';
+      addToast(`${roleModal.userName} → ${label}${deptName ? ` (${deptName})` : ''}`, 'success');
 
       // Notifier l'utilisateur
       await supabase.from('notifications').insert({
         user_id: roleModal.userId,
         type: 'role_changed',
         title: 'Votre rôle a été mis à jour',
-        body: `Vous êtes maintenant ${roleNames[key] || 'un membre avec un nouveau rôle'}.`,
+        body: `Vous êtes maintenant ${label}${deptName ? ` — département ${deptName}` : ''}.`,
         link: '#dashboard',
       });
 
       setRoleModal(null);
+      setChefDeptOpen(false);
       fetchUsers();
       if (selectedUserId === roleModal.userId) fetchUserDetail(selectedUserId);
     } catch (err: any) {
@@ -629,7 +694,7 @@ export function UsersTab() {
               {/* Role assignment button — Admin complet uniquement */}
               {isFullAdmin && u.id !== adminProfile?.id && (
                 <button
-                  onClick={(e) => { e.stopPropagation(); setRoleModal({ userId: u.id, userName: u.full_name || u.email, currentLevel: u.role_level, currentCategory: u.pastor_category, isAdmin: u.is_admin, isPrincipal: u.is_principal_pastor }); }}
+                  onClick={(e) => { e.stopPropagation(); setChefDeptOpen(false); setRoleModal({ userId: u.id, userName: u.full_name || u.email, currentLevel: u.role_level, currentCategory: u.pastor_category, isAdmin: u.is_admin, isPrincipal: u.is_principal_pastor }); }}
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-500/40 text-purple-400 hover:bg-purple-500/10 transition shrink-0"
                   title="Assigner un rôle"
                 >
@@ -891,11 +956,32 @@ export function UsersTab() {
                 <div><p className="text-sm font-medium text-cream">Membre</p><p className="text-[10px] text-muted">Accès de base au dashboard</p></div>
               </button>
 
-              {/* Chef de département */}
-              <button onClick={() => assignRole(3, null, false, false)} disabled={roleSaving}
+              {/* Chef de département — choix du département */}
+              <button onClick={() => setChefDeptOpen((o) => !o)} disabled={roleSaving}
                 className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-purple-500/40 hover:bg-purple-500/5 transition flex items-center gap-3 disabled:opacity-50">
                 <div className="h-8 w-8 rounded-lg bg-purple-500/20 flex items-center justify-center"><UserCog className="h-4 w-4 text-purple-300" /></div>
-                <div><p className="text-sm font-medium text-cream">Chef de département</p><p className="text-[10px] text-muted">Gère un département et ses membres</p></div>
+                <div className="flex-1"><p className="text-sm font-medium text-cream">Chef de département</p><p className="text-[10px] text-muted">Gère un département et ses membres</p></div>
+                <ChevronDown className={`h-4 w-4 text-muted transition-transform ${chefDeptOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {chefDeptOpen && (
+                <div className="ml-4 space-y-1 border-l border-line pl-3">
+                  {departments.length === 0 && <p className="px-2 py-1 text-[11px] text-muted">Chargement des départements…</p>}
+                  {departments.map((d) => (
+                    <button key={d.id} onClick={() => assignRole(3, null, false, false, d.id)} disabled={roleSaving}
+                      className="w-full text-left px-3 py-2 rounded-lg border border-line/60 hover:border-purple-500/40 hover:bg-purple-500/5 transition disabled:opacity-50">
+                      <span className="text-xs text-cream">{d.name}</span>
+                      {d.leader_id === roleModal.userId && <span className="ml-2 text-[10px] font-semibold uppercase text-purple-300">chef actuel</span>}
+                      {d.leader_id && d.leader_id !== roleModal.userId && <span className="ml-2 text-[10px] text-amber-300/80">remplacera le chef en place</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Secrétaire */}
+              <button onClick={() => assignRole(4, 'secretaire', false, false)} disabled={roleSaving}
+                className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-teal-500/40 hover:bg-teal-500/5 transition flex items-center gap-3 disabled:opacity-50">
+                <div className="h-8 w-8 rounded-lg bg-teal-500/20 flex items-center justify-center"><Mail className="h-4 w-4 text-teal-300" /></div>
+                <div><p className="text-sm font-medium text-cream">Secrétaire</p><p className="text-[10px] text-muted">Secrétariat : membres, demandes, communiqués, finances en lecture</p></div>
               </button>
 
               {/* Ancien */}
@@ -927,10 +1013,10 @@ export function UsersTab() {
               </button>
 
               {/* Pasteur principal */}
-              <button onClick={() => assignRole(5, null, true, true)} disabled={roleSaving}
+              <button onClick={() => assignRole(5, null, false, true)} disabled={roleSaving}
                 className="w-full text-left px-4 py-3 rounded-xl border border-line hover:border-yellow-500/40 hover:bg-yellow-500/5 transition flex items-center gap-3 disabled:opacity-50">
                 <div className="h-8 w-8 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Crown className="h-4 w-4 text-yellow-200" /></div>
-                <div><p className="text-sm font-medium text-cream">Pasteur principal</p><p className="text-[10px] text-muted">Voir les statistiques et rapports. Pas les ajouts, suppressions ni assignations de rôles</p></div>
+                <div><p className="text-sm font-medium text-cream">Pasteur principal</p><p className="text-[10px] text-muted">Reste pasteur : accès pastoral complet, sans les pouvoirs d'administration</p></div>
               </button>
 
               {/* Admin */}
