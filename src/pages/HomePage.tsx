@@ -23,6 +23,7 @@ import { FirstVisit } from '../components/home/FirstVisit';
 import { PrayerTestimony } from '../components/home/PrayerTestimony';
 import { QuickActions } from '../components/home/QuickActions';
 import { ServiceCountdown } from '../components/home/ServiceCountdown';
+import { SPECIAL_SERVICE_TYPES, buildUpcomingSpecial, type UpcomingSpecial } from '../lib/services';
 import { LiveStreamModal } from '../components/LiveStreamModal';
 import { ArticleReader } from '../components/ArticleReader';
 import { PastoralBureau, type BureauPastor } from '../components/home/PastoralBureau';
@@ -232,6 +233,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   const [builderConfig, setBuilderConfig] = useState<Record<string, { visible: boolean; config: Record<string, unknown> }>>({});
   const [sectionColors, setSectionColors] = useState<SectionColorMap>({});
   const [activityCards, setActivityCards] = useState<ActivityCard[]>([]);
+  const [specialService, setSpecialService] = useState<UpcomingSpecial | null>(null);
 
   const articles = useArticles();
   const news = sortArticles(articles);
@@ -331,6 +333,35 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
     }
 
     loadData();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  /* ── Prochain culte spécial (remplace le programme hebdomadaire) ── */
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+
+    (async () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('worship_services')
+        .select('date,time,type')
+        .in('type', [...SPECIAL_SERVICE_TYPES])
+        .neq('status', 'cancelled')
+        .gte('date', today)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true })
+        .limit(6);
+
+      if (cancelled || !data) return;
+      const next = (data as Array<{ date: string; time: string; type: string }>)
+        .map(buildUpcomingSpecial)
+        .find((s) => s.at.getTime() > Date.now());
+      if (!cancelled) setSpecialService(next ?? null);
+    })();
+
     return () => {
       cancelled = true;
     };
@@ -727,7 +758,7 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                 <blockquote className="verse-quote">{heroBibleVerse}</blockquote>
               </div>
 
-              <ServiceCountdown className="animate-fade-up mt-7" />
+              <ServiceCountdown className="animate-fade-up mt-7" special={specialService} />
 
               <div
                 className="animate-fade-up mt-6 flex flex-wrap items-center gap-3"

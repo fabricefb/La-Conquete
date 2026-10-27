@@ -12,7 +12,7 @@ import {
   isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, ORDER_ITEM_TYPES,
   enrichServicesWithDeadlines, BIBLE_BOOKS,
 } from '../admin/tabs/PlanificationTab';
-import type { WorshipService, WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem, WorshipFormLink, WorshipOrderItemType, WorshipServiceType } from '../../types';
+import type { WorshipService, WorshipOratorForm, WorshipOratorPoint, WorshipOrderItem, WorshipFormLink, WorshipOrderItemType, WorshipServiceType, WorshipFormRecommendation, RecommendationTarget } from '../../types';
 import { openWhatsApp } from '../../lib/whatsapp';
 
 // ---------------------------------------------------------------------------
@@ -306,58 +306,52 @@ function SendOratorPanel({
     }
   };
 
-  const inputCls = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-cream placeholder-muted/50 focus:outline-none focus:border-accent-400/40 focus:ring-1 focus:ring-accent-400/20 transition-colors';
-  const labelCls = 'block text-[11px] font-medium text-muted mb-1';
+  const inputCls = 'w-full rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-[12.5px] text-cream placeholder-muted/50 focus:outline-none focus:border-accent-400/40 transition-colors';
 
   return (
-    <div className="border-t border-accent-400/20 bg-accent-400/[0.03] px-3.5 sm:px-4 py-3.5 space-y-3">
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Envoyer au prédicateur</p>
-          <p className="mt-0.5 text-[11px] text-muted">
+    <div className="border-t border-accent-400/15 bg-accent-400/[0.02] px-3.5 sm:px-4 py-2.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-400">Envoyer au prédicateur</p>
+          <p className="truncate text-[11px] text-muted">
             {formatDate(service.date)} · {formatTime(service.time)} · {typeLabel}
           </p>
         </div>
-        <button onClick={onCancel} className="text-muted hover:text-cream transition-colors" aria-label="Fermer">
-          <X className="h-4 w-4" />
+        <button onClick={onCancel} className="shrink-0 text-muted hover:text-cream transition-colors" aria-label="Fermer">
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-        <div>
-          <label className={labelCls}>Nom du prédicateur *</label>
-          <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="Nom tel qu'il sera affiché" />
+      <div className="mt-2 flex flex-col gap-1.5 sm:flex-row sm:items-center">
+        <input className={`${inputCls} sm:flex-1`} value={name} onChange={e => setName(e.target.value)} placeholder="Nom du prédicateur *" aria-label="Nom du prédicateur" />
+        <input className={`${inputCls} sm:w-40`} value={phone} onChange={e => setPhone(e.target.value)} placeholder="WhatsApp (09…)" inputMode="tel" aria-label="WhatsApp" />
+        <div className="flex gap-1.5">
+          <button
+            onClick={handleWhatsApp}
+            disabled={saving !== null}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-green-500/25 bg-green-500/10 px-2.5 py-1.5 text-[12px] font-medium text-green-300 transition-colors hover:bg-green-500/20 disabled:opacity-50 sm:flex-none"
+          >
+            {saving === 'whatsapp' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+            WhatsApp
+          </button>
+          <button
+            onClick={handleCopy}
+            disabled={saving !== null}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-2.5 py-1.5 text-[12px] font-medium text-muted transition-colors hover:bg-white/10 hover:text-cream disabled:opacity-50 sm:flex-none"
+            title="Copier le lien du formulaire"
+          >
+            {saving === 'copy' ? <Loader2 className="h-3 w-3 animate-spin" /> : <Copy className="h-3 w-3" />}
+            Lien
+          </button>
         </div>
-        <div>
-          <label className={labelCls}>WhatsApp</label>
-          <input className={inputCls} value={phone} onChange={e => setPhone(e.target.value)} placeholder="09… ou +243…" inputMode="tel" />
-          <p className="mt-1 text-[10px] text-muted/60">Laissez vide pour choisir le contact dans WhatsApp.</p>
-        </div>
       </div>
 
-      <div className="rounded-lg border border-line/25 bg-white/[0.02] p-3">
-        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted/70">Message envoyé</p>
-        <pre className="whitespace-pre-wrap break-words font-sans text-[11px] leading-relaxed text-cream/75">{message}</pre>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-2">
-        <button
-          onClick={handleWhatsApp}
-          disabled={saving !== null}
-          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-green-500/25 bg-green-500/15 px-4 py-2.5 text-sm font-medium text-green-300 transition-colors hover:bg-green-500/25 disabled:opacity-50"
-        >
-          {saving === 'whatsapp' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          Envoyer sur WhatsApp
-        </button>
-        <button
-          onClick={handleCopy}
-          disabled={saving !== null}
-          className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-white/10 hover:text-cream disabled:opacity-50"
-        >
-          {saving === 'copy' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
-          Copier le lien
-        </button>
-      </div>
+      <details className="mt-1.5 group">
+        <summary className="cursor-pointer list-none text-[10px] uppercase tracking-[0.12em] text-muted/60 transition-colors hover:text-muted">
+          Aperçu du message
+        </summary>
+        <pre className="mt-1.5 whitespace-pre-wrap break-words rounded-md border border-line/20 bg-white/[0.02] p-2.5 font-sans text-[11px] leading-relaxed text-cream/70">{message}</pre>
+      </details>
     </div>
   );
 }
@@ -619,12 +613,94 @@ function AdminOrderForm({
   );
 }
 
+/** Formulaire de recommandation — adressée au département ou à l'orateur. */
+function RecommendationComposer({ formId, onDone }: { formId: string; onDone: () => void }) {
+  const { user, profile } = useAuth();
+  const { addToast } = useToast();
+  const [content, setContent] = useState('');
+  const [target, setTarget] = useState<RecommendationTarget>('department');
+  const [saving, setSaving] = useState(false);
+
+  const authorRole = profile?.is_principal_pastor
+    ? 'Pasteur principal'
+    : profile?.pastor_category
+      ? 'Bureau pastoral'
+      : profile?.is_admin
+        ? 'Administration'
+        : 'Département Média';
+
+  const send = async () => {
+    if (!content.trim()) return;
+    setSaving(true);
+    try {
+      const { error } = await supabase.from('worship_form_recommendations').insert({
+        form_id: formId,
+        author_id: user?.id ?? null,
+        author_name: profile?.full_name || user?.email || 'Membre',
+        author_role: authorRole,
+        target,
+        content: content.trim(),
+      });
+      if (error) throw error;
+      setContent('');
+      addToast({
+        type: 'success',
+        message: target === 'orator'
+          ? "Recommandation transmise à l'orateur"
+          : 'Recommandation ajoutée pour le département',
+      });
+      onDone();
+    } catch (err: any) {
+      addToast({
+        type: 'error',
+        message: String(err?.message || '').includes('worship_form_recommendations')
+          ? "Table des recommandations absente — exécuter le script 28 dans Supabase."
+          : (err?.message || "Impossible d'envoyer la recommandation"),
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-1.5 border-t border-line/15 pt-2">
+      <textarea
+        rows={2}
+        value={content}
+        onChange={e => setContent(e.target.value)}
+        placeholder="Ajouter une recommandation sur ce message…"
+        className="w-full resize-y rounded-md bg-white/5 border border-white/10 px-2.5 py-1.5 text-[12px] text-cream placeholder-muted/50 focus:outline-none focus:border-accent-400/40 transition-colors"
+      />
+      <div className="flex items-center gap-1.5">
+        <select
+          value={target}
+          onChange={e => setTarget(e.target.value as RecommendationTarget)}
+          className="rounded-md bg-white/5 border border-white/10 px-2 py-1 text-[11px] text-cream focus:outline-none focus:border-accent-400/40"
+          aria-label="Destinataire de la recommandation"
+        >
+          <option value="department" className="bg-[#161616]">Au département</option>
+          <option value="orator" className="bg-[#161616]">À l'orateur</option>
+        </select>
+        <button
+          onClick={send}
+          disabled={saving || !content.trim()}
+          className="ml-auto inline-flex items-center gap-1 rounded-md border border-accent-400/25 bg-accent-400/15 px-2.5 py-1.5 text-[11px] font-medium text-accent-300 transition-colors hover:bg-accent-400/25 disabled:opacity-40"
+        >
+          {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Send className="h-3 w-3" />}
+          Envoyer
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** A single, compact service row with ALL actions visible */
 function ServiceRow({
   service,
   oratorForm,
   oratorPoints,
   orderItems,
+  recommendations,
   oratorLink,
   presidentLink,
   onGenerateLink,
@@ -634,6 +710,7 @@ function ServiceRow({
   oratorForm: WorshipOratorForm | null;
   oratorPoints: WorshipOratorPoint[];
   orderItems: WorshipOrderItem[];
+  recommendations: WorshipFormRecommendation[];
   oratorLink: WorshipFormLink | undefined;
   presidentLink: WorshipFormLink | undefined;
   onGenerateLink: (serviceId: string, linkType: 'orator' | 'president', name?: string) => void;
@@ -767,19 +844,17 @@ function ServiceRow({
         {/* ── Quick actions — always visible ── */}
         <div className="flex flex-wrap gap-1.5 pt-1">
           {/* Orator: envoi du formulaire au prédicateur */}
-          {!oratorForm && (
-            <button
-              onClick={() => { setEditOrator(false); setSendOpen(v => !v); }}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-400/15 hover:bg-accent-400/25 text-accent-300 text-[11px] font-medium transition-colors border border-accent-400/25"
-              title="Envoyer le formulaire au prédicateur"
-            >
-              <Send className="h-3 w-3" />
-              {oratorLink?.sent_at ? 'Renvoyer au prédicateur' : 'Envoyer au prédicateur'}
-            </button>
-          )}
-          {!oratorForm && oratorLink && (
-            <button onClick={() => copyLink(oratorLink.token, 'orateur')} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-cream text-[11px] transition-colors border border-white/10" title="Copier le lien du formulaire">
-              <Copy className="h-3 w-3" /> Copier le lien
+          <button
+            onClick={() => { setEditOrator(false); setSendOpen(v => !v); }}
+            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-400/15 hover:bg-accent-400/25 text-accent-300 text-[11px] font-medium transition-colors border border-accent-400/25"
+            title={oratorForm ? 'Renvoyer le lien pour modifier le formulaire' : "Envoyer le formulaire au prédicateur"}
+          >
+            <Send className="h-3 w-3" />
+            {oratorForm ? 'Partager le lien' : oratorLink?.sent_at ? 'Renvoyer au prédicateur' : 'Envoyer au prédicateur'}
+          </button>
+          {oratorLink && (
+            <button onClick={() => copyLink(oratorLink.token, 'orateur')} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-cream text-[11px] transition-colors border border-white/10" title="Copier le lien du formulaire orateur">
+              <Copy className="h-3 w-3" /> Lien orateur
             </button>
           )}
 
@@ -824,7 +899,9 @@ function ServiceRow({
             className="flex items-center gap-1.5 text-[11px] text-accent-400 hover:text-accent-300 transition-colors w-full justify-center pt-0.5"
           >
             <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
-            {expanded ? 'Masquer le détail' : 'Voir le contenu du formulaire'}
+            {expanded
+              ? 'Masquer le détail'
+              : `Voir le contenu du formulaire${recommendations.length > 0 ? ` · ${recommendations.length} reco.` : ''}`}
           </button>
         )}
       </div>
@@ -842,7 +919,7 @@ function ServiceRow({
       )}
 
       {/* ── Envoi au prédicateur ── */}
-      {sendOpen && !oratorForm && (
+      {sendOpen && (
         <SendOratorPanel
           service={service}
           link={oratorLink}
@@ -890,6 +967,37 @@ function ServiceRow({
             </div>
           )}
 
+          {oratorForm && (
+            <div className="rounded-lg border border-line/20 bg-white/[0.02] p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] font-medium uppercase tracking-wider text-muted/70">Recommandations</p>
+                <span className="text-[10px] text-muted">{recommendations.length}</span>
+              </div>
+
+              {recommendations.length > 0 ? (
+                <ul className="space-y-2">
+                  {recommendations.map(r => (
+                    <li key={r.id} className="text-[11px] leading-relaxed">
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] text-muted">
+                        <span className="font-medium text-cream/80">{r.author_name}</span>
+                        {r.author_role && <span>· {r.author_role}</span>}
+                        <span>· {new Date(r.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                        <span className={`ml-auto rounded-full px-1.5 py-0.5 ${r.target === 'orator' ? 'bg-blue-500/15 text-blue-300' : 'bg-accent-400/15 text-accent-300'}`}>
+                          {r.target === 'orator' ? 'À l’orateur' : 'Département'}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 whitespace-pre-wrap text-cream/75">{r.content}</p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[11px] text-muted/70">Aucune recommandation pour l'instant.</p>
+              )}
+
+              <RecommendationComposer formId={oratorForm.id} onDone={onRefresh} />
+            </div>
+          )}
+
           {orderItems.length > 0 && (
             <div className="bg-purple-500/5 rounded-lg p-3 border border-purple-500/10 space-y-1.5">
               <p className="text-[10px] text-purple-400 font-medium uppercase tracking-wider">Ordre du Culte</p>
@@ -931,6 +1039,7 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   const [services, setServices] = useState<WorshipService[]>([]);
   const [oratorForms, setOratorForms] = useState<Record<string, { form: WorshipOratorForm; points: WorshipOratorPoint[] }>>({});
   const [orderItemsMap, setOrderItemsMap] = useState<Record<string, WorshipOrderItem[]>>({});
+  const [recommendationsMap, setRecommendationsMap] = useState<Record<string, WorshipFormRecommendation[]>>({});
   const [formLinks, setFormLinks] = useState<WorshipFormLink[]>([]);
   const [loading, setLoading] = useState(true);
   const [tableMissing, setTableMissing] = useState(false);
@@ -980,15 +1089,24 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
       if (svcs.length > 0) {
         const svcIds = svcs.map(s => s.id);
 
-        const [formsRes, ordersRes, pointsRes] = await Promise.allSettled([
+        const [formsRes, ordersRes, pointsRes, recosRes] = await Promise.allSettled([
           supabase.from('worship_orator_forms').select('*').in('service_id', svcIds),
           supabase.from('worship_order_items').select('*').in('service_id', svcIds).order('position'),
           supabase.from('worship_orator_points').select('*'),
+          supabase.from('worship_form_recommendations').select('*').order('created_at', { ascending: true }).limit(300),
         ]);
 
         const forms = (formsRes.status === 'fulfilled' && formsRes.value.data) ? (formsRes.value.data as WorshipOratorForm[]) : [];
         const orders = (ordersRes.status === 'fulfilled' && ordersRes.value.data) ? (ordersRes.value.data as WorshipOrderItem[]) : [];
         const allPoints = (pointsRes.status === 'fulfilled' && pointsRes.value.data) ? (pointsRes.value.data as WorshipOratorPoint[]) : [];
+        const allRecos = (recosRes.status === 'fulfilled' && recosRes.value.data) ? (recosRes.value.data as WorshipFormRecommendation[]) : [];
+
+        const recosByForm: Record<string, WorshipFormRecommendation[]> = {};
+        allRecos.forEach(r => {
+          if (!recosByForm[r.form_id]) recosByForm[r.form_id] = [];
+          recosByForm[r.form_id].push(r);
+        });
+        setRecommendationsMap(recosByForm);
 
         // Map forms by service_id
         const formsByService: Record<string, WorshipOratorForm> = {};
@@ -1119,6 +1237,7 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
           oratorForm={oratorForms[svc.id]?.form ?? null}
           oratorPoints={oratorForms[svc.id]?.points ?? []}
           orderItems={orderItemsMap[svc.id] ?? []}
+          recommendations={recommendationsMap[oratorForms[svc.id]?.form.id ?? ''] ?? []}
           oratorLink={linksForService(svc.id, 'orator')}
           presidentLink={linksForService(svc.id, 'president')}
           onGenerateLink={handleGenerateLink}

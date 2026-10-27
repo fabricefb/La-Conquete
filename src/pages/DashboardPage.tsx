@@ -210,6 +210,12 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     return false;
   };
 
+  // Le bureau pastoral suit les formulaires orateur même sans être membre du Média.
+  const isPastoralStaff =
+    profile?.is_principal_pastor === true ||
+    !!profile?.pastor_category ||
+    (profile?.role_level ?? 0) >= 4;
+
   // ── Fetch all dashboard data ────────────────────────────────────
   useEffect(() => {
     if (!user) return;
@@ -1311,7 +1317,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                 return aPrio - bPrio;
               });
 
-              return sorted.map(({ dept, isProtocole, isMediaPlanif, isEvangelism, isGeneric }, idx) => (
+              const rows = sorted.map(({ dept, isProtocole, isMediaPlanif, isEvangelism, isGeneric }, idx) => (
                 <EvtReveal key={dept.id} delay={idx + 1}>
                   <section className="mb-10">
                     {isProtocole ? (
@@ -1330,6 +1336,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   </section>
                 </EvtReveal>
               ));
+
+              return (
+                <>
+                  {rows}
+                  {isPastoralStaff && !renderedSpecial.has('media_planif') && (
+                    <EvtReveal delay={sorted.length + 1}>
+                      <section className="mb-10">
+                        <MediaCenterSection accentColor="text-accent-400" />
+                      </section>
+                    </EvtReveal>
+                  )}
+                </>
+              );
             })()}
 
             {/* ═══════════════════════════════════════════════════════

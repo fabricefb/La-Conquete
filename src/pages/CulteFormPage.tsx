@@ -9,7 +9,7 @@ import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIG
 import { openWhatsApp } from '../lib/whatsapp';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
-  WorshipOrderItem, WorshipOrderItemType,
+  WorshipOrderItem, WorshipOrderItemType, WorshipFormRecommendation,
 } from '../types';
 
 const FORM_LOGO = '/logo-conquete.png';
@@ -35,6 +35,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [updated, setUpdated] = useState(false);
 
   // Link & service data
   const [link, setLink] = useState<WorshipFormLink | null>(null);
@@ -54,6 +55,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
   const [points, setPoints] = useState<typeof ORATOR_POINT_FIELDS[]>([{ ...ORATOR_POINT_FIELDS }]);
   const [existingForm, setExistingForm] = useState<WorshipOratorForm | null>(null);
   const [existingPoints, setExistingPoints] = useState<WorshipOratorPoint[]>([]);
+  const [oratorRecommendations, setOratorRecommendations] = useState<WorshipFormRecommendation[]>([]);
 
   // President order state
   const [presidentName, setPresidentName] = useState('');
@@ -121,13 +123,6 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         return;
       }
 
-      // Check expiry
-      if (linkData.expires_at && new Date(linkData.expires_at) < new Date()) {
-        setError('Ce lien a expiré. Contactez le département média.');
-        setLoading(false);
-        return;
-      }
-
       setLink(linkData as WorshipFormLink);
 
       // 2. Get service
@@ -137,26 +132,18 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
         .eq('id', linkData.service_id)
         .single();
 
-      if (svcData) {
-        const svc = enrichWithDeadline(svcData as WorshipService);
-        setService(svc);
-
-        // Check 12h deadline
-        if (svc.form_deadline_at) {
-          const dlInfo = getDeadlineInfo(svc.form_deadline_at);
-          setDeadlineInfo(dlInfo);
-          if (dlInfo.isExpired) {
-            setDeadlineExpired(true);
-            setError(`La date limite pour soumettre ce formulaire est expirée (12h avant le culte).${svc.is_delayed ? ' Le culte est en retard, mais la deadline a déjà été repoussée.' : ''} Contactez le département média.`);
-            setLoading(false);
-            return;
-          }
-        }
-      } else {
+      if (!svcData) {
         setError('Service introuvable. Contactez le département média.');
         setLoading(false);
         return;
       }
+
+      const svc = enrichWithDeadline(svcData as WorshipService);
+      setService(svc);
+
+      // Un formulaire déjà soumis reste modifiable par son auteur,
+      // même si le lien a expiré ou si la date limite est passée.
+      let submitted = false;
 
       // 3. Load existing data based on type
       if (linkData.link_type === 'orator') {
@@ -167,6 +154,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           .single();
 
         if (formData) {
+          submitted = true;
           setExistingForm(formData as WorshipOratorForm);
           setOratorName(formData.orator_name || '');
           setTheme(formData.theme || '');
@@ -189,6 +177,15 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
             setExistingPoints(pts);
             setPoints(pts.map(p => ({ title: p.title, description: p.description || '' })));
           }
+
+          // Recommandations destinées à l'orateur (visibles sur son lien)
+          const { data: recoData } = await supabase
+            .from('worship_form_recommendations')
+            .select('*')
+            .eq('form_id', formData.id)
+            .eq('target', 'orator')
+            .order('created_at', { ascending: true });
+          if (recoData) setOratorRecommendations(recoData as WorshipFormRecommendation[]);
         } else {
           setOratorName(svcData?.orator_name || '');
         }
@@ -214,6 +211,23 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           setPresidentName(svcData?.president_name || '');
         }
       }
+
+      // 4. Gates — bloquantes uniquement si rien n'a encore été soumis
+      const linkExpired = !!linkData.expires_at && new Date(linkData.expires_at) < new Date();
+      if (linkExpired && !submitted) {
+        setError('Ce lien a expiré. Contactez le département média.');
+        return;
+      }
+
+      if (svc.form_deadline_at) {
+        const dlInfo = getDeadlineInfo(svc.form_deadline_at);
+        setDeadlineInfo(dlInfo);
+        if (dlInfo.isExpired && !submitted) {
+          setDeadlineExpired(true);
+          setError(`La date limite pour soumettre ce formulaire est expirée (12h avant le culte).${svc.is_delayed ? ' Le culte est en retard, mais la deadline a déjà été repoussée.' : ''} Contactez le département média.`);
+          return;
+        }
+      }
     } catch (err) {
       if (isTableNotFoundError(err)) {
         setError('Module en cours de configuration. Veuillez réessayer plus tard.');
@@ -227,14 +241,15 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  // Auto-redirect after successful submission (MUST be before any conditional return)
+  // Auto-redirect after a first submission only — une mise à jour laisse
+  // l'orateur sur son formulaire pour continuer à corriger.
   useEffect(() => {
-    if (!success) return;
+    if (!success || updated) return;
     const timer = setTimeout(() => {
       window.location.href = window.location.origin + '/';
     }, 5000);
     return () => clearTimeout(timer);
-  }, [success]);
+  }, [success, updated]);
 
   /* ── Submit orator form ── */
   const submitOratorForm = async () => {
@@ -307,6 +322,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       // Update local state (optimistic — no reload)
       setExistingForm({ ...formData, status: 'submitted', submitted_at: new Date().toISOString() } as WorshipOratorForm);
       setExistingPoints(ptsToInsert.map((p, i) => ({ id: `local_${i}`, form_id: formData.id, title: p.title, description: p.description || '', position: i, created_at: '' })) as WorshipOratorPoint[]);
+      setUpdated(!!existingForm);
       setSuccess(true);
       setError(null);
     } catch (err: any) {
@@ -430,9 +446,19 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="space-y-2 mb-3">
             <div className="rounded-xl p-3 flex items-center gap-2 text-xs bg-green-500/10 text-green-300 border border-green-500/20">
               <CheckCircle className="h-4 w-4 shrink-0" />
-              <span>{isOrator ? 'Formulaire orateur soumis avec succès !' : 'Ordre du culte soumis avec succès !'}</span>
+              <span>
+                {updated
+                  ? 'Formulaire mis à jour — vos modifications sont enregistrées.'
+                  : isOrator
+                    ? 'Formulaire orateur soumis avec succès !'
+                    : 'Ordre du culte soumis avec succès !'}
+              </span>
             </div>
-            <p className="text-[10px] text-muted text-center">Redirection automatique dans 5 secondes…</p>
+            {updated ? (
+              <p className="text-[10px] text-muted text-center">Vous pouvez encore corriger et soumettre à nouveau.</p>
+            ) : (
+              <p className="text-[10px] text-muted text-center">Redirection automatique dans 5 secondes…</p>
+            )}
             <button
               onClick={() => { window.location.hash = '#home'; }}
               className="w-full py-2.5 text-xs font-medium text-center rounded-xl bg-accent-500/15 text-accent-400 hover:bg-accent-500/25 transition-colors border border-accent-500/20"
@@ -870,6 +896,24 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           <div className="bg-amber-500/10 rounded-xl p-3 mb-4 flex items-center gap-2 text-amber-300 text-xs border border-amber-500/20">
             <Info className="h-4 w-4 shrink-0" />
             Vous avez déjà soumis un formulaire. Modifiez et soumettez à nouveau pour mettre à jour.
+          </div>
+        )}
+
+        {isOrator && oratorRecommendations.length > 0 && (
+          <div className="rounded-xl border border-line/30 bg-white/[0.03] p-3 mb-4 space-y-2">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-accent-400">Recommandations reçues</p>
+            <ul className="space-y-2">
+              {oratorRecommendations.map(r => (
+                <li key={r.id} className="text-xs leading-relaxed">
+                  <div className="flex flex-wrap items-center gap-x-1.5 text-[10px] text-muted">
+                    <span className="font-medium text-cream/80">{r.author_name}</span>
+                    {r.author_role && <span>· {r.author_role}</span>}
+                    <span>· {new Date(r.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                  </div>
+                  <p className="mt-0.5 whitespace-pre-wrap text-cream/75">{r.content}</p>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
         {existingOrder.length > 0 && !isOrator && (

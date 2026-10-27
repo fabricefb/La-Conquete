@@ -88,3 +88,69 @@ export function diffCountdown(target: Date, from: Date = new Date()): CountdownP
     seconds: Math.floor((ms % 60000) / 1000),
   };
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CULTES SPÉCIAUX — programmés au back-office (table worship_services)
+   Quand un culte spécial à venir existe, le hero de l'accueil remplace le
+   programme hebdomadaire par ce culte et son compte à rebours.
+   ─────────────────────────────────────────────────────────────────────── */
+
+export const SPECIAL_SERVICE_TYPES = [
+  'seminaire',
+  'veillee',
+  'culte_special',
+  'conference',
+  'exposition',
+  'retraite',
+] as const;
+
+export const SPECIAL_SERVICE_LABELS: Record<string, string> = {
+  seminaire: 'Séminaire',
+  veillee: 'Veillée',
+  culte_special: 'Culte spécial',
+  conference: 'Conférence',
+  exposition: 'Exposition',
+  retraite: 'Retraite',
+};
+
+const FR_DAYS = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+const FR_MONTHS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+/** « dimanche 8 novembre 2026 » à partir d'une date ISO (yyyy-mm-dd). */
+export function formatSpecialDate(dateStr: string): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return `${FR_DAYS[date.getUTCDay()].toLowerCase()} ${d} ${FR_MONTHS[m - 1]} ${y}`;
+}
+
+/** Instant de début du culte, exprimé en heure de Lubumbashi (UTC+2). */
+export function specialServiceAt(dateStr: string, timeStr: string): Date {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [h, min] = timeStr.split(':').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, h, min, 0) - LUBUMBASHI_UTC_OFFSET_MINUTES * 60000);
+}
+
+export interface UpcomingSpecial {
+  /** Libellé du type : « Veillée », « Conférence »… */
+  label: string;
+  /** Phrase du programme : « samedi 8 novembre 2026 · 18h00 » */
+  detail: string;
+  at: Date;
+}
+
+export function buildUpcomingSpecial(row: {
+  date: string;
+  time: string;
+  type: string;
+}): UpcomingSpecial {
+  const label = SPECIAL_SERVICE_LABELS[row.type] ?? 'Culte spécial';
+  const time = (row.time || '').slice(0, 5).replace(':', 'h');
+  return {
+    label,
+    detail: `${formatSpecialDate(row.date)} · ${time}`,
+    at: specialServiceAt(row.date, row.time),
+  };
+}

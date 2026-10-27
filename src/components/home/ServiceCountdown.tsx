@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { diffCountdown, getNextService } from '../../lib/services';
+import { diffCountdown, getNextService, type UpcomingSpecial } from '../../lib/services';
 
 /* ═══════════════════════════════════════════════════════════════════════
    COMPTE À REBOURS — prochain culte
@@ -16,21 +16,45 @@ const UNITS: Array<{ key: 'days' | 'hours' | 'minutes' | 'seconds'; label: strin
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-export function ServiceCountdown({ className = '' }: { className?: string }) {
-  const next = useMemo(() => getNextService(), []);
-  const [left, setLeft] = useState(() => diffCountdown(next.at));
+export function ServiceCountdown({
+  className = '',
+  special = null,
+}: {
+  className?: string;
+  /** Culte spécial programmé : remplace le programme hebdomadaire du hero. */
+  special?: UpcomingSpecial | null;
+}) {
+  const target = useMemo(() => {
+    if (special && special.at.getTime() > Date.now()) {
+      return {
+        eyebrow: special.label,
+        detail: special.detail,
+        at: special.at,
+        isSpecial: true,
+      };
+    }
+    const next = getNextService();
+    return {
+      eyebrow: 'Prochain culte',
+      detail: `${next.day} · ${next.service} · ${next.time}`,
+      at: next.at,
+      isSpecial: false,
+    };
+  }, [special]);
+
+  const [left, setLeft] = useState(() => diffCountdown(target.at));
 
   useEffect(() => {
-    const id = window.setInterval(() => setLeft(diffCountdown(next.at)), 1000);
+    const id = window.setInterval(() => setLeft(diffCountdown(target.at)), 1000);
     return () => window.clearInterval(id);
-  }, [next.at]);
+  }, [target.at]);
 
   return (
     <div className={className}>
       <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-        <p className="section-eyebrow">Prochain culte</p>
+        <p className="section-eyebrow">{target.eyebrow}</p>
         <p className="text-[13px] font-medium uppercase tracking-[0.18em] text-muted">
-          {next.day} · {next.service} · {next.time}
+          {target.detail}
         </p>
       </div>
 

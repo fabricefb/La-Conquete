@@ -1214,6 +1214,19 @@ export interface WorshipFormLink {
   updated_at: string;
 }
 
+export type RecommendationTarget = 'department' | 'orator';
+
+export interface WorshipFormRecommendation {
+  id: string;
+  form_id: string;
+  author_id: string | null;
+  author_name: string;
+  author_role: string | null;
+  target: RecommendationTarget;
+  content: string;
+  created_at: string;
+}
+
 // ═══════ MODULE 7 — Évangélisation ═══════
 export type EvangelismObjective =
   | 'porte_a_porte' | 'marche' | 'campagne' | 'rue'
