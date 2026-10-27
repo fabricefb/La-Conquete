@@ -39,7 +39,9 @@ WHERE NOT EXISTS (
 );
 
 -- 3. Évangélisation (second département ouvert)
-INSERT INTO departments (name, slug, description, icon_name, accent_color, meeting_schedule, mission, activities, requirements, sort_order, is_active)
+--    activities / requirements ne sont pas renseignés ici : selon les bases
+--    ils sont typés text[] et une chaîne simple fait échouer l'INSERT.
+INSERT INTO departments (name, slug, description, icon_name, accent_color, meeting_schedule, mission, sort_order, is_active)
 SELECT
   'Évangélisation',
   'evangelisation',
@@ -48,8 +50,6 @@ SELECT
   'gold',
   'Samedi à 07h00',
   'Atteindre chaque quartier de Lubumbashi avec l''Évangile, former des évangélistes et assurer le suivi des nouveaux convertis.',
-  'Sorties d''évangélisation hebdomadaires, distribution de Bibles et tracts, visites domiciliaires, campagnes de masse.',
-  'Être membre actif, avoir suivi les cours de baptême.',
   1,
   true
 WHERE NOT EXISTS (
@@ -60,4 +60,7 @@ WHERE NOT EXISTS (
 
 UPDATE departments
 SET is_active = true
-WHERE slug IN ('media-communication', 'evangelisation');
+WHERE slug IN ('media-communication', 'evangelisation')
+   OR name ILIKE 'média%'
+   OR name ILIKE 'media%'
+   OR name ILIKE '%évangélis%';
