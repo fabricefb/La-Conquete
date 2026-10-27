@@ -7,7 +7,9 @@ import { formatDate } from '../lib/date';
 import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
   MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList, Quote, Sparkles, Eye, EyeOff, AlertTriangle,
+  MonitorPlay, Globe,
 } from '../lib/icons';
+import { isJoinableDepartment, joinableDepartmentKey, sortDepartmentsForMembership } from '../lib/membership';
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
 import { MediaCenterSection } from '../components/dashboard/MediaCenterSection';
@@ -44,6 +46,14 @@ interface UserDepartment {
   meeting_schedule: string | null;
 }
 
+interface JoinableDept {
+  id: string;
+  name: string;
+  description: string | null;
+  accent_color: string | null;
+  icon_name: string | null;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    DeptMemberCount — petit composant pour afficher le nombre de membres
    ═══════════════════════════════════════════════════════════════════ */
@@ -71,7 +81,7 @@ function DeptMemberCount({ departmentId }: { departmentId: string }) {
    ═══════════════════════════════════════════════════════════════════ */
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const { addToast } = useToast();
   const { colorMode, toggleColorMode } = useDynamicTheme();
 
@@ -85,10 +95,10 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [dataLoading, setDataLoading] = useState(true);
 
   // ── Department request state ──────────────────────────────────
-  const [showDeptRequest, setShowDeptRequest] = useState(false);
-  const [deptList, setDeptList] = useState<any[]>([]);
-  const [requestedDept, setRequestedDept] = useState<string>('');
+  const [joinableDepts, setJoinableDepts] = useState<JoinableDept[]>([]);
+  const [pendingDeptIds, setPendingDeptIds] = useState<string[]>([]);
   const [deptRequestSubmitting, setDeptRequestSubmitting] = useState(false);
+  const [declareMemberSubmitting, setDeclareMemberSubmitting] = useState(false);
 
   // ── Role request state ────────────────────────────────────────
   const [showRoleRequest, setShowRoleRequest] = useState(false);
@@ -143,6 +153,23 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { upcomingReminders } = useEventReminders();
 
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Membre';
+
+  // ── Statut déclaré (visiteur / membre / en découverte) ────────
+  const churchStatus = (
+    profile?.church_status ??
+    (user?.user_metadata?.church_status as 'member' | 'visitor' | 'seeker' | undefined) ??
+    'member'
+  );
+  const isVisitor = churchStatus === 'visitor' || churchStatus === 'seeker';
+  const roleBadge = isVisitor
+    ? (churchStatus === 'seeker' ? 'En découverte' : 'Visiteur')
+    : profile?.is_admin
+      ? 'Administration'
+      : departments.length > 0
+        ? departments[0].department_name
+        : 'Membre';
+  const myDeptIds = new Set(departments.map((dept) => dept.id));
+  const extraJoinableDepts = joinableDepts.filter((dept) => !myDeptIds.has(dept.id));
 
   // ── Role-based section visibility ─────────────────────────────
   const PASTOR_HIDDEN_SECTIONS = new Set([
@@ -298,6 +325,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         setEvents((eventData || []) as ChurchEvent[]);
         setPrayers((prayerData || []) as PrayerReqType[]);
         setDepartments(userDepts);
+
+        // Départements ouverts aux inscriptions : Média d'abord, Évangélisation ensuite
+        const { data: openDeptData } = await supabase
+          .from('departments')
+          .select('id, name, description, accent_color, icon_name')
+          .eq('is_active', true)
+          .order('sort_order');
+        if (!cancelled && openDeptData) {
+          setJoinableDepts(sortDepartmentsForMembership(openDeptData as JoinableDept[]));
+        }
 
         // ── Auto-réparation : demandes acceptées sans department_members actif ──
         if (userDepts.length === 0) {
@@ -480,6 +517,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
           items.push({ type: 'department', id: r.id, label: `Departement: ${r.departments?.name || 'N/A'}`, status: r.status, date: r.created_at });
         }
       });
+      setPendingDeptIds(
+        (deptRes.data || [])
+          .filter((r: any) => !ACCEPTED_STATUSES.includes(r.status))
+          .map((r: any) => r.department_id),
+      );
 
       items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       setMyRequests(items.slice(0, 8));
@@ -617,24 +659,74 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     { val: 'autre', label: 'Autre' },
   ];
 
-  // ── Fetch available departments ────────────────────────────────
-  const handleShowDeptRequest = async () => {
-    if (showDeptRequest) {
-      setShowDeptRequest(false);
-      return;
-    }
-    try {
-      const { data, error } = await supabase
-        .from('departments')
-        .select('id, name, description, accent_color, icon_name')
-        .eq('is_active', true)
-        .order('sort_order');
-      if (error) throw error;
-      setDeptList(data || []);
-      setShowDeptRequest(true);
-    } catch {
-      addToast('Impossible de charger les départements.', 'error');
-    }
+  // ── Scroll vers la carte « Devenir membre » ───────────────────
+  const scrollToMembership = () => {
+    document.getElementById('devenir-membre')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // ── Carte département : demande (Média, Évangélisation) ou attente ──
+  const renderJoinCard = (dept: JoinableDept) => {
+    const isPending = pendingDeptIds.includes(dept.id);
+    const open = isJoinableDepartment(dept.name);
+    const deptKey = joinableDepartmentKey(dept.name);
+    const Icon = deptKey === 'media' ? MonitorPlay : deptKey === 'evangelism' ? Globe : Star;
+    const accent = /^#/.test(dept.accent_color || '') ? dept.accent_color! : '#D4A843';
+
+    return (
+      <div
+        key={dept.id}
+        className={`rounded-xl border p-4 transition-all duration-200 ${
+          open
+            ? 'border-line/60 bg-white/[0.03] hover:border-accent-400/30 hover:bg-white/[0.05]'
+            : 'border-dashed border-line/40 bg-white/[0.01]'
+        }`}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+            style={{
+              backgroundColor: open ? `${accent}1f` : 'rgba(255,255,255,0.04)',
+              border: `1px solid ${open ? `${accent}40` : 'rgba(255,255,255,0.08)'}`,
+            }}
+          >
+            <Icon className="h-5 w-5" style={{ color: open ? accent : 'rgba(255,255,255,0.35)' }} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h4 className={`font-sans text-sm font-bold ${open ? 'text-cream' : 'text-cream/60'}`}>{dept.name}</h4>
+              {!open && (
+                <span className="shrink-0 rounded-full border border-line/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
+                  Bientôt
+                </span>
+              )}
+            </div>
+            {dept.description && (
+              <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2">{dept.description}</p>
+            )}
+          </div>
+        </div>
+        <div className="mt-3">
+          {!open ? (
+            <p className="text-xs leading-relaxed text-muted/80">
+              Veuillez patienter le temps que ce département soit configuré.
+            </p>
+          ) : isPending ? (
+            <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-1.5 text-xs font-medium text-amber-300">
+              <Clock className="h-3.5 w-3.5" />
+              Demande en attente
+            </span>
+          ) : (
+            <button
+              onClick={() => handleRequestDept(dept.id, dept.name)}
+              disabled={deptRequestSubmitting}
+              className="btn-gold px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Demander à rejoindre
+            </button>
+          )}
+        </div>
+      </div>
+    );
   };
 
   // ── Submit department join request ─────────────────────────────
@@ -697,12 +789,31 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         }
       } catch { /* silent — notification is best-effort */ }
 
-      setRequestedDept((prev) => (prev ? `${prev},${deptId}` : deptId));
+      setPendingDeptIds((prev) => (prev.includes(deptId) ? prev : [...prev, deptId]));
       addToast('Votre demande a été envoyée au responsable du département.', 'success');
     } catch {
       addToast('Erreur lors de l\'envoi de la demande.', 'error');
     } finally {
       setDeptRequestSubmitting(false);
+    }
+  };
+
+  // ── Déclaration de membre de l'église ─────────────────────────
+  const handleDeclareMember = async () => {
+    if (!user) return;
+    setDeclareMemberSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({ church_status: 'member' })
+        .eq('id', user.id);
+      if (error) throw error;
+      await refreshProfile();
+      addToast('Bienvenue parmi les membres de La Conquête !', 'success');
+    } catch (err: any) {
+      addToast(err?.message || 'Impossible de mettre à jour votre statut.', 'error');
+    } finally {
+      setDeclareMemberSubmitting(false);
     }
   };
 
@@ -871,9 +982,19 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <p className="text-label-lg text-muted font-sans uppercase tracking-wider">
                       Bienvenue,
                     </p>
-                    <h1 className="text-headline-xl font-display text-cream">
+                    <h1 className="text-headline-lg lg:text-headline-xl dash-name !font-black text-cream">
                       {userName}
                     </h1>
+                    <span
+                      className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider ${
+                        isVisitor
+                          ? 'border-sky-400/25 bg-sky-400/10 text-sky-300'
+                          : 'border-accent-400/25 bg-accent-400/10 text-accent-400'
+                      }`}
+                    >
+                      <span className={`h-1.5 w-1.5 rounded-full ${isVisitor ? 'bg-sky-300' : 'bg-accent-400'}`} />
+                      {roleBadge}
+                    </span>
                   </div>
                 </div>
 
@@ -955,6 +1076,52 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
+               1a. PARCOURS VISITEUR
+               ═══════════════════════════════════════════════════════ */}
+            {!dataLoading && isVisitor && (
+              <EvtReveal>
+                <section className="mb-10 overflow-hidden rounded-2xl border border-sky-400/15 bg-gradient-to-br from-sky-400/[0.06] via-bg to-bg p-6 sm:p-8">
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="max-w-2xl">
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-400/25 bg-sky-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-sky-300">
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Parcours visiteur
+                      </span>
+                      <h2 className="mt-4 text-headline-md dash-title !font-extrabold text-cream">
+                        Vous êtes le bienvenu à La Conquête
+                      </h2>
+                      <p className="mt-2 text-sm leading-relaxed text-muted">
+                        Un visiteur peut participer librement à la vie de l'église. Pour devenir membre
+                        et rejoindre un département, il suffit de le déclarer.
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-2 sm:flex-row lg:flex-col">
+                      <button onClick={scrollToMembership} className="btn-gold px-5 py-3 text-sm">
+                        Devenir membre de l'église
+                      </button>
+                      <button onClick={() => onNavigate('events')} className="btn-ghost px-5 py-3 text-sm">
+                        Voir les activités
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                    {[
+                      { step: '01', title: 'Participer', text: 'Cultes, prière et activités de l’église.' },
+                      { step: '02', title: 'Se déclarer membre', text: 'Remplir le formulaire et dire « Je suis membre ».' },
+                      { step: '03', title: 'Rejoindre un département', text: 'Média & Communication, puis Évangélisation.' },
+                    ].map((item) => (
+                      <div key={item.step} className="rounded-xl border border-line/50 bg-white/[0.02] p-4">
+                        <span className="text-xs font-bold tracking-wider text-sky-300/70">{item.step}</span>
+                        <p className="mt-1 text-sm font-semibold text-cream">{item.title}</p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">{item.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </EvtReveal>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════
                1b. HERO — DAILY BIBLE VERSE
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal>
@@ -998,7 +1165,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             {/* ═══════════════════════════════════════════════════════
                1c. DÉPARTEMENT-SPECIFIC SECTIONS (reordered: Mon dept > Media > autres)
                ═══════════════════════════════════════════════════════ */}
-            {!dataLoading && (() => {
+            {!isVisitor && !dataLoading && (() => {
               const renderedSpecial = new Set<string>();
               const deptSections: { dept: typeof departments[0]; isProtocole: boolean; isMediaPlanif: boolean; isEvangelism: boolean; isGeneric: boolean; specialKey: string | null }[] = [];
 
@@ -1048,8 +1215,9 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             })()}
 
             {/* ═══════════════════════════════════════════════════════
-               2. STATS ROW
+               2. STATS ROW (membres uniquement)
                ═══════════════════════════════════════════════════════ */}
+            {!isVisitor && (
             <EvtReveal delay={1}>
               <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-10">
                 {dataLoading
@@ -1077,7 +1245,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                               <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
                             </div>
                           </div>
-                          <span className="text-3xl sm:text-4xl font-display font-bold text-cream tabular-nums">
+                          <span className="text-3xl sm:text-4xl dash-name !font-black text-cream tabular-nums">
                             {stat.value}
                           </span>
                         </div>
@@ -1085,6 +1253,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     })}
               </div>
             </EvtReveal>
+            )}
 
             {/* ═══════════════════════════════════════════════════════
                3. UPCOMING EVENTS
@@ -1096,7 +1265,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10">
                       <Calendar className="h-5 w-5 text-accent-400" />
                     </div>
-                    <h2 className="text-headline-md font-display text-cream">
+                    <h2 className="text-headline-md dash-title !font-extrabold text-cream">
                       Prochains Événements
                     </h2>
                   </div>
@@ -1166,7 +1335,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-500/10">
                       <Heart className="h-5 w-5 text-rose-400" />
                     </div>
-                    <h2 className="text-headline-md font-display text-cream">
+                    <h2 className="text-headline-md dash-title !font-extrabold text-cream">
                       Requêtes de Prière
                     </h2>
                   </div>
@@ -1385,16 +1554,16 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
-               5. MY DEPARTMENT
+               5. MEMBERSHIP / MON DÉPARTEMENT
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={4}>
-              <section className="mb-10">
+              <section id="devenir-membre" className="mb-10 scroll-mt-24">
                 <div className="flex items-center gap-3 mb-5">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10">
                     <Users className="h-5 w-5 text-emerald-400" />
                   </div>
-                  <h2 className="text-headline-md font-display text-cream">
-                    Mon Département
+                  <h2 className="text-headline-md dash-title !font-extrabold text-cream">
+                    {isVisitor ? 'Devenir membre' : 'Mon Département'}
                   </h2>
                 </div>
 
@@ -1404,140 +1573,100 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="h-4 w-64 rounded bg-white/5 mb-2" />
                     <div className="h-4 w-48 rounded bg-white/5" />
                   </div>
-                ) : departments.length === 0 ? (
-                  <div className="glass-card p-5 sm:p-6">
-                    {!showDeptRequest ? (
-                      <div className="flex flex-col items-center justify-center py-6 text-center">
-                        <Users className="mb-3 h-10 w-10 text-muted/40" />
-                        <p className="text-muted text-sm mb-2">
-                          Vous n'êtes pas encore assigné à un département
-                        </p>
-                        <p className="text-xs text-muted/60 max-w-sm mb-5">
-                          Rejoignez un département pour participer activement à la vie de l'église.
-                        </p>
-                        <button
-                          onClick={handleShowDeptRequest}
-                          className="btn-gold px-5 py-2.5 text-sm flex items-center gap-2"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Demander à rejoindre un département
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-sm font-semibold text-cream">
-                            Choisir un département
-                          </h3>
-                          <button
-                            onClick={() => setShowDeptRequest(false)}
-                            className="text-muted hover:text-cream transition-colors text-xs"
+                ) : (
+                  <div className="space-y-4">
+                    {departments.length > 0 && (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {departments.map((dept) => (
+                          <div
+                            key={dept.id}
+                            className="glass-card group p-5 transition-all duration-300 hover:border-accent-400/20 hover:-translate-y-0.5"
                           >
-                            Fermer
+                            <div className="flex items-start gap-4">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-400/10 ring-1 ring-accent-500/20 transition-colors duration-300 group-hover:bg-accent-400/15">
+                                <Star className="h-5 w-5 text-accent-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-base font-semibold text-cream truncate">
+                                  {dept.department_name}
+                                </h3>
+                                {dept.position_name && (
+                                  <p className="mt-0.5 text-sm text-accent-400 font-medium">
+                                    {dept.position_name}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            <DeptMemberCount departmentId={dept.id} />
+                            {dept.meeting_schedule ? (
+                              <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
+                                <Clock className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
+                                <span>Réunion hebdomadaire —</span>
+                                <span className="text-cream/70 font-medium">{dept.meeting_schedule}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {isVisitor ? (
+                      <div className="glass-card border-sky-400/15 p-5 sm:p-6">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                          <div className="max-w-xl">
+                            <p className="text-sm font-semibold text-cream">
+                              Vous êtes enregistré comme visiteur
+                            </p>
+                            <p className="mt-1 text-xs leading-relaxed text-muted">
+                              À La Conquête, est membre la personne qui a rempli le formulaire et déclaré
+                              « Je suis membre ». Faites votre déclaration pour pouvoir rejoindre un département.
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleDeclareMember}
+                            disabled={declareMemberSubmitting}
+                            className="btn-gold shrink-0 px-5 py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {declareMemberSubmitting ? 'Enregistrement…' : 'Je suis membre de l’église'}
                           </button>
                         </div>
-                        {deptList.length === 0 ? (
-                          <p className="text-sm text-muted text-center py-6">
+                      </div>
+                    ) : (
+                      <div className="glass-card p-5 sm:p-6">
+                        <div className="mb-4">
+                          <p className="text-sm font-semibold text-cream">
+                            {departments.length > 0 ? 'Rejoindre un autre département' : 'Rejoindre un département'}
+                          </p>
+                          <p className="mt-1 text-xs leading-relaxed text-muted">
+                            Média &amp; Communication et Évangélisation sont ouverts aux demandes. Les autres
+                            départements s’ouvriront au fur et à mesure de leur configuration.
+                          </p>
+                        </div>
+                        {extraJoinableDepts.length === 0 ? (
+                          <p className="text-sm text-muted text-center py-4">
                             Aucun département disponible pour le moment.
                           </p>
                         ) : (
                           <div className="grid gap-3 sm:grid-cols-2">
-                            {deptList.map((dept) => {
-                              const isRequested = requestedDept.split(',').includes(dept.id);
-                              return (
-                                <div
-                                  key={dept.id}
-                                  className="group rounded-xl bg-white/3 border border-white/10 p-4 transition-all duration-200 hover:border-accent-400/20"
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <div
-                                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ring-1"
-                                      style={{
-                                        backgroundColor: `${dept.accent_color || 'gold'}15`,
-                                        borderColor: `${dept.accent_color || 'gold'}30`,
-                                      }}
-                                    >
-                                      <Star className={`h-4 w-4`} style={{ color: dept.accent_color || '#d4a843' }} />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="text-sm font-semibold text-cream truncate">
-                                        {dept.name}
-                                      </h4>
-                                      {dept.description && (
-                                        <p className="text-xs text-muted mt-0.5 line-clamp-2">
-                                          {dept.description}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <div className="mt-3">
-                                    {isRequested ? (
-                                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 text-xs font-medium text-emerald-400">
-                                        <CheckCircle className="h-3.5 w-3.5" />
-                                        Demande envoyée ✓
-                                      </span>
-                                    ) : (
-                                      <button
-                                        onClick={() => handleRequestDept(dept.id, dept.name)}
-                                        disabled={deptRequestSubmitting}
-                                        className="btn-gold px-3 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed"
-                                      >
-                                        Demander à rejoindre
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                            {extraJoinableDepts.map(renderJoinCard)}
                           </div>
                         )}
                       </div>
                     )}
                   </div>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {departments.map((dept) => (
-                      <div
-                        key={dept.id}
-                        className="glass-card group p-5 transition-all duration-300 hover:border-accent-400/20 hover:-translate-y-0.5"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-accent-400/10 ring-1 ring-accent-500/20 transition-colors duration-300 group-hover:bg-accent-400/15">
-                            <Star className="h-5 w-5 text-accent-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold text-cream truncate">
-                              {dept.department_name}
-                            </h3>
-                            {dept.position_name && (
-                              <p className="mt-0.5 text-sm text-accent-400 font-medium">
-                                {dept.position_name}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <DeptMemberCount departmentId={dept.id} />
-                        {dept.meeting_schedule ? (
-                          <div className="mt-3 flex items-center gap-2 text-xs text-muted rounded-lg bg-white/3 px-3 py-2">
-                            <Clock className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
-                            <span>Réunion hebdomadaire —</span>
-                            <span className="text-cream/70 font-medium">{dept.meeting_schedule}</span>
-                          </div>
-                        ) : null}
-                      </div>
-                    ))}
+                )}
+
+                {!isVisitor && (
+                  <div className="mt-4 pt-4 border-t border-line">
+                    <button
+                      onClick={() => setShowRoleRequest(true)}
+                      className="text-xs text-muted hover:text-accent-400 transition-colors flex items-center gap-1.5"
+                    >
+                      <Shield className="h-3.5 w-3.5" />
+                      Demander un rôle pastoral (ancien, diacre, pasteur...)
+                    </button>
                   </div>
                 )}
-                {/* Demander un rôle pastoral */}
-                <div className="mt-4 pt-4 border-t border-line">
-                  <button
-                    onClick={() => setShowRoleRequest(true)}
-                    className="text-xs text-muted hover:text-accent-400 transition-colors flex items-center gap-1.5"
-                  >
-                    <Shield className="h-3.5 w-3.5" />
-                    Demander un rôle pastoral (ancien, diacre, pasteur...)
-                  </button>
-                </div>
               </section>
             </EvtReveal>
 
@@ -1550,7 +1679,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10">
                     <ClipboardList className="h-5 w-5 text-cyan-400" />
                   </div>
-                  <h2 className="text-headline-md font-display text-cream">Mes Demandes & Réponses</h2>
+                  <h2 className="text-headline-md dash-title !font-extrabold text-cream">Mes Demandes & Réponses</h2>
                 </div>
 
                 {myRequestsLoading ? (
@@ -1616,7 +1745,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
                       <BookOpen className="h-5 w-5 text-purple-400" />
                     </div>
-                    <h2 className="text-headline-md font-display text-cream">Espace Pastoral</h2>
+                    <h2 className="text-headline-md dash-title !font-extrabold text-cream">Espace Pastoral</h2>
                   </div>
                   <div className="flex items-center gap-2">
                     <button onClick={() => setOpenAccordion(1)} className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-amber-400 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition">
@@ -1861,7 +1990,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-400/10">
                       <Sparkles className="h-5 w-5 text-accent-400" />
                     </div>
-                    <h2 className="text-headline-md font-display text-cream">
+                    <h2 className="text-headline-md dash-title !font-extrabold text-cream">
                       Témoignage
                     </h2>
                   </div>
@@ -1990,7 +2119,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10">
                     <MessageSquare className="h-5 w-5 text-indigo-400" />
                   </div>
-                  <h2 className="text-headline-md font-display text-cream">
+                  <h2 className="text-headline-md dash-title !font-extrabold text-cream">
                     Activité Récente
                   </h2>
                 </div>

@@ -70,6 +70,7 @@ export interface UserProfile {
   birth_date: string | null;
   bio: string | null;
   onboarding_completed: boolean;
+  church_status: 'member' | 'visitor' | 'seeker';
   is_admin: boolean;
   role_level: number;
   pastor_category: PastorCategory;

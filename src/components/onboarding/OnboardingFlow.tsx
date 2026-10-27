@@ -31,6 +31,7 @@ import {
 } from '../../lib/icons';
 import type { LucideIcon } from '../../lib/icons';
 import type { Department, Position } from '../../types';
+import { isJoinableDepartment, sortDepartmentsForMembership } from '../../lib/membership';
 
 /* ─── Icon name → component mapping ──────────────────────────────── */
 const ICON_MAP: Record<string, LucideIcon> = {
@@ -128,9 +129,13 @@ export function OnboardingFlow() {
     if (initializedRef.current || !profile) return;
     initializedRef.current = true;
 
+    const knownStatus = (profile as any).church_status as 'member' | 'visitor' | 'seeker' | undefined;
+    if (knownStatus) setChurchStatus(knownStatus);
+
     if (profileComplete) {
-      // All three fields already filled during signup → skip welcome + profile
-      setStep(2);
+      // Profil déjà renseigné à l'inscription. Si le statut est connu aussi,
+      // il ne reste que la prière : on ne repose pas les mêmes questions.
+      setStep(knownStatus ? 4 : 2);
     } else {
       // Pre-fill whatever is available
       if (profile.full_name) {
@@ -163,7 +168,7 @@ export function OnboardingFlow() {
   useEffect(() => {
     if (step === 3 && departments.length === 0) {
       db.getActiveDepartments()
-        .then(setDepartments)
+        .then((list) => setDepartments(sortDepartmentsForMembership(list)))
         .catch((err: Error) => addToast(err.message, 'error'));
     }
   }, [step, departments.length, addToast]);
@@ -258,6 +263,11 @@ export function OnboardingFlow() {
           phone: phone.trim() || undefined,
           gender: gender || undefined,
         });
+      }
+      if (churchStatus && user?.id) {
+        try {
+          await supabase.from('user_profiles').update({ church_status: churchStatus }).eq('id', user.id);
+        } catch { /* migration 25 pas encore exécutée */ }
       }
 
       // 2. Role upgrade + department requests (member path)
@@ -676,8 +686,8 @@ export function OnboardingFlow() {
             Rejoignez un département
           </h2>
           <p className="text-muted text-sm mt-2">
-            Sélectionnez les départements qui vous intéressent. Vous pourrez
-            toujours modifier votre choix plus tard.
+            Média &amp; Communication et Évangélisation sont ouverts. Les autres départements
+            s’ouvriront au fur et à mesure de leur configuration.
           </p>
         </div>
 
@@ -688,6 +698,7 @@ export function OnboardingFlow() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {departments.map((dept) => {
+              const isOpen = isJoinableDepartment(dept.name);
               const isSelected = selectedDepts[dept.id] !== undefined;
               const DeptIcon = getDeptIcon(dept.icon_name);
               const positions = positionsMap[dept.id] || [];
@@ -697,11 +708,14 @@ export function OnboardingFlow() {
                 <div key={dept.id} className="space-y-2">
                   <button
                     type="button"
-                    onClick={() => toggleDepartment(dept.id)}
+                    onClick={() => isOpen && toggleDepartment(dept.id)}
+                    disabled={!isOpen}
                     className={`w-full glass rounded-xl p-4 text-left transition-all duration-300 group ${
-                      isSelected
-                        ? 'border-evangile-600/60 bg-accent-400/5'
-                        : 'hover:border-accent-400/30'
+                      !isOpen
+                        ? 'opacity-60 cursor-not-allowed border-dashed'
+                        : isSelected
+                          ? 'border-evangile-600/60 bg-accent-400/5'
+                          : 'hover:border-accent-400/30'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -715,8 +729,13 @@ export function OnboardingFlow() {
                         <DeptIcon className="w-5 h-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-cream font-medium text-sm">
+                        <div className="text-cream font-medium text-sm flex items-center gap-2">
                           {dept.name}
+                          {!isOpen && (
+                            <span className="shrink-0 rounded-full border border-line/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
+                              Bientôt
+                            </span>
+                          )}
                         </div>
                         {dept.description && (
                           <div className="text-muted text-xs mt-0.5 line-clamp-2">
@@ -730,8 +749,14 @@ export function OnboardingFlow() {
                     </div>
                   </button>
 
+                  {!isOpen && (
+                    <p className="text-muted/70 text-xs pl-1">
+                      Veuillez patienter le temps que ce département soit configuré.
+                    </p>
+                  )}
+
                   {/* Position dropdown when selected */}
-                  {isSelected && (
+                  {isOpen && isSelected && (
                     <div className="animate-fade-in pl-4">
                       {isLoading ? (
                         <div className="text-muted text-xs py-1">

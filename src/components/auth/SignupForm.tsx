@@ -9,7 +9,9 @@ import { useToast } from '../../contexts/ToastContext';
 import {
   Mail, Lock, User, Phone, ArrowRight, ChevronLeft,
   Check, Eye, EyeOff, Sparkles, Loader2, Users, MapPin,
+  MonitorPlay, Globe,
 } from '../../lib/icons';
+import { isJoinableDepartment, joinableDepartmentKey, sortDepartmentsForMembership } from '../../lib/membership';
 
 /* ─── Props ─────────────────────────────────────────────────── */
 interface SignupFormProps {
@@ -25,8 +27,8 @@ const STEPS = [
 ] as const;
 
 /* ─── Shared style ──────────────────────────────────────────── */
-const FONT_BODY = { fontFamily: "'Inter', sans-serif" };
-const FONT_DISPLAY = { fontFamily: "'Cormorant Garamond', serif" };
+const FONT_BODY = { fontFamily: "'Poppins', sans-serif" };
+const FONT_DISPLAY = { fontFamily: "'Poppins', sans-serif", fontWeight: 900, letterSpacing: '-0.03em' };
 
 /* ─── Helper: générer un email fictif à partir du téléphone ── */
 function phoneToEmail(phone: string): string {
@@ -71,7 +73,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             .select('id, name, slug, icon_name, description')
             .eq('is_active', true)
             .order('sort_order');
-          if (data) setDepartments(data as typeof departments);
+          if (data) setDepartments(sortDepartmentsForMembership(data as typeof departments));
         } catch {
           // ignore
         } finally {
@@ -157,17 +159,24 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           email: finalEmail,
           full_name: fullName.trim(),
           phone: phone.trim(),
+          church_status: churchStatus || 'visitor',
+          onboarding_completed: true,
         };
         // Ne pas envoyer gender si vide — la contrainte CHECK n'accepte que 'homme'/'femme'
         if (gender) baseProfileData.gender = gender;
 
         try {
-          await supabase
+          // Repli sans church_status tant que la migration 25 n'est pas exécutée
+          const { error: profileErr } = await supabase
             .from('user_profiles')
             .upsert(baseProfileData, { onConflict: 'id' });
+          if (profileErr) {
+            const { church_status: _status, onboarding_completed: _done, ...legacyProfile } = baseProfileData;
+            await supabase.from('user_profiles').upsert(legacyProfile, { onConflict: 'id' });
+          }
         } catch { /* non-bloquant */ }
 
-        // Si membre, envoyer une demande au département
+        // Si membre, envoyer une demande au département (Média ou Évangélisation)
         if (churchStatus === 'member' && selectedDept) {
           try {
             await supabase
@@ -182,7 +191,12 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         }
 
         if (data.session) {
-          addToast('Compte créé avec succès !', 'success');
+          addToast(
+            churchStatus === 'member' && selectedDept
+              ? 'Compte créé ! Votre demande de département est envoyée.'
+              : 'Compte créé avec succès !',
+            'success',
+          );
         } else {
           addToast('Compte créé ! Vous pouvez maintenant vous connecter.', 'success');
         }
@@ -376,24 +390,84 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             <div className="mt-4">
               <label className="auth-label flex items-center gap-2 text-sm font-medium mb-3" style={FONT_BODY}>
                 <MapPin className="w-4 h-4 auth-icon" />
-                Votre département
+                Votre département (optionnel)
               </label>
               {loadingDepts ? (
                 <div className="flex justify-center py-6">
                   <Loader2 className="w-5 h-5 text-red-400 animate-spin" />
                 </div>
               ) : departments.length > 0 ? (
-                <select value={selectedDept} onChange={e => setSelectedDept(e.target.value)}
-                  className="auth-input w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all cursor-pointer"
-                  style={FONT_BODY}>
-                  <option value="">Sélectionnez un département (optionnel)</option>
-                  {departments.map(dept => (
-                    <option key={dept.id} value={dept.id}>{dept.name}</option>
-                  ))}
-                </select>
+                <div className="space-y-2">
+                  {departments.map((dept) => {
+                    const isSelected = selectedDept === dept.id;
+                    const isOpen = isJoinableDepartment(dept.name);
+                    const DeptIcon = joinableDepartmentKey(dept.name) === 'media' ? MonitorPlay : Globe;
+
+                    if (!isOpen) {
+                      return (
+                        <div key={dept.id}
+                          className="w-full p-4 rounded-xl border border-dashed border-black/10 dark:border-white/10 opacity-80">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 text-muted">
+                              <DeptIcon className="h-5 w-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-sm font-semibold auth-text-heading" style={FONT_BODY}>{dept.name}</div>
+                              <div className="auth-text-muted text-[11px] mt-0.5 leading-relaxed" style={FONT_BODY}>
+                                Veuillez patienter le temps que ce département soit configuré.
+                              </div>
+                            </div>
+                            <span className="auth-text-muted shrink-0 rounded-full border border-black/10 dark:border-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+                              Bientôt
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <button key={dept.id} type="button"
+                        onClick={() => setSelectedDept(isSelected ? '' : dept.id)}
+                        className={`w-full p-4 rounded-xl border text-left transition-all duration-200 relative cursor-pointer ${
+                          isSelected ? 'auth-tab-active' : 'auth-tab hover:opacity-80'
+                        }`}>
+                        <div className="flex items-center gap-3">
+                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                            isSelected ? 'bg-red-500/15 text-red-400' : 'bg-black/5 dark:bg-white/5 text-muted'
+                          }`}>
+                            <DeptIcon className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-semibold auth-text-heading" style={FONT_BODY}>{dept.name}</div>
+                            {dept.description && (
+                              <div className="auth-text-muted text-[11px] mt-0.5 line-clamp-2" style={FONT_BODY}>{dept.description}</div>
+                            )}
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-red-400 shrink-0" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               ) : (
-                <p className="auth-text-muted text-xs">Aucun département disponible</p>
+                <div className="auth-info-box rounded-xl border p-4">
+                  <p className="auth-text-muted text-xs leading-relaxed" style={FONT_BODY}>
+                    Les inscriptions sont ouvertes pour Média &amp; Communication et Évangélisation.
+                    Si vous ne les voyez pas, contactez le secrétariat de l'église.
+                  </p>
+                </div>
               )}
+              <p className="auth-text-muted text-[11px] mt-2 leading-relaxed" style={FONT_BODY}>
+                Votre demande sera transmise au responsable du département. Vous pourrez suivre son état depuis votre tableau de bord.
+              </p>
+            </div>
+          )}
+
+          {churchStatus && churchStatus !== 'member' && (
+            <div className="auth-info-box rounded-xl border p-4">
+              <p className="auth-text-muted text-xs leading-relaxed" style={FONT_BODY}>
+                Vous pourrez rejoindre Média &amp; Communication ou Évangélisation plus tard, depuis votre tableau de bord.
+              </p>
             </div>
           )}
         </div>

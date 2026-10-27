@@ -49,6 +49,7 @@ function defaultProfile(overrides: Record<string, any> = {}): UserProfile {
     blocked_reason: null,
     last_seen_at: null,
     onboarding_completed: false,
+    church_status: 'member',
     role_level: 1,
     pastor_category: null,
     extension_id: null,
@@ -100,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           blocked_reason: p.blocked_reason,
           last_seen_at: p.last_seen_at,
           onboarding_completed: p.onboarding_completed ?? false,
+          church_status: p.church_status ?? 'member',
           role_level: p.role_level ?? 1,
           pastor_category: p.pastor_category,
           extension_id: p.extension_id,
@@ -145,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           phone: meta.phone || null,
           is_admin: false,
           role_level: 1,
+          church_status: meta.church_status || 'visitor',
         });
 
       if (insertErr) {
@@ -158,6 +161,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         full_name: meta.full_name || meta.name || null,
         phone: meta.phone || null,
+        church_status: meta.church_status || 'visitor',
       }));
     } catch (err) {
       console.error('Auto-create profile error:', err);

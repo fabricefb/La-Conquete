@@ -19,8 +19,8 @@ interface ForgotPasswordFormProps {
 type RecoveryMethod = 'email' | 'whatsapp';
 
 /* ─── Shared style ──────────────────────────────────────────── */
-const FONT_BODY = { fontFamily: "'Inter', sans-serif" };
-const FONT_DISPLAY = { fontFamily: "'Cormorant Garamond', serif" };
+const FONT_BODY = { fontFamily: "'Poppins', sans-serif" };
+const FONT_DISPLAY = { fontFamily: "'Playfair Display', serif" };
 
 /* ─── Admin WhatsApp number ───────────────────────────────── */
 const ADMIN_WHATSAPP = CHURCH.phone.href.replace(/\D/g, '');

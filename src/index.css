@@ -354,6 +354,20 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     letter-spacing: 0.02em;
   }
 
+  /* Espace interne (dashboard, auth) — Poppins Black pour les noms et
+     les titres de section. Le registre public reste Bebas + Playfair. */
+  .dash-name {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 900;
+    letter-spacing: -0.035em;
+    line-height: 1.02;
+  }
+  .dash-title {
+    font-family: 'Poppins', system-ui, sans-serif;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+  }
+
   /* Sous-titres de carte / bloc — condensé mais discret. */
   .card-title {
     @apply font-hero uppercase text-cream;

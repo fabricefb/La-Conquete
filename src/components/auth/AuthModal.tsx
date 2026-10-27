@@ -3,11 +3,13 @@
    Accessible via #connexion or from any "Se connecter" button
    Église Évangélique La Conquête
    ═══════════════════════════════════════════════════════════════════ */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { X } from '../../lib/icons';
 import { SignupForm } from './SignupForm';
 import { SignInForm } from './SignInForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
+import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 /* ─── Props ─────────────────────────────────────────────────── */
 interface AuthModalProps {
@@ -21,6 +23,9 @@ interface AuthModalProps {
    ═══════════════════════════════════════════════════════════════════ */
 export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalProps) {
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'success'>(initialView);
+  const { isAdmin } = useAuth();
+  const isAdminRef = useRef(isAdmin);
+  isAdminRef.current = isAdmin;
 
   useEffect(() => {
     setView(initialView);
@@ -45,10 +50,16 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
   if (!isOpen) return null;
 
   const handleSuccess = () => {
+    const from = view;
     setView('success');
-    setTimeout(() => {
+    setTimeout(async () => {
       onClose();
       setView(initialView);
+      // Après connexion/inscription : tableau de bord (ou back-office pour un admin)
+      if (from === 'forgot') return;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      window.location.hash = isAdminRef.current ? '#admin' : '#dashboard';
     }, 2000);
   };
 
@@ -73,13 +84,13 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
 
         {/* Logo / Brand */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 mb-3">
-            <span className="text-red-500 font-bold text-xl tracking-tight">LC</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 mb-3">
+            <img src="/logo-conquete.png" alt="La Conquête" className="h-12 w-12 object-contain" />
           </div>
-          <h2 className="text-2xl font-bold auth-text-heading" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+          <h2 className="text-2xl font-serif font-bold auth-text-heading tracking-tight">
             La Conquête
           </h2>
-          <p className="auth-text-muted text-sm mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <p className="auth-text-muted text-sm mt-1 font-sans">
             Église Évangélique La Conquête
           </p>
         </div>

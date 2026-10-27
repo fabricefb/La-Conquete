@@ -82,13 +82,13 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <h3 className="auth-text-heading text-xl font-bold text-center mb-6" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+      <h3 className="auth-text-heading text-xl font-black font-sans text-center mb-6 tracking-tight">
         Connexion à votre compte
       </h3>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="auth-label block text-sm font-medium mb-1.5" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <label className="auth-label block text-sm font-medium mb-1.5">
             Téléphone ou email
           </label>
           <div className="relative">
@@ -103,17 +103,16 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
               placeholder="+243 8XX XXX XXX ou email"
               required
               className="auth-input w-full pl-11 pr-4 py-3 rounded-xl border text-sm outline-none transition-all"
-              style={{ fontFamily: "'Inter', sans-serif" }}
             />
           </div>
-          <p className="auth-text-muted text-xs mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+          <p className="auth-text-muted text-xs mt-1">
             Entrez votre numéro de téléphone ou votre adresse email
           </p>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="auth-label block text-sm font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>
+            <label className="auth-label block text-sm font-medium">
               Mot de passe
             </label>
             {onForgotPassword && (
@@ -127,8 +126,7 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
             <Lock className="auth-icon absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4" />
             <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
               placeholder="Votre mot de passe" required
-              className="auth-input w-full pl-11 pr-12 py-3 rounded-xl border text-sm outline-none transition-all"
-              style={{ fontFamily: "'Inter', sans-serif" }} />
+              className="auth-input w-full pl-11 pr-12 py-3 rounded-xl border text-sm outline-none transition-all" />
             <button type="button" onClick={() => setShowPassword(!showPassword)}
               className="auth-icon absolute right-3 top-1/2 -translate-y-1/2 hover:opacity-70 transition-opacity">
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -141,15 +139,14 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
             bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl
             hover:from-red-600 hover:to-red-700 active:scale-[0.98]
             transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-            shadow-lg shadow-red-500/20 text-sm cursor-pointer"
-          style={{ fontFamily: "'Inter', sans-serif" }}>
+            shadow-lg shadow-red-500/20 text-sm cursor-pointer">
           {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
             <><LogIn className="w-4 h-4" /> Se connecter</>
           )}
         </button>
       </form>
 
-      <p className="auth-text-muted text-center text-sm mt-6" style={{ fontFamily: "'Inter', sans-serif" }}>
+      <p className="auth-text-muted text-center text-sm mt-6">
         Pas encore de compte ?{' '}
         <button onClick={onSwitchToSignup} className="auth-text-link font-medium transition-colors cursor-pointer">
           Créer un compte
