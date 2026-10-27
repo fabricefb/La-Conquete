@@ -269,8 +269,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
           remarks: remarks.trim() || null,
           status: 'submitted',
           submitted_at: new Date().toISOString(),
-        })
-        .upsert({ onConflict: 'id' })
+        }, { onConflict: 'id' })
         .select()
         .single();
 
