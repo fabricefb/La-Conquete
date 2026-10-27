@@ -80,7 +80,9 @@ export function GoogleAuthButton({ label = 'Continuer avec Google' }: GoogleAuth
       </button>
 
       <p className="auth-text-muted mt-2 text-center text-[11px]" style={FONT_BODY}>
-        Votre numéro de téléphone sera demandé après la première connexion.
+        {label === 'Continuer avec Google'
+          ? 'Votre numéro de téléphone sera demandé après la première connexion.'
+          : 'Le numéro de téléphone sera complété juste après la création du compte.'}
       </p>
     </div>
   );
