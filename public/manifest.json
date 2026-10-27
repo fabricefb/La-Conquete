@@ -4,8 +4,8 @@
   "description": "Bâtir, Transformer et Conquérir — Église Évangélique La Conquête, Lubumbashi RD Congo",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0f",
-  "theme_color": "#d4a853",
+  "background_color": "#070932",
+  "theme_color": "#0f2147",
   "orientation": "portrait-primary",
   "lang": "fr",
   "icons": [
