@@ -143,11 +143,12 @@ export const PAGES: PageDef[] = [
   },
   {
     key: 'pasteurs', label: 'Équipe pastorale', icon: Users,
-    description: 'Pasteurs principaux et équipe',
+    description: 'Pasteur principal et équipe. Les fiches, photos et fonctions se gèrent dans l\'onglet « Équipe Pastorale »',
     sections: [
       { key: 'hero', label: 'Héro', icon: Home, description: 'Photo de fond (modifiable), badge, titre, sous-titre' },
-      { key: 'principaux', label: 'Pasteurs principaux', icon: Users, description: 'Titre et description' },
-      { key: 'equipe', label: 'Reste de l\'équipe', icon: Users, description: 'Titre et description' },
+      { key: 'principaux', label: 'Pasteur principal', icon: Users, description: 'Label et titre du bloc de direction' },
+      { key: 'equipe', label: 'Équipe pastorale', icon: Users, description: 'Label et titre de la grille d\'équipe' },
+      { key: 'cta', label: 'Appel à rejoindre', icon: Heart, description: 'Label, titre, texte et libellé du bouton' },
     ],
   },
   {
@@ -599,16 +600,22 @@ export const SEEDS: Record<string, Record<string, SeedField[]>> = {
     hero: [
       { field_key: 'bg_image', label: 'Image de fond (hero)', type: 'image_url', value: '' },
       { field_key: 'badge', label: 'Badge', type: 'text', value: 'Serviteurs de Dieu' },
-      { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre Équipe Pastorale' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Notre équipe pastorale' },
       { field_key: 'subtitle', label: 'Sous-titre', type: 'text', value: '' },
     ],
     principaux: [
-      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Pasteurs principaux' },
-      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'heading_label', label: 'Label', type: 'text', value: 'Direction' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: 'Le pasteur principal' },
     ],
     equipe: [
       { field_key: 'heading_label', label: 'Label', type: 'text', value: 'L\'équipe' },
-      { field_key: 'heading_title', label: 'Titre', type: 'text', value: '' },
+      { field_key: 'heading_title', label: 'Titre', type: 'text', value: 'L\'équipe pastorale' },
+    ],
+    cta: [
+      { field_key: 'label', label: 'Label', type: 'text', value: 'Rejoindre l\'équipe' },
+      { field_key: 'title', label: 'Titre', type: 'text', value: 'Vous sentez un appel ?' },
+      { field_key: 'text', label: 'Texte', type: 'text', value: 'Contactez le bureau pastoral pour en parler et être accompagné dans votre discernement.' },
+      { field_key: 'button', label: 'Bouton', type: 'text', value: 'Nous contacter' },
     ],
   },
 
