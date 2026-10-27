@@ -49,7 +49,7 @@ export function useSectionColors(pageId: string): UseSectionColorsReturn {
           .from('site_settings')
           .select('value')
           .eq('key', `section_colors_${pageId}`)
-          .single();
+          .maybeSingle();
 
         if (!cancelled && data?.value) {
           try {
@@ -120,7 +120,7 @@ export async function loadSectionColors(pageId: string): Promise<SectionColorMap
     .from('site_settings')
     .select('value')
     .eq('key', `section_colors_${pageId}`)
-    .single();
+    .maybeSingle();
 
   if (data?.value) {
     try {

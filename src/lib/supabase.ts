@@ -303,7 +303,7 @@ export const db = {
     return fetchTable<SiteSetting>('site_settings', (q) => q.order('sort_order'));
   },
   async getSetting(key: string): Promise<string> {
-    const { data } = await supabase.from('site_settings').select('value').eq('key', key).single();
+    const { data } = await supabase.from('site_settings').select('value').eq('key', key).maybeSingle();
     return data?.value ?? '';
   },
   async upsertSetting(key: string, value: string): Promise<void> {
@@ -413,7 +413,7 @@ export const db = {
 
   // Theme
   async getThemeSettings(): Promise<ThemeSettings | null> {
-    const { data, error } = await supabase.from('theme_settings').select('*').eq('id', 1).single();
+    const { data, error } = await supabase.from('theme_settings').select('*').eq('id', 1).maybeSingle();
     if (error) return null;
     return data as ThemeSettings;
   },

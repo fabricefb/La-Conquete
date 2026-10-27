@@ -24,7 +24,7 @@ export function usePageBuilderConfig(pageKey: string) {
         .from('site_settings')
         .select('value')
         .eq('key', `builder_config_${pageKey}`)
-        .single();
+        .maybeSingle();
 
       if (cancelled) return;
 
@@ -48,7 +48,7 @@ export function usePageBuilderConfig(pageKey: string) {
         .from('site_settings')
         .select('value')
         .eq('key', `builder_elements_${pageKey}`)
-        .single();
+        .maybeSingle();
 
       if (cancelled) return;
 

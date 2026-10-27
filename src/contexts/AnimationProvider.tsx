@@ -20,7 +20,7 @@ export function AnimationProvider({ children }: { children: React.ReactNode }) {
           .from('site_settings')
           .select('value')
           .eq('key', 'animation_settings')
-          .single();
+          .maybeSingle();
 
         if (cancelled || !data?.value) {
           setReady(true);
