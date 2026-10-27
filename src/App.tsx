@@ -36,8 +36,9 @@ const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.B
 const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
 const FormOrateurBrandedPage = lazy(() => import('./pages/FormOrateurBrandedPage').then(m => ({ default: m.FormOrateurBrandedPage })));
 const IntrouvablePage = lazy(() => import('./pages/IntrouvablePage').then(m => ({ default: m.IntrouvablePage })));
+const ConfidentialitePage = lazy(() => import('./pages/ConfidentialitePage').then(m => ({ default: m.ConfidentialitePage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'introuvable', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'predications', 'annonces', 'communiques', 'pasteurs', 'ministeres', 'missions', 'blog'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'introuvable', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'predications', 'annonces', 'communiques', 'pasteurs', 'ministeres', 'missions', 'blog', 'confidentialite'];
 
 /* Anciennes URL conservées : on redirige vers la page qui porte désormais
    l'information, sans casser les liens déjà partagés. */
@@ -57,6 +58,9 @@ const LEGACY_ROUTES: Record<string, Page> = {
    révéler l'adresse réelle de l'administration. */
 
 function getPage(): Page {
+  // Lien direct /confidentialite (utilisé par Google pour la politique de confidentialité).
+  const path = window.location.pathname.replace(/\/+$/, '');
+  if (!window.location.hash && path.endsWith('/confidentialite')) return 'confidentialite';
   const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   const base = h.split('/')[0];
   const resolved = base === 'bo' || base === 'backoffice'
@@ -209,6 +213,7 @@ function AppRouter() {
               case 'contact': return <ContactPage {...nav} />;
               case 'admin': return <AdminPage onNavigate={setPage} />;
               case 'introuvable': return <IntrouvablePage {...nav} />;
+              case 'confidentialite': return <ConfidentialitePage {...nav} />;
               case 'dashboard': return <DashboardPage onNavigate={setPage} />;
               case 'crm': return <CrmPage {...nav} />;
               case 'pastoral': return <PastoralPage onNavigate={setPage} />;

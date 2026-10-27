@@ -27,4 +27,5 @@ export type Page =
   | 'jeunesse'
   | 'enseignements'
   | 'blog'
+  | 'confidentialite'
   | 'evangelisation';

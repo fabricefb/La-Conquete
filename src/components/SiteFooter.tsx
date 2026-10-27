@@ -341,10 +341,18 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-line px-4 py-5">
-          <p className="text-[11px] text-muted">
-            &copy; {new Date().getFullYear()} {churchName}
-          </p>
+        <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-5">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-[11px] text-muted">
+              &copy; {new Date().getFullYear()} {churchName}
+            </p>
+            <button
+              onClick={() => onNavigate('confidentialite')}
+              className="text-[11px] text-muted underline-offset-4 transition-colors hover:text-cream hover:underline"
+            >
+              Confidentialité
+            </button>
+          </div>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted transition-colors hover:text-cream"
@@ -358,9 +366,17 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
       {/* Bottom bar (tablette / ordinateur) */}
       <div className="hidden border-t border-line sm:block">
         <div className="mx-auto flex max-w-8xl flex-col items-center justify-between gap-4 px-4 py-6 sm:flex-row sm:px-6 lg:px-8">
-          <p className="text-xs text-muted">
-            &copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            <p className="text-xs text-muted">
+              &copy; {new Date().getFullYear()} {churchName}. Tous droits réservés.
+            </p>
+            <button
+              onClick={() => onNavigate('confidentialite')}
+              className="text-xs text-muted underline-offset-4 transition-colors hover:text-cream hover:underline"
+            >
+              Politique de confidentialité
+            </button>
+          </div>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.2em] text-muted transition-colors hover:text-cream"
