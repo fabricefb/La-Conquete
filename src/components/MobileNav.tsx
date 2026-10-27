@@ -43,7 +43,8 @@ export function MobileNav({ onNavigate, active }: MobileNavProps) {
         return (
           <button key={item.key} onClick={() => onNavigate(item.key)}
             className={`relative flex flex-col items-center justify-center gap-0.5 min-w-[48px] min-h-[48px] transition-all duration-300 ${isActive ? 'text-accent-300' : 'text-muted'}`}
-            aria-label={item.label}>
+            aria-label={item.label}
+            aria-current={isActive ? 'page' : undefined}>
             <Icon className="h-5 w-5" strokeWidth={isActive ? 2.5 : 2} />
             <span className="text-[10px] font-semibold uppercase tracking-tight">{item.label}</span>
             {isActive && <span className="absolute -bottom-1 h-1 w-1 rounded-full bg-evangile-600 animate-pulse-gold" />}

@@ -125,7 +125,7 @@ export function visibleSocialLinks(settingsMap: Record<string, string>): SocialL
   return SOCIAL_NETWORKS
     .map(({ key, label, Icon, fallback, title, handle, description, featured }) => ({
       key,
-      href: churchSetting(settingsMap, key, fallback),
+      href: churchSetting(settingsMap, key, fallback).trim(),
       label,
       title: title ?? label,
       handle: handle ?? '',

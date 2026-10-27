@@ -1205,7 +1205,9 @@ export function MediaCenterSection({ accentColor }: { accentColor?: string }) {
   // -----------------------------------------------------------------------
   // Render
   // -----------------------------------------------------------------------
-  if (loading) {
+  // Ne pas démonter la liste lors d'un rafraîchissement : sinon le détail
+  // ouvert (et la saisie d'une recommandation) se referme après chaque envoi.
+  if (loading && services.length === 0) {
     return (
       <div className="glass-card rounded-xl p-6 flex flex-col items-center justify-center gap-3 text-muted">
         <Loader2 className="h-6 w-6 animate-spin" />
