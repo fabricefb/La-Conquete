@@ -21,6 +21,25 @@ export function GoogleAuthButton({ label = 'Continuer avec Google' }: GoogleAuth
   const handleClick = async () => {
     setLoading(true);
     try {
+      // Sans ce contrôle, Supabase renvoie une page JSON « provider is not enabled ».
+      const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+      const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+      if (url && key) {
+        try {
+          const res = await fetch(`${url}/auth/v1/settings`, { headers: { apikey: key } });
+          if (res.ok) {
+            const settings = await res.json();
+            if (settings?.external?.google !== true) {
+              addToast(
+                "La connexion Google n'est pas encore activée. Contactez l'administrateur du site.",
+                'error',
+              );
+              return;
+            }
+          }
+        } catch { /* réseau indisponible : on laisse Supabase décider */ }
+      }
+
       // Permet de retrouver le tableau de bord au retour de Google.
       sessionStorage.setItem('lc_oauth_pending', '1');
       const { error } = await supabase.auth.signInWithOAuth({
