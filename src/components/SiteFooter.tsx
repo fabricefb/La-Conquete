@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Mail, Phone, MapPin, ArrowRight, ChevronUp, HandHeart, MessageCircle,
 } from '../lib/icons';
@@ -82,6 +82,27 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
   }, []);
 
   const logoUrl = churchSetting(settingsMap, 'site_logo_url', DEFAULT_LOGO);
+
+  /* Entrée discrète du back-office : 5 clics rapides sur le logo du pied de
+     page. Le clic normal continue d'ouvrir l'accueil. */
+  const logoClicks = useRef(0);
+  const logoTimer = useRef<number | null>(null);
+  useEffect(() => () => {
+    if (logoTimer.current) window.clearTimeout(logoTimer.current);
+  }, []);
+  const handleLogoClick = () => {
+    logoClicks.current += 1;
+    if (logoTimer.current) window.clearTimeout(logoTimer.current);
+    logoTimer.current = window.setTimeout(() => { logoClicks.current = 0; }, 2500);
+    if (logoClicks.current >= 5) {
+      logoClicks.current = 0;
+      if (logoTimer.current) window.clearTimeout(logoTimer.current);
+      window.location.hash = 'bo';
+      onNavigate('admin');
+      return;
+    }
+    onNavigate('home');
+  };
   const churchName = churchSetting(settingsMap, 'church_name', CHURCH.name);
   const phone = churchSetting(settingsMap, 'phone', CHURCH.phone.display);
   const email = churchSetting(settingsMap, 'email', CHURCH.email);
@@ -153,7 +174,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
           {/* Brand + social */}
           <div className="col-span-2 flex flex-col gap-5 sm:col-span-4 lg:col-span-3">
             <button
-              onClick={() => onNavigate('home')}
+              onClick={handleLogoClick}
               className="logo-plate w-fit transition-opacity hover:opacity-80"
               aria-label="La Conquête — Accueil"
             >
@@ -256,7 +277,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
       <div className="sm:hidden">
         <div className="px-4 py-8">
           <button
-            onClick={() => onNavigate('home')}
+            onClick={handleLogoClick}
             className="logo-plate w-fit transition-opacity hover:opacity-80"
             aria-label="La Conquête — Accueil"
           >

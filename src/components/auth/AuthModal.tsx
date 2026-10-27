@@ -59,7 +59,7 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
       if (from === 'forgot') return;
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.user) return;
-      window.location.hash = isAdminRef.current ? '#admin' : '#dashboard';
+      window.location.hash = isAdminRef.current ? '#bo' : '#dashboard';
     }, 2000);
   };
 

@@ -51,10 +51,15 @@ const LEGACY_ROUTES: Record<string, Page> = {
   departments: 'ministeres',
 };
 
+/* Entrée discrète du back-office : #bo ou #backoffice. #admin reste accepté
+   pour les liens déjà enregistrés, puis réécrit vers #bo. */
+
 function getPage(): Page {
   const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   const base = h.split('/')[0];
-  const resolved = LEGACY_ROUTES[base] ?? base;
+  const resolved = base === 'bo' || base === 'backoffice'
+    ? 'admin'
+    : LEGACY_ROUTES[base] ?? base;
   return VALID_PAGES.includes(resolved as Page) ? (resolved as Page) : 'home';
 }
 
@@ -104,7 +109,7 @@ function AppRouter() {
   const [formToken, setFormToken] = useState<string | null>(getFormCulteToken);
   const [formOrateurToken, setFormOrateurToken] = useState<string | null>(getFormOrateurToken);
 
-  // ── Redirect admin/pastor to #admin after login ──
+  // ── Redirect admin/pastor to #bo after login ──
   useEffect(() => {
     if (!authLoading && user && isAdmin && page === 'home') {
       // Only auto-redirect if user just landed on home after login
@@ -133,7 +138,10 @@ function AppRouter() {
     // Préserve un sous-chemin (ex. #blog/mon-article) tant qu'on reste sur la page.
     const raw = window.location.hash.replace('#', '').replace(/^\/+/, '');
     if (raw.split('/')[0] === page && raw !== page) return;
-    window.location.hash = page;
+    // L'espace interne garde son adresse courte : #bo.
+    const target = page === 'admin' ? 'bo' : page;
+    if (raw === target) return;
+    window.location.hash = target;
   }, [page, openAuth, formToken, formOrateurToken]);
 
   /* Pages publiques → registre « angles droits ». L'espace interne conserve
