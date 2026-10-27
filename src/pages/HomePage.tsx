@@ -439,10 +439,14 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
   // Hero — support multiple images for slideshow
   const heroImg = getContent(cm, 'hero', 'bg_image', DEFAULT_HERO_IMG);
   const heroImagesStr = getContent(cm, 'hero', 'bg_images', '');
-  const heroImages = heroImagesStr
+  const heroSlides = heroImagesStr
     ? heroImagesStr.split(',').map((u: string) => u.trim()).filter(Boolean)
-    : [DEFAULT_HERO_IMG];
+    : [];
+  /* Une seule diapositive enregistrée reste une diapositive : sans ça, le site
+     retombait sur la photo de fond et l'image ajoutée au back-office n'apparaissait jamais. */
+  const heroImages = heroSlides.length > 0 ? heroSlides : [heroImg];
   const [heroIndex, setHeroIndex] = useState(0);
+  const heroIndexSafe = heroImages.length > 0 ? heroIndex % heroImages.length : 0;
 
   // Slideshow: zoom lent puis fondu vers l'image suivante
   useEffect(() => {
@@ -684,33 +688,20 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
           className="absolute inset-[-6%] will-change-transform"
           style={{ transition: 'transform 0.1s linear' }}
         >
-          {heroImages.length > 1 ? (
-            heroImages.map((img: string, i: number) => (
-              <img
-                key={i}
-                src={img}
-                srcSet={imageSrcSet(img)}
-                sizes="100vw"
-                alt=""
-                aria-hidden="true"
-                {...{ fetchpriority: i === 0 ? 'high' : 'low' }}
-                decoding="async"
-                className="photo-claro-strong hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-[1500ms] ease-in-out"
-                style={{ opacity: i === heroIndex ? 1 : 0 }}
-              />
-            ))
-          ) : (
+          {heroImages.map((img: string, i: number) => (
             <img
-              src={heroImg}
-              srcSet={imageSrcSet(heroImg)}
+              key={`${i}-${img}`}
+              src={img}
+              srcSet={imageSrcSet(img)}
               sizes="100vw"
               alt=""
               aria-hidden="true"
-              {...{ fetchpriority: 'high' }}
+              {...{ fetchpriority: i === 0 ? 'high' : 'low' }}
               decoding="async"
-              className="photo-claro-strong hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center"
+              className="photo-claro-strong hero-slide-zoom absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-[1500ms] ease-in-out"
+              style={{ opacity: i === heroIndexSafe ? 1 : 0 }}
             />
-          )}
+          ))}
         </div>
 
         {/* Voile marine : garantit la lisibilité du texte sur la photo */}
@@ -857,6 +848,8 @@ export function HomePage({ onNavigate, openAuth }: HomePageProps) {
                   <div className="absolute inset-y-0 left-1/2 w-full max-w-[620px] -translate-x-1/2">
                     <img
                       src={pastorPortraitSrc}
+                      srcSet={imageSrcSet(pastorPortrait)}
+                      sizes="(min-width: 640px) 620px, 100vw"
                       alt={pastorName}
                       className="h-full w-full object-cover"
                       style={{
