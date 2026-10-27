@@ -539,13 +539,13 @@ export function UsersTab() {
       const label = roleNames[key] || 'Rôle mis à jour';
       addToast(`${roleModal.userName} → ${label}${deptName ? ` (${deptName})` : ''}`, 'success');
 
-      // Notifier l'utilisateur
-      await supabase.from('notifications').insert({
-        user_id: roleModal.userId,
-        type: 'role_changed',
-        title: 'Votre rôle a été mis à jour',
-        body: `Vous êtes maintenant ${label}${deptName ? ` — département ${deptName}` : ''}.`,
-        link: '#dashboard',
+      // Notifier l'utilisateur (RPC SECURITY DEFINER : l'insert direct est bloqué par la RLS)
+      await supabase.rpc('create_notification', {
+        p_user_id: roleModal.userId,
+        p_type: 'role_approved',
+        p_title: 'Votre rôle a été mis à jour',
+        p_body: `Vous êtes maintenant ${label}${deptName ? ` — département ${deptName}` : ''}.`,
+        p_link: '#dashboard',
       });
 
       setRoleModal(null);

@@ -7,9 +7,8 @@ import { formatDate } from '../lib/date';
 import {
   Calendar, Bell, Heart, MapPin, Users, Clock, CheckCircle,
   MessageSquare, BookOpen, Star, ChevronRight, ChevronDown, Plus, Send, User, Shield, Home, X, ClipboardList, Quote, Sparkles, Eye, EyeOff, AlertTriangle,
-  MonitorPlay, Globe,
 } from '../lib/icons';
-import { isJoinableDepartment, joinableDepartmentKey, sortDepartmentsForMembership } from '../lib/membership';
+import { isJoinableDepartment, sortDepartmentsForMembership } from '../lib/membership';
 import { ProtocolSection } from '../components/dashboard/ProtocolSection';
 import { DepartmentSection } from '../components/dashboard/DepartmentSection';
 import { MediaCenterSection } from '../components/dashboard/MediaCenterSection';
@@ -99,6 +98,11 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [pendingDeptIds, setPendingDeptIds] = useState<string[]>([]);
   const [deptRequestSubmitting, setDeptRequestSubmitting] = useState(false);
   const [declareMemberSubmitting, setDeclareMemberSubmitting] = useState(false);
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [joinDeptId, setJoinDeptId] = useState('');
+  const [joinMotivation, setJoinMotivation] = useState('');
+  const [incomingDeptReqs, setIncomingDeptReqs] = useState<any[]>([]);
+  const [deptReqProcessing, setDeptReqProcessing] = useState<string | null>(null);
 
   // ── Role request state ────────────────────────────────────────
   const [showRoleRequest, setShowRoleRequest] = useState(false);
@@ -169,7 +173,8 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         ? departments[0].department_name
         : 'Membre';
   const myDeptIds = new Set(departments.map((dept) => dept.id));
-  const extraJoinableDepts = joinableDepts.filter((dept) => !myDeptIds.has(dept.id));
+  const openJoinable = joinableDepts.filter((dept) => isJoinableDepartment(dept.name) && !myDeptIds.has(dept.id));
+  const closedJoinable = joinableDepts.filter((dept) => !isJoinableDepartment(dept.name));
 
   // ── Role-based section visibility ─────────────────────────────
   const PASTOR_HIDDEN_SECTIONS = new Set([
@@ -664,94 +669,145 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
     document.getElementById('devenir-membre')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // ── Carte département : demande (Média, Évangélisation) ou attente ──
-  const renderJoinCard = (dept: JoinableDept) => {
-    const isPending = pendingDeptIds.includes(dept.id);
-    const open = isJoinableDepartment(dept.name);
-    const deptKey = joinableDepartmentKey(dept.name);
-    const Icon = deptKey === 'media' ? MonitorPlay : deptKey === 'evangelism' ? Globe : Star;
-    const accent = /^#/.test(dept.accent_color || '') ? dept.accent_color! : '#D4A843';
+  // ── Demandes reçues par les chefs de département ──────────────
+  const refreshLeaderRequests = useCallback(async () => {
+    if (!user) return;
+    try {
+      const { data: leads } = await supabase
+        .from('department_members')
+        .select('department_id, departments(name)')
+        .eq('user_id', user.id)
+        .eq('role_in_dept', 'leader');
 
-    return (
-      <div
-        key={dept.id}
-        className={`rounded-xl border p-4 transition-all duration-200 ${
-          open
-            ? 'border-line/60 bg-white/[0.03] hover:border-accent-400/30 hover:bg-white/[0.05]'
-            : 'border-dashed border-line/40 bg-white/[0.01]'
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          <div
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-            style={{
-              backgroundColor: open ? `${accent}1f` : 'rgba(255,255,255,0.04)',
-              border: `1px solid ${open ? `${accent}40` : 'rgba(255,255,255,0.08)'}`,
-            }}
-          >
-            <Icon className="h-5 w-5" style={{ color: open ? accent : 'rgba(255,255,255,0.35)' }} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h4 className={`font-sans text-sm font-bold ${open ? 'text-cream' : 'text-cream/60'}`}>{dept.name}</h4>
-              {!open && (
-                <span className="shrink-0 rounded-full border border-line/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
-                  Bientôt
-                </span>
-              )}
-            </div>
-            {dept.description && (
-              <p className="mt-1 text-xs leading-relaxed text-muted line-clamp-2">{dept.description}</p>
-            )}
-          </div>
-        </div>
-        <div className="mt-3">
-          {!open ? (
-            <p className="text-xs leading-relaxed text-muted/80">
-              Veuillez patienter le temps que ce département soit configuré.
-            </p>
-          ) : isPending ? (
-            <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-1.5 text-xs font-medium text-amber-300">
-              <Clock className="h-3.5 w-3.5" />
-              Demande en attente
-            </span>
-          ) : (
-            <button
-              onClick={() => handleRequestDept(dept.id, dept.name)}
-              disabled={deptRequestSubmitting}
-              className="btn-gold px-3 py-1.5 text-xs disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              Demander à rejoindre
-            </button>
-          )}
-        </div>
-      </div>
-    );
+      const leadDepts = (leads || []) as any[];
+      const ids = [...new Set(leadDepts.map((l) => l.department_id))];
+      if (ids.length === 0) { setIncomingDeptReqs([]); return; }
+
+      const { data: reqs } = await supabase
+        .from('department_requests')
+        .select('id, user_id, department_id, message, status, created_at')
+        .in('department_id', ids)
+        .eq('status', 'en_attente')
+        .order('created_at', { ascending: true });
+
+      const list = (reqs || []) as any[];
+      if (list.length === 0) { setIncomingDeptReqs([]); return; }
+
+      const requesterIds = [...new Set(list.map((r) => r.user_id))];
+      const { data: profs } = await supabase
+        .from('user_profiles')
+        .select('id, full_name, phone, email')
+        .in('id', requesterIds);
+
+      const profMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
+      const nameMap = Object.fromEntries(leadDepts.map((l) => [l.department_id, l.departments?.name]));
+
+      setIncomingDeptReqs(list.map((r) => ({
+        ...r,
+        requester: profMap[r.user_id] || null,
+        department_name: nameMap[r.department_id] || 'Département',
+      })));
+    } catch {
+      /* silencieux : section réservée aux chefs */
+    }
+  }, [user]);
+
+  useEffect(() => { refreshLeaderRequests(); }, [refreshLeaderRequests]);
+
+  const handleIncomingDeptRequest = async (req: any, approve: boolean) => {
+    if (!user) return;
+    setDeptReqProcessing(req.id);
+    try {
+      const { error } = await supabase
+        .from('department_requests')
+        .update({
+          status: approve ? 'accepte' : 'refuse',
+          responded_by: user.id,
+          responded_at: new Date().toISOString(),
+          response: approve ? 'Acceptée par le chef de département.' : 'Refusée par le chef de département.',
+        })
+        .eq('id', req.id);
+      if (error) throw error;
+
+      if (approve) {
+        const { data: existing } = await supabase
+          .from('department_members')
+          .select('id')
+          .eq('user_id', req.user_id)
+          .eq('department_id', req.department_id)
+          .maybeSingle();
+
+        if (existing?.id) {
+          await supabase.from('department_members')
+            .update({ role_in_dept: 'member', is_active: true })
+            .eq('id', existing.id);
+        } else {
+          await supabase.from('department_members').insert({
+            user_id: req.user_id,
+            department_id: req.department_id,
+            role_in_dept: 'member',
+            is_active: true,
+          });
+        }
+      }
+
+      await supabase.rpc('create_notification', {
+        p_user_id: req.user_id,
+        p_type: 'general',
+        p_title: approve ? 'Demande de département acceptée' : 'Demande de département refusée',
+        p_body: approve
+          ? `Bienvenue dans le département « ${req.department_name} » !`
+          : `Votre demande pour « ${req.department_name} » n'a pas été retenue.`,
+        p_link: '#dashboard',
+        p_ref_table: 'department_requests',
+      });
+
+      addToast(
+        approve ? `Membre ajouté à « ${req.department_name} ».` : 'Demande refusée.',
+        approve ? 'success' : 'info',
+      );
+      refreshLeaderRequests();
+    } catch (err: any) {
+      addToast(err?.message || 'Erreur lors du traitement de la demande.', 'error');
+    } finally {
+      setDeptReqProcessing(null);
+    }
   };
 
   // ── Submit department join request ─────────────────────────────
-  const handleRequestDept = async (deptId: string, deptName: string) => {
+  const handleRequestDept = async (deptId: string, deptName: string, motivation: string) => {
+    const message = motivation.trim();
+    if (message.length < 10) {
+      addToast('Décrivez votre motivation en 10 caractères minimum.', 'error');
+      return;
+    }
     setDeptRequestSubmitting(true);
     try {
-      const { error } = await supabase.from('department_requests').insert({
-        user_id: user?.id,
-        department_id: deptId,
+      const { data: existing } = await supabase
+        .from('department_requests')
+        .select('id')
+        .eq('user_id', user?.id)
+        .eq('department_id', deptId)
+        .maybeSingle();
+
+      const payload = {
         status: 'en_attente',
-        message: 'Je souhaite rejoindre ce département',
-      });
-      if (error) {
-        // Table might not exist — fall back to notification for admins
-        if (error.message?.includes('does not exist') || error.code === '42P01') {
-          await supabase.from('notifications').insert({
-            user_id: user?.id!,
-            title: `Demande de département — ${deptName}`,
-            body: `Utilisateur ${profile?.full_name || user?.email} demande à rejoindre le département ${deptName}`,
-            type: 'info',
-            is_read: false,
-          });
-        } else {
-          throw error;
-        }
+        message,
+        responded_by: null,
+        responded_at: null,
+        response: null,
+      };
+
+      if (existing?.id) {
+        const { error } = await supabase.from('department_requests').update(payload).eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('department_requests').insert({
+          user_id: user?.id,
+          department_id: deptId,
+          ...payload,
+        });
+        if (error) throw error;
       }
 
       // Notifier les chefs du département + admins
@@ -776,21 +832,23 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
 
         if (notifyIds.length > 0) {
           const requesterName = profile?.full_name || user?.email;
-          await supabase.from('notifications').insert(
-            notifyIds.map(uid => ({
-              user_id: uid,
-              type: 'dept_request_pending',
-              title: `Nouvelle demande : ${deptName}`,
-              body: `${requesterName} souhaite rejoindre le département "${deptName}".`,
-              link: '#bo',
-              is_read: false,
-            }))
-          );
+          // Les inserts directs sont bloqués par la RLS : on passe par la RPC SECURITY DEFINER
+          await Promise.all(notifyIds.map(uid => supabase.rpc('create_notification', {
+            p_user_id: uid,
+            p_type: 'general',
+            p_title: `Nouvelle demande : ${deptName}`,
+            p_body: `${requesterName} souhaite rejoindre "${deptName}". Motivation : « ${message.slice(0, 120)}${message.length > 120 ? '…' : ''} »`,
+            p_link: '#dashboard',
+            p_ref_table: 'department_requests',
+          })));
         }
       } catch { /* silent — notification is best-effort */ }
 
       setPendingDeptIds((prev) => (prev.includes(deptId) ? prev : [...prev, deptId]));
-      addToast('Votre demande a été envoyée au responsable du département.', 'success');
+      setShowJoinForm(false);
+      setJoinDeptId('');
+      setJoinMotivation('');
+      addToast('Votre demande a été envoyée au chef du département.', 'success');
     } catch {
       addToast('Erreur lors de l\'envoi de la demande.', 'error');
     } finally {
@@ -1614,6 +1672,71 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
             </EvtReveal>
 
             {/* ═══════════════════════════════════════════════════════
+               4b. DEMANDES REÇUES — chefs de département
+               ═══════════════════════════════════════════════════════ */}
+            {incomingDeptReqs.length > 0 && (
+              <EvtReveal delay={3}>
+                <section className="mb-10">
+                  <div className="mb-5 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10">
+                      <ClipboardList className="h-5 w-5 text-purple-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-headline-md dash-title !font-extrabold text-cream">Demandes reçues</h2>
+                      <p className="text-xs text-muted">Membres souhaitant rejoindre votre département</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {incomingDeptReqs.map((req) => (
+                      <div key={req.id} className="glass-card p-5">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold text-cream">
+                              {req.requester?.full_name || req.requester?.email || 'Membre'}
+                            </p>
+                            <p className="mt-0.5 text-xs text-muted">
+                              {req.department_name} · {formatDate(req.created_at)}
+                            </p>
+                            {req.requester?.phone && (
+                              <p className="mt-0.5 text-xs text-muted">{req.requester.phone}</p>
+                            )}
+                          </div>
+                          <span className="rounded-full border border-amber-400/25 bg-amber-400/10 px-2.5 py-1 text-[10px] font-bold uppercase text-amber-300">
+                            En attente
+                          </span>
+                        </div>
+
+                        {req.message && (
+                          <p className="mt-3 border-l-2 border-line pl-3 text-sm leading-relaxed text-cream/80">
+                            {req.message}
+                          </p>
+                        )}
+
+                        <div className="mt-4 flex gap-2">
+                          <button
+                            onClick={() => handleIncomingDeptRequest(req, true)}
+                            disabled={deptReqProcessing === req.id}
+                            className="btn-gold px-4 py-2 text-xs disabled:opacity-50"
+                          >
+                            {deptReqProcessing === req.id ? '…' : 'Accepter'}
+                          </button>
+                          <button
+                            onClick={() => handleIncomingDeptRequest(req, false)}
+                            disabled={deptReqProcessing === req.id}
+                            className="btn-ghost px-4 py-2 text-xs disabled:opacity-50"
+                          >
+                            Refuser
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </EvtReveal>
+            )}
+
+            {/* ═══════════════════════════════════════════════════════
                5. MEMBERSHIP / MON DÉPARTEMENT
                ═══════════════════════════════════════════════════════ */}
             <EvtReveal delay={4}>
@@ -1702,14 +1825,115 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
                             départements s’ouvriront au fur et à mesure de leur configuration.
                           </p>
                         </div>
-                        {extraJoinableDepts.length === 0 ? (
-                          <p className="text-sm text-muted text-center py-4">
+
+                        {pendingDeptIds.length > 0 && (
+                          <div className="mb-4 flex flex-wrap gap-2">
+                            {pendingDeptIds.map((id) => {
+                              const d = joinableDepts.find((x) => x.id === id);
+                              return (
+                                <span
+                                  key={id}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-400/25 bg-amber-400/10 px-3 py-1.5 text-xs font-medium text-amber-300"
+                                >
+                                  <Clock className="h-3.5 w-3.5" />
+                                  {d?.name || 'Département'} — demande en attente
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {openJoinable.length === 0 ? (
+                          <p className="py-4 text-center text-sm text-muted">
                             Aucun département disponible pour le moment.
                           </p>
+                        ) : !showJoinForm ? (
+                          <button
+                            onClick={() => setShowJoinForm(true)}
+                            className="btn-gold px-4 py-2.5 text-sm"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Je veux devenir membre
+                          </button>
                         ) : (
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            {extraJoinableDepts.map(renderJoinCard)}
-                          </div>
+                          <form
+                            onSubmit={(e) => {
+                              e.preventDefault();
+                              if (!joinDeptId) {
+                                addToast('Choisissez un département.', 'error');
+                                return;
+                              }
+                              const name = openJoinable.find((d) => d.id === joinDeptId)?.name || 'Département';
+                              handleRequestDept(joinDeptId, name, joinMotivation);
+                            }}
+                            className="space-y-3"
+                          >
+                            <div>
+                              <label className="mb-1.5 block text-xs font-medium text-muted">
+                                Département souhaité
+                              </label>
+                              <select
+                                value={joinDeptId}
+                                onChange={(e) => setJoinDeptId(e.target.value)}
+                                className="input-surface w-full px-3 py-2.5 text-sm"
+                              >
+                                <option value="">— Choisir un département —</option>
+                                {openJoinable
+                                  .filter((d) => !pendingDeptIds.includes(d.id))
+                                  .map((d) => (
+                                    <option key={d.id} value={d.id}>{d.name}</option>
+                                  ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="mb-1.5 block text-xs font-medium text-muted">
+                                Votre motivation
+                              </label>
+                              <textarea
+                                value={joinMotivation}
+                                onChange={(e) => setJoinMotivation(e.target.value)}
+                                rows={3}
+                                placeholder="En quelques mots, pourquoi souhaitez-vous rejoindre ce département ?"
+                                className="input-surface w-full resize-none px-3 py-2.5 text-sm"
+                              />
+                              <p className={`mt-1 text-[11px] ${joinMotivation.trim().length >= 10 ? 'text-muted' : 'text-amber-400'}`}>
+                                {joinMotivation.trim().length} / 10 caractères minimum — cette motivation sera lue par le chef du département.
+                              </p>
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => { setShowJoinForm(false); setJoinDeptId(''); setJoinMotivation(''); }}
+                                className="btn-ghost px-4 py-2 text-sm"
+                              >
+                                Annuler
+                              </button>
+                              <button
+                                type="submit"
+                                disabled={!joinDeptId || joinMotivation.trim().length < 10 || deptRequestSubmitting}
+                                className="btn-gold px-4 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                {deptRequestSubmitting ? 'Envoi…' : 'Envoyer ma demande'}
+                              </button>
+                            </div>
+                          </form>
+                        )}
+
+                        {closedJoinable.length > 0 && (
+                          <details className="mt-4 border-t border-line pt-3">
+                            <summary className="cursor-pointer text-xs font-medium text-muted transition-colors hover:text-cream">
+                              Autres départements (bientôt disponibles)
+                            </summary>
+                            <ul className="mt-2 space-y-1.5">
+                              {closedJoinable.map((d) => (
+                                <li key={d.id} className="text-xs leading-relaxed text-muted/80">
+                                  <span className="text-cream/70">{d.name}</span> — veuillez patienter le temps que ce département soit configuré.
+                                </li>
+                              ))}
+                            </ul>
+                          </details>
                         )}
                       </div>
                     )}
