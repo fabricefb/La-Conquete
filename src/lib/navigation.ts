@@ -7,6 +7,7 @@ export type Page =
   | 'contact'
   | 'dons'
   | 'admin'
+  | 'introuvable'
   | 'connexion'
   | 'dashboard'
   | 'emissions'

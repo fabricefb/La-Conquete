@@ -35,8 +35,9 @@ const MissionsPage = lazy(() => import('./pages/MissionsPage').then(m => ({ defa
 const BlogPage = lazy(() => import('./pages/BlogPage').then(m => ({ default: m.BlogPage })));
 const CulteFormPage = lazy(() => import('./pages/CulteFormPage').then(m => ({ default: m.CulteFormPage })));
 const FormOrateurBrandedPage = lazy(() => import('./pages/FormOrateurBrandedPage').then(m => ({ default: m.FormOrateurBrandedPage })));
+const IntrouvablePage = lazy(() => import('./pages/IntrouvablePage').then(m => ({ default: m.IntrouvablePage })));
 
-const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'predications', 'annonces', 'communiques', 'pasteurs', 'ministeres', 'missions', 'blog'];
+const VALID_PAGES: Page[] = ['home', 'about', 'activities', 'events', 'media', 'contact', 'dons', 'admin', 'introuvable', 'connexion', 'dashboard', 'crm', 'reports', 'communication', 'pastoral', 'predications', 'annonces', 'communiques', 'pasteurs', 'ministeres', 'missions', 'blog'];
 
 /* Anciennes URL conservées : on redirige vers la page qui porte désormais
    l'information, sans casser les liens déjà partagés. */
@@ -51,15 +52,18 @@ const LEGACY_ROUTES: Record<string, Page> = {
   departments: 'ministeres',
 };
 
-/* Entrée discrète du back-office : #bo ou #backoffice. #admin reste accepté
-   pour les liens déjà enregistrés, puis réécrit vers #bo. */
+/* Entrée discrète du back-office : #bo ou #backoffice.
+   #admin est un leurre : il affiche « page introuvable » et ne doit jamais
+   révéler l'adresse réelle de l'administration. */
 
 function getPage(): Page {
   const h = window.location.hash.replace('#', '').replace(/^\/+/, '');
   const base = h.split('/')[0];
   const resolved = base === 'bo' || base === 'backoffice'
     ? 'admin'
-    : LEGACY_ROUTES[base] ?? base;
+    : base === 'admin'
+      ? 'introuvable'
+      : LEGACY_ROUTES[base] ?? base;
   return VALID_PAGES.includes(resolved as Page) ? (resolved as Page) : 'home';
 }
 
@@ -138,6 +142,8 @@ function AppRouter() {
     // Préserve un sous-chemin (ex. #blog/mon-article) tant qu'on reste sur la page.
     const raw = window.location.hash.replace('#', '').replace(/^\/+/, '');
     if (raw.split('/')[0] === page && raw !== page) return;
+    // #admin est un leurre : on laisse l'adresse tapée telle quelle.
+    if (page === 'introuvable') return;
     // L'espace interne garde son adresse courte : #bo.
     const target = page === 'admin' ? 'bo' : page;
     if (raw === target) return;
@@ -194,6 +200,7 @@ function AppRouter() {
               case 'media': return <MediaPage {...nav} />;
               case 'contact': return <ContactPage {...nav} />;
               case 'admin': return <AdminPage onNavigate={setPage} />;
+              case 'introuvable': return <IntrouvablePage {...nav} />;
               case 'dashboard': return <DashboardPage onNavigate={setPage} />;
               case 'crm': return <CrmPage {...nav} />;
               case 'pastoral': return <PastoralPage onNavigate={setPage} />;

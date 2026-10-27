@@ -709,7 +709,7 @@ export function DepartmentsTab() {
             body: approve
               ? `${userName} a été accepté dans votre département.`
               : `La demande de ${userName} a été refusée.`,
-            link: '#admin/departments',
+            link: '#bo',
           }));
         if (leaderNotifs.length > 0) {
           const { error: leaderNotifErr } = await supabase.from('notifications').insert(leaderNotifs);

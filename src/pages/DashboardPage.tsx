@@ -782,7 +782,7 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
               type: 'dept_request_pending',
               title: `Nouvelle demande : ${deptName}`,
               body: `${requesterName} souhaite rejoindre le département "${deptName}".`,
-              link: '#admin/departments',
+              link: '#bo',
               is_read: false,
             }))
           );
