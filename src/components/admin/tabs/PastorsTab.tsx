@@ -26,6 +26,8 @@ interface Pastor {
   media_urls: string[];
   email: string;
   phone: string;
+  family: string;
+  ministry: string;
   created_at: string;
   updated_at: string;
 }
@@ -34,7 +36,7 @@ const EMPTY: Omit<Pastor, 'id' | 'created_at' | 'updated_at'> = {
   name: '', role: '', bio: '', photo_url: '', thought: '',
   sort_order: 0, is_main: false, is_active: true,
   video_url: '', social_links: {}, extended_bio: '', media_urls: [],
-  email: '', phone: '',
+  email: '', phone: '', family: '', ministry: '',
 };
 
 const SOCIAL_FIELDS: { key: keyof PastorSocialLinks; label: string; icon: typeof Globe }[] = [
@@ -61,9 +63,16 @@ export function PastorsTab() {
   const [showForm, setShowForm] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [mediaUrlInput, setMediaUrlInput] = useState('');
+  // Les colonnes famille/ministère n'existent qu'après le script 29 :
+  // on sonde une fois pour éviter une sauvegarde en erreur.
+  const [hasProfileFields, setHasProfileFields] = useState(false);
 
   const load = useCallback(async () => {
     try {
+      const probe = await supabase.from('pastors').select('family').limit(1);
+      const supported = !probe.error;
+      setHasProfileFields(supported);
+
       const { data, error } = await supabase.from('pastors').select('*').order('sort_order');
       if (error) throw error;
       setPastors((data ?? []).map((p: any) => ({
@@ -74,6 +83,8 @@ export function PastorsTab() {
         media_urls: p.media_urls || [],
         email: p.email || '',
         phone: p.phone || '',
+        family: supported ? (p.family || '') : '',
+        ministry: supported ? (p.ministry || '') : '',
       })));
     } catch {
       addToast('Erreur de chargement', 'error');
@@ -91,6 +102,7 @@ export function PastorsTab() {
       sort_order: p.sort_order, is_main: p.is_main, is_active: p.is_active,
       video_url: p.video_url, social_links: p.social_links, extended_bio: p.extended_bio,
       media_urls: p.media_urls, email: p.email, phone: p.phone,
+      family: p.family, ministry: p.ministry,
     });
     setEditing(p.id);
     setShowForm(true);
@@ -103,8 +115,10 @@ export function PastorsTab() {
     }
     setSaving(true);
     try {
+      const { family, ministry, ...base } = form;
       const row = {
-        ...form,
+        ...base,
+        ...(hasProfileFields ? { family, ministry } : {}),
         social_links: form.social_links || {},
         media_urls: form.media_urls || [],
         updated_at: new Date().toISOString(),
@@ -217,6 +231,25 @@ export function PastorsTab() {
             <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-muted">Biographie détaillée (accordéon)</label>
             <textarea value={form.extended_bio} onChange={e => setField('extended_bio', e.target.value)} rows={5} placeholder="Biographie complète visible dans l'accordéon sur la page publique..." className="input-surface w-full resize-none" />
           </div>
+
+          {/* Famille / Ministère — dossier de fiche */}
+          {hasProfileFields ? (
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-muted">Famille</label>
+                <textarea value={form.family} onChange={e => setField('family', e.target.value)} rows={3} placeholder="Épouse, enfants, situation familiale..." className="input-surface w-full resize-none" />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-widest text-muted">Ministère</label>
+                <textarea value={form.ministry} onChange={e => setField('ministry', e.target.value)} rows={3} placeholder="Départements, charges, responsabilités..." className="input-surface w-full resize-none" />
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-line bg-white/[0.02] px-4 py-3 text-xs text-muted">
+              Les champs <span className="text-cream/80">Famille</span> et <span className="text-cream/80">Ministère</span> du dossier
+              de fiche s'activeront après l'exécution de <span className="text-cream/80">29_pastors_profile_fields.sql</span> dans Supabase.
+            </div>
+          )}
 
           {/* Citation */}
           <div>

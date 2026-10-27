@@ -455,6 +455,8 @@ export interface Pastor {
   media_urls: string[];
   email: string;
   phone: string;
+  family?: string;
+  ministry?: string;
   created_at: string;
   updated_at: string;
 }
