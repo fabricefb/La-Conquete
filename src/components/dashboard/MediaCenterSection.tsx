@@ -195,6 +195,165 @@ function AdminOratorForm({
   );
 }
 
+/** Envoi du formulaire au prédicateur — nom, WhatsApp, lien et expiration. */
+function SendOratorPanel({
+  service, link, onDone, onCancel,
+}: {
+  service: WorshipService;
+  link: WorshipFormLink | undefined;
+  onDone: () => void;
+  onCancel: () => void;
+}) {
+  const { addToast } = useToast();
+  const [name, setName] = useState(link?.recipient_name || service.orator_name || '');
+  const [phone, setPhone] = useState(link?.recipient_phone || '');
+  const [saving, setSaving] = useState<'whatsapp' | 'copy' | null>(null);
+  const [token] = useState(() => link?.token || generateToken());
+
+  const url = `${BASE_URL}/#/form-culte/${token}`;
+  const typeLabel = SERVICE_TYPE_LABELS[service.type] ?? service.type;
+  const greeting = name.trim() || service.orator_name || '';
+  const message =
+    `Bonjour${greeting ? ` ${greeting}` : ''},\n\n` +
+    `Voici le lien pour remplir le formulaire de l'orateur du culte du ${formatDate(service.date)} (${formatTime(service.time)}) — ${typeLabel} :\n\n` +
+    `${url}\n\n` +
+    `Merci de le remplir au moins une heure avant le culte.\n` +
+    `Ce lien expire dans 7 jours.\n\n` +
+    `— Département Média & Communication`;
+
+  // Numéro congolais saisi en local (09…) → format international 243…
+  const normalizePhone = (raw: string): string => {
+    const digits = raw.replace(/[^0-9]/g, '');
+    if (!digits) return '';
+    if (digits.startsWith('00')) return digits.slice(2);
+    if (digits.startsWith('0')) return `243${digits.slice(1)}`;
+    return digits;
+  };
+
+  const expiryFor = (): string => {
+    const sevenDays = Date.now() + 7 * 24 * 60 * 60 * 1000;
+    const deadline = service.form_deadline_at ? new Date(service.form_deadline_at).getTime() : 0;
+    return new Date(Math.max(sevenDays, deadline)).toISOString();
+  };
+
+  const persist = async (markSent: boolean): Promise<string> => {
+    const cleanPhone = normalizePhone(phone);
+    const payload = {
+      recipient_name: name.trim() || null,
+      recipient_phone: cleanPhone || null,
+      expires_at: expiryFor(),
+      ...(markSent ? { sent_at: new Date().toISOString() } : {}),
+    };
+
+    if (link) {
+      const { error } = await supabase.from('worship_form_links').update(payload).eq('id', link.id);
+      if (error) throw error;
+    } else {
+      await supabase.from('worship_form_links').delete().eq('service_id', service.id).eq('link_type', 'orator');
+      const { error } = await supabase.from('worship_form_links').insert({
+        service_id: service.id,
+        link_type: 'orator',
+        token,
+        is_used: false,
+        ...payload,
+      });
+      if (error) throw error;
+    }
+    return cleanPhone;
+  };
+
+  const handleWhatsApp = async () => {
+    if (!name.trim()) {
+      addToast({ type: 'error', message: 'Indiquez le nom du prédicateur.' });
+      return;
+    }
+    setSaving('whatsapp');
+    try {
+      const cleanPhone = await persist(true);
+      openWhatsApp(cleanPhone || null, message);
+      addToast({ type: 'success', message: 'WhatsApp ouvert sur le message du prédicateur' });
+      onDone();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || "Impossible de préparer l'envoi" });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const handleCopy = async () => {
+    if (!name.trim()) {
+      addToast({ type: 'error', message: 'Indiquez le nom du prédicateur.' });
+      return;
+    }
+    setSaving('copy');
+    try {
+      await persist(false);
+      await navigator.clipboard.writeText(url);
+      addToast({ type: 'success', message: 'Lien copié' });
+      onDone();
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || 'Impossible de copier le lien' });
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const inputCls = 'w-full rounded-lg bg-white/5 border border-white/10 px-3 py-2.5 text-sm text-cream placeholder-muted/50 focus:outline-none focus:border-accent-400/40 focus:ring-1 focus:ring-accent-400/20 transition-colors';
+  const labelCls = 'block text-[11px] font-medium text-muted mb-1';
+
+  return (
+    <div className="border-t border-accent-400/20 bg-accent-400/[0.03] px-3.5 sm:px-4 py-3.5 space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-accent-400">Envoyer au prédicateur</p>
+          <p className="mt-0.5 text-[11px] text-muted">
+            {formatDate(service.date)} · {formatTime(service.time)} · {typeLabel}
+          </p>
+        </div>
+        <button onClick={onCancel} className="text-muted hover:text-cream transition-colors" aria-label="Fermer">
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div>
+          <label className={labelCls}>Nom du prédicateur *</label>
+          <input className={inputCls} value={name} onChange={e => setName(e.target.value)} placeholder="Nom tel qu'il sera affiché" />
+        </div>
+        <div>
+          <label className={labelCls}>WhatsApp</label>
+          <input className={inputCls} value={phone} onChange={e => setPhone(e.target.value)} placeholder="09… ou +243…" inputMode="tel" />
+          <p className="mt-1 text-[10px] text-muted/60">Laissez vide pour choisir le contact dans WhatsApp.</p>
+        </div>
+      </div>
+
+      <div className="rounded-lg border border-line/25 bg-white/[0.02] p-3">
+        <p className="mb-1 text-[10px] font-medium uppercase tracking-wider text-muted/70">Message envoyé</p>
+        <pre className="whitespace-pre-wrap break-words font-sans text-[11px] leading-relaxed text-cream/75">{message}</pre>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2">
+        <button
+          onClick={handleWhatsApp}
+          disabled={saving !== null}
+          className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-green-500/25 bg-green-500/15 px-4 py-2.5 text-sm font-medium text-green-300 transition-colors hover:bg-green-500/25 disabled:opacity-50"
+        >
+          {saving === 'whatsapp' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          Envoyer sur WhatsApp
+        </button>
+        <button
+          onClick={handleCopy}
+          disabled={saving !== null}
+          className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-medium text-muted transition-colors hover:bg-white/10 hover:text-cream disabled:opacity-50"
+        >
+          {saving === 'copy' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Copy className="h-4 w-4" />}
+          Copier le lien
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /** Inline president order form for admin direct submission */
 function AdminOrderForm({
   service, existingItems, onSubmit, onCancel,
@@ -324,6 +483,7 @@ function ServiceRow({
   const [sending, setSending] = useState(false);
   const [editOrator, setEditOrator] = useState(false);
   const [editOrder, setEditOrder] = useState(false);
+  const [sendOpen, setSendOpen] = useState(false);
   const typeCfg = WORSHIP_TYPE_CONFIGS[service.type];
   const accentColor = typeCfg?.color ?? 'text-cream';
   const typeLabel = SERVICE_TYPE_LABELS[service.type] ?? service.type;
@@ -396,6 +556,15 @@ function ServiceRow({
               </span>
             )}
             {service.form_deadline_at && <DeadlineChip deadlineAt={service.form_deadline_at} />}
+            {oratorForm ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-medium text-green-300">
+                <CheckCircle className="h-2.5 w-2.5" /> Formulaire reçu
+              </span>
+            ) : oratorLink?.sent_at ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent-400/15 px-2 py-0.5 text-[10px] font-medium text-accent-300">
+                <Send className="h-2.5 w-2.5" /> Envoyé
+              </span>
+            ) : null}
             <StatusBadge status={service.status} />
           </div>
         </div>
@@ -416,7 +585,7 @@ function ServiceRow({
               </p>
             </div>
             {oratorForm && <CheckCircle className="h-3.5 w-3.5 text-green-400 shrink-0" />}
-            <button onClick={() => setEditOrator(!editOrator)} className="ml-auto p-1 rounded-md hover:bg-white/10 text-muted hover:text-amber-300 transition-colors shrink-0" title="Remplir directement le formulaire orateur">
+            <button onClick={() => { setSendOpen(false); setEditOrator(v => !v); }} className="ml-auto p-1 rounded-md hover:bg-white/10 text-muted hover:text-amber-300 transition-colors shrink-0" title="Remplir directement le formulaire orateur">
               <Edit3 className="h-3.5 w-3.5" />
             </button>
           </div>
@@ -437,19 +606,20 @@ function ServiceRow({
 
         {/* ── Quick actions — always visible ── */}
         <div className="flex flex-wrap gap-1.5 pt-1">
-          {/* Orator link actions */}
-          {oratorLink ? (
-            <>
-              <button onClick={() => copyLink(oratorLink.token, 'orateur')} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-cream text-[11px] transition-colors border border-white/10" title="Copier le lien orateur">
-                <Copy className="h-3 w-3" /> Lien orateur
-              </button>
-              <button onClick={() => sendLinkWA(oratorLink)} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-green-500/10 hover:bg-green-500/20 text-green-400/70 hover:text-green-400 text-[11px] transition-colors border border-green-500/15" title="Envoyer par WhatsApp">
-                <Send className="h-3 w-3" /> WA orateur
-              </button>
-            </>
-          ) : (
-            <button onClick={() => onGenerateLink(service.id, 'orator', service.orator_name || undefined)} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-[11px] transition-colors border border-amber-500/15" title="Générer le lien orateur">
-              <RefreshCw className="h-3 w-3" /> Créer lien orateur
+          {/* Orator: envoi du formulaire au prédicateur */}
+          {!oratorForm && (
+            <button
+              onClick={() => { setEditOrator(false); setSendOpen(v => !v); }}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-accent-400/15 hover:bg-accent-400/25 text-accent-300 text-[11px] font-medium transition-colors border border-accent-400/25"
+              title="Envoyer le formulaire au prédicateur"
+            >
+              <Send className="h-3 w-3" />
+              {oratorLink?.sent_at ? 'Renvoyer au prédicateur' : 'Envoyer au prédicateur'}
+            </button>
+          )}
+          {!oratorForm && oratorLink && (
+            <button onClick={() => copyLink(oratorLink.token, 'orateur')} className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-muted hover:text-cream text-[11px] transition-colors border border-white/10" title="Copier le lien du formulaire">
+              <Copy className="h-3 w-3" /> Copier le lien
             </button>
           )}
 
@@ -509,6 +679,16 @@ function ServiceRow({
             onCancel={() => setEditOrator(false)}
           />
         </div>
+      )}
+
+      {/* ── Envoi au prédicateur ── */}
+      {sendOpen && !oratorForm && (
+        <SendOratorPanel
+          service={service}
+          link={oratorLink}
+          onDone={() => { setSendOpen(false); onRefresh(); }}
+          onCancel={() => setSendOpen(false)}
+        />
       )}
 
       {/* ── Admin inline: President order form ── */}
