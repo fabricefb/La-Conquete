@@ -12,11 +12,14 @@ const FONT_BODY = { fontFamily: "'Poppins', sans-serif" };
 
 interface GoogleAuthButtonProps {
   label?: string;
+  /** « admin » : reprend le kit du back-office (angles droits, tokens du thème). */
+  variant?: 'member' | 'admin';
 }
 
-export function GoogleAuthButton({ label = 'Continuer avec Google' }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ label = 'Continuer avec Google', variant = 'member' }: GoogleAuthButtonProps) {
   const { addToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const isAdmin = variant === 'admin';
 
   const handleClick = async () => {
     setLoading(true);
@@ -71,19 +74,26 @@ export function GoogleAuthButton({ label = 'Continuer avec Google' }: GoogleAuth
   return (
     <div className="mt-5">
       <div className="mb-4 flex items-center gap-3">
-        <span className="h-px flex-1 bg-black/10 dark:bg-white/10" />
-        <span className="auth-text-muted text-[11px] uppercase tracking-wider" style={FONT_BODY}>
+        <span className={`h-px flex-1 ${isAdmin ? 'bg-line' : 'bg-black/10 dark:bg-white/10'}`} />
+        <span
+          className={isAdmin ? 'text-[10px] uppercase tracking-[0.2em] text-muted' : 'auth-text-muted text-[11px] uppercase tracking-wider'}
+          style={isAdmin ? undefined : FONT_BODY}
+        >
           ou
         </span>
-        <span className="h-px flex-1 bg-black/10 dark:bg-white/10" />
+        <span className={`h-px flex-1 ${isAdmin ? 'bg-line' : 'bg-black/10 dark:bg-white/10'}`} />
       </div>
 
       <button
         type="button"
         onClick={handleClick}
         disabled={loading}
-        className="auth-tab flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border px-6 py-3.5 text-sm font-semibold transition-all hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50"
-        style={FONT_BODY}
+        className={
+          isAdmin
+            ? 'btn-ghost w-full py-2.5 text-[11px] uppercase tracking-[0.14em] disabled:cursor-not-allowed disabled:opacity-50'
+            : 'auth-tab flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border px-6 py-3.5 text-sm font-semibold transition-all hover:opacity-85 disabled:cursor-not-allowed disabled:opacity-50'
+        }
+        style={isAdmin ? undefined : FONT_BODY}
       >
         {loading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -98,11 +108,13 @@ export function GoogleAuthButton({ label = 'Continuer avec Google' }: GoogleAuth
         {loading ? 'Redirection…' : label}
       </button>
 
-      <p className="auth-text-muted mt-2 text-center text-[11px]" style={FONT_BODY}>
-        {label === 'Continuer avec Google'
-          ? 'Votre numéro de téléphone sera demandé après la première connexion.'
-          : 'Le numéro de téléphone sera complété juste après la création du compte.'}
-      </p>
+      {!isAdmin && (
+        <p className="auth-text-muted mt-2 text-center text-[11px]" style={FONT_BODY}>
+          {label === 'Continuer avec Google'
+            ? 'Votre numéro de téléphone sera demandé après la première connexion.'
+            : 'Le numéro de téléphone sera complété juste après la création du compte.'}
+        </p>
+      )}
     </div>
   );
 }

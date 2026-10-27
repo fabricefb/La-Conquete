@@ -7,6 +7,7 @@ import { resolveLogo } from '../../lib/brand';
 import { useToast } from '../../contexts/ToastContext';
 import { supabase, isCloudConfigured } from '../../lib/supabase';
 import { isLocalBackendAvailable } from '../../lib/localBackend';
+import { GoogleAuthButton } from '../auth/GoogleAuthButton';
 
 type Mode = 'login' | 'signup';
 
@@ -386,6 +387,11 @@ export default function AdminLogin() {
                   )}
                 </button>
               </form>
+
+              <GoogleAuthButton
+                variant="admin"
+                label={mode === 'login' ? 'Continuer avec Google' : "S'inscrire avec Google"}
+              />
             </>
           )}
         </div>
