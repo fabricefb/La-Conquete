@@ -1,17 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════════
    Multi-Step Public Signup Form
    Téléphone obligatoire, email optionnel (auto-généré si absent)
+   Le choix du département se fait plus tard, dans l'espace du membre.
    Église Évangélique La Conquête
    ═══════════════════════════════════════════════════════════════════ */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import {
   Mail, Lock, User, Phone, ArrowRight, ChevronLeft,
-  Check, Eye, EyeOff, Sparkles, Loader2, Users, MapPin,
-  MonitorPlay, Globe,
+  Check, Eye, EyeOff, Sparkles, Loader2, Users,
 } from '../../lib/icons';
-import { isJoinableDepartment, joinableDepartmentKey, sortDepartmentsForMembership } from '../../lib/membership';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 /* ─── Props ─────────────────────────────────────────────────── */
 interface SignupFormProps {
@@ -57,31 +57,8 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
   const [fullName, setFullName] = useState('');
   const [gender, setGender] = useState<'homme' | 'femme' | ''>('');
 
-  /* ── Step 2: Church status + department ──────────────────── */
-  const [churchStatus, setChurchStatus] = useState<'member' | 'visitor' | 'seeker' | ''>('');
-  const [departments, setDepartments] = useState<{ id: string; name: string; slug: string; icon_name: string; description: string }[]>([]);
-  const [selectedDept, setSelectedDept] = useState('');
-  const [loadingDepts, setLoadingDepts] = useState(false);
-
-  /* ── Load departments on step 2 ──────────────────────────── */
-  useEffect(() => {
-    if (step === 2 && departments.length === 0) {
-      setLoadingDepts(true);
-      (async () => {
-        try {
-          const { data } = await supabase.from('departments')
-            .select('id, name, slug, icon_name, description')
-            .eq('is_active', true)
-            .order('sort_order');
-          if (data) setDepartments(sortDepartmentsForMembership(data as typeof departments));
-        } catch {
-          // ignore
-        } finally {
-          setLoadingDepts(false);
-        }
-      })();
-    }
-  }, [step, departments.length]);
+  /* ── Step 2: Church status ───────────────────────────────── */
+  const [churchStatus, setChurchStatus] = useState<'member' | 'visitor' | 'seeker'>('member');
 
   /* ── Validation ──────────────────────────────────────────── */
   const validateStep = (): boolean => {
@@ -138,7 +115,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             full_name: fullName.trim(),
             phone: phone.trim(),
             ...(gender ? { gender } : {}),
-            church_status: churchStatus || 'visitor',
+            church_status: churchStatus,
           },
         },
       });
@@ -159,46 +136,25 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           email: finalEmail,
           full_name: fullName.trim(),
           phone: phone.trim(),
-          church_status: churchStatus || 'visitor',
+          church_status: churchStatus,
           onboarding_completed: true,
         };
         // Ne pas envoyer gender si vide — la contrainte CHECK n'accepte que 'homme'/'femme'
         if (gender) baseProfileData.gender = gender;
 
         try {
-          // Repli sans church_status tant que la migration 25 n'est pas exécutée
-          const { error: profileErr } = await supabase
+          await supabase
             .from('user_profiles')
             .upsert(baseProfileData, { onConflict: 'id' });
-          if (profileErr) {
-            const { church_status: _status, onboarding_completed: _done, ...legacyProfile } = baseProfileData;
-            await supabase.from('user_profiles').upsert(legacyProfile, { onConflict: 'id' });
-          }
         } catch { /* non-bloquant */ }
 
-        // Si membre, envoyer une demande au département (Média ou Évangélisation)
-        if (churchStatus === 'member' && selectedDept) {
-          try {
-            await supabase
-              .from('department_requests')
-              .insert({
-                user_id: data.user.id,
-                department_id: selectedDept,
-                status: 'en_attente',
-                message: 'Demande lors de l\'inscription',
-              });
-          } catch { /* non-bloquant */ }
-        }
-
+        // Le département se choisit plus tard, depuis l'espace du membre.
         if (data.session) {
-          addToast(
-            churchStatus === 'member' && selectedDept
-              ? 'Compte créé ! Votre demande de département est envoyée.'
-              : 'Compte créé avec succès !',
-            'success',
-          );
+          addToast('Compte créé avec succès !', 'success');
+        } else if (email.trim()) {
+          addToast('Compte créé ! Vérifiez votre boîte mail pour confirmer votre adresse, puis connectez-vous.', 'success');
         } else {
-          addToast('Compte créé ! Vous pouvez maintenant vous connecter.', 'success');
+          addToast('Compte créé ! Contactez l\'administrateur pour activer votre accès.', 'success');
         }
         onComplete?.();
       }
@@ -319,6 +275,8 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
                 style={FONT_BODY} />
             </div>
           </div>
+
+          <GoogleAuthButton label="S'inscrire avec Google" />
         </div>
       )}
 
@@ -354,7 +312,7 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
         </div>
       )}
 
-      {/* ── Step 2: Church status + department ────────────── */}
+      {/* ── Step 2: Statut (département choisi plus tard) ─── */}
       {step === 2 && (
         <div className="space-y-5">
           <h3 className="auth-text-heading text-xl font-bold text-center mb-2" style={FONT_DISPLAY}>
@@ -367,12 +325,12 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
           {/* Status selection */}
           <div className="space-y-2">
             {([
-              { value: 'member', label: 'Je suis membre', desc: "J'ai déjà rejoint l'église" },
+              { value: 'member', label: 'Je suis membre', desc: "Je souhaite être membre de l'église" },
               { value: 'visitor', label: 'Je suis visiteur', desc: "C'est ma première fois" },
               { value: 'seeker', label: 'Je cherche à en savoir plus', desc: 'Je souhaite découvrir la foi' },
             ] as const).map(opt => (
               <button key={opt.value} type="button"
-                onClick={() => setChurchStatus(churchStatus === opt.value ? '' : opt.value)}
+                onClick={() => setChurchStatus(opt.value)}
                 className={`w-full p-4 rounded-xl border text-left transition-all duration-200 relative cursor-pointer ${
                   churchStatus === opt.value ? 'auth-tab-active' : 'auth-tab hover:opacity-80'
                 }`}>
@@ -385,91 +343,13 @@ export function SignupForm({ onComplete, onSwitchToLogin }: SignupFormProps) {
             ))}
           </div>
 
-          {/* Department selection (members only) */}
-          {churchStatus === 'member' && (
-            <div className="mt-4">
-              <label className="auth-label flex items-center gap-2 text-sm font-medium mb-3" style={FONT_BODY}>
-                <MapPin className="w-4 h-4 auth-icon" />
-                Votre département (optionnel)
-              </label>
-              {loadingDepts ? (
-                <div className="flex justify-center py-6">
-                  <Loader2 className="w-5 h-5 text-red-400 animate-spin" />
-                </div>
-              ) : departments.length > 0 ? (
-                <div className="space-y-2">
-                  {departments.map((dept) => {
-                    const isSelected = selectedDept === dept.id;
-                    const isOpen = isJoinableDepartment(dept.name);
-                    const DeptIcon = joinableDepartmentKey(dept.name) === 'media' ? MonitorPlay : Globe;
-
-                    if (!isOpen) {
-                      return (
-                        <div key={dept.id}
-                          className="w-full p-4 rounded-xl border border-dashed border-black/10 dark:border-white/10 opacity-80">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/5 dark:bg-white/5 text-muted">
-                              <DeptIcon className="h-5 w-5" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="text-sm font-semibold auth-text-heading" style={FONT_BODY}>{dept.name}</div>
-                              <div className="auth-text-muted text-[11px] mt-0.5 leading-relaxed" style={FONT_BODY}>
-                                Veuillez patienter le temps que ce département soit configuré.
-                              </div>
-                            </div>
-                            <span className="auth-text-muted shrink-0 rounded-full border border-black/10 dark:border-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
-                              Bientôt
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <button key={dept.id} type="button"
-                        onClick={() => setSelectedDept(isSelected ? '' : dept.id)}
-                        className={`w-full p-4 rounded-xl border text-left transition-all duration-200 relative cursor-pointer ${
-                          isSelected ? 'auth-tab-active' : 'auth-tab hover:opacity-80'
-                        }`}>
-                        <div className="flex items-center gap-3">
-                          <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                            isSelected ? 'bg-red-500/15 text-red-400' : 'bg-black/5 dark:bg-white/5 text-muted'
-                          }`}>
-                            <DeptIcon className="h-5 w-5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-semibold auth-text-heading" style={FONT_BODY}>{dept.name}</div>
-                            {dept.description && (
-                              <div className="auth-text-muted text-[11px] mt-0.5 line-clamp-2" style={FONT_BODY}>{dept.description}</div>
-                            )}
-                          </div>
-                          {isSelected && <Check className="w-4 h-4 text-red-400 shrink-0" />}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="auth-info-box rounded-xl border p-4">
-                  <p className="auth-text-muted text-xs leading-relaxed" style={FONT_BODY}>
-                    Les inscriptions sont ouvertes pour Média &amp; Communication et Évangélisation.
-                    Si vous ne les voyez pas, contactez le secrétariat de l'église.
-                  </p>
-                </div>
-              )}
-              <p className="auth-text-muted text-[11px] mt-2 leading-relaxed" style={FONT_BODY}>
-                Votre demande sera transmise au responsable du département. Vous pourrez suivre son état depuis votre tableau de bord.
-              </p>
-            </div>
-          )}
-
-          {churchStatus && churchStatus !== 'member' && (
-            <div className="auth-info-box rounded-xl border p-4">
-              <p className="auth-text-muted text-xs leading-relaxed" style={FONT_BODY}>
-                Vous pourrez rejoindre Média &amp; Communication ou Évangélisation plus tard, depuis votre tableau de bord.
-              </p>
-            </div>
-          )}
+          <div className="auth-info-box rounded-xl border p-4">
+            <p className="auth-text-muted text-xs leading-relaxed" style={FONT_BODY}>
+              {churchStatus === 'member'
+                ? 'Vous serez enregistré comme membre simple. Le choix du département (Média & Communication ou Évangélisation) se fera depuis votre tableau de bord.'
+                : 'Le tableau de bord est réservé aux membres. Vous pourrez vous déclarer membre plus tard depuis votre espace visiteur.'}
+            </p>
+          </div>
         </div>
       )}
 

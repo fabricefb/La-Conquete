@@ -14,62 +14,8 @@ import {
   ChevronLeft,
   Check,
   CheckCircle2,
-  Star,
-  Flame,
-  Heart,
-  BookOpen,
-  Music,
-  GraduationCap,
-  Mic,
-  Globe,
-  HandHeart,
-  Home,
-  Headphones,
-  FileText,
-  Crown,
-  Radio,
 } from '../../lib/icons';
 import type { LucideIcon } from '../../lib/icons';
-import type { Department, Position } from '../../types';
-import { isJoinableDepartment, sortDepartmentsForMembership } from '../../lib/membership';
-
-/* ─── Icon name → component mapping ──────────────────────────────── */
-const ICON_MAP: Record<string, LucideIcon> = {
-  users: Users,
-  user: Users,
-  music: Music,
-  heart: Heart,
-  book_open: BookOpen,
-  book: BookOpen,
-  flame: Flame,
-  fire: Flame,
-  globe: Globe,
-  world: Globe,
-  graduation_cap: GraduationCap,
-  education: GraduationCap,
-  mic: Mic,
-  microphone: Mic,
-  headphones: Headphones,
-  media: Headphones,
-  star: Star,
-  sparkles: Sparkles,
-  hand_heart: HandHeart,
-  charity: HandHeart,
-  home: Home,
-  house: Home,
-  crown: Crown,
-  leadership: Crown,
-  radio: Radio,
-  broadcast: Radio,
-  file_text: FileText,
-  document: FileText,
-  compass: Compass,
-  explore: Compass,
-};
-
-function getDeptIcon(iconName: string): LucideIcon {
-  return ICON_MAP[iconName.toLowerCase().replace(/-/g, '_')] || Star;
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    Main Component
@@ -93,19 +39,7 @@ export function OnboardingFlow() {
     'member' | 'visitor' | 'seeker' | ''
   >('');
 
-  /* ── Step 3 : Departments ──────────────────────────────────── */
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [selectedDepts, setSelectedDepts] = useState<Record<string, string>>(
-    {},
-  );
-  const [positionsMap, setPositionsMap] = useState<Record<string, Position[]>>(
-    {},
-  );
-  const [loadingPositions, setLoadingPositions] = useState<
-    Record<string, boolean>
-  >({});
-
-  /* ── Step 4 : Prayer ───────────────────────────────────────── */
+  /* ── Step 3 : Prayer ───────────────────────────────────────── */
   const [prayerContent, setPrayerContent] = useState('');
   const [isConfidential, setIsConfidential] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -133,14 +67,12 @@ export function OnboardingFlow() {
     if (knownStatus) setChurchStatus(knownStatus);
 
     if (profileComplete) {
-      // Profil déjà renseigné à l'inscription. Si le statut est connu aussi,
-      // il ne reste que la prière : on ne repose pas les mêmes questions.
-      setStep(knownStatus ? 4 : 2);
+      // Profil déjà renseigné : il ne reste que le statut puis la prière.
+      setStep(knownStatus ? 3 : 2);
     } else {
       // Pre-fill whatever is available
       if (profile.full_name) {
-        const parts = profile.full_name.trim().split(/\s+/);
-        setFirstName(parts[0]);
+        setFirstName(profile.full_name.trim());
       }
       if (profile.phone) setPhone(profile.phone);
       if (profile.gender === 'homme' || profile.gender === 'femme') {
@@ -150,107 +82,22 @@ export function OnboardingFlow() {
   }, [profile, profileComplete]);
 
   /* ── Progress bar ──────────────────────────────────────────── */
-  const isMemberPath = churchStatus === 'member';
-  const totalTransitions = isMemberPath ? 5 : 4;
-  const currentTransition = isMemberPath
-    ? step
-    : step >= 4
-      ? step - 1
-      : step;
-  const progress = Math.min((currentTransition / totalTransitions) * 100, 100);
+  const totalTransitions = 4;
+  const progress = Math.min((step / totalTransitions) * 100, 100);
 
   /* ── Scroll to top on step change ──────────────────────────── */
   useEffect(() => {
     overlayRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  /* ── Fetch departments when entering step 3 ────────────────── */
-  useEffect(() => {
-    if (step === 3 && departments.length === 0) {
-      db.getActiveDepartments()
-        .then((list) => setDepartments(sortDepartmentsForMembership(list)))
-        .catch((err: Error) => addToast(err.message, 'error'));
-    }
-  }, [step, departments.length, addToast]);
-
-  /* ── Load positions for a department ───────────────────────── */
-  const loadPositions = useCallback(
-    async (deptId: string) => {
-      if (positionsMap[deptId]) return;
-      setLoadingPositions((prev) => ({ ...prev, [deptId]: true }));
-      try {
-        const positions = await db.getDepartmentPositions(deptId);
-        setPositionsMap((prev) => ({ ...prev, [deptId]: positions }));
-      } catch (err) {
-        addToast(
-          err instanceof Error ? err.message : 'Erreur de chargement',
-          'error',
-        );
-      } finally {
-        setLoadingPositions((prev) => ({ ...prev, [deptId]: false }));
-      }
-    },
-    [positionsMap, addToast],
-  );
-
-  /* ── Toggle department selection ───────────────────────────── */
-  const toggleDepartment = useCallback(
-    (deptId: string) => {
-      setSelectedDepts((prev) => {
-        const next = { ...prev };
-        if (next[deptId] !== undefined) {
-          delete next[deptId];
-        } else {
-          next[deptId] = '';
-          loadPositions(deptId);
-        }
-        return next;
-      });
-    },
-    [loadPositions],
-  );
-
-  const setPosition = useCallback(
-    (deptId: string, positionId: string) => {
-      setSelectedDepts((prev) => ({ ...prev, [deptId]: positionId }));
-    },
-    [],
-  );
-
   /* ── Navigation ────────────────────────────────────────────── */
   const goNext = () => {
-    if (step === 2 && churchStatus === 'member') {
-      setStep(3);
-    } else if (step === 2) {
-      setStep(4);
-    } else {
-      setStep(step + 1);
-    }
+    setStep((s) => Math.min(s + 1, 3));
   };
 
   const goBack = () => {
-    if (step === 4 && churchStatus === 'member') {
-      setStep(3);
-    } else if (step === 4) {
-      setStep(2);
-    } else {
-      setStep(step - 1);
-    }
+    setStep((s) => Math.max(s - 1, 0));
   };
-
-  /* ── Skip onboarding entirely ──────────────────────────────── */
-  const handleSkip = useCallback(async () => {
-    try {
-      await db.completeOnboarding();
-      await refreshProfile();
-      addToast(
-        'Bienvenue ! Vous pouvez compléter votre profil plus tard.',
-        'info',
-      );
-    } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Erreur', 'error');
-    }
-  }, [refreshProfile, addToast]);
 
   /* ── Submit all data (step 4 → step 5) ────────────────────── */
   const handleSubmit = useCallback(async () => {
@@ -270,47 +117,22 @@ export function OnboardingFlow() {
         } catch { /* migration 25 pas encore exécutée */ }
       }
 
-      // 2. Role upgrade + department requests (member path)
+      // 2. Le département se choisit ensuite depuis le tableau de bord.
       if (churchStatus === 'member') {
         await db.requestRoleUpgrade('member');
-        for (const [deptId, positionId] of Object.entries(selectedDepts)) {
-          // Create a department request instead of direct join
-          try {
-            await supabase.from('department_requests').insert({
-              user_id: user?.id,
-              department_id: deptId,
-              position_id: positionId || null,
-              status: 'en_attente',
-              message: 'Demande lors de l\'intégration',
-            });
-          } catch { /* non-bloquant */ }
-        }
       }
 
       // 3. Save onboarding answers for admin visibility
       try {
-        const deptEntries = Object.entries(selectedDepts);
-        const firstDeptId = deptEntries[0]?.[0];
-        const firstPositionId = deptEntries[0]?.[1];
-        let deptName: string | null = null;
-        let posName: string | null = null;
-        if (firstDeptId) {
-          const dept = departments.find(d => d.id === firstDeptId);
-          deptName = dept?.name || null;
-          if (firstPositionId && positionsMap[firstDeptId]) {
-            const pos = positionsMap[firstDeptId].find(p => p.id === firstPositionId);
-            posName = pos?.name || null;
-          }
-        }
         await supabase.from('onboarding_answers').insert({
           user_id: user?.id,
           full_name: firstName.trim() || null,
           phone: phone.trim() || null,
           gender: gender || null,
-          department_id: firstDeptId || null,
-          department_name: deptName,
-          position_id: firstPositionId || null,
-          position_name: posName,
+          department_id: null,
+          department_name: null,
+          position_id: null,
+          position_name: null,
           motivation: churchStatus === 'seeker' ? 'Visiteur intéressé' : (churchStatus === 'member' ? 'Membre existant' : 'Visiteur'),
         });
       } catch {
@@ -335,7 +157,7 @@ export function OnboardingFlow() {
         );
       }
 
-      setStep(5);
+      setStep(4);
     } catch (err) {
       addToast(
         err instanceof Error ? err.message : 'Une erreur est survenue',
@@ -349,11 +171,11 @@ export function OnboardingFlow() {
     phone,
     gender,
     churchStatus,
-    selectedDepts,
     prayerContent,
     isAnonymous,
     isConfidential,
     addToast,
+    user?.id,
   ]);
 
   /* ── Finish onboarding (step 5) ────────────────────────────── */
@@ -367,12 +189,8 @@ export function OnboardingFlow() {
   }, [refreshProfile, addToast]);
 
   /* ── Step dots ─────────────────────────────────────────────── */
-  const dotCount = isMemberPath ? 6 : 5;
-  const activeDot = isMemberPath
-    ? step
-    : step >= 4
-      ? step - 1
-      : step;
+  const dotCount = 5;
+  const activeDot = step;
 
   /* ═════════════════════════════════════════════════════════════
      Render
@@ -413,15 +231,14 @@ export function OnboardingFlow() {
             {step === 0 && <StepWelcome />}
             {step === 1 && <StepProfile />}
             {step === 2 && <StepStatus />}
-            {step === 3 && <StepInterests />}
-            {step === 4 && <StepPrayer />}
-            {step === 5 && <StepComplete />}
+            {step === 3 && <StepPrayer />}
+            {step === 4 && <StepComplete />}
           </div>
         </div>
       </div>
 
       {/* ── Step dots ────────────────────────────────────────── */}
-      {step < 5 && (
+      {step < 4 && (
         <div className="flex items-center justify-center gap-2 pb-8">
           {Array.from({ length: dotCount }, (_, i) => (
             <div
@@ -465,12 +282,6 @@ export function OnboardingFlow() {
             <Sparkles className="w-5 h-5" />
             Commencer
           </button>
-          <button
-            onClick={handleSkip}
-            className="text-muted/60 hover:text-muted text-sm transition-colors"
-          >
-            Passer pour le moment
-          </button>
         </div>
       </div>
     );
@@ -480,6 +291,9 @@ export function OnboardingFlow() {
      Step 1 — Basic Profile
      ═════════════════════════════════════════════════════════════ */
   function StepProfile() {
+    const phoneDigits = phone.replace(/\D/g, '');
+    const phoneValid = phoneDigits.length >= 9;
+
     return (
       <div className="glass rounded-2xl p-6 sm:p-10 max-w-lg mx-auto">
         <div className="mb-8">
@@ -504,26 +318,25 @@ export function OnboardingFlow() {
         )}
 
         <div className="space-y-5">
-          {/* Prénom */}
+          {/* Nom complet */}
           <div>
             <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Prénom <span className="text-accent-400">*</span>
+              Nom complet <span className="text-accent-400">*</span>
             </label>
             <input
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              placeholder="Votre prénom"
+              placeholder="Prénom et nom"
               className="input-surface w-full px-4 py-3 text-sm"
               autoFocus
             />
           </div>
 
-          {/* Téléphone */}
+          {/* Téléphone — obligatoire */}
           <div>
             <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Téléphone{' '}
-              <span className="text-muted font-normal">(optionnel)</span>
+              Téléphone <span className="text-accent-400">*</span>
             </label>
             <input
               type="tel"
@@ -532,6 +345,11 @@ export function OnboardingFlow() {
               placeholder="+243 000 000 000"
               className="input-surface w-full px-4 py-3 text-sm"
             />
+            <p className={`text-xs mt-2 ${phoneValid ? 'text-muted' : 'text-amber-400'}`}>
+              {phoneValid
+                ? 'Ce numéro servira à vous joindre et à vous connecter.'
+                : 'Obligatoire : au moins 9 chiffres.'}
+            </p>
           </div>
 
           {/* Genre */}
@@ -561,7 +379,7 @@ export function OnboardingFlow() {
         <div className="mt-8 flex justify-end">
           <button
             onClick={goNext}
-            disabled={!firstName.trim()}
+            disabled={!firstName.trim() || !phoneValid}
             className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:animate-none"
           >
             Suivant
@@ -675,140 +493,7 @@ export function OnboardingFlow() {
   }
 
   /* ═════════════════════════════════════════════════════════════
-     Step 3 — Interests / Departments (member only)
-     ═════════════════════════════════════════════════════════════ */
-  function StepInterests() {
-    return (
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <span className="section-label">Intérêts</span>
-          <h2 className="font-serif text-2xl sm:text-3xl text-cream mt-3">
-            Rejoignez un département
-          </h2>
-          <p className="text-muted text-sm mt-2">
-            Média &amp; Communication et Évangélisation sont ouverts. Les autres départements
-            s’ouvriront au fur et à mesure de leur configuration.
-          </p>
-        </div>
-
-        {departments.length === 0 ? (
-          <div className="glass rounded-xl p-8 text-center">
-            <p className="text-muted">Aucun département disponible pour le moment.</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {departments.map((dept) => {
-              const isOpen = isJoinableDepartment(dept.name);
-              const isSelected = selectedDepts[dept.id] !== undefined;
-              const DeptIcon = getDeptIcon(dept.icon_name);
-              const positions = positionsMap[dept.id] || [];
-              const isLoading = loadingPositions[dept.id];
-
-              return (
-                <div key={dept.id} className="space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => isOpen && toggleDepartment(dept.id)}
-                    disabled={!isOpen}
-                    className={`w-full glass rounded-xl p-4 text-left transition-all duration-300 group ${
-                      !isOpen
-                        ? 'opacity-60 cursor-not-allowed border-dashed'
-                        : isSelected
-                          ? 'border-evangile-600/60 bg-accent-400/5'
-                          : 'hover:border-accent-400/30'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`shrink-0 w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-300 ${
-                          isSelected
-                            ? 'bg-accent-400/20 text-accent-400'
-                            : 'bg-ink-800 text-muted group-hover:text-accent-400'
-                        }`}
-                      >
-                        <DeptIcon className="w-5 h-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-cream font-medium text-sm flex items-center gap-2">
-                          {dept.name}
-                          {!isOpen && (
-                            <span className="shrink-0 rounded-full border border-line/60 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted">
-                              Bientôt
-                            </span>
-                          )}
-                        </div>
-                        {dept.description && (
-                          <div className="text-muted text-xs mt-0.5 line-clamp-2">
-                            {dept.description}
-                          </div>
-                        )}
-                      </div>
-                      {isSelected && (
-                        <Check className="w-4 h-4 text-accent-400 shrink-0 mt-0.5" />
-                      )}
-                    </div>
-                  </button>
-
-                  {!isOpen && (
-                    <p className="text-muted/70 text-xs pl-1">
-                      Veuillez patienter le temps que ce département soit configuré.
-                    </p>
-                  )}
-
-                  {/* Position dropdown when selected */}
-                  {isOpen && isSelected && (
-                    <div className="animate-fade-in pl-4">
-                      {isLoading ? (
-                        <div className="text-muted text-xs py-1">
-                          Chargement...
-                        </div>
-                      ) : positions.length > 0 ? (
-                        <select
-                          value={selectedDepts[dept.id]}
-                          onChange={(e) => setPosition(dept.id, e.target.value)}
-                          className="input-surface w-full px-3 py-2 text-xs rounded-lg"
-                        >
-                          <option value="">
-                            Aucune position spécifique
-                          </option>
-                          {positions.map((p) => (
-                            <option key={p.id} value={p.id}>
-                              {p.name}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <div className="text-muted/60 text-xs py-1">
-                          Aucune position disponible
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        <div className="mt-8 flex justify-between">
-          <button
-            onClick={goBack}
-            className="btn-ghost text-sm px-5 py-2.5"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Retour
-          </button>
-          <button onClick={goNext} className="btn-gold">
-            Suivant
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ═════════════════════════════════════════════════════════════
-     Step 4 — Prayer & Preferences
+     Step 3 — Prayer & Preferences
      ═════════════════════════════════════════════════════════════ */
   function StepPrayer() {
     return (
@@ -908,12 +593,9 @@ export function OnboardingFlow() {
   }
 
   /* ═════════════════════════════════════════════════════════════
-     Step 5 — Completion
+     Step 4 — Completion
      ═════════════════════════════════════════════════════════════ */
   function StepComplete() {
-    const isMember = churchStatus === 'member';
-    const deptCount = Object.keys(selectedDepts).length;
-
     return (
       <div className="flex flex-col items-center text-center gap-6">
         {/* Animated checkmark */}
@@ -972,14 +654,8 @@ export function OnboardingFlow() {
         </h2>
 
         <p className="text-muted text-base max-w-md leading-relaxed">
-          {isMember
-            ? `Bienvenue parmi les membres !${
-                deptCount > 0
-                  ? ` Vous avez rejoint ${deptCount} département${
-                      deptCount > 1 ? 's' : ''
-                    }.`
-                  : ''
-              } Votre demande de membre sera confirmée par un administrateur.`
+          {churchStatus === 'member'
+            ? 'Bienvenue parmi les membres ! Vous pourrez choisir votre département depuis votre tableau de bord.'
             : 'Bienvenue parmi nous ! Nous sommes heureux de vous compter dans notre communauté.'}
         </p>
 

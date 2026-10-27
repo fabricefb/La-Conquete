@@ -81,7 +81,7 @@ function DeptMemberCount({ departmentId }: { departmentId: string }) {
    ═══════════════════════════════════════════════════════════════════ */
 
 export function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, profileLoading } = useAuth();
   const { addToast } = useToast();
   const { colorMode, toggleColorMode } = useDynamicTheme();
 
@@ -940,6 +940,66 @@ export function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
         <div className="footer-spacer" />
       <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
+        <MobileNav onNavigate={onNavigate} active="dashboard" />
+      </div>
+    );
+  }
+
+  // ── Profil encore en cours de chargement ───────────────────────
+  if (profileLoading && !profile) {
+    return (
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
+        <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
+        <div className="flex min-h-[80vh] items-center justify-center">
+          <div className="keep-radius h-8 w-8 animate-spin rounded-full border-2 border-accent-400/30 border-t-accent-500" />
+        </div>
+      </div>
+    );
+  }
+
+  // ── Les visiteurs n'ont pas de tableau de bord ─────────────────
+  if (isVisitor) {
+    return (
+      <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
+        <SiteHeader onNavigate={onNavigate} activePage="dashboard" />
+        <div className="flex min-h-[80vh] items-center justify-center px-margin-mobile md:px-margin-desktop">
+          <div className="glass-card max-w-lg p-8 text-center sm:p-10">
+            <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full border border-sky-400/20 bg-sky-400/10">
+              <Sparkles className="h-8 w-8 text-sky-300" />
+            </div>
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-sky-300">
+              Espace visiteur
+            </p>
+            <h2 className="mt-2 text-headline-lg font-display gold-text">
+              Bienvenue à La Conquête
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-muted">
+              Votre compte est enregistré comme visiteur. Le tableau de bord est réservé aux membres.
+              Pour le consulter et demander à rejoindre Média &amp; Communication ou Évangélisation,
+              déclarez-vous membre.
+            </p>
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <button
+                onClick={handleDeclareMember}
+                disabled={declareMemberSubmitting}
+                className="btn-gold px-6 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {declareMemberSubmitting ? 'Enregistrement…' : 'Devenir membre'}
+              </button>
+              <button onClick={() => onNavigate('contact')} className="btn-ghost px-6 py-3 text-sm">
+                Contacter l'église
+              </button>
+            </div>
+            <button
+              onClick={() => onNavigate('home')}
+              className="mt-5 text-xs text-muted transition-colors hover:text-accent-400"
+            >
+              Retour au site
+            </button>
+          </div>
+        </div>
+        <div className="footer-spacer" />
+        <SiteFooter onNavigate={onNavigate} theme={colorMode} onToggleTheme={toggleColorMode} />
         <MobileNav onNavigate={onNavigate} active="dashboard" />
       </div>
     );

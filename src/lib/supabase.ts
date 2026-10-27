@@ -159,6 +159,15 @@ const facade = {
       enableLocalAdminSession();
       return { data: { user: localAdminUser(), session: localSession() }, error: null };
     },
+    async signInWithOAuth(credentials: { provider: string; options?: unknown }) {
+      if (isLocalBackendAvailable()) {
+        return {
+          data: { provider: credentials.provider, url: null },
+          error: { name: 'AuthError', message: "La connexion Google n'est disponible qu'en ligne." },
+        };
+      }
+      return cloudClient.auth.signInWithOAuth(credentials as never);
+    },
     async signOut() {
       if (localActive()) {
         disableLocalAdminSession();

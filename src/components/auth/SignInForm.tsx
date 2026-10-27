@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
 import { supabase } from '../../lib/supabase';
 import { Mail, Lock, Eye, EyeOff, Loader2, LogIn, Phone } from '../../lib/icons';
+import { GoogleAuthButton } from './GoogleAuthButton';
 
 interface SignInFormProps {
   onComplete?: () => void;
@@ -69,7 +70,7 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
       if (msg.includes('Invalid login') || msg.includes('invalid credentials')) {
         addToast('Téléphone/email ou mot de passe incorrect.', 'error');
       } else if (msg.includes('Email not confirmed')) {
-        addToast('Veuillez confirmer votre email avant de vous connecter.', 'error');
+        addToast('Votre adresse email n\'est pas encore confirmée. Vérifiez votre boîte mail ou contactez l\'administrateur.', 'error');
       } else {
         addToast(msg, 'error');
       }
@@ -145,6 +146,8 @@ export function SignInForm({ onComplete, onSwitchToSignup, onForgotPassword }: S
           )}
         </button>
       </form>
+
+      <GoogleAuthButton />
 
       <p className="auth-text-muted text-center text-sm mt-6">
         Pas encore de compte ?{' '}

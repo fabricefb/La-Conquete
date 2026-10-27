@@ -130,6 +130,14 @@ function AppRouter() {
     }
   }, [authLoading, user, isAdmin, page, setPage]);
 
+  // ── Retour de la connexion Google : ouvrir l'espace personnel ──
+  useEffect(() => {
+    if (authLoading || !user || isAdmin) return;
+    if (sessionStorage.getItem('lc_oauth_pending') !== '1') return;
+    sessionStorage.removeItem('lc_oauth_pending');
+    setPage('dashboard');
+  }, [authLoading, user, isAdmin, setPage]);
+
   useEffect(() => {
     // Do NOT overwrite hash if we're showing a form — form URLs must stay intact
     if (formToken || formOrateurToken) return;

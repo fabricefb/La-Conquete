@@ -86,6 +86,7 @@ interface UserProfileExt {
   blocked_reason: string | null;
   last_seen_at: string | null;
   onboarding_completed: boolean;
+  church_status?: 'member' | 'visitor' | 'seeker' | null;
   created_at: string;
 }
 
@@ -220,6 +221,7 @@ export function UsersTab() {
   const { addToast } = useToast();
   const { profile: adminProfile, isFullAdmin } = useAuth();
   const [users, setUsers] = useState<UserProfileExt[]>([]);
+  const [pendingDepts, setPendingDepts] = useState<Record<string, { id: string; name: string }[]>>({});
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterRole, setFilterRole] = useState<string>('all');
@@ -277,8 +279,9 @@ export function UsersTab() {
         addToast('Demande refusée.', 'info');
       }
 
-      // Rafraîchir le panneau détail
+      // Rafraîchir le panneau détail et les badges de la liste
       fetchUserDetail(selectedUserId);
+      fetchUsers();
     } catch (err: any) {
       addToast(err.message || 'Erreur', 'error');
     } finally {
@@ -375,6 +378,21 @@ export function UsersTab() {
       }));
 
       setUsers(enriched);
+
+      // Demandes de département en attente (les deux départements ouverts)
+      const { data: reqs } = await supabase
+        .from('department_requests')
+        .select('id, user_id, department_id, departments(name)')
+        .eq('status', 'en_attente');
+
+      const grouped: Record<string, { id: string; name: string }[]> = {};
+      for (const r of (reqs || []) as any[]) {
+        grouped[r.user_id] = [
+          ...(grouped[r.user_id] || []),
+          { id: r.id, name: r.departments?.name || 'Département' },
+        ];
+      }
+      setPendingDepts(grouped);
     } catch {
       addToast('Erreur de connexion', 'error');
     }
@@ -383,15 +401,23 @@ export function UsersTab() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
+  const statusOf = (u: UserProfileExt) => u.church_status || 'member';
+  const isPlainMember = (u: UserProfileExt) =>
+    !u.is_admin && !u.is_principal_pastor && !u.pastor_category && u.role_level <= 1;
+
   // Filter
   const filtered = users.filter(u => {
     const matchSearch = !search ||
       (u.full_name || '').toLowerCase().includes(search.toLowerCase()) ||
-      (u.email || '').toLowerCase().includes(search.toLowerCase());
+      (u.email || '').toLowerCase().includes(search.toLowerCase()) ||
+      (u.phone || '').toLowerCase().includes(search.toLowerCase());
     const matchRole = filterRole === 'all' ||
       (filterRole === 'admin' && u.is_admin) ||
       (filterRole === 'blocked' && u.is_blocked) ||
-      (filterRole === 'online' && (u as any).is_online);
+      (filterRole === 'online' && (u as any).is_online) ||
+      (filterRole === 'visitors' && statusOf(u) !== 'member') ||
+      (filterRole === 'members' && statusOf(u) === 'member' && isPlainMember(u)) ||
+      (filterRole === 'deptRequests' && (pendingDepts[u.id] || []).length > 0);
     return matchSearch && matchRole;
   });
 
@@ -472,7 +498,23 @@ export function UsersTab() {
     if (u.is_admin) return <span className="rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-red-300">Admin</span>;
     if (u.is_principal_pastor) return <span className="rounded-full bg-yellow-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-yellow-300">Pasteur Principal</span>;
     if (u.pastor_category) return <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-300">{PASTOR_CATEGORY_LABELS[u.pastor_category as keyof typeof PASTOR_CATEGORY_LABELS] || u.pastor_category}</span>;
-    return <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">{ROLE_LABELS[u.role_level] || 'Membre'}</span>;
+    if (u.role_level >= 3) return <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-blue-300">{ROLE_LABELS[u.role_level] || 'Membre'}</span>;
+
+    const pending = pendingDepts[u.id] || [];
+    if (pending.length > 0) {
+      return (
+        <span className="flex flex-wrap items-center gap-1">
+          {pending.map(p => (
+            <span key={p.id} className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-300">
+              Demande {p.name}
+            </span>
+          ))}
+        </span>
+      );
+    }
+    if (statusOf(u) === 'seeker') return <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-sky-300">En découverte</span>;
+    if (statusOf(u) === 'visitor') return <span className="rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-sky-300">Visiteur</span>;
+    return <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold uppercase text-emerald-300">Membre simple</span>;
   };
 
   return (
@@ -495,14 +537,17 @@ export function UsersTab() {
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder="Rechercher par nom ou email..."
+            placeholder="Rechercher par nom, email ou téléphone..."
             className="input-surface w-full pl-9 pr-4 py-2.5 text-sm"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {[
             { value: 'all', label: 'Tous' },
             { value: 'online', label: 'En ligne' },
+            { value: 'visitors', label: 'Visiteurs' },
+            { value: 'members', label: 'Membres' },
+            { value: 'deptRequests', label: `Demandes (${Object.keys(pendingDepts).length})` },
             { value: 'admin', label: 'Admins' },
             { value: 'blocked', label: 'Bloqués' },
           ].map(f => (
@@ -637,11 +682,19 @@ export function UsersTab() {
                 if (!u) return null;
                 return (
                   <>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="rounded-xl bg-white/3 p-3 text-center">
                       <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Statut</p>
                       <p className={`text-sm font-semibold ${u.is_blocked ? 'text-red-400' : 'text-emerald-400'}`}>
                         {u.is_blocked ? 'Bloqué' : 'Actif'}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/3 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-muted mb-1">Église</p>
+                      <p className={`text-sm font-semibold ${
+                        statusOf(u) === 'member' ? 'text-emerald-400' : 'text-sky-300'
+                      }`}>
+                        {statusOf(u) === 'seeker' ? 'En découverte' : statusOf(u) === 'visitor' ? 'Visiteur' : 'Membre'}
                       </p>
                     </div>
                     <div className="rounded-xl bg-white/3 p-3 text-center">
