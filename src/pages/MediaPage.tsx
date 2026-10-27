@@ -12,36 +12,13 @@ import type { Page } from '../lib/navigation';
 import { CHURCH } from '../lib/church';
 import { YOUTUBE_CHANNEL } from '../lib/teachings';
 import { imageSrcSet } from '../lib/images';
-import { db, isSupabaseConfigured, buildContentMap, getContent } from '../lib/supabase';
+import { db, isSupabaseConfigured, buildContentMap, buildSettingsMap, getContent } from '../lib/supabase';
 import { DEFAULT_GALLERY, type GalleryPhoto } from '../lib/gallery';
+import { featuredSocialLinks } from '../lib/socials';
 
 interface MediaPageProps {
   onNavigate: (page: Page) => void;
 }
-
-const PLATFORMS = [
-  {
-    label: 'YouTube',
-    handle: YOUTUBE_CHANNEL.handle,
-    description: 'Prédications, cultes et enseignements en vidéo.',
-    href: YOUTUBE_CHANNEL.url,
-    Icon: Youtube,
-  },
-  {
-    label: 'Facebook',
-    handle: '@laconquete.eec',
-    description: 'Les directs, les albums photos et les annonces.',
-    href: CHURCH.social.facebook,
-    Icon: Facebook,
-  },
-  {
-    label: 'Instagram',
-    handle: '@laconquete_eec',
-    description: 'La vie de l\'église au quotidien.',
-    href: CHURCH.social.instagram,
-    Icon: Instagram,
-  },
-];
 
 function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   const { ref, visible } = useReveal();
@@ -121,7 +98,9 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [gallery, setGallery] = useState<GalleryPhoto[]>(DEFAULT_GALLERY);
   const [cm, setCm] = useState<Record<string, string>>({});
+  const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
   const liveImage = getContent(cm, 'live', 'image', '/church-photo-1.webp');
+  const channels = featuredSocialLinks(settingsMap);
 
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
   const changeLightbox = useCallback((next: number) => setLightboxIndex(next), []);
@@ -160,6 +139,18 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
     return () => { cancelled = true; };
   }, []);
 
+  // Canaux officiels (réseaux sociaux) réglés dans Paramètres → Réseaux sociaux.
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    db.getSettings()
+      .then((settings) => {
+        if (!cancelled) setSettingsMap(buildSettingsMap(settings));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <div className="min-h-screen bg-bg text-cream font-sans mobile-bottom-pad">
       <SiteHeader onNavigate={onNavigate} activePage="media" />
@@ -189,30 +180,34 @@ export function MediaPage({ onNavigate }: MediaPageProps) {
             <div className="rule-accent mt-6" />
           </RevealSection>
 
-          <div className="mt-10 grid gap-px bg-line sm:grid-cols-3">
-            {PLATFORMS.map(({ label, handle, description, href, Icon }, i) => (
-              <RevealSection key={label} className={`reveal-delay-${i + 1}`}>
-                <a
-                  href={href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex h-full flex-col bg-bg-card p-7 transition-colors hover:bg-bg-elevated"
-                >
-                  <div className="flex items-start justify-between">
-                    <span className="inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <ArrowUpRight className="h-4 w-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </div>
-                  <h3 className="card-title mt-6">{label}</h3>
-                  <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-evangile-600">
-                    {handle}
-                  </p>
-                  <p className="mt-3 text-sm leading-relaxed text-muted">{description}</p>
-                </a>
-              </RevealSection>
-            ))}
-          </div>
+          {channels.length > 0 && (
+            <div className="mt-10 grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-3">
+              {channels.map(({ label, handle, description, href, Icon }, i) => (
+                <RevealSection key={label} className={`reveal-delay-${(i % 4) + 1}`}>
+                  <a
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex h-full flex-col bg-bg-card p-7 transition-colors hover:bg-bg-elevated"
+                  >
+                    <div className="flex items-start justify-between">
+                      <span className="inline-flex h-11 w-11 items-center justify-center border border-line text-evangile-600">
+                        <Icon className="h-5 w-5" />
+                      </span>
+                      <ArrowUpRight className="h-4 w-4 text-muted transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </div>
+                    <h3 className="card-title mt-6">{label}</h3>
+                    {handle && (
+                      <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-evangile-600">
+                        {handle}
+                      </p>
+                    )}
+                    <p className="mt-3 text-sm leading-relaxed text-muted">{description}</p>
+                  </a>
+                </RevealSection>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

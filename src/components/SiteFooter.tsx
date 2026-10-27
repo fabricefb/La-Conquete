@@ -96,7 +96,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     `${CHURCH.address.city}, ${CHURCH.address.country}`,
   );
   const socialLinks = visibleSocialLinks(settingsMap);
-  const whatsappHref = socialLinks.find((s) => s.label === 'WhatsApp')?.href ?? '';
+  const whatsappHref = socialLinks.find((s) => s.key === 'whatsapp_url')?.href ?? '';
 
   const linkGroups: { title: string; links: FooterLink[] }[] = [
     { title: 'L’Église', links: CHURCH_LINKS },

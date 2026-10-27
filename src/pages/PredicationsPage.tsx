@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { supabase, db, isSupabaseConfigured, buildSettingsMap } from '../lib/supabase';
 import { useReveal } from '../lib/hooks';
 import { useDynamicTheme } from '../contexts/DynamicTheme';
 import { SiteHeader } from '../components/SiteHeader';
@@ -9,6 +9,7 @@ import { UniversalHero } from '../components/UniversalHero';
 import { YOUTUBE_CHANNEL } from '../lib/teachings';
 import { useLiveTeachings } from '../lib/liveTeachings';
 import { CHURCH } from '../lib/church';
+import { featuredSocialLinks } from '../lib/socials';
 import { imageSrcSet } from '../lib/images';
 import {
   ArrowRight,
@@ -550,6 +551,19 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
   const [selectedPreacher, setSelectedPreacher] = useState('Tous');
   const [selectedSeries, setSelectedSeries] = useState('Toutes');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [settingsMap, setSettingsMap] = useState<Record<string, string>>({});
+  const channels = featuredSocialLinks(settingsMap);
+
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let cancelled = false;
+    db.getSettings()
+      .then((settings) => {
+        if (!cancelled) setSettingsMap(buildSettingsMap(settings));
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -1164,52 +1178,34 @@ export function PredicationsPage({ onNavigate }: PredicationsPageProps) {
             </button>
           </div>
 
-          <div className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-2">
-            <a
-              href={YOUTUBE_CHANNEL.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col justify-between bg-bg p-6 transition-colors hover:bg-bg-card-hover sm:p-8"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <span className="font-hero text-2xl leading-none text-white/25">01</span>
-                <Youtube className="h-7 w-7 text-evangile-500" />
-              </div>
-              <div className="mt-10">
-                <p className="section-eyebrow">YouTube</p>
-                <h3 className="mt-3 font-hero text-3xl uppercase leading-none text-cream">La chaîne officielle</h3>
-                <p className="mt-3 text-sm text-muted">
-                  {YOUTUBE_CHANNEL.handle} · cultes et messages en vidéo.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-evangile-500">
-                  Ouvrir la chaîne
-                  <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </a>
-
-            <a
-              href={CHURCH.social.facebook}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex flex-col justify-between bg-bg p-6 transition-colors hover:bg-bg-card-hover sm:p-8"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <span className="font-hero text-2xl leading-none text-white/25">02</span>
-                <Facebook className="h-7 w-7 text-evangile-500" />
-              </div>
-              <div className="mt-10">
-                <p className="section-eyebrow">Facebook</p>
-                <h3 className="mt-3 font-hero text-3xl uppercase leading-none text-cream">La page officielle</h3>
-                <p className="mt-3 text-sm text-muted">
-                  Directs, annonces et vie de l'église au quotidien.
-                </p>
-                <span className="mt-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-evangile-500">
-                  Voir la page
-                  <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                </span>
-              </div>
-            </a>
+          <div className="mt-8 grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+            {channels.map(({ label, title, handle, description, href, Icon }, i) => (
+              <RevealSection key={label} className={`reveal-delay-${(i % 4) + 1}`}>
+                <a
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex h-full flex-col justify-between bg-bg p-6 transition-colors hover:bg-bg-card-hover sm:p-8"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <p className="section-eyebrow">{label}</p>
+                    <Icon className="h-7 w-7 text-evangile-500" />
+                  </div>
+                  <div className="mt-10">
+                    <h3 className="font-hero text-2xl uppercase leading-none text-cream sm:text-3xl">
+                      {title}
+                    </h3>
+                    <p className="mt-3 text-sm text-muted">
+                      {handle ? `${handle} · ${description}` : description}
+                    </p>
+                    <span className="mt-5 inline-flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-evangile-500">
+                      Ouvrir le canal
+                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </a>
+              </RevealSection>
+            ))}
           </div>
 
           <p className="mt-4 flex items-center gap-2 text-[11px] text-muted">
