@@ -42,7 +42,8 @@ interface ImageSlot {
 }
 
 const SETTING_SLOTS: Array<{ key: string; label: string; defaultUrl: string; folder: string }> = [
-  { key: 'site_logo_url', label: 'Logo du site (en-tête)', defaultUrl: '/logo-conquete.png', folder: 'logo' },
+  { key: 'site_logo_url', label: 'Logo du site — thème sombre', defaultUrl: '/logo-conquete.png', folder: 'logo' },
+  { key: 'site_logo_url_light', label: 'Logo du site — thème clair', defaultUrl: '/logo-couleur.png', folder: 'logo' },
   { key: 'mega_menu_image_about', label: 'Méga menu — À Propos', defaultUrl: '/church-photo-2.webp', folder: 'mega-menu' },
   { key: 'mega_menu_image_vie_eglise', label: "Méga menu — Vie de l'Église", defaultUrl: '/church-photo-3.webp', folder: 'mega-menu' },
   { key: 'mega_menu_image_media', label: 'Méga menu — Média', defaultUrl: '/predication-1.webp', folder: 'mega-menu' },

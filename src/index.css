@@ -543,10 +543,9 @@ html[style*="--custom-theme-active"] .live-dot::before { background: color-mix(i
     letter-spacing: 0.02em;
   }
 
-  /* Plaque du logo. Le logo de marque est un bloc blanc (symbole + lettrage) :
-     sur marine il se pose à nu, sur crème il a besoin d'un socle encre. */
+  /* Deux verrous détourés : lettrage blanc en thème sombre, logo couleur en
+     thème clair. Aucun socle n'est nécessaire, ni en clair ni en sombre. */
   .logo-plate { @apply flex shrink-0 items-center justify-center; }
-  .light .logo-plate { background: rgb(var(--text-rgb)); padding: 0.5rem 0.875rem; }
 
   /* --- Boutons — angle droit, aplats francs, aucun rebond --- */
   .btn-primary {

@@ -7,12 +7,12 @@ import {
 } from '../lib/icons';
 import { BIBLE_BOOKS, ORDER_ITEM_TYPES, SERVICE_TYPE_LABELS, WORSHIP_TYPE_CONFIGS, isTableNotFoundError, formatDate, formatTime, getDeadlineInfo, enrichWithDeadline } from '../components/admin/tabs/PlanificationTab';
 import { openWhatsApp } from '../lib/whatsapp';
+import { useDynamicTheme } from '../contexts/DynamicTheme';
+import { resolveLogo } from '../lib/brand';
 import type {
   WorshipFormLink, WorshipService, WorshipOratorForm, WorshipOratorPoint,
   WorshipOrderItem, WorshipOrderItemType, WorshipFormRecommendation,
 } from '../types';
-
-const FORM_LOGO = '/logo-conquete.png';
 
 /* ═══════════════════════════════════════════════════════════════════
    Constants
@@ -32,6 +32,8 @@ interface CulteFormPageProps {
 }
 
 export function CulteFormPage({ token }: CulteFormPageProps) {
+  const { colorMode } = useDynamicTheme();
+  const formLogo = resolveLogo(colorMode);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -839,7 +841,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       {/* Branding header with logo */}
       <div className="sticky top-0 z-10 bg-bg/90 backdrop-blur-xl border-b border-line/30">
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center gap-3">
-          <img src={FORM_LOGO} alt="La Conquête" className="h-9 w-9 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
+          <img src={formLogo} alt="La Conquête" className="h-9 w-9 rounded-full object-contain ring-2 ring-accent-500/30 bg-white/5 p-0.5" />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-medium tracking-wide lowercase text-cream/50">église évangélique</span>
@@ -860,7 +862,7 @@ export function CulteFormPage({ token }: CulteFormPageProps) {
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Welcome banner — no account needed */}
         <div className="rounded-xl p-3.5 mb-5 flex items-start gap-3 bg-accent-400/8 text-cream/80 text-xs border border-accent-400/15">
-          <img src={FORM_LOGO} alt="" className="h-8 w-8 rounded-full object-contain ring-1 ring-accent-500/20 bg-white/5 p-0.5 shrink-0 mt-0.5" />
+          <img src={formLogo} alt="" className="h-8 w-8 rounded-full object-contain ring-1 ring-accent-500/20 bg-white/5 p-0.5 shrink-0 mt-0.5" />
           <div>
             <p className="font-semibold text-cream text-sm mb-0.5">
               Bienvenue — {isOrator ? 'Formulaire Orateur' : 'Formulaire Président'}

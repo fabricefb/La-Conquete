@@ -10,8 +10,7 @@ import { CHURCH, churchSetting } from '../lib/church';
 import { SERVICE_TIMES } from '../lib/services';
 import { visibleSocialLinks } from '../lib/socials';
 
-// Le bloc de marque est le même qu'en tête : un seul logo, une seule clé de réglage.
-const DEFAULT_LOGO = '/logo-conquete.png';
+import { resolveLogo } from '../lib/brand';
 
 interface SiteFooterProps {
   onNavigate: (page: Page) => void;
@@ -81,7 +80,11 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
     return () => { cancelled = true; };
   }, []);
 
-  const logoUrl = churchSetting(settingsMap, 'site_logo_url', DEFAULT_LOGO);
+  const logoUrl = resolveLogo(
+    theme,
+    churchSetting(settingsMap, 'site_logo_url', ''),
+    churchSetting(settingsMap, 'site_logo_url_light', ''),
+  );
 
   /* Entrée discrète du back-office : 5 clics rapides sur le logo du pied de
      page. Le clic normal continue d'ouvrir l'accueil. */
@@ -178,7 +181,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
               className="logo-plate w-fit transition-opacity hover:opacity-80"
               aria-label="La Conquête — Accueil"
             >
-              <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-[60px] w-auto object-contain" />
+              <img src={logoUrl} alt={churchName} className="h-[60px] w-auto object-contain" />
             </button>
             <p className="max-w-sm text-sm leading-relaxed text-muted">
               {churchName} — Ancrée dans la foi, ouverte à tous, engagée dans la communauté de {city}.
@@ -281,7 +284,7 @@ export function SiteFooter({ onNavigate, theme: themeProp, onToggleTheme: toggle
             className="logo-plate w-fit transition-opacity hover:opacity-80"
             aria-label="La Conquête — Accueil"
           >
-            <img src={logoUrl || DEFAULT_LOGO} alt={churchName} className="h-[60px] w-auto object-contain" />
+            <img src={logoUrl} alt={churchName} className="h-[60px] w-auto object-contain" />
           </button>
           <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted">
             {churchName} — Ancrée dans la foi, ouverte à tous, engagée dans la communauté de {city}.

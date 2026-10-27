@@ -1,5 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDynamicTheme } from '../../contexts/DynamicTheme';
+import { resolveLogo } from '../../lib/brand';
 import { useToast } from '../../contexts/ToastContext';
 import { downloadLocalBackup } from '../../lib/localBackend';
 import {
@@ -153,6 +155,8 @@ function SidebarNav({
 
 export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFullAdmin = true }: AdminLayoutProps) {
   const { profile, signOut, isLocalMode } = useAuth();
+  const { colorMode } = useDynamicTheme();
+  const logoUrl = resolveLogo(colorMode);
   const { addToast } = useToast();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const spaceLabel = isFullAdmin ? 'Back-office' : 'Espace pastoral';
@@ -194,7 +198,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
               aria-label="La Conquête — Voir le site"
             >
               <img
-                src="/logo-conquete.png"
+                src={logoUrl}
                 alt="Église Évangélique La Conquête"
                 className="h-9 w-auto object-contain"
               />
@@ -254,7 +258,7 @@ export function AdminLayout({ activeTab, onTabChange, onNavigate, children, isFu
                 <div className="flex items-center gap-3">
                   <span className="logo-plate">
                     <img
-                      src="/logo-conquete.png"
+                      src={logoUrl}
                       alt="Église Évangélique La Conquête"
                       className="h-8 w-auto object-contain"
                     />

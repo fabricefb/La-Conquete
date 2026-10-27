@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { Lock, Mail, Eye, EyeOff, Loader2, UserPlus, AlertTriangle } from '../../lib/icons';
 import { HardDrive } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDynamicTheme } from '../../contexts/DynamicTheme';
+import { resolveLogo } from '../../lib/brand';
 import { useToast } from '../../contexts/ToastContext';
 import { supabase, isCloudConfigured } from '../../lib/supabase';
 import { isLocalBackendAvailable } from '../../lib/localBackend';
@@ -10,6 +12,7 @@ type Mode = 'login' | 'signup';
 
 export default function AdminLogin() {
   const { signIn, signInLocal } = useAuth();
+  const { colorMode } = useDynamicTheme();
   const { addToast } = useToast();
   const localAvailable = isLocalBackendAvailable();
 
@@ -170,7 +173,7 @@ export default function AdminLogin() {
         <div className="flex flex-col items-center text-center">
           <span className="logo-plate">
             <img
-              src="/logo-conquete.png"
+              src={resolveLogo(colorMode)}
               alt="Église Évangélique La Conquête"
               className="h-12 w-auto object-contain"
             />

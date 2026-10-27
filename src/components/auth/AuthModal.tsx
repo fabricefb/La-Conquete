@@ -9,6 +9,8 @@ import { SignupForm } from './SignupForm';
 import { SignInForm } from './SignInForm';
 import { ForgotPasswordForm } from './ForgotPasswordForm';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDynamicTheme } from '../../contexts/DynamicTheme';
+import { resolveLogo } from '../../lib/brand';
 import { supabase } from '../../lib/supabase';
 
 /* ─── Props ─────────────────────────────────────────────────── */
@@ -24,6 +26,7 @@ interface AuthModalProps {
 export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalProps) {
   const [view, setView] = useState<'login' | 'signup' | 'forgot' | 'success'>(initialView);
   const { hasBackOffice } = useAuth();
+  const { colorMode } = useDynamicTheme();
   const backOfficeRef = useRef(hasBackOffice);
   backOfficeRef.current = hasBackOffice;
 
@@ -85,7 +88,7 @@ export function AuthModal({ isOpen, onClose, initialView = 'login' }: AuthModalP
         {/* Logo / Brand */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/10 border border-red-500/20 mb-3">
-            <img src="/logo-conquete.png" alt="La Conquête" className="h-12 w-12 object-contain" />
+            <img src={resolveLogo(colorMode)} alt="La Conquête" className="h-12 w-12 object-contain" />
           </div>
           <h2 className="text-2xl font-serif font-bold auth-text-heading tracking-tight">
             La Conquête

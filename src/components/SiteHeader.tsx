@@ -14,9 +14,7 @@ import { db, buildSettingsMap, isSupabaseConfigured } from '../lib/supabase';
 import { CHURCH } from '../lib/church';
 import { YOUTUBE_CHANNEL } from '../lib/teachings';
 
-// Default logo — overridable via Supabase site_settings (key: site_logo_url)
-// The wordmark is white-on-transparent, so it must always sit on a dark plate.
-const DEFAULT_LOGO = '/logo-conquete.png';
+import { resolveLogo } from '../lib/brand';
 
 /* ═══════════════════════════════════════════════════════════════════
    Navigation Data — 7 main items with mega menu support
@@ -675,8 +673,8 @@ export function SiteHeader({ onNavigate, activePage, topOffset }: SiteHeaderProp
     return () => { cancelled = true; };
   }, []);
 
-  // Dynamic logo from settings
-  const logoUrl = settingsMap['site_logo_url'] || DEFAULT_LOGO;
+  // Logo selon le thème : blanc sur fond sombre, navy sur fond clair
+  const logoUrl = resolveLogo(colorMode, settingsMap['site_logo_url'], settingsMap['site_logo_url_light']);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
