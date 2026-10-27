@@ -1,6 +1,11 @@
 /* ═══════════════════════════════════════════════════════════════════
    OnboardingFlow — Multi-step post-signup onboarding
    Église Évangélique La Conquête
+
+   Les étapes sont des fonctions de rendu, pas des composants imbriqués :
+   déclarées en composants, elles changeaient d'identité à chaque frappe,
+   React remontait le champ et l'autoFocus du nom reprenait la main
+   (impossible de taper un numéro de téléphone).
    ═══════════════════════════════════════════════════════════════════ */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
@@ -17,34 +22,28 @@ import {
 } from '../../lib/icons';
 import type { LucideIcon } from '../../lib/icons';
 
-/* ═══════════════════════════════════════════════════════════════════
-   Main Component
-   ═══════════════════════════════════════════════════════════════════ */
+const TOTAL_STEPS = 4;
+
 export function OnboardingFlow() {
   const { profile, user, refreshProfile } = useAuth();
   const { addToast } = useToast();
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  /* ── Step state ─────────────────────────────────────────────── */
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ── Step 1 : Profile ──────────────────────────────────────── */
   const [firstName, setFirstName] = useState('');
   const [phone, setPhone] = useState('');
   const [gender, setGender] = useState<'homme' | 'femme' | ''>('');
 
-  /* ── Step 2 : Church status ────────────────────────────────── */
   const [churchStatus, setChurchStatus] = useState<
     'member' | 'visitor' | 'seeker' | ''
   >('');
 
-  /* ── Step 3 : Prayer ───────────────────────────────────────── */
   const [prayerContent, setPrayerContent] = useState('');
   const [isConfidential, setIsConfidential] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
 
-  /* ── Profile completeness detection ──────────────────────── */
   const profileComplete = !!(
     profile?.full_name?.trim() &&
     profile?.phone?.trim() &&
@@ -56,7 +55,6 @@ export function OnboardingFlow() {
     profile?.gender
   );
 
-  /* ── Pre-fill from profile & skip duplicated steps ─────────── */
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -67,13 +65,9 @@ export function OnboardingFlow() {
     if (knownStatus) setChurchStatus(knownStatus);
 
     if (profileComplete) {
-      // Profil déjà renseigné : il ne reste que le statut puis la prière.
       setStep(knownStatus ? 3 : 2);
     } else {
-      // Pre-fill whatever is available
-      if (profile.full_name) {
-        setFirstName(profile.full_name.trim());
-      }
+      if (profile.full_name) setFirstName(profile.full_name.trim());
       if (profile.phone) setPhone(profile.phone);
       if (profile.gender === 'homme' || profile.gender === 'femme') {
         setGender(profile.gender);
@@ -81,29 +75,18 @@ export function OnboardingFlow() {
     }
   }, [profile, profileComplete]);
 
-  /* ── Progress bar ──────────────────────────────────────────── */
-  const totalTransitions = 4;
-  const progress = Math.min((step / totalTransitions) * 100, 100);
+  const progress = Math.min((step / TOTAL_STEPS) * 100, 100);
 
-  /* ── Scroll to top on step change ──────────────────────────── */
   useEffect(() => {
     overlayRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [step]);
 
-  /* ── Navigation ────────────────────────────────────────────── */
-  const goNext = () => {
-    setStep((s) => Math.min(s + 1, 3));
-  };
+  const goNext = () => setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
+  const goBack = () => setStep((s) => Math.max(s - 1, 0));
 
-  const goBack = () => {
-    setStep((s) => Math.max(s - 1, 0));
-  };
-
-  /* ── Submit all data (step 4 → step 5) ────────────────────── */
   const handleSubmit = useCallback(async () => {
     setSubmitting(true);
     try {
-      // 1. Update profile
       if (firstName.trim()) {
         await db.updateProfile({
           full_name: firstName.trim(),
@@ -117,12 +100,11 @@ export function OnboardingFlow() {
         } catch { /* migration 25 pas encore exécutée */ }
       }
 
-      // 2. Le département se choisit ensuite depuis le tableau de bord.
+      // Le département se choisit ensuite depuis le tableau de bord.
       if (churchStatus === 'member') {
         await db.requestRoleUpgrade('member');
       }
 
-      // 3. Save onboarding answers for admin visibility
       try {
         await supabase.from('onboarding_answers').insert({
           user_id: user?.id,
@@ -139,7 +121,6 @@ export function OnboardingFlow() {
         // Non-critical: onboarding_answers table might not exist yet
       }
 
-      // 4. Seeker auto-prayer
       if (churchStatus === 'seeker') {
         await db.submitPrayerRequest(
           "Nouveau visiteur souhaitant en savoir plus sur l'église et la vie de foi.",
@@ -148,7 +129,6 @@ export function OnboardingFlow() {
         );
       }
 
-      // 5. Custom prayer request
       if (prayerContent.trim()) {
         await db.submitPrayerRequest(
           prayerContent.trim(),
@@ -178,7 +158,6 @@ export function OnboardingFlow() {
     user?.id,
   ]);
 
-  /* ── Finish onboarding (step 5) ────────────────────────────── */
   const handleFinish = useCallback(async () => {
     try {
       await db.completeOnboarding();
@@ -188,142 +167,70 @@ export function OnboardingFlow() {
     }
   }, [refreshProfile, addToast]);
 
-  /* ── Step dots ─────────────────────────────────────────────── */
-  const dotCount = 5;
-  const activeDot = step;
-
   /* ═════════════════════════════════════════════════════════════
-     Render
+     Étape 0 — Bienvenue
      ═════════════════════════════════════════════════════════════ */
-  return (
-    <div
-      ref={overlayRef}
-      className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-ink-950/[0.98]"
-    >
-      {/* ── Keyframe definitions ─────────────────────────────── */}
-      <style>{`
-        @keyframes onboard-drawCircle {
-          from { stroke-dashoffset: 264; }
-          to   { stroke-dashoffset: 0; }
-        }
-        @keyframes onboard-drawCheck {
-          from { stroke-dashoffset: 55; }
-          to   { stroke-dashoffset: 0; }
-        }
-        @keyframes onboard-scaleUp {
-          from { transform: scale(0.8); opacity: 0; }
-          to   { transform: scale(1);   opacity: 1; }
-        }
-      `}</style>
-
-      {/* ── Progress bar ─────────────────────────────────────── */}
-      <div className="sticky top-0 z-10 h-1 bg-ink-900">
-        <div
-          className="h-full bg-gradient-to-r from-accent-600 to-evangile-600 transition-all duration-700 ease-out"
-          style={{ width: `${progress}%` }}
-        />
+  const renderWelcome = () => (
+    <div className="flex flex-col items-center gap-6 py-10 text-center">
+      <img
+        src="/logo-conquete-circle.jpg"
+        alt=""
+        className="h-20 w-20 border border-line object-cover"
+      />
+      <div>
+        <p className="section-eyebrow">Bienvenue</p>
+        <h1 className="mt-3 font-hero text-[clamp(2rem,5vw,3rem)] uppercase leading-[0.95] tracking-[0.02em] text-cream">
+          Dans la famille
+        </h1>
       </div>
-
-      {/* ── Main content ─────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center px-4 py-10 sm:py-16">
-        <div className="w-full max-w-2xl" key={step}>
-          <div className="animate-fade-up">
-            {step === 0 && <StepWelcome />}
-            {step === 1 && <StepProfile />}
-            {step === 2 && <StepStatus />}
-            {step === 3 && <StepPrayer />}
-            {step === 4 && <StepComplete />}
-          </div>
-        </div>
-      </div>
-
-      {/* ── Step dots ────────────────────────────────────────── */}
-      {step < 4 && (
-        <div className="flex items-center justify-center gap-2 pb-8">
-          {Array.from({ length: dotCount }, (_, i) => (
-            <div
-              key={i}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                i === activeDot
-                  ? 'w-6 bg-evangile-600'
-                  : i < activeDot
-                    ? 'w-1.5 bg-evangile-600/60'
-                    : 'w-1.5 bg-cream/15'
-              }`}
-            />
-          ))}
-        </div>
-      )}
+      <p className="max-w-sm text-sm leading-relaxed text-muted">
+        Quelques questions pour mieux vous connaître et personnaliser votre
+        expérience.
+      </p>
+      <button type="button" onClick={goNext} className="btn-primary mt-2">
+        Commencer
+        <ArrowRight className="h-4 w-4" />
+      </button>
+      <p className="text-[10px] uppercase tracking-[0.18em] text-muted/70">
+        Église Évangélique La Conquête
+      </p>
     </div>
   );
 
   /* ═════════════════════════════════════════════════════════════
-     Step 0 — Welcome
+     Étape 1 — Profil
      ═════════════════════════════════════════════════════════════ */
-  function StepWelcome() {
-    return (
-      <div className="relative flex flex-col items-center text-center gap-6">
-        {/* Decorative radial glow */}
-        <div className="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2 w-72 h-72 bg-radial-primary rounded-full opacity-80" />
-
-        <div className="relative">
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-semibold gold-text leading-tight">
-            Bienvenue dans la famille !
-          </h1>
-        </div>
-
-        <p className="relative text-muted text-base sm:text-lg max-w-md leading-relaxed">
-          Quelques questions pour mieux vous connaître et personnaliser votre
-          expérience.
-        </p>
-
-        <div className="relative flex flex-col items-center gap-4 mt-4">
-          <button onClick={goNext} className="btn-gold animate-pulse-gold text-base px-10 py-4">
-            <Sparkles className="w-5 h-5" />
-            Commencer
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  /* ═════════════════════════════════════════════════════════════
-     Step 1 — Basic Profile
-     ═════════════════════════════════════════════════════════════ */
-  function StepProfile() {
+  const renderProfile = () => {
     const phoneDigits = phone.replace(/\D/g, '');
     const phoneValid = phoneDigits.length >= 9;
 
     return (
-      <div className="glass rounded-2xl p-6 sm:p-10 max-w-lg mx-auto">
-        <div className="mb-8">
-          <span className="section-label">Profil</span>
-          <h2 className="font-serif text-2xl sm:text-3xl text-cream mt-3">
-            Parlons de vous
-          </h2>
-          <p className="text-muted text-sm mt-2">
-            Ces informations nous aident à vous accueillir au mieux.
-          </p>
-        </div>
+      <div className="border border-line bg-bg-card p-6 sm:p-9">
+        <p className="section-eyebrow">Profil</p>
+        <h2 className="mt-3 font-hero text-[clamp(1.6rem,4vw,2.25rem)] uppercase leading-[0.98] text-cream">
+          Parlons de vous
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Ces informations nous aident à vous accueillir au mieux.
+        </p>
 
-        {/* Indicateur « déjà rempli » */}
         {hasPartialProfileData && (
-          <div className="flex items-start gap-3 rounded-xl bg-accent-400/5 border border-accent-400/20 px-4 py-3 mb-2">
-            <CheckCircle2 className="w-5 h-5 text-accent-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-accent-400/80 leading-relaxed">
+          <div className="mt-5 flex items-start gap-3 border border-line bg-bg px-4 py-3">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-evangile-500" />
+            <p className="text-xs leading-relaxed text-muted">
               Ces informations ont été renseignées lors de votre inscription.
               Vous pouvez les modifier si besoin.
             </p>
           </div>
         )}
 
-        <div className="space-y-5">
-          {/* Nom complet */}
+        <div className="mt-6 space-y-5">
           <div>
-            <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Nom complet <span className="text-accent-400">*</span>
+            <label htmlFor="onboarding-name" className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+              Nom complet <span className="text-evangile-500">*</span>
             </label>
             <input
+              id="onboarding-name"
               type="text"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
@@ -333,43 +240,44 @@ export function OnboardingFlow() {
             />
           </div>
 
-          {/* Téléphone — obligatoire */}
           <div>
-            <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Téléphone <span className="text-accent-400">*</span>
+            <label htmlFor="onboarding-phone" className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+              Téléphone <span className="text-evangile-500">*</span>
             </label>
             <input
+              id="onboarding-phone"
               type="tel"
+              inputMode="tel"
+              autoComplete="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               placeholder="+243 000 000 000"
               className="input-surface w-full px-4 py-3 text-sm"
             />
-            <p className={`text-xs mt-2 ${phoneValid ? 'text-muted' : 'text-amber-400'}`}>
+            <p className={`mt-2 text-xs ${phoneValid ? 'text-muted' : 'text-amber-500'}`}>
               {phoneValid
                 ? 'Ce numéro servira à vous joindre et à vous connecter.'
                 : 'Obligatoire : au moins 9 chiffres.'}
             </p>
           </div>
 
-          {/* Genre */}
           <div>
-            <label className="block text-sm text-cream/80 mb-3 font-medium">
+            <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-muted">
               Genre
-            </label>
-            <div className="flex gap-3">
+            </span>
+            <div className="grid grid-cols-2 gap-3">
               {(['homme', 'femme'] as const).map((g) => (
                 <button
                   key={g}
                   type="button"
                   onClick={() => setGender(g)}
-                  className={`flex-1 py-3 px-4 rounded-xl text-sm font-medium transition-all duration-300 border ${
+                  className={`border px-4 py-3 text-sm font-medium transition-colors ${
                     gender === g
-                      ? 'bg-accent-400/15 border-accent-400/50 text-accent-400'
-                      : 'bg-ink-900/50 border-line text-muted hover:border-accent-400/30'
+                      ? 'border-evangile-600/60 bg-evangile-600/[0.07] text-cream'
+                      : 'border-line bg-bg text-muted hover:border-evangile-600/40'
                   }`}
                 >
-                  {g === 'homme' ? '\u{1F468} Homme' : '\u{1F469} Femme'}
+                  {g === 'homme' ? 'Homme' : 'Femme'}
                 </button>
               ))}
             </div>
@@ -378,22 +286,23 @@ export function OnboardingFlow() {
 
         <div className="mt-8 flex justify-end">
           <button
+            type="button"
             onClick={goNext}
             disabled={!firstName.trim() || !phoneValid}
-            className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none disabled:animate-none"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             Suivant
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
     );
-  }
+  };
 
   /* ═════════════════════════════════════════════════════════════
-     Step 2 — Church Status
+     Étape 2 — Situation
      ═════════════════════════════════════════════════════════════ */
-  function StepStatus() {
+  const renderStatus = () => {
     const options: {
       value: 'member' | 'visitor' | 'seeker';
       label: string;
@@ -421,18 +330,16 @@ export function OnboardingFlow() {
     ];
 
     return (
-      <div className="max-w-lg mx-auto">
-        <div className="text-center mb-8">
-          <span className="section-label">Statut</span>
-          <h2 className="font-serif text-2xl sm:text-3xl text-cream mt-3">
-            Votre situation
-          </h2>
-          <p className="text-muted text-sm mt-2">
-            Comment décririez-vous votre relation avec l'église ?
-          </p>
-        </div>
+      <div>
+        <p className="section-eyebrow">Statut</p>
+        <h2 className="mt-3 font-hero text-[clamp(1.6rem,4vw,2.25rem)] uppercase leading-[0.98] text-cream">
+          Votre situation
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Comment décririez-vous votre relation avec l’église ?
+        </p>
 
-        <div className="space-y-3">
+        <div className="mt-6 space-y-3">
           {options.map(({ value, label, desc, Icon }) => {
             const selected = churchStatus === value;
             return (
@@ -440,240 +347,246 @@ export function OnboardingFlow() {
                 key={value}
                 type="button"
                 onClick={() => setChurchStatus(value)}
-                className={`w-full glass rounded-xl p-4 sm:p-5 text-left transition-all duration-300 flex items-start gap-4 group ${
+                className={`flex w-full items-start gap-4 border p-4 text-left transition-colors sm:p-5 ${
                   selected
-                    ? 'border-evangile-600/60 bg-accent-400/5 shadow-lg shadow-accent-500/5'
-                    : 'hover:border-accent-400/30'
+                    ? 'border-evangile-600/60 bg-evangile-600/[0.06]'
+                    : 'border-line bg-bg-card hover:border-evangile-600/40'
                 }`}
               >
-                <div
-                  className={`shrink-0 w-11 h-11 rounded-lg flex items-center justify-center transition-colors duration-300 ${
+                <span
+                  className={`grid h-10 w-10 shrink-0 place-items-center border ${
                     selected
-                      ? 'bg-accent-400/20 text-accent-400'
-                      : 'bg-ink-800 text-muted group-hover:text-accent-400'
+                      ? 'border-evangile-600/40 text-evangile-500'
+                      : 'border-line text-muted'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-cream font-medium text-sm sm:text-base">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-medium text-cream sm:text-base">
                     {label}
-                  </div>
-                  <div className="text-muted text-xs sm:text-sm mt-0.5">
+                  </span>
+                  <span className="mt-0.5 block text-xs text-muted sm:text-sm">
                     {desc}
-                  </div>
-                </div>
+                  </span>
+                </span>
                 {selected && (
-                  <CheckCircle2 className="w-5 h-5 text-accent-400 shrink-0 mt-0.5" />
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-evangile-500" />
                 )}
               </button>
             );
           })}
         </div>
 
-        <div className="mt-8 flex justify-between">
-          <button
-            onClick={goBack}
-            className="btn-ghost text-sm px-5 py-2.5"
-          >
-            <ChevronLeft className="w-4 h-4" />
+        <div className="mt-8 flex items-center justify-between">
+          <button type="button" onClick={goBack} className="btn-ghost text-sm">
+            <ChevronLeft className="h-4 w-4" />
             Retour
           </button>
           <button
+            type="button"
             onClick={goNext}
             disabled={!churchStatus}
-            className="btn-gold disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-40"
           >
             Suivant
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="h-4 w-4" />
           </button>
         </div>
       </div>
     );
-  }
+  };
 
   /* ═════════════════════════════════════════════════════════════
-     Step 3 — Prayer & Preferences
+     Étape 3 — Prière
      ═════════════════════════════════════════════════════════════ */
-  function StepPrayer() {
-    return (
-      <div className="glass rounded-2xl p-6 sm:p-10 max-w-lg mx-auto">
-        <div className="mb-8">
-          <span className="section-label">Prière</span>
-          <h2 className="font-serif text-2xl sm:text-3xl text-cream mt-3">
-            Demande de prière
-          </h2>
-          <p className="text-muted text-sm mt-2">
-            Notre communauté est là pour vous accompagner dans la prière.
-          </p>
+  const renderPrayer = () => (
+    <div className="border border-line bg-bg-card p-6 sm:p-9">
+      <p className="section-eyebrow">Prière</p>
+      <h2 className="mt-3 font-hero text-[clamp(1.6rem,4vw,2.25rem)] uppercase leading-[0.98] text-cream">
+        Demande de prière
+      </h2>
+      <p className="mt-2 text-sm text-muted">
+        Notre communauté est là pour vous accompagner dans la prière.
+      </p>
+
+      <div className="mt-6 space-y-5">
+        <div>
+          <label htmlFor="onboarding-prayer" className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-muted">
+            Avez-vous une demande de prière ?{' '}
+            <span className="font-normal normal-case tracking-normal text-muted/70">
+              (optionnel)
+            </span>
+          </label>
+          <textarea
+            id="onboarding-prayer"
+            value={prayerContent}
+            onChange={(e) => setPrayerContent(e.target.value)}
+            placeholder="Partagez votre demande de prière ici…"
+            rows={4}
+            className="input-surface w-full resize-none px-4 py-3 text-sm"
+          />
         </div>
 
-        <div className="space-y-6">
-          {/* Prayer textarea */}
-          <div>
-            <label className="block text-sm text-cream/80 mb-2 font-medium">
-              Avez-vous une demande de prière ?{' '}
-              <span className="text-muted font-normal">(optionnel)</span>
-            </label>
-            <textarea
-              value={prayerContent}
-              onChange={(e) => setPrayerContent(e.target.value)}
-              placeholder="Partagez votre demande de prière ici..."
-              rows={4}
-              className="input-surface w-full px-4 py-3 text-sm resize-none"
-            />
-          </div>
-
-          {/* Checkboxes */}
-          <div className="space-y-4">
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative mt-0.5 shrink-0">
+        <div className="space-y-3">
+          {[
+            {
+              checked: isConfidential,
+              onChange: setIsConfidential,
+              label: 'Rendre ma demande confidentielle (seul le pasteur verra)',
+            },
+            {
+              checked: isAnonymous,
+              onChange: setIsAnonymous,
+              label: 'Masquer mon nom (demande anonyme)',
+            },
+          ].map(({ checked, onChange, label }) => (
+            <label key={label} className="flex cursor-pointer items-start gap-3">
+              <span className="relative mt-0.5 shrink-0">
                 <input
                   type="checkbox"
-                  checked={isConfidential}
-                  onChange={(e) => setIsConfidential(e.target.checked)}
+                  checked={checked}
+                  onChange={(e) => onChange(e.target.checked)}
                   className="peer sr-only"
                 />
-                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-accent-400/20 peer-checked:border-accent-400/50 transition-all duration-200">
-                  <Check className="w-3 h-3 text-accent-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
-                </div>
-              </div>
-              <span className="text-sm text-muted group-hover:text-cream/80 transition-colors leading-relaxed">
-                Rendre ma demande confidentielle (seul le pasteur verra)
+                <span className="grid h-5 w-5 place-items-center border border-line bg-bg transition-colors peer-checked:border-evangile-600/60 peer-checked:bg-evangile-600/10">
+                  <Check className="h-3 w-3 text-evangile-500 opacity-0 transition-opacity peer-checked:opacity-100" />
+                </span>
               </span>
+              <span className="text-sm leading-relaxed text-muted">{label}</span>
             </label>
-
-            <label className="flex items-start gap-3 cursor-pointer group">
-              <div className="relative mt-0.5 shrink-0">
-                <input
-                  type="checkbox"
-                  checked={isAnonymous}
-                  onChange={(e) => setIsAnonymous(e.target.checked)}
-                  className="peer sr-only"
-                />
-                <div className="w-5 h-5 rounded-md border border-line bg-ink-900/60 flex items-center justify-center peer-checked:bg-accent-400/20 peer-checked:border-accent-400/50 transition-all duration-200">
-                  <Check className="w-3 h-3 text-accent-400 opacity-0 peer-checked:opacity-100 transition-opacity" />
-                </div>
-              </div>
-              <span className="text-sm text-muted group-hover:text-cream/80 transition-colors leading-relaxed">
-                Masquer mon nom (demande anonyme)
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div className="mt-8 flex justify-between">
-          <button
-            onClick={goBack}
-            className="btn-ghost text-sm px-5 py-2.5"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Retour
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="btn-gold disabled:opacity-60"
-          >
-            {submitting ? (
-              <>
-                <span className="w-4 h-4 border-2 border-ink-950/30 border-t-ink-950 rounded-full animate-spin" />
-                Enregistrement...
-              </>
-            ) : (
-              <>
-                Terminer
-                <Check className="w-4 h-4" />
-              </>
-            )}
-          </button>
+          ))}
         </div>
       </div>
-    );
-  }
 
-  /* ═════════════════════════════════════════════════════════════
-     Step 4 — Completion
-     ═════════════════════════════════════════════════════════════ */
-  function StepComplete() {
-    return (
-      <div className="flex flex-col items-center text-center gap-6">
-        {/* Animated checkmark */}
-        <div
-          className="w-24 h-24 rounded-full flex items-center justify-center"
-          style={{ animation: 'onboard-scaleUp 0.5s ease-out forwards' }}
-        >
-          <svg
-            width="96"
-            height="96"
-            viewBox="0 0 96 96"
-            className="drop-shadow-lg"
-          >
-            <circle
-              cx="48"
-              cy="48"
-              r="42"
-              fill="none"
-              stroke="url(#onboardGoldGrad)"
-              strokeWidth="2.5"
-              strokeDasharray="264"
-              style={{
-                animation: 'onboard-drawCircle 0.8s ease-out forwards',
-              }}
-            />
-            <path
-              d="M30 50 L42 62 L66 34"
-              fill="none"
-              stroke="#E3221F"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeDasharray="55"
-              style={{
-                animation: 'onboard-drawCheck 0.5s ease-out 0.6s forwards',
-              }}
-            />
-            <defs>
-              <linearGradient
-                id="onboardGoldGrad"
-                x1="0%"
-                y1="0%"
-                x2="100%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="#f87171" />
-                <stop offset="50%" stopColor="#E3221F" />
-                <stop offset="100%" stopColor="#c91916" />
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-
-        <h2 className="font-serif text-3xl sm:text-4xl gold-text font-semibold">
-          Votre profil est prêt !
-        </h2>
-
-        <p className="text-muted text-base max-w-md leading-relaxed">
-          {churchStatus === 'member'
-            ? 'Bienvenue parmi les membres ! Vous pourrez choisir votre département depuis votre tableau de bord.'
-            : 'Bienvenue parmi nous ! Nous sommes heureux de vous compter dans notre communauté.'}
-        </p>
-
-        {churchStatus === 'seeker' && (
-          <p className="text-muted/70 text-sm max-w-sm">
-            Votre demande d'information a été transmise à notre équipe
-            pastorale. Quelqu'un vous contactera bientôt.
-          </p>
-        )}
-
+      <div className="mt-8 flex items-center justify-between">
+        <button type="button" onClick={goBack} className="btn-ghost text-sm">
+          <ChevronLeft className="h-4 w-4" />
+          Retour
+        </button>
         <button
-          onClick={handleFinish}
-          className="btn-gold mt-4 text-base px-10 py-4"
+          type="button"
+          onClick={handleSubmit}
+          disabled={submitting}
+          className="btn-primary disabled:opacity-60"
         >
-          Accéder au site
-          <ArrowRight className="w-5 h-5" />
+          {submitting ? (
+            <>
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              Enregistrement…
+            </>
+          ) : (
+            <>
+              Terminer
+              <Check className="h-4 w-4" />
+            </>
+          )}
         </button>
       </div>
-    );
-  }
+    </div>
+  );
+
+  /* ═════════════════════════════════════════════════════════════
+     Étape 4 — Confirmation
+     ═════════════════════════════════════════════════════════════ */
+  const renderComplete = () => (
+    <div className="flex flex-col items-center gap-6 py-8 text-center">
+      <div className="grid h-20 w-20 place-items-center border border-line bg-bg-card">
+        <CheckCircle2 className="h-9 w-9 text-evangile-500" />
+      </div>
+
+      <div>
+        <p className="section-eyebrow">Profil enregistré</p>
+        <h2 className="mt-3 font-hero text-[clamp(1.8rem,4.5vw,2.6rem)] uppercase leading-[0.96] text-cream">
+          Votre profil est prêt
+        </h2>
+      </div>
+
+      <p className="max-w-md text-sm leading-relaxed text-muted">
+        {churchStatus === 'member'
+          ? 'Bienvenue parmi les membres. Vous pourrez choisir votre département depuis votre tableau de bord.'
+          : 'Bienvenue parmi nous. Nous sommes heureux de vous compter dans notre communauté.'}
+      </p>
+
+      {churchStatus === 'seeker' && (
+        <p className="max-w-sm text-xs leading-relaxed text-muted/80">
+          Votre demande d’information a été transmise à notre équipe pastorale.
+          Quelqu’un vous contactera bientôt.
+        </p>
+      )}
+
+      <button type="button" onClick={handleFinish} className="btn-primary mt-2">
+        Accéder au site
+        <ArrowRight className="h-4 w-4" />
+      </button>
+    </div>
+  );
+
+  /* ═════════════════════════════════════════════════════════════
+     Rendu
+     ═════════════════════════════════════════════════════════════ */
+  return (
+    <div
+      ref={overlayRef}
+      className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-bg"
+    >
+      <header className="sticky top-0 z-10 border-b border-line bg-bg/95 backdrop-blur">
+        <div className="mx-auto flex max-w-3xl items-center gap-3 px-4 py-4 sm:px-6">
+          <img
+            src="/logo-conquete-circle.jpg"
+            alt=""
+            className="h-9 w-9 border border-line object-cover"
+          />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[11px] font-semibold uppercase tracking-[0.22em] text-cream">
+              La Conquête
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-muted">
+              Création du profil
+            </p>
+          </div>
+          {step < TOTAL_STEPS && (
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted">
+              {step + 1} / {TOTAL_STEPS}
+            </span>
+          )}
+        </div>
+        <div className="h-[3px] w-full bg-line/30">
+          <div
+            className="h-full bg-evangile-600 transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </header>
+
+      <main className="flex flex-1 items-start justify-center px-4 py-10 sm:px-6 sm:py-14">
+        <div className="w-full max-w-xl">
+          <div key={step} className="animate-fade-up">
+            {step === 0 && renderWelcome()}
+            {step === 1 && renderProfile()}
+            {step === 2 && renderStatus()}
+            {step === 3 && renderPrayer()}
+            {step === 4 && renderComplete()}
+          </div>
+        </div>
+      </main>
+
+      {step < 4 && (
+        <div className="flex items-center justify-center gap-2 pb-8">
+          {Array.from({ length: TOTAL_STEPS }, (_, i) => (
+            <span
+              key={i}
+              className={`h-1 transition-all duration-500 ${
+                i === step
+                  ? 'w-6 bg-evangile-600'
+                  : i < step
+                    ? 'w-2 bg-evangile-600/60'
+                    : 'w-2 bg-cream/15'
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
