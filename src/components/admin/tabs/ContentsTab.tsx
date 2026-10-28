@@ -3,6 +3,7 @@ import { supabase } from '../../../lib/supabase';
 import { useToast } from '../../../contexts/ToastContext';
 import { useAdminAccess } from '../../../contexts/AdminAccessContext';
 import ImageUpload from '../ImageUpload';
+import { ImageListField } from '../ImageListField';
 import {
   Save, Plus, Trash2, X, ChevronRight,
   Loader2, Home, Info, Flame, Compass, Quote, Users,
@@ -1246,6 +1247,18 @@ export function ContentsTab() {
             {enabled ? 'Affiché sur le site' : 'Masqué'}
           </span>
         </button>
+      );
+    }
+
+    // Liste de photos du diaporama : on ajoute ou retire une entrée, la liste
+    // existante n'est jamais réécrite d'un bloc.
+    if (item.field_key === 'bg_images') {
+      return (
+        <ImageListField
+          value={val}
+          onChange={(v) => handleValueChange(item.id, v)}
+          folder={`${activePage}/${item.section_key}`}
+        />
       );
     }
 
